@@ -88,7 +88,7 @@ static position_t actual_parameters_construction_pos;
    Its value is flag of variable number parameters (usage of ...). */
 static int formal_parameter_args_flag;
 
-static const char *get_full_file_and_encoding_name (const char *fname,
+static const char *get_full_file_and_encoding_name (IR_node_t fname,
 						    const char **encoding);
 
 static IR_node_t get_new_ident (position_t);
@@ -98,7 +98,7 @@ static void finish_scanner_file (void);
 
 static void start_block (void);
 static void finish_block (void);
-static int add_include_file (const char *name);
+static int add_include_file (IR_node_t fname);
 
 static int repl_can_process_p (void);
 
@@ -1107,8 +1107,7 @@ declaration : access VAL {$<access>$ = $1;} set_flag
             | INCLUDE STRING {$<flag>$ = $<flag>0;} end_simple_stmt
                 {
 		  $<pointer>$ = $2;
-                  if (add_include_file (IR_string_value
-					(IR_unique_string ($2))))
+                  if (add_include_file ($2))
                     add_lexema_to_file (INCLUSION);
                 }
               inclusion
@@ -1118,7 +1117,7 @@ declaration : access VAL {$<access>$ = $1;} set_flag
             | INCLUDE '+' STRING {$<flag>$ = $<flag>0;} end_simple_stmt
                 {
 		  $<pointer>$ = $3;
-                  add_include_file (IR_string_value (IR_unique_string ($3)));
+                  add_include_file ($3);
 		  add_lexema_to_file (INCLUSION);
                 }
               inclusion
@@ -1199,9 +1198,7 @@ inclusion :   {$$ = NULL;}
               {
 		const char *fname, *encoding;
 
-		fname = get_full_file_and_encoding_name (IR_string_value
-							 (IR_unique_string
-							  ($<pointer>0)),
+		fname = get_full_file_and_encoding_name ($<pointer>0,
 							 &encoding);
                 start_scanner_file (fname, encoding,
 				    IR_pos ($<pointer>0));
@@ -1404,8 +1401,9 @@ program :   {
         ;
 %%
 
-/* Container used temporary by the scanner.  */
+/* Containers used temporary by the scanner.  */
 static vlo_t temp_scanner_vlo;
+static vlo_t temp_scanner_vlo2;
 
 /* True if we did not print syntax error yet.  We can not leave
    yyparse by longjmp as we need to finalize some data.  We leave
@@ -2124,7 +2122,7 @@ canonical_path_name (const char *name)
 static int
 skip_spaces (const char *str, size_t from)
 {
-  for (; isspace (str[from]);from++)
+  for (; isspace_ascii (str[from]);from++)
     ;
   return from;
 }
@@ -2156,7 +2154,7 @@ find_encoding (char *ln)
 	  }
          start = i = skip_spaces (ln, i + len);
          for (; ln[i] != 0; i++)
-	   if (! isalpha (ln[i]) && ! isdigit (ln[i])
+	   if (! isalpha_ascii (ln[i]) && ! isdigit_ascii (ln[i])
 	       && ln[i] != '-' && ln[i] != '_'
 	       && ln[i] != '/' && ln[i] != '.' && ln[i] != ':')
 	     break;
@@ -2218,17 +2216,55 @@ read_file_encoding (FILE *f)
    file encoding through ENCODING if it can read encoing name in the
    file, or NULL otherwise. */
 static const char *
-get_full_file_and_encoding_name (const char *fname, const char **encoding)
+get_full_file_and_encoding_name (IR_node_t ir_fname, const char **encoding)
 {
+  const char *fname;
   const char *curr_directory_name;
   const char *real_file_name;
   const char *file_name;
   const char **path_directory_ptr;
+  size_t i, len;
   FILE *curr_file;
 
   curr_directory_name
     = (*curr_istream_state.file_name == '\0'
        ? "" : file_dir_name (curr_istream_state.file_name));
+  VLO_NULLIFY (temp_scanner_vlo);
+  VLO_NULLIFY (temp_scanner_vlo2);
+  if (IR_IS_OF_TYPE (ir_fname, IR_NM_string))
+    {
+      VLO_ADD_STRING (temp_scanner_vlo2,
+		      IR_string_value (IR_unique_string (ir_fname)));
+      fname = encode_byte_str_vlo (VLO_BEGIN (temp_scanner_vlo2),
+				   curr_byte_cd, &temp_scanner_vlo, &len);
+      /* Check NULL bytes:  */
+      for (i = 0; i < len && fname[i] != 0; i++)
+	;
+      if (i < len)
+	fname = NULL;
+    }
+  else if (curr_ucode_cd != NO_CONV_DESC) /* ucodestr */
+    {
+      ucodestr_t ustr = IR_ucodestr_value (IR_unique_ucodestr (ir_fname));
+      
+      for (len = 0; ustr[len] != 0; len++)
+	;
+      VLO_ADD_MEMORY (temp_scanner_vlo2,
+		      IR_ucodestr_value (IR_unique_ucodestr (ir_fname)),
+		      sizeof (ucode_t) * (len + 1));
+      fname = encode_ucode_str_vlo (VLO_BEGIN (temp_scanner_vlo2),
+				    curr_ucode_cd, &temp_scanner_vlo, &len);
+      for (i = 0; i < len && fname[i] != 0; i++)
+	;
+      if (i < len)
+	fname = NULL;
+    }
+  else
+    fname = encode_ucode_str_to_raw_vlo (IR_ucodestr_value (IR_unique_ucodestr (ir_fname)),
+					 &temp_scanner_vlo);
+  if (fname == NULL)
+    error (TRUE, IR_pos (ir_fname),
+	   ERR_file_name_cannot_represented_in_current_encoding);
   real_file_name = file_path_name (curr_directory_name, fname,
                                    STANDARD_INPUT_FILE_SUFFIX);
   curr_file = fopen (real_file_name, "rb");
@@ -3055,7 +3091,7 @@ yylex (void)
             return STRING;
           }
         default:
-          if (isalpha (input_char) || input_char == '_' )
+          if (isalpha_ascii (input_char) || input_char == '_' )
             {
               int keyword;
               
@@ -3067,7 +3103,7 @@ yylex (void)
                   VLO_ADD_BYTE (symbol_text, input_char);
                   input_char = d_getc ();
                 }
-              while (isalpha (input_char) || isdigit (input_char)
+              while (isalpha_ascii (input_char) || isdigit_ascii (input_char)
                      || input_char == '_');
               d_ungetc (input_char);
               VLO_ADD_BYTE (symbol_text, '\0');
@@ -3087,7 +3123,7 @@ yylex (void)
                   return IDENT;
                 }
             }
-          else if (isdigit (input_char))
+          else if (isdigit_ascii (input_char))
             {
               /* Recognition numbers. */
 	      enum read_number_code err_code;
@@ -3190,6 +3226,7 @@ initiate_scanner (void)
   environment = ENVIRONMENT;
   VLO_CREATE (symbol_text, 500);
   VLO_CREATE (temp_scanner_vlo, 500);
+  VLO_CREATE (temp_scanner_vlo2, 500);
 }
 
 /* The following function is called to tune the scanner on input
@@ -3236,6 +3273,7 @@ finish_scanner (void)
 {
   VLO_DELETE (symbol_text);
   VLO_DELETE (temp_scanner_vlo);
+  VLO_DELETE (temp_scanner_vlo2);
   if (repl_flag)
     finish_lines ();
   finish_istream_stack ();
@@ -3297,13 +3335,14 @@ finish_block (void)
    into the list yet.  Otherwise it returns FALSE.  NAME is string in
    the include-clase. */
 static int
-add_include_file (const char *name)
+add_include_file (IR_node_t fname)
 {
+  const char *name;
   char **names;
   int i;
 
   d_assert (block_level > 0);
-  name = get_full_file_and_encoding_name (name, NULL);
+  name = get_full_file_and_encoding_name (fname, NULL);
   names = (char **) ((char *) VLO_END (include_file_names) + 1
 		     - sizeof (char *) * curr_block_include_file_names_number);
   for (i = 0; i < curr_block_include_file_names_number; i++)

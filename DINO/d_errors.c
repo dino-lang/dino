@@ -38,6 +38,8 @@ char ERR_non_ascii_source_file_encoding[]
   = "encoding `%s' of file `%s' does not contain ascii byte codes";
 char ERR_file_decoding[] = "wrong encoding `%s' in a source file";
 char ERR_line_decoding[] = "wrong encoding `%s' during reading a line";
+char ERR_file_name_cannot_represented_in_current_encoding[]
+  = "can not represent string as file name using current encoding";
 char ERR_invalid_char_constant[] = "invalid character constant";
 char ERR_invalid_escape_code[] = "invalid escape hex or unicode code";
 char ERR_invalid_input_char[] = "invalid symbol";
@@ -398,26 +400,7 @@ char DERR_no_shell []
   = "run time error - no shell found during call of `system'";
 char DERR_other_fail_in_system_call []
   = "run time error - fail during call of `system'";
-char DERR_reg_ebrack []
-  = "run time error - unmatched bracket list operators in regexp";
-char DERR_reg_erange []
-  = "run time error - invalid use of the range operator in regexp";
-char DERR_reg_ectype []
-  = "run time error - unknown character class name in regexp";
-char DERR_reg_eparen []
-  = "run time error - unmatched parenthesis group operators in regexp";
-char DERR_reg_esubreg []
-  = "run time error - invalid back reference to a subexpr. in regexp";
-char DERR_reg_eend []
-  = "run time error - non specific error in regexp";
-char DERR_reg_eescape []
-  = "run time error - invalid escape sequence in regexp";
-char DERR_reg_badpat []
-  = "run time error - invalid  use  of pattern operators in regexp";
-char DERR_reg_esize []
-  = "run time error - too big compiled regular expression";
-char DERR_reg_espace []
-  = "run time error - regexp routines ran out of memory";
+char DERR_regexp [] = "run time Oniguruma error in `%s' - %s";
 char DERR_no_such_external []
   = "run time error - can not find external function %s";
 char DERR_library_close_error []

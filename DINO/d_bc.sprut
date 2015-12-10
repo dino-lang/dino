@@ -322,36 +322,6 @@ extern BC_node_t systemfail_bc_decl;
 #define INVREGEXP_NAME "invregexp"
 extern BC_node_t invregexp_bc_decl;
 
-#define EBRACK_NAME "ebrack"
-extern BC_node_t ebrack_bc_decl;
-
-#define REG_ERANGE_NAME "erange"
-extern BC_node_t reg_erange_bc_decl;
-
-#define ECTYPE_NAME "ectype"
-extern BC_node_t ectype_bc_decl;
-
-#define EPAREN_NAME "eparen"
-extern BC_node_t eparen_bc_decl;
-
-#define ESUBREG_NAME "esubreg"
-extern BC_node_t esubreg_bc_decl;
-
-#define EEND_NAME "eend"
-extern BC_node_t eend_bc_decl;
-
-#define EESCAPE_NAME "eescape"
-extern BC_node_t eescape_bc_decl;
-
-#define BADPAT_NAME "badpat"
-extern BC_node_t badpat_bc_decl;
-
-#define ESIZE_NAME "esize"
-extern BC_node_t esize_bc_decl;
-
-#define ESPACE_NAME "espace"
-extern BC_node_t espace_bc_decl;
-
 #define INVPARSER_NAME "invparser"
 extern BC_node_t invparser_bc_decl;
 
@@ -1567,16 +1537,6 @@ BC_node_t systemcall_bc_decl;
 BC_node_t noshell_bc_decl;
 BC_node_t systemfail_bc_decl;
 BC_node_t invregexp_bc_decl;
-BC_node_t ebrack_bc_decl;
-BC_node_t reg_erange_bc_decl;
-BC_node_t ectype_bc_decl;
-BC_node_t eparen_bc_decl;
-BC_node_t esubreg_bc_decl;
-BC_node_t eend_bc_decl;
-BC_node_t eescape_bc_decl;
-BC_node_t badpat_bc_decl;
-BC_node_t esize_bc_decl;
-BC_node_t espace_bc_decl;
 BC_node_t invparser_bc_decl;
 BC_node_t invgrammar_bc_decl;
 BC_node_t invtoken_bc_decl;
@@ -1826,16 +1786,6 @@ static struct bc_decl_entry bc_decls_table [] =
   {&noshell_bc_decl, NOSHELL_NAME, NULL, NULL},
   {&systemfail_bc_decl, SYSTEMFAIL_NAME, NULL, NULL},
   {&invregexp_bc_decl, INVREGEXP_NAME, NULL, NULL},
-  {&ebrack_bc_decl, EBRACK_NAME, NULL, NULL},
-  {&reg_erange_bc_decl, REG_ERANGE_NAME, NULL, NULL},
-  {&ectype_bc_decl, ECTYPE_NAME, NULL, NULL},
-  {&eparen_bc_decl, EPAREN_NAME, NULL, NULL},
-  {&esubreg_bc_decl, ESUBREG_NAME, NULL, NULL},
-  {&eend_bc_decl, EEND_NAME, NULL, NULL},
-  {&eescape_bc_decl, EESCAPE_NAME, NULL, NULL},
-  {&badpat_bc_decl, BADPAT_NAME, NULL, NULL},
-  {&esize_bc_decl, ESIZE_NAME, NULL, NULL},
-  {&espace_bc_decl, ESPACE_NAME, NULL, NULL},
   {&invparser_bc_decl, INVPARSER_NAME, NULL, NULL},
   {&invgrammar_bc_decl, INVGRAMMAR_NAME, NULL, NULL},
   {&invtoken_bc_decl, INVTOKEN_NAME, NULL, NULL},

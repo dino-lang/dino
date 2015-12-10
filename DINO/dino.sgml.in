@@ -6,7 +6,7 @@
 <title>The Programming Language DINO
 <author>Vladimir Makarov, <tt>vmakarov@gcc.gnu.org</tt>.
 Edited by Serhei Makarov.
-<date>June 2, 2015
+<date>Sep. 5, 2015
 <abstract>
 This document describes the programming language DINO.
 </abstract>
@@ -130,8 +130,8 @@ letters are considered to be distinct.
           1e2
           100.0E+0
 </verb></tscreen>
-     <item>A Dino <em>character constant</em> denotes an ASCII
-        character.  The following sequences starting with the
+     <item>A Dino <em>character constant</em> denotes an Unicode
+        character.  The following sequences starting with the ASCII
         backslash have a special meaning inside a Dino character
         constant:
           <itemize>
@@ -342,19 +342,16 @@ more detail later in the report.
   chumod         clock          close          closure
   cmpv           context        cos            curr_thread
   deadlock       del
-  eaccess        eagain         ebadf          ebrack
-  ebusy
-  echild         ectype         edeadlk        edom
-  eend           eescape        eexist         efault
-  efbig          eintr          einval         eio
-  eisdir         eltype         emfile         emlink
-  enametoolong   enfile         enodev         enoent
-  enoexec        enolck         enomem         enospc
-  enosys         enotdir        enotempty      enotty
-  env            enxio          eof            eparen
-  eperm          epipe          erange         erofs
-  error_anode    error          esize          espace
-  espipe         esrch          esubreg        exdev
+  eaccess        eagain         ebadf          ebusy
+  echild         edeadlk        edom           eexist
+  efault         efbig          eintr          einval
+  eio            eisdir         eltype         emfile
+  emlink         enametoolong   enfile         enodev
+  enoent         enoexec        enolck         enomem
+  enospc         enosys         enotdir        enotempty
+  enotty         env            enxio          eof
+  eperm          epipe          erofs          error_anode
+  error          espipe         esrch          exdev
   except         exit           exp
   fatime         fctime         fget           fgetf
   fgetln         fgmode         fgrpn          file
@@ -2482,36 +2479,9 @@ The following classes are declared in the class <tt>error</tt>:
              that there is not enough memory for internal parser
              data.
            </itemize>
-         <item><tt>invregexp</tt>.  Classes inside this class describe
-           exceptions specific for calling predeclared functions
-           implementing regular expression pattern matching.
-           <itemize>
-           <item><tt>ebrack</tt>.  This class describes the exception
-             that a regular expression has an unmatched bracket.
-           <item><tt>erange</tt>.  This class describes the exception
-             that there is an invalid use of range in regular
-             expression.
-           <item><tt>ectype</tt>.  This class describes the exception
-             that there is an unknown character class name in regular
-             expression.
-           <item><tt>eparen</tt>.  This class describes the exception
-             that a regular expression has an unmatched parenthesis.
-           <item><tt>esubreg</tt>.  This class describes the exception
-             that there is an invalid back reference to a
-             subexpression in a regular expression.
-           <item><tt>eend</tt>.  This class describes the exception
-             that there is a non specific error in regular expression.
-           <item><tt>eescape</tt>.  This class describes the exception
-             that there is a trailing backslash.
-           <item><tt>badpat</tt>.  This class describes the exception
-             that there is invalid use of pattern operators in a
-             regular expression.
-           <item><tt>esize</tt>.  This class describes exception that
-             the compiled regular expression is too big.
-           <item><tt>espace</tt>.  This class describes the exception
-             that there is no memory for a regular expression function
-	     to work.
-           </itemize>
+         <item><tt>invregexp</tt>.  This class describes exceptions
+           specific for calling predeclared functions implementing
+           regular expression pattern matching.
          <item><tt>invextern</tt>.  Classes inside this class describe
            exceptions in calling external functions or in accessing
            an external variable.
@@ -3204,27 +3174,8 @@ There are the following Dino pattern matching functions:
           ["a", "b", "c", "d", "e", "f"]
 </verb></tscreen>
      </itemize>
-If the regular expression is incorrect, the functions generate one of
-the following predeclared exceptions (see predeclared classes):
-     <itemize>
-     <item><tt>ebrack</tt>.  Regular expression has unmatched bracket.
-     <item><tt>invregexps.erange</tt>.  Invalid use of range in regular
-       expression.
-     <item><tt>ectype</tt>.  Unknown character class name in regular
-       expression.
-     <item><tt>eparen</tt>.  Regular expression has unmatched
-       parenthesis.
-     <item><tt>esubreg</tt>.  Invalid back reference to a
-       subexpression in regular expression.
-     <item><tt>eend</tt>.  Non specific error in regular expression.
-     <item><tt>eescape</tt>.  Invalid escape sequence in regular
-       expression.
-     <item><tt>ebadpat</tt>.  Invalid use of pattern operators in
-       regular expression.
-     <item><tt>esize</tt>.  Compiled regular expression is too big.
-     <item><tt>espace</tt>.  No memory for the regular expression
-       function to work.
-     </itemize>
+If the regular expression is incorrect, the functions generate
+exception <tt>invregexp</tt> with a message explaining the error.
 
 <sect2>File functions
 <p>

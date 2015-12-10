@@ -1,5 +1,5 @@
 #!/bin/sh
-# // -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Script to test of DINO.
 #
@@ -12878,7 +12878,7 @@ println (match ("aaa", "baaab"));
 println (match ("(a)(a)(a)", "baaab"));
 println (match ("aba", "baaab"));                 // no matching
 println (match ("ab.", "baaab\n"));               // no matching with NL
-println (match ("[:alpha:]", "p"));
+println (match ("[:alpha:]", "z"));
 println (match ("^.aa", "baaab"));
 println (match ("1", 10));
 println (match ("1", 0));
@@ -13274,7 +13274,7 @@ TEST82
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT82' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - unmatched bracket list operators in regexp
+test.d:1:7: run time Oniguruma error in `match' - premature end of char-class
 OUTPUT82
                         result=ok
                 else
@@ -13295,7 +13295,7 @@ TEST83
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT83' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid use of the range operator in regexp
+test.d:1:7: run time Oniguruma error in `match' - empty range in char class
 OUTPUT83
                         result=ok
                 else
@@ -13316,7 +13316,7 @@ TEST84
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT84' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - unknown character class name in regexp
+test.d:1:7: run time Oniguruma error in `match' - invalid POSIX bracket type
 OUTPUT84
                         result=ok
                 else
@@ -13337,7 +13337,7 @@ TEST85
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT85' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - unmatched parenthesis group operators in regexp
+test.d:1:7: run time Oniguruma error in `match' - end pattern with unmatched parenthesis
 OUTPUT85
                         result=ok
                 else
@@ -13358,7 +13358,7 @@ TEST86
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT86' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid back reference to a subexpr. in regexp
+test.d:1:7: run time Oniguruma error in `match' - invalid backref number/name
 OUTPUT86
                         result=ok
                 else
@@ -13379,7 +13379,7 @@ TEST87
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT87' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid escape sequence in regexp
+test.d:1:7: run time Oniguruma error in `match' - end pattern at escape
 OUTPUT87
                         result=ok
                 else
@@ -26577,7 +26577,7 @@ TEST459
         if $DINO $test_file 2>$stderr; then
                 result=fail
         elif $SCMP $stderr - <<'TEST459-1'; then
-test.d:1:8: run time error - unmatched bracket list operators in regexp
+test.d:1:8: run time Oniguruma error in `gmatch' - premature end of char-class
 TEST459-1
                 result=ok
         else
@@ -49040,10 +49040,13 @@ if test $result = ok -a $start_test_number -le 831; then
 	echo test 831: Source file encoding
         cat >$test_file <<'TEST831'
 // -*- coding: KOI8-R -*-
-val s = "âÂ";
+val s =
+TEST831
+	echo -e '"\0342\0302";' >>$test_file
+        cat >>$test_file <<'TEST831-2'
 putln (get_encoding ());
 putln (s);
-TEST831
+TEST831-2
         echo '      ' $DINO '-O' $test_file "2>$stderr"
         if $DINO -O $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
@@ -49066,7 +49069,10 @@ if test $result = ok -a $start_test_number -le 832; then
         cat >$test_file <<'TEST832'
 //
 // -*- coding: KOI8-R -*-
-val s = "âÂ";
+val s = 
+TEST832
+	echo -e '"\0342\0302";' >>$test_file
+        cat >>$test_file <<'TEST832'
 putln (get_encoding ());
 putln (s);
 TEST832
@@ -49093,7 +49099,10 @@ if test $result = ok -a $start_test_number -le 833; then
 //
 //
 // -*- coding: KOI8-R -*-
-val s = "âÂa";
+val s = 
+TEST833
+	echo -e '"\0342\0302";' >>$test_file
+        cat >>$test_file <<'TEST833'
 putln (get_encoding ());
 putln (s);
 TEST833
@@ -49103,7 +49112,7 @@ TEST833
         else
                 echo '      ' $CMP $ftemp2 $stderr
                 if cat >$ftemp2 <<'OUTPUT833' && $CMP $stderr $ftemp2; then
-test.d:4:10: wrong encoding `UTF-8' in a source file
+test.d:5:2: wrong encoding `UTF-8' in a source file
 OUTPUT833
 			result=ok
                 else
@@ -49226,16 +49235,12 @@ if test $result = ok -a $start_test_number -le 839; then
         cat >$test_file <<'TEST839'
 val s = "Ð‘Ð±";
 set_file_encoding (stdout, "KOI8-R");
-putln (get_file_encoding (stdout));
 putln (s);
 TEST839
         echo '      ' $DINO '-O' $test_file "2>$stderr"
         if $DINO -O $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
-                if cat >$ftemp2 <<'OUTPUT839' && $CMP $stdout $ftemp2; then
-KOI8-R
-âÂ
-OUTPUT839
+                if echo -e '\0342\0302' >$ftemp2 && $CMP $stdout $ftemp2; then
                         result=ok
                 else
                         result=fail
@@ -49250,7 +49255,9 @@ if test $result = ok -a $start_test_number -le 840; then
 	echo test 840: REPL encoding printing
         cat >$test_file <<'TEST840'
 set_encoding ("KOI8-R");
-val s = "âÂ";
+TEST840
+	echo -e 'val s = "\0342\0302";' >>$test_file
+        cat >>$test_file <<'TEST840'
 s;
 TEST840
         echo '      ' $DINO "<" $test_file "2>&1 | egrep -v 'version|Copyright|if-stmt' >$stdout"
@@ -49262,6 +49269,61 @@ dino> "KOI8-R"
 dino> dino> "\u0411\u0431"
 dino> 
 OUTPUT840
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 841.
+if test $result = ok -a $start_test_number -le 841; then
+	echo test 841: input/output in UTF-8
+        cat >$test_file <<'TEST841'
+putln (get_file_encoding (stdin));
+putln (get_file_encoding (stdout));
+val s = getln ();
+putln (s);
+TEST841
+        echo '      ' $DINO '-O' $test_file "2>$stderr <$ftemp"
+        if cat >$ftemp <<'INPUT841' && $DINO -O $test_file 2>$stderr >$stdout <$ftemp; then
+Ð‘Ð±
+INPUT841
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT841' && $CMP $stdout $ftemp2; then
+UTF-8
+UTF-8
+Ð‘Ð±
+OUTPUT841
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 842.
+if test $result = ok -a $start_test_number -le 842; then
+	echo test 842: input in different encoding
+        cat >$test_file <<'TEST842'
+set_file_encoding (stdin, "KOI8-R");
+putln (get_file_encoding (stdin));
+putln (get_file_encoding (stdout));
+val s = getln ();
+putln (s);
+TEST842
+        echo '       ' "echo -e '\0342\0302' >$ftemp && " $DINO '-O' $test_file "2>$stderr <$ftemp"
+        if echo -e '\0342\0302' >$ftemp && $DINO -O $test_file 2>$stderr >$stdout <$ftemp; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT842' && $CMP $stdout $ftemp2; then
+KOI8-R
+UTF-8
+Ð‘Ð±
+OUTPUT842
                         result=ok
                 else
                         result=fail

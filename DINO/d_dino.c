@@ -431,7 +431,7 @@ file_name_suffix (const char *file_name)
 static int
 get_first_nondigit (const char *s)
 {
-  while (isdigit (*s))
+  while (isdigit_ascii (*s))
     s++;
   return *s;
 }
@@ -445,7 +445,7 @@ get_ucode_ascii_repr (ucode_t ch)
 
   if (ch == '\'' || ch == '"' || ch == '\\')
     sprintf (str, "\\%c", ch);
-  else if (ch < 128 && isprint (ch))
+  else if (isprint_ascii (ch))
     sprintf (str, "%c", ch);
   else if (ch == '\n')
     sprintf (str, "\\n");
@@ -527,11 +527,11 @@ read_dino_string_code (int input_char, int *correct_newln,
 	  current_position.line_number++;
           *correct_newln = TRUE;
         }
-      else if (isdigit (input_char) && input_char != '8' && input_char != '9')
+      else if (isdigit_ascii (input_char) && input_char != '8' && input_char != '9')
 	{
 	  character_code = value_of_digit (input_char);
 	  input_char = d_getc ();
-	  if (!isdigit (input_char) || input_char == '8' || input_char == '9')
+	  if (!isdigit_ascii (input_char) || input_char == '8' || input_char == '9')
 	    d_ungetc (input_char);
 	  else
 	    {
@@ -539,7 +539,7 @@ read_dino_string_code (int input_char, int *correct_newln,
 	      character_code
 		= (character_code * 8 + value_of_digit (input_char));
 	      input_char = d_getc ();
-	      if (!isdigit (input_char)
+	      if (!isdigit_ascii (input_char)
 		  || input_char == '8' || input_char == '9')
 		d_ungetc (input_char);
 	      else
@@ -630,7 +630,7 @@ read_dino_number (int c, int get_ch (void), void unget_ch (int),
 	dec_p = TRUE;
       hex_char_p = (('a' <= c && c <= 'f')
 		    || ('A' <= c && c <= 'F'));
-      if (! isdigit (c) && (*base != 16 || ! hex_char_p))
+      if (! isdigit_ascii (c) && (*base != 16 || ! hex_char_p))
 	break;
       if (hex_char_p)
 	hex_p = TRUE;
@@ -645,14 +645,14 @@ read_dino_number (int c, int get_ch (void), void unget_ch (int),
 	  c = get_ch ();
 	  (*read_ch_num)++;
 	}
-      while (isdigit (c));
+      while (isdigit_ascii (c));
     }
   if (c == 'e' || c == 'E')
     {
       *float_p = TRUE;
       c = get_ch ();
       (*read_ch_num)++;
-      if (c != '+' && c != '-' && !isdigit (c))
+      if (c != '+' && c != '-' && !isdigit_ascii (c))
 	err_code = ABSENT_EXPONENT;
       else
 	{
@@ -663,7 +663,7 @@ read_dino_number (int c, int get_ch (void), void unget_ch (int),
 	      c = get_ch ();
 	      (*read_ch_num)++;
 	    }
-	  while (isdigit (c));
+	  while (isdigit_ascii (c));
 	}
     }
   else if (! *float_p && (c == 'l' || c == 'L'))
@@ -1164,6 +1164,8 @@ set_signal_actions (void)
 #endif
 }
 
+static int print_ucode_string (FILE *, ucode_t *, conv_desc_t);
+
 /* Prompts used in REPL for starting new stmt, for continue type
    the stmt, and prefix used for error output.  */
 #define REPL_PROMPT      "dino> "
@@ -1344,7 +1346,7 @@ encode_ucode_str_vlo (ucode_t *str, conv_desc_t cd, vlo_t *vlo, size_t *len)
       return NULL;
     }
   VLO_SHORTEN (*vlo, out);
- return VLO_BEGIN (*vlo);
+  return VLO_BEGIN (*vlo);
 #endif
 }
 
@@ -1375,7 +1377,7 @@ get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd, void *data)
 {
   size_t in, out, res;
   char *is, *os;
-  ucode_t uc;
+  ucode_t uc = 0;
   char str[4]; /* 4 is longest utf-8 sequence.  */
   int i, n, b, r = get_byte (data);
   
@@ -1404,7 +1406,10 @@ get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd, void *data)
 	      return UCODE_BOUND;
 	    }
 	  else
-	    d_assert (errno == EINVAL); /* Incomplete seq.  */
+	    {
+	      d_assert (errno == EINVAL); /* Incomplete seq.  */
+	      errno = 0;
+	    }
 	}
       if (out == 0)
 	return uc;
@@ -1422,7 +1427,7 @@ get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd, void *data)
 /* Print unicode string USTR encoded according to CD to file F and
    return TRUE.  Do nothing if we can not encode it, just return
    FALSE.  */
-int
+static int
 print_ucode_string (FILE *f, ucode_t *ustr, conv_desc_t cd)
 {
   size_t i, len;
@@ -1433,7 +1438,7 @@ print_ucode_string (FILE *f, ucode_t *ustr, conv_desc_t cd)
       str = encode_ucode_str_to_raw_vlo (ustr, &repr_vlobj);
       if (str == NULL)
 	return FALSE;
-	fprintf (f, "%s", str);
+      fprintf (f, "%s", str);
     }
   else
     {

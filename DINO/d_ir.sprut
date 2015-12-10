@@ -331,16 +331,6 @@ extern IR_node_t destroy_unique_ident;
   "    class noshell (msg = nil) {use systemcall former msg;}\n"\
   "    class systemfail (msg = nil) {use systemcall former msg;}\n"\
   "   class invregexp (msg = nil) {use invcall former msg;}\n"\
-  "    class ebrack (msg = nil) {use invregexp former msg;}\n"\
-  "    class erange (msg = nil) {use invregexp former msg;}\n"\
-  "    class ectype (msg = nil) {use invregexp former msg;}\n"\
-  "    class eparen (msg = nil) {use invregexp former msg;}\n"\
-  "    class esubreg (msg = nil) {use invregexp former msg;}\n"\
-  "    class eend (msg = nil) {use invregexp former msg;}\n"\
-  "    class eescape (msg = nil) {use invregexp former msg;}\n"\
-  "    class badpat (msg = nil) {use invregexp former msg;}\n"\
-  "    class esize (msg = nil) {use invregexp former msg;}\n"\
-  "    class espace (msg = nil) {use invregexp former msg;}\n"\
   "   class invparser (msg = nil) {use invcall former msg;}\n"\
   "    class invgrammar (msg = nil) {use invparser former msg;}\n"\
   "    class invtoken (msg = nil) {use invparser former msg;}\n"\

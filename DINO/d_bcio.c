@@ -169,7 +169,7 @@ dump_code (BC_node_t infos, int indent)
 	case BC_NM_ldch:
 	  printf (" op1=%d op2=%d // %d <- ",
 		  BC_op1 (bc), BC_op2 (bc), BC_op1 (bc));
-	  if (isgraph (BC_op2 (bc)))
+	  if (isgraph_ascii (BC_op2 (bc)))
 	    printf ("(%c -- %x)", BC_op2 (bc), BC_op2 (bc));
 	  else
 	    printf ("d(%x)", BC_op2 (bc));
@@ -1072,7 +1072,7 @@ get_token (void)
 	      }
           }
         default:
-          if (isalpha (input_char) || input_char == '_' )
+          if (isalpha_ascii (input_char) || input_char == '_' )
             {
 	      curr_token_position = current_position;
               /* Ident recognition. */
@@ -1082,15 +1082,15 @@ get_token (void)
                   VLO_ADD_BYTE (symbol_text, input_char);
                   input_char = bc_getc ();
                 }
-              while (isalpha (input_char)
-		     || isdigit (input_char)
+              while (isalpha_ascii (input_char)
+		     || isdigit_ascii (input_char)
                      || input_char == '_');
               bc_ungetc (input_char);
               VLO_ADD_BYTE (symbol_text, '\0');
 	      token_attr.str = string_to_table (VLO_BEGIN (symbol_text));
 	      return curr_token = D_IDENT;
             }
-          else if (input_char == '-' || isdigit (input_char))
+          else if (input_char == '-' || isdigit_ascii (input_char))
             {
               /* Recognition numbers. */
 	      int float_flag = FALSE, long_flag = FALSE;
@@ -1103,7 +1103,7 @@ get_token (void)
                   VLO_ADD_BYTE (symbol_text, input_char);
                   input_char = bc_getc ();
                 }
-              while (isdigit (input_char));
+              while (isdigit_ascii (input_char));
               if (input_char == '.')
                 {
                   float_flag = TRUE;
@@ -1115,7 +1115,7 @@ get_token (void)
 	              VLO_ADD_BYTE (symbol_text, input_char);
                       input_char = bc_getc ();
                     }
-	          while (isdigit (input_char));
+	          while (isdigit_ascii (input_char));
                 }
               if (input_char == 'e' || input_char == 'E')
                 {
@@ -1123,7 +1123,7 @@ get_token (void)
 		  current_position.column_number++;
                   input_char = bc_getc ();
 		  if (input_char != '+' && input_char != '-'
-		      && !isdigit (input_char))
+		      && !isdigit_ascii (input_char))
                     error (FALSE, current_position, ERR_exponent_absence);
 		  else
                     {
@@ -1136,7 +1136,7 @@ get_token (void)
 			  VLO_ADD_BYTE (symbol_text, input_char);
 			  input_char = bc_getc ();
 			}
-		      while (isdigit (input_char));
+		      while (isdigit_ascii (input_char));
                     }
                 }
 	      else if (! float_flag && (input_char == 'l' || input_char == 'L'))

@@ -322,37 +322,9 @@ that there is not enough memory for internal parser
 data.</LI>
 </UL>
 </LI>
-<LI><CODE>invregexp</CODE>.  Classes inside this class describe
-exceptions specific for calling predeclared functions
-implementing regular expression pattern matching.
-<UL>
-<LI><CODE>ebrack</CODE>.  This class describes the exception
-that a regular expression has an unmatched bracket.</LI>
-<LI><CODE>erange</CODE>.  This class describes the exception
-that there is an invalid use of range in regular
-expression.</LI>
-<LI><CODE>ectype</CODE>.  This class describes the exception
-that there is an unknown character class name in regular
-expression.</LI>
-<LI><CODE>eparen</CODE>.  This class describes the exception
-that a regular expression has an unmatched parenthesis.</LI>
-<LI><CODE>esubreg</CODE>.  This class describes the exception
-that there is an invalid back reference to a
-subexpression in a regular expression.</LI>
-<LI><CODE>eend</CODE>.  This class describes the exception
-that there is a non specific error in regular expression.</LI>
-<LI><CODE>eescape</CODE>.  This class describes the exception
-that there is a trailing backslash.</LI>
-<LI><CODE>badpat</CODE>.  This class describes the exception
-that there is invalid use of pattern operators in a
-regular expression.</LI>
-<LI><CODE>esize</CODE>.  This class describes exception that
-the compiled regular expression is too big.</LI>
-<LI><CODE>espace</CODE>.  This class describes the exception
-that there is no memory for a regular expression function
-to work.</LI>
-</UL>
-</LI>
+<LI><CODE>invregexp</CODE>.  This class describes exceptions
+specific for calling predeclared functions implementing
+regular expression pattern matching.</LI>
 <LI><CODE>invextern</CODE>.  Classes inside this class describe
 exceptions in calling external functions or in accessing
 an external variable.
@@ -1098,28 +1070,8 @@ outputs
 </LI>
 </UL>
 
-If the regular expression is incorrect, the functions generate one of
-the following predeclared exceptions (see predeclared classes):
-<UL>
-<LI><CODE>ebrack</CODE>.  Regular expression has unmatched bracket.</LI>
-<LI><CODE>invregexps.erange</CODE>.  Invalid use of range in regular
-expression.</LI>
-<LI><CODE>ectype</CODE>.  Unknown character class name in regular
-expression.</LI>
-<LI><CODE>eparen</CODE>.  Regular expression has unmatched
-parenthesis.</LI>
-<LI><CODE>esubreg</CODE>.  Invalid back reference to a
-subexpression in regular expression.</LI>
-<LI><CODE>eend</CODE>.  Non specific error in regular expression.</LI>
-<LI><CODE>eescape</CODE>.  Invalid escape sequence in regular
-expression.</LI>
-<LI><CODE>ebadpat</CODE>.  Invalid use of pattern operators in
-regular expression.</LI>
-<LI><CODE>esize</CODE>.  Compiled regular expression is too big.</LI>
-<LI><CODE>espace</CODE>.  No memory for the regular expression
-function to work.</LI>
-</UL>
-</P>
+If the regular expression is incorrect, the functions generate
+exception <CODE>invregexp</CODE> with a message explaining the error.</P>
 
 <H3>File functions</H3>
 

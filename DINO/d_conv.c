@@ -593,9 +593,9 @@ implicit_arithmetic_conversion (ER_node_t var, ER_node_t tvar)
 	  vnumber = ER_pack_els (pack_vect);
 	  while (vnumber[vindex] == ' ' || vnumber[vindex] == '\t')
 	    vindex++;
-	  if (isdigit (vnumber[vindex])
+	  if (isdigit_ascii (vnumber[vindex])
 	      || ((vnumber[vindex] == '-' || vnumber[vindex] == '+')
-		  && isdigit (vnumber[vindex + 1])))
+		  && isdigit_ascii (vnumber[vindex + 1])))
 	    {
 	      vindex++;
 	      err_code = read_dino_number (vnumber[vindex - 1], vgetc, vungetc,

@@ -10,7 +10,7 @@ The Programming Language DINO
 *****************************
 
      Vladimir Makarov, `vmakarov@gcc.gnu.org'. Edited by Serhei Makarov.
-     June 2, 2015
+     Sep. 5, 2015
 
    This document describes the programming language DINO.
 
@@ -151,9 +151,9 @@ considered to be distinct.
                     100.
                     1e2
                     100.0E+0
-  3. A Dino _character constant_ denotes an ASCII character.  The
-     following sequences starting with the backslash have a special
-     meaning inside a Dino character constant:
+  3. A Dino _character constant_ denotes an Unicode character.  The
+     following sequences starting with the ASCII backslash have a
+     special meaning inside a Dino character constant:
 
         * '*\a* -' ASCII character alert
         * '*\b* -' ASCII character backspace
@@ -355,19 +355,16 @@ detail later in the report.
        chumod         clock          close          closure
        cmpv           context        cos            curr_thread
        deadlock       del
-       eaccess        eagain         ebadf          ebrack
-       ebusy
-       echild         ectype         edeadlk        edom
-       eend           eescape        eexist         efault
-       efbig          eintr          einval         eio
-       eisdir         eltype         emfile         emlink
-       enametoolong   enfile         enodev         enoent
-       enoexec        enolck         enomem         enospc
-       enosys         enotdir        enotempty      enotty
-       env            enxio          eof            eparen
-       eperm          epipe          erange         erofs
-       error_anode    error          esize          espace
-       espipe         esrch          esubreg        exdev
+       eaccess        eagain         ebadf          ebusy
+       echild         edeadlk        edom           eexist
+       efault         efbig          eintr          einval
+       eio            eisdir         eltype         emfile
+       emlink         enametoolong   enfile         enodev
+       enoent         enoexec        enolck         enomem
+       enospc         enosys         enotdir        enotempty
+       enotty         env            enxio          eof
+       eperm          epipe          erofs          error_anode
+       error          espipe         esrch          exdev
        except         exit           exp
        fatime         fctime         fget           fgetf
        fgetln         fgmode         fgrpn          file
@@ -2570,32 +2567,9 @@ class 'error':
                parser got an input token with unknown (undeclared) code.
              * 'pmemory'.  This class describes the exception that there
                is not enough memory for internal parser data.
-        * 'invregexp'.  Classes inside this class describe exceptions
-          specific for calling predeclared functions implementing
-          regular expression pattern matching.
-
-             * 'ebrack'.  This class describes the exception that a
-               regular expression has an unmatched bracket.
-             * 'erange'.  This class describes the exception that there
-               is an invalid use of range in regular expression.
-             * 'ectype'.  This class describes the exception that there
-               is an unknown character class name in regular expression.
-             * 'eparen'.  This class describes the exception that a
-               regular expression has an unmatched parenthesis.
-             * 'esubreg'.  This class describes the exception that there
-               is an invalid back reference to a subexpression in a
-               regular expression.
-             * 'eend'.  This class describes the exception that there is
-               a non specific error in regular expression.
-             * 'eescape'.  This class describes the exception that there
-               is a trailing backslash.
-             * 'badpat'.  This class describes the exception that there
-               is invalid use of pattern operators in a regular
-               expression.
-             * 'esize'.  This class describes exception that the
-               compiled regular expression is too big.
-             * 'espace'.  This class describes the exception that there
-               is no memory for a regular expression function to work.
+        * 'invregexp'.  This class describes exceptions specific for
+          calling predeclared functions implementing regular expression
+          pattern matching.
         * 'invextern'.  Classes inside this class describe exceptions in
           calling external functions or in accessing an external
           variable.
@@ -3274,20 +3248,8 @@ the regular expression.
 
                     ["a", "b", "c", "d", "e", "f"]
 
-   If the regular expression is incorrect, the functions generate one of
-the following predeclared exceptions (see predeclared classes):
-
-   * 'ebrack'.  Regular expression has unmatched bracket.
-   * 'invregexps.erange'.  Invalid use of range in regular expression.
-   * 'ectype'.  Unknown character class name in regular expression.
-   * 'eparen'.  Regular expression has unmatched parenthesis.
-   * 'esubreg'.  Invalid back reference to a subexpression in regular
-     expression.
-   * 'eend'.  Non specific error in regular expression.
-   * 'eescape'.  Invalid escape sequence in regular expression.
-   * 'ebadpat'.  Invalid use of pattern operators in regular expression.
-   * 'esize'.  Compiled regular expression is too big.
-   * 'espace'.  No memory for the regular expression function to work.
+   If the regular expression is incorrect, the functions generate
+exception 'invregexp' with a message explaining the error.
 
 
 File: dino.info,  Node: File functions,  Next: Time functions,  Prev: Pattern matching functions,  Up: Predeclared functions
@@ -4488,70 +4450,70 @@ Node: Top95
 Node: Introduction632
 Node: Syntax1930
 Node: Vocabulary and Representation2834
-Node: Declarations and Scope Rules10235
-Node: Variable Declarations18737
-Node: External Declarations20477
-Node: Functions and Classes21884
-Node: Use Clause30766
-Node: Singleton Object32971
-Node: Expressions33780
-Node: Types and Values34392
-Node: Designators43436
-Node: Calls48759
-Node: Operators50823
-Node: Logical operators55120
-Node: Bit operators56928
-Node: Comparison operators58051
-Node: Arithmetic operators60047
-Node: Miscellaneous operators61258
-Node: Slice Operators65372
-Node: Current block instance68287
-Node: Anonymous Functions and Classes68750
-Node: Patterns69592
-Node: Executive statements73420
-Node: Empty statement74354
-Node: Block-statement74774
-Node: Expression-statement75493
-Node: Assignment statements76273
-Node: If-statement78912
-Node: For-statement79768
-Node: Foreach-statement81251
-Node: Switch-statement82247
-Node: Break- and continue-statement83860
-Node: Return-statement85131
-Node: Throw-statement85897
-Node: Try-block86599
-Node: Wait-statement89032
-Node: Program90134
-Node: Predeclared identifiers93656
-Node: Predeclared variables94123
-Node: Arguments and environment94520
-Node: Version95170
-Node: Threads95703
-Node: Files96245
-Node: Miscellaneous variables96948
-Node: Predeclared classes97677
-Node: File98027
-Node: Exception classes98483
-Node: Earley parser classes110387
-Node: Parser-110766
-Node: Token-121575
-Node: Anode-122255
-Node: Nil_anode and error_anode-124401
-Node: Example of Earley parser usage-124812
-Node: Predeclared functions127690
-Node: Mathematical functions128920
-Node: Pattern matching functions130490
-Node: File functions142655
-Node: Functions for access to file/directory information143088
-Node: Functions for work with directories147769
-Node: Functions for work with files-149357
-Node: File output functions153057
-Node: File input functions165522
-Node: Time functions169344
-Node: Functions for access to process information172321
-Node: Miscellaneous functions173833
-Node: Appendix A- Syntax of Dino187237
-Node: Appendix B- Implementation192408
+Node: Declarations and Scope Rules10243
+Node: Variable Declarations18624
+Node: External Declarations20364
+Node: Functions and Classes21771
+Node: Use Clause30653
+Node: Singleton Object32858
+Node: Expressions33667
+Node: Types and Values34279
+Node: Designators43323
+Node: Calls48646
+Node: Operators50710
+Node: Logical operators55007
+Node: Bit operators56815
+Node: Comparison operators57938
+Node: Arithmetic operators59934
+Node: Miscellaneous operators61145
+Node: Slice Operators65259
+Node: Current block instance68174
+Node: Anonymous Functions and Classes68637
+Node: Patterns69479
+Node: Executive statements73307
+Node: Empty statement74241
+Node: Block-statement74661
+Node: Expression-statement75380
+Node: Assignment statements76160
+Node: If-statement78799
+Node: For-statement79655
+Node: Foreach-statement81138
+Node: Switch-statement82134
+Node: Break- and continue-statement83747
+Node: Return-statement85018
+Node: Throw-statement85784
+Node: Try-block86486
+Node: Wait-statement88919
+Node: Program90021
+Node: Predeclared identifiers93543
+Node: Predeclared variables94010
+Node: Arguments and environment94407
+Node: Version95057
+Node: Threads95590
+Node: Files96132
+Node: Miscellaneous variables96835
+Node: Predeclared classes97564
+Node: File97914
+Node: Exception classes98370
+Node: Earley parser classes108870
+Node: Parser-109249
+Node: Token-120058
+Node: Anode-120738
+Node: Nil_anode and error_anode-122884
+Node: Example of Earley parser usage-123295
+Node: Predeclared functions126173
+Node: Mathematical functions127403
+Node: Pattern matching functions128973
+Node: File functions140460
+Node: Functions for access to file/directory information140893
+Node: Functions for work with directories145574
+Node: Functions for work with files-147162
+Node: File output functions150862
+Node: File input functions163327
+Node: Time functions167149
+Node: Functions for access to process information170126
+Node: Miscellaneous functions171638
+Node: Appendix A- Syntax of Dino185042
+Node: Appendix B- Implementation190213
 
 End Tag Table

@@ -775,36 +775,10 @@ isa_call (int pars_number)
 static void
 process_onig_errors (int code)
 {
-#if 0
-  if (code == REG_EBRACK)
-    eval_error (ebrack_bc_decl, call_pos (), DERR_reg_ebrack, ifun_name);
-  else if (code == REG_ERANGE)
-    eval_error (reg_erange_bc_decl, call_pos (),
-		DERR_reg_erange, ifun_name);
-  else if (code == REG_ECTYPE)
-    eval_error (ectype_bc_decl, call_pos (), DERR_reg_ectype, ifun_name);
-  else if (code == REG_EPAREN)
-    eval_error (eparen_bc_decl, call_pos (), DERR_reg_eparen, ifun_name);
-  else if (code == REG_ESUBREG)
-    eval_error (esubreg_bc_decl, call_pos (), DERR_reg_esubreg, ifun_name);
-  else if (code == REG_EEND)
-    eval_error (eend_bc_decl, call_pos (), DERR_reg_eend, ifun_name);
-  else if (code == REG_EESCAPE)
-    eval_error (eescape_bc_decl, call_pos (), DERR_reg_eescape, ifun_name);
-  else if (code == REG_BADPAT || code == REG_BADRPT
-	   || code == REG_BADBR || code == REG_EBRACE)
-    /* We use badpat because I can not find badrpt, badbr, ebrace
-       diagnostics for POSIX in GNU Regex. */
-    eval_error (badpat_bc_decl, call_pos (), DERR_reg_badpat, ifun_name);
-  else if (code == REG_ESIZE)
-    eval_error (esize_bc_decl, call_pos (), DERR_reg_esize, ifun_name);
-  else if (code == REG_ESPACE)
-    eval_error (espace_bc_decl, call_pos (), DERR_reg_espace, ifun_name);
-  else
-#endif
-    /* Internal error: may be something else. */
-    eval_error (internal_bc_decl, call_pos (),
-		DERR_internal_error, ifun_name);
+  UChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
+  
+  onig_error_code_to_str (s, code);
+  eval_error (invregexp_bc_decl, call_pos (), DERR_regexp, ifun_name, s);
 }
 
 #define RE_DINO_SYNTAX (ONIG_SYNTAX_RUBY)
@@ -2361,7 +2335,7 @@ general_str_to_world (void *str, vlo_t *vlo, int byte_p,
   else if (unicode_cd != NO_CONV_DESC)
     repr = encode_ucode_str_vlo ((ucode_t *) str, unicode_cd, vlo, len);
   else
-    repr = encode_ucode_str_to_raw_vlo ((ucode_t *) str, vlo); // ??
+    repr = encode_ucode_str_to_raw_vlo ((ucode_t *) str, vlo); // ???
   if (repr != NULL)
     return repr;
   eval_error (invencoding_bc_decl, call_pos (),
@@ -3721,11 +3695,11 @@ finish_io (void)
 /* The following function is analogous to `read_dino_string_code' in
    Dino scanner.  If `read_dino_string_code' is changed, please modify
    this function too. */
-static ucode_t
+static int
 get_char_code (FILE *f, int *unget_char_ptr, conv_desc_t cd, ucode_t curr_char,
 	       int *correct_newln, int *wrong_escape_code)
 {
-  ucode_t char_code;
+  int char_code;
 
   if (curr_char == EOF || curr_char == '\n')
     {
@@ -3754,19 +3728,19 @@ get_char_code (FILE *f, int *unget_char_ptr, conv_desc_t cd, ucode_t curr_char,
         ;
       else if (curr_char == '\n')
 	*correct_newln = TRUE;
-      else if (curr_char <= UCHAR_MAX && isdigit (curr_char)
+      else if (curr_char <= UCHAR_MAX && isdigit_ascii (curr_char)
 	       && curr_char != '8' && curr_char != '9')
 	{
 	  char_code = value_of_digit (curr_char);
 	  curr_char = get_file_char (f, unget_char_ptr, cd);
-	  if (curr_char > UCHAR_MAX || !isdigit (curr_char)
+	  if (curr_char > UCHAR_MAX || !isdigit_ascii (curr_char)
 	      || curr_char == '8' || curr_char == '9')
 	    unget_file_char (curr_char, f, unget_char_ptr);
 	  else
 	    {
 	      char_code = (char_code * 8 + value_of_digit (curr_char));
 	      curr_char = get_file_char (f, unget_char_ptr, cd);
-	      if (curr_char > UCHAR_MAX || !isdigit (curr_char)
+	      if (curr_char > UCHAR_MAX || !isdigit_ascii (curr_char)
 		  || curr_char == '8' || curr_char == '9')
 		unget_file_char (curr_char, f, unget_char_ptr);
 	      else
@@ -3870,7 +3844,7 @@ get_token (FILE *f, int *unget_char_ptr, conv_desc_t cd, int ln_flag)
         case '\'':
           {
             int correct_newln, wrong_escape_code;
-	    ucode_t char_code;
+	    int char_code;
             
             curr_char = get_file_char (f, unget_char_ptr, cd);
             if (curr_char == '\'')
@@ -3925,9 +3899,9 @@ get_token (FILE *f, int *unget_char_ptr, conv_desc_t cd, int ln_flag)
 	    int next_char = get_file_char (f, unget_char_ptr, cd);
 
 	    unget_file_char (next_char, f, unget_char_ptr);
-	    if ((curr_char <= UCHAR_MAX && isdigit (curr_char))
+	    if ((curr_char <= UCHAR_MAX && isdigit_ascii (curr_char))
 		|| ((curr_char == '-' || curr_char == '+')
-		    && (curr_char <= UCHAR_MAX && isdigit (next_char))))
+		    && (curr_char <= UCHAR_MAX && isdigit_ascii (next_char))))
 	      {
 		enum read_number_code err_code;
 		int read_ch_num, float_p, long_p, base;

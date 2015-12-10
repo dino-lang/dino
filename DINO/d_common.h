@@ -171,6 +171,13 @@ int dlclose (void *handle);
 /* The following value is used as a variable value which is not char.  */
 #define NOT_A_CHAR (-2000)
 
+/* We don't want mess with locale.  */
+static int inline isalpha_ascii (int ch) { return ch < 128 && isalpha (ch); }
+static int inline isdigit_ascii (int ch) { return ch < 128 && isdigit (ch); }
+static int inline isspace_ascii (int ch) { return ch < 128 && isspace (ch); }
+static int inline isgraph_ascii (int ch) { return ch < 128 && isgraph (ch); }
+static int inline isprint_ascii (int ch) { return ch < 128 && isprint (ch); }
+
 /* True if CH is a hexdecimal digit.  */
 static int inline
 is_hex_digit (int ch)
@@ -281,7 +288,6 @@ extern char *encode_ucode_str_vlo (ucode_t *str, conv_desc_t cd, vlo_t *vlo,
 extern const char *encode_ucode_str_to_raw_vlo (const ucode_t *str, vlo_t *vlo);
 extern ucode_t get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd,
 				      void *data);
-extern int print_ucode_string (FILE *f, ucode_t *ustr, conv_desc_t cd);
 
 extern void dino_finish (int code);
 

@@ -29,6 +29,7 @@ extern char ERR_source_file_encoding[];
 extern char ERR_non_ascii_source_file_encoding[];
 extern char ERR_file_decoding[];
 extern char ERR_line_decoding[];
+extern char ERR_file_name_cannot_represented_in_current_encoding[];
 extern char ERR_invalid_char_constant[];
 extern char ERR_invalid_input_char[];
 extern char ERR_invalid_escape_code[];
@@ -278,16 +279,7 @@ extern char DERR_no_shell [];
 /* Other fail during call of function `system' */
 extern char DERR_other_fail_in_system_call [];
 /* Errors in call of regexp functions. */
-extern char DERR_reg_ebrack [];
-extern char DERR_reg_erange [];
-extern char DERR_reg_ectype [];
-extern char DERR_reg_eparen [];
-extern char DERR_reg_esubreg [];
-extern char DERR_reg_eend [];
-extern char DERR_reg_eescape [];
-extern char DERR_reg_badpat [];
-extern char DERR_reg_esize [];
-extern char DERR_reg_espace [];
+extern char DERR_regexp [];
 /* External function errors: */
 /* No external function is found. */
 extern char DERR_no_such_external [];

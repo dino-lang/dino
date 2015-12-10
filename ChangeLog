@@ -1,3 +1,64 @@
+2015-12-09  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/ammunition[++].{ps, dvi, pdf}: Update.
+	* DINO/d_bc.sprut (EBRACK_NAME, REG_ERANGE_NAME, ECTYPE_NAME):
+	Remove.
+	(EPAREN_NAME, ESUBREG_NAME, EEND_NAME, EESCAPE_NAME, BADPAT_NAME):
+	Ditto.
+	(ESIZE_NAME, ESPACE_NAME): Ditto.
+	(ebrack_bc_decl, reg_erange_bc_decl, ectype_bc_decl): Remove.
+	(eparen_bc_decl, esubreg_bc_decl, eend_bc_decl, eescape_bc_decl):
+	Ditto.
+	(badpat_bc_decl, esize_bc_decl, espace_bc_decl): Ditto.
+	(bc_decls_table): Remove the corresponding entries.
+	* DINO/d_bcio.c (dump_code): Use isgraph_ascii instead of isgraph.
+	(get_token): Use isalpha_ascii instead of isalpha.  Use
+	isdigit_ascii instead of isdigit.
+	* DINO/d_common.h (isalpha_ascii, isdigit_ascii, isspace_ascii):
+	New.
+	(isgraph_ascii, isprint_ascii): New.
+	(print_ucode_string): Remove prototype.
+	* DINO/d_conv.c (implicit_arithmetic_conversion): Use
+	isdigit_ascii instead of isdigit.
+	* DINO/d_dino.c (get_first_nondigit, read_dino_string_code): Use
+	isdigit_ascii instead of isdigit.
+	(read_dino_number): Ditto.
+	(get_ucode_ascii_repr): Use isprint_ascii instead of isprint.
+	(print_ucode_string): Make static.
+	(get_ucode_from_stream): Zeroing errno for incomplete seq.
+	* DINO/d_errors.[ch]
+	(ERR_file_name_cannot_represented_in_current_encoding): New.
+	(DERR_reg_ebrack, DERR_reg_erange, DERR_reg_ectype): Remove.
+	(DERR_reg_eparen, DERR_reg_esubreg, DERR_reg_eend): Ditto.
+	(DERR_reg_eescape, DERR_reg_badpat, DERR_reg_esize): Ditto.
+	(DERR_reg_espace): Ditto.
+	(DERR_regexp): New.
+	* DINO/d_func.c (process_onig_errors): Remove switched of code.
+	Use DERR_regexp.
+	(get_char_code): Return int.  Use isdigit_ascii instead of
+	isdigit.
+	* DINO/d_ir.sprut (ENVIRONMENT): Remove exceptions ebrack, erange,
+	ectype, eparen, esubreg, eend, eescape, badpat, esize, espace.
+	* DINO/d_yacc.y (get_full_file_and_encoding_name): Pass name as
+	IR_node_t.  Encode name.  Check it on null char.
+	(add_include_file): Ditto.
+	(temp_scanner_vlo2): New.
+	(skip_spaces): Use isspace_ascii instead of isspace.
+	(find_encoding): Use isalpha_ascii instead of isalpha.
+	(yylex): Ditto. Use isdigit_ascii instead of isdigit.
+	(initiate_scanner, finish_scanner): Create destroy
+	temp_scanner_vlo2.
+	* DINO/dino.sgml.in: Unicode escape codes.
+	(ebrack, erange, ectype, eparen, esubreg, eend, eescape, badpat):
+	Remove.
+	(esize, espace): Remove.
+	* DINO/dino-{3,4,9}.html: Update.
+	* DINO/dino.{html, dvi, info, pdf, ps, txt}: Update.
+	* DINO/dino.tst.in: Add file encoding.
+	(82-87, 459): Change expected regexp errors.
+	(831-832, 839, 840): Use echo -e.
+	(841-842): New.
+
 2015-09-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_common.h (value_of_hex_digit): Add 10 for letters.

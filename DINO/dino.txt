@@ -1,7 +1,7 @@
   The Programming Language DINO
   Vladimir Makarov, vmakarov@gcc.gnu.org.  Edited by Serhei
   Makarov.
-  June 2, 2015
+  Sep. 5, 2015
 
   This document describes the programming language DINO.
   ______________________________________________________________________
@@ -210,9 +210,9 @@
 
 
 
-  3. A Dino character constant denotes an ASCII character. The following
-     sequences starting with the backslash have a special meaning inside
-     a Dino character constant:
+  3. A Dino character constant denotes an Unicode character. The
+     following sequences starting with the ASCII backslash have a
+     special meaning inside a Dino character constant:
 
      o  \a - ASCII character alert
 
@@ -455,19 +455,16 @@
          chumod         clock          close          closure
          cmpv           context        cos            curr_thread
          deadlock       del
-         eaccess        eagain         ebadf          ebrack
-         ebusy
-         echild         ectype         edeadlk        edom
-         eend           eescape        eexist         efault
-         efbig          eintr          einval         eio
-         eisdir         eltype         emfile         emlink
-         enametoolong   enfile         enodev         enoent
-         enoexec        enolck         enomem         enospc
-         enosys         enotdir        enotempty      enotty
-         env            enxio          eof            eparen
-         eperm          epipe          erange         erofs
-         error_anode    error          esize          espace
-         espipe         esrch          esubreg        exdev
+         eaccess        eagain         ebadf          ebusy
+         echild         edeadlk        edom           eexist
+         efault         efbig          eintr          einval
+         eio            eisdir         eltype         emfile
+         emlink         enametoolong   enfile         enodev
+         enoent         enoexec        enolck         enomem
+         enospc         enosys         enotdir        enotempty
+         enotty         env            enxio          eof
+         eperm          epipe          erofs          error_anode
+         error          espipe         esrch          exdev
          except         exit           exp
          fatime         fctime         fget           fgetf
          fgetln         fgmode         fgrpn          file
@@ -2794,40 +2791,9 @@
         o  pmemory. This class describes the exception that there is not
            enough memory for internal parser data.
 
-     o  invregexp. Classes inside this class describe exceptions
-        specific for calling predeclared functions implementing regular
-        expression pattern matching.
-
-        o  ebrack. This class describes the exception that a regular
-           expression has an unmatched bracket.
-
-        o  erange. This class describes the exception that there is an
-           invalid use of range in regular expression.
-
-        o  ectype. This class describes the exception that there is an
-           unknown character class name in regular expression.
-
-        o  eparen. This class describes the exception that a regular
-           expression has an unmatched parenthesis.
-
-        o  esubreg. This class describes the exception that there is an
-           invalid back reference to a subexpression in a regular
-           expression.
-
-        o  eend. This class describes the exception that there is a non
-           specific error in regular expression.
-
-        o  eescape. This class describes the exception that there is a
-           trailing backslash.
-
-        o  badpat. This class describes the exception that there is
-           invalid use of pattern operators in a regular expression.
-
-        o  esize. This class describes exception that the compiled
-           regular expression is too big.
-
-        o  espace. This class describes the exception that there is no
-           memory for a regular expression function to work.
+     o  invregexp. This class describes exceptions specific for calling
+        predeclared functions implementing regular expression pattern
+        matching.
 
      o  invextern. Classes inside this class describe exceptions in
         calling external functions or in accessing an external variable.
@@ -3538,29 +3504,8 @@
 
 
 
-  If the regular expression is incorrect, the functions generate one of
-  the following predeclared exceptions (see predeclared classes):
-
-  o  ebrack. Regular expression has unmatched bracket.
-
-  o  invregexps.erange. Invalid use of range in regular expression.
-
-  o  ectype. Unknown character class name in regular expression.
-
-  o  eparen. Regular expression has unmatched parenthesis.
-
-  o  esubreg. Invalid back reference to a subexpression in regular
-     expression.
-
-  o  eend. Non specific error in regular expression.
-
-  o  eescape. Invalid escape sequence in regular expression.
-
-  o  ebadpat. Invalid use of pattern operators in regular expression.
-
-  o  esize. Compiled regular expression is too big.
-
-  o  espace. No memory for the regular expression function to work.
+  If the regular expression is incorrect, the functions generate excep-
+  tion invregexp with a message explaining the error.
 
   9.3.3.  File functions
 
