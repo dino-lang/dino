@@ -249,6 +249,7 @@ extern void f2mpz (mpz_t mpz, rfloat_t f);
 extern size_t hash_mpz (mpz_t mpz);
 
 #define RAW_STRING "RAW"
+#define RAW_STRING2 "raw"
 #define UTF8_STRING "UTF-8"
 #define LATIN1_STRING "LATIN1"
 

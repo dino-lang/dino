@@ -155,15 +155,21 @@ considered to be distinct.
      following sequences starting with the ASCII backslash have a
      special meaning inside a Dino character constant:
 
-        * '*\a* -' ASCII character alert
+        * '*\a* - ' ASCII character alert
         * '*\b* -' ASCII character backspace
         * '*\f* -' ASCII character form feed
         * '*\n* -' ASCII character new line
         * '*\r* -' ASCII character carriage return
         * '*\t* -' ASCII character horizontal tab
         * '*\v* -' ASCII character vertical tab
-        * '*\code* -' ASCII character with given octal code
-        * '*\char* -' ASCII character char for all remaining characters
+        * '*\code* -' Character with code given up to tree octal digits
+        * '*\xcode* -' Character with code given by two hexdecimal
+          digits
+        * '*\ucode* -' Character with code given by four hexdecimal
+          digits
+        * '*\Ucode* -' Character with code given by eight hexdecimal
+          digits
+        * '*\char* -' Character char for all remaining characters
 
      To denote a single quote mark use the sequence '\".  The double
      quote mark can be represented either by '\"' or simply by '"'.  To
@@ -172,7 +178,7 @@ considered to be distinct.
 
                     Character = "'" Char "'"
 
-                    Char = <any ASCII character except for the single quote ',
+                    Char = <any character except for the single quote ',
                             backslash \, or line break>
                          | SimpleEscapeSeq
                          | OctalEscapeSeq
@@ -184,13 +190,12 @@ considered to be distinct.
      Examples:
 
                     'a'  '\''  '\\'  '\12'  '"'
-  4. A _string_ is sequence of ASCII characters enclosed in double
-     quotes.  There are the same sequences of ASCII characters with
-     special meaning as in a character constant.  To denote a double
-     quote mark use sequence '\"'.  The single quote mark can be
-     represented either by '\" or simply by '".  To represent a
-     backslash inside the character constant, use two consecutive ASCII
-     backslashes.
+  4. A _string_ is sequence of characters enclosed in double quotes.
+     There are the same sequences of characters with special meaning as
+     in a character constant.  To denote a double quote mark use
+     sequence '\"'.  The single quote mark can be represented either by
+     '\" or simply by '".  To represent a backslash inside the character
+     constant, use two consecutive ASCII backslashes.
 
                     String = '"' {Char} '"'
 
@@ -372,31 +377,31 @@ detail later in the report.
        fomode         fprint         fprintln       fput
        fputln         fscan          fscanln        fsize
        ftype          fuidn          fumode
-       gc             get            getcwd         getegn
-       geteun         getgn          getgroups      getf
-       getln          getpid         getun          gmatch
-       gsub
+       gc             get            get_encoding   get_file_encoding
+       getcwd         getegn         geteun         getgn
+       getgroups      getf           getln          getpid
+       getun          gmatch         gsub
        immutable      indexop        indextype      indexvalue
        ins            inside         insv           invaccess
-       invcall        invector       invenv         invenvar
-       invextern      invfmt         invgrammar     invindex
-       invinput       invkey         invop          invparser
-       invregexp      invresult      invslice       invtoken
-       isa            isatty
+       invcall        invector       invencoding    invenv
+       invenvar       invextern      invfmt         invgrammar
+       invindex       invinput       invkey         invop
+       invparser      invregexp      invresult      invslice
+       invtoken       isa            isatty
        keyop          keys           keyvalue
        libclose       log            log10
        main_thread    match          matrixform     max
        min            mkdir
        nil_anode      noextern       noexternsupp   noshell
        open           optype         opvalue
-       parser         parnumber      partype        patternmatch
-       pclose         pmemory        popen          pow
-       print          println        put            putln
-       rand           readdir        remove         rename
-       rev            rmdir
-       scan           scanln         seek           signal
-       sigabrt        sigfpe         sigill         sigint
-       sigsegv        sigterm
+       parser         parnumber      partype        parvalue
+       patternmatch   pclose         pmemory        popen
+       pow            print          println        put
+       putln          rand           readdir        remove
+       rename         rev            rmdir
+       scan           scanln         seek           set_encoding
+       set_file_encoding signal      sigabrt        sigfpe
+       sigill         sigint         sigsegv        sigterm
        sin            sliceform      slicetype      sort
        split          split_regex    sprint         sprintln
        sput           sputln         sqrt           srand
@@ -859,7 +864,7 @@ corresponding element values are the same.
      'nil'.
 
                            Expr = nil
-   * _character_ which represents ASCII characters.  For the
+   * _character_ which represents unicode characters.  For the
      representation see 'Character' in the section _Vocabulary and
      Representation_.
 
@@ -2341,6 +2346,8 @@ standard input stream, the following variables can be used:
      which corresponds to the standard error stream.
 
    All these variables are final, so you can not change their values.
+Encoding of the files is DINO current encoding at the program start (see
+function 'set_encoding').
 
 
 File: dino.info,  Node: Miscellaneous variables,  Prev: Files,  Up: Predeclared variables
@@ -2385,7 +2392,11 @@ Dino has predeclared final class 'file'.  Work with files in Dino
 program are made through objects of the class.  All declarations inside
 of class are private.  The objects of the class can be created only by
 predeclared functions 'open' or 'popen'.  If you create an object of the
-class by calling the class, exception 'callop' will be generated.
+class by calling the class, exception 'callop' will be generated.  File
+encoding is defined by the current DINO encoding at the file creation
+time (see functions 'set_encoding', 'set_file_encoding').  If you want
+to work with files on the byte level without any encoding decoding, you
+can use encoding called '"RAW"'.
 
 
 File: dino.info,  Node: Exception classes,  Next: Earley parser classes,  Prev: File,  Up: Predeclared classes
@@ -2459,8 +2470,15 @@ class 'error':
           'file' instance by calling the class.
         * 'partype'.  This class describes that a parameter value of a
           predeclared function is not of required type.
+        * 'parvalue'.  This class describes that a parameter value of a
+          predeclared function is not one of permitted values (see
+          functions 'set_encoding', 'set_file_encoding').
         * 'invfmt'.  This class describes that a format of a format
-          output function is wrong (see function 'putf'.
+          output function is wrong (see function 'putf').
+        * 'invencoding'.  This class describes different exceptions with
+          used encodings, e.g.  file contains bytes not corresponding to
+          the expected encoding or in some cases the encoding should
+          contain ASCII characters.
         * 'invresult'.  This class describes that the result value of
           function call is not of required type, e.g.  comparison
           function used in a call to function 'sort' returns a non
@@ -2968,6 +2986,7 @@ return value is undefined.
 
 * Mathematical functions::
 * Pattern matching functions::
+* Encoding functions::
 * File functions::
 * Time functions::
 * Functions for access to process information::
@@ -3005,7 +3024,7 @@ floating point number.
      used to determine the quadrant of the result.
 
 
-File: dino.info,  Node: Pattern matching functions,  Next: File functions,  Prev: Mathematical functions,  Up: Predeclared functions
+File: dino.info,  Node: Pattern matching functions,  Next: Encoding functions,  Prev: Mathematical functions,  Up: Predeclared functions
 
 9.3.2 Pattern matching functions
 --------------------------------
@@ -3115,9 +3134,9 @@ enclosed in '[]'.  Usually it is used to match any single character from
 the list.  If the list begins with '^', it matches any single character
 (but see below) not in the list.  If two characters in the list are
 separated by '-', this is shorthand for the full _range_ of characters
-between those two (inclusive) in the collating sequence of ASCII codes,
-e.g.  '[0-9]' matches any decimal digit.  It is illegal for two ranges
-to share an _endpoint_, e.g.  'a-c-e'.
+between those two (inclusive) in the collating sequence of unicode
+codes, e.g.  '[0-9]' matches any decimal digit.  It is illegal for two
+ranges to share an _endpoint_, e.g.  'a-c-e'.
 
    There are exceptions which are not described by the atom syntax which
 is used to include a literal ']' in the list by making it the first
@@ -3252,9 +3271,31 @@ the regular expression.
 exception 'invregexp' with a message explaining the error.
 
 
-File: dino.info,  Node: File functions,  Next: Time functions,  Prev: Pattern matching functions,  Up: Predeclared functions
+File: dino.info,  Node: Encoding functions,  Next: File functions,  Prev: Pattern matching functions,  Up: Predeclared functions
 
-9.3.3 File functions
+9.3.3 Encoding functions
+------------------------
+
+Dino internally uses Unicode for characters.  To provide communication
+with the rest of world, it can use different encodings.  The default
+encoding is UTF-8.  Dino has two functions to get and change the current
+encoding:
+
+   * 'get_encoding ()'.  The function returns a new mutable string which
+     is a name of the current encoding.
+   * 'set_encoding (name)'.  The function accepts string and changes the
+     current encoding.  If the name represents unknown encoding name,
+     the function generates exceptions 'parvalue'.
+
+   Examples:
+
+               putln (get_encoding ());
+               set_encoding ("KOI8-R");
+
+
+File: dino.info,  Node: File functions,  Next: Time functions,  Prev: Encoding functions,  Up: Predeclared functions
+
+9.3.4 File functions
 --------------------
 
 Dino has some predeclared functions to work on files and directories.
@@ -3270,7 +3311,7 @@ Dino has some predeclared functions to work on files and directories.
 
 File: dino.info,  Node: Functions for access to file/directory information,  Next: Functions for work with directories,  Up: File functions
 
-9.3.3.1 Functions for access to file/directory information
+9.3.4.1 Functions for access to file/directory information
 ..........................................................
 
 The following predeclared functions can be used for accessing file or
@@ -3358,7 +3399,7 @@ function 'fumode').  The function return values are always undefined.
 
 File: dino.info,  Node: Functions for work with directories,  Next: Functions for work with files-,  Prev: Functions for access to file/directory information,  Up: File functions
 
-9.3.3.2 Functions for work with directories
+9.3.4.2 Functions for work with directories
 ...........................................
 
 The following functions work with directories.  The functions may
@@ -3387,7 +3428,7 @@ generate an exception declared in class syserror (e.g.  'eaccess',
 
 File: dino.info,  Node: Functions for work with files-,  Next: File output functions,  Prev: Functions for work with directories,  Up: File functions
 
-9.3.3.3 Functions for work with files-
+9.3.4.3 Functions for work with files-
 ......................................
 
 The following functions (besides input/output functions) work with OS
@@ -3445,11 +3486,17 @@ used for renaming a directory, not only a file.
      ''s", ''c", or ''e" (these characters mean that the offset is
      relative to the start of the file, the current position indicator,
      or the end-of-file, respectively).
+   * 'get_file_encoding (fileinstance)'.  The function returns a new
+     mutabe string which is a name of the current file encoding.
+   * 'set_file_encoding (fileinstance, name)'.  The accepts file and
+     string and changes the current file encoding.  If the name
+     represents unknown encoding name, the function generates exceptions
+     'parvalue'.
 
 
 File: dino.info,  Node: File output functions,  Next: File input functions,  Prev: Functions for work with files-,  Up: File functions
 
-9.3.3.4 File output functions
+9.3.4.4 File output functions
 .............................
 
 The following functions are used to output something into opened files.
@@ -3706,7 +3753,7 @@ generate an exception declared in the class 'syserror' (e.g.  'eio',
 
 File: dino.info,  Node: File input functions,  Prev: File output functions,  Up: File functions
 
-9.3.3.5 File input functions
+9.3.4.5 File input functions
 ............................
 
 The following functions are used to input something from opened files.
@@ -3772,7 +3819,7 @@ The functions may generate an exception declared in the class 'syserror'
 
 File: dino.info,  Node: Time functions,  Next: Functions for access to process information,  Prev: File functions,  Up: Predeclared functions
 
-9.3.4 Time functions
+9.3.5 Time functions
 --------------------
 
 The following functions can be used to get information about real time.
@@ -3831,7 +3878,7 @@ The following functions can be used to get information about real time.
 
 File: dino.info,  Node: Functions for access to process information,  Next: Miscellaneous functions,  Prev: Time functions,  Up: Predeclared functions
 
-9.3.5 Functions for access to process information
+9.3.6 Functions for access to process information
 -------------------------------------------------
 
 There are Dino predeclared functions which are used to get information
@@ -3860,7 +3907,7 @@ user and group identifiers.
 
 File: dino.info,  Node: Miscellaneous functions,  Prev: Functions for access to process information,  Up: Predeclared functions
 
-9.3.6 Miscellaneous functions
+9.3.7 Miscellaneous functions
 -----------------------------
 
 There are the following miscellaneous functions:
@@ -4305,6 +4352,12 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- Syntax of
             dino interprets a program in the Dino programming language.   The  pro‐
             gram file (and include files) must have the suffix .d
 
+            The  program  encodings  are  defined by the current encoding.  You can
+            change  the  current  input  encoding  defining  environment   variable
+            DINO_ENCODING  or  calling  DINO function set_encoding in case of REPL.
+            Each program file can define own encoding putting  -*- coding:  <encod‐
+            ing-name> -*-  anywhere on the first two lines of the file.
+
             The  description  of  Dino language is in the report of the Programming
             Language Dino.
 
@@ -4430,6 +4483,11 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- Syntax of
                    or  ";"  (on  Windows).  The value has less priority than values
                    given in -L options.
 
+            DINO_ENCODING
+                   If not null, it defines the current encoding  of  dino  program.
+                   By  defaull  the  current encoding is UTF-8 encoding.  Use iconv
+                   utility to get possible encoding names.
+
      DIAGNOSTICS
             DINO diagnostics are self-explanatory.
 
@@ -4441,7 +4499,7 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- Syntax of
 
 
 
-     Dino                              25 May 2015                          Dino(1)
+     Dino                              10 Dec 2015                          Dino(1)
 
 
 
@@ -4450,70 +4508,71 @@ Node: Top95
 Node: Introduction632
 Node: Syntax1930
 Node: Vocabulary and Representation2834
-Node: Declarations and Scope Rules10243
-Node: Variable Declarations18624
-Node: External Declarations20364
-Node: Functions and Classes21771
-Node: Use Clause30653
-Node: Singleton Object32858
-Node: Expressions33667
-Node: Types and Values34279
-Node: Designators43323
-Node: Calls48646
-Node: Operators50710
-Node: Logical operators55007
-Node: Bit operators56815
-Node: Comparison operators57938
-Node: Arithmetic operators59934
-Node: Miscellaneous operators61145
-Node: Slice Operators65259
-Node: Current block instance68174
-Node: Anonymous Functions and Classes68637
-Node: Patterns69479
-Node: Executive statements73307
-Node: Empty statement74241
-Node: Block-statement74661
-Node: Expression-statement75380
-Node: Assignment statements76160
-Node: If-statement78799
-Node: For-statement79655
-Node: Foreach-statement81138
-Node: Switch-statement82134
-Node: Break- and continue-statement83747
-Node: Return-statement85018
-Node: Throw-statement85784
-Node: Try-block86486
-Node: Wait-statement88919
-Node: Program90021
-Node: Predeclared identifiers93543
-Node: Predeclared variables94010
-Node: Arguments and environment94407
-Node: Version95057
-Node: Threads95590
-Node: Files96132
-Node: Miscellaneous variables96835
-Node: Predeclared classes97564
-Node: File97914
-Node: Exception classes98370
-Node: Earley parser classes108870
-Node: Parser-109249
-Node: Token-120058
-Node: Anode-120738
-Node: Nil_anode and error_anode-122884
-Node: Example of Earley parser usage-123295
-Node: Predeclared functions126173
-Node: Mathematical functions127403
-Node: Pattern matching functions128973
-Node: File functions140460
-Node: Functions for access to file/directory information140893
-Node: Functions for work with directories145574
-Node: Functions for work with files-147162
-Node: File output functions150862
-Node: File input functions163327
-Node: Time functions167149
-Node: Functions for access to process information170126
-Node: Miscellaneous functions171638
-Node: Appendix A- Syntax of Dino185042
-Node: Appendix B- Implementation190213
+Node: Declarations and Scope Rules10481
+Node: Variable Declarations18962
+Node: External Declarations20702
+Node: Functions and Classes22109
+Node: Use Clause30991
+Node: Singleton Object33196
+Node: Expressions34005
+Node: Types and Values34617
+Node: Designators43663
+Node: Calls48986
+Node: Operators51050
+Node: Logical operators55347
+Node: Bit operators57155
+Node: Comparison operators58278
+Node: Arithmetic operators60274
+Node: Miscellaneous operators61485
+Node: Slice Operators65599
+Node: Current block instance68514
+Node: Anonymous Functions and Classes68977
+Node: Patterns69819
+Node: Executive statements73647
+Node: Empty statement74581
+Node: Block-statement75001
+Node: Expression-statement75720
+Node: Assignment statements76500
+Node: If-statement79139
+Node: For-statement79995
+Node: Foreach-statement81478
+Node: Switch-statement82474
+Node: Break- and continue-statement84087
+Node: Return-statement85358
+Node: Throw-statement86124
+Node: Try-block86826
+Node: Wait-statement89259
+Node: Program90361
+Node: Predeclared identifiers93883
+Node: Predeclared variables94350
+Node: Arguments and environment94747
+Node: Version95397
+Node: Threads95930
+Node: Files96472
+Node: Miscellaneous variables97274
+Node: Predeclared classes98003
+Node: File98353
+Node: Exception classes99061
+Node: Earley parser classes110010
+Node: Parser-110389
+Node: Token-121198
+Node: Anode-121878
+Node: Nil_anode and error_anode-124024
+Node: Example of Earley parser usage-124435
+Node: Predeclared functions127313
+Node: Mathematical functions128566
+Node: Pattern matching functions130136
+Node: Encoding functions141629
+Node: File functions142439
+Node: Functions for access to file/directory information142864
+Node: Functions for work with directories147545
+Node: Functions for work with files-149133
+Node: File output functions153190
+Node: File input functions165655
+Node: Time functions169477
+Node: Functions for access to process information172454
+Node: Miscellaneous functions173966
+Node: Appendix A- Syntax of Dino187370
+Node: Appendix B- Implementation192541
 
 End Tag Table

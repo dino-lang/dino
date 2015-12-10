@@ -1,3 +1,19 @@
+2015-12-10  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_common.h (RAW_STRING2): New.
+	* DINO/d_dino.c (raw_encoding_name_p): Use it.
+	(set_conv_descs): Recognize RAW encoding.
+	* DINO/d_extern.sprut: Add comment for disp field.
+	* DINO/d_func.c (process_errno_call): Add an assert.
+	* DINO/dino.1: Add description of encoding and environment
+	variable DINO_ENCODING.
+	* DINO/dino.sgml.in: Descirbe \x, \u, \U, parvalue, invencoding,
+	{get,set}_[file_]encoding.
+	* DINO/dino-{2-5, 9, 11}.html: Update.
+	* DINO/dino.{dvi, info, pdf, ps, txt}: Update.
+	* DINO/dino.tst.in (72): Change [:alpha:] to [[:alpha:]].
+	(843): New test for RAW.
+
 2015-12-09  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* AMMUNITION/ammunition[++].{ps, dvi, pdf}: Update.

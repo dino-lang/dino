@@ -69,15 +69,16 @@
      9.3 Predeclared functions
         9.3.1 Mathematical functions
         9.3.2 Pattern matching functions
-        9.3.3 File functions
-           9.3.3.1 Functions for access to file/directory information
-           9.3.3.2 Functions for work with directories
-           9.3.3.3 Functions for work with files.
-           9.3.3.4 File output functions
-           9.3.3.5 File input functions
-        9.3.4 Time functions
-        9.3.5 Functions for access to process information
-        9.3.6 Miscellaneous functions
+        9.3.3 Encoding functions
+        9.3.4 File functions
+           9.3.4.1 Functions for access to file/directory information
+           9.3.4.2 Functions for work with directories
+           9.3.4.3 Functions for work with files.
+           9.3.4.4 File output functions
+           9.3.4.5 File input functions
+        9.3.5 Time functions
+        9.3.6 Functions for access to process information
+        9.3.7 Miscellaneous functions
 
   10. Appendix A. Syntax of Dino
   11. Appendix B. Implementation
@@ -214,7 +215,7 @@
      following sequences starting with the ASCII backslash have a
      special meaning inside a Dino character constant:
 
-     o  \a - ASCII character alert
+     o  \a -  ASCII character alert
 
      o  \b - ASCII character backspace
 
@@ -228,9 +229,15 @@
 
      o  \v - ASCII character vertical tab
 
-     o  \code - ASCII character with given octal code
+     o  \code - Character with code given up to tree octal digits
 
-     o  \char - ASCII character char for all remaining characters
+     o  \xcode - Character with code given by two hexdecimal digits
+
+     o  \ucode - Character with code given by four hexdecimal digits
+
+     o  \Ucode - Character with code given by eight hexdecimal digits
+
+     o  \char - Character char for all remaining characters
 
      To denote a single quote mark use the sequence \'.  The double
      quote mark can be represented either by \" or simply by ". To rep-
@@ -240,7 +247,7 @@
 
                  Character = "'" Char "'"
 
-                 Char = <any ASCII character except for the single quote ',
+                 Char = <any character except for the single quote ',
                          backslash \, or line break>
                       | SimpleEscapeSeq
                       | OctalEscapeSeq
@@ -258,12 +265,12 @@
 
 
 
-  4. A string is sequence of ASCII characters enclosed in double quotes.
-     There are the same sequences of ASCII characters with special
-     meaning as in a character constant.  To denote a double quote mark
-     use sequence \". The single quote mark can be represented either by
-     \' or simply by '. To represent a backslash inside the character
-     constant, use two consecutive ASCII backslashes.
+  4. A string is sequence of characters enclosed in double quotes. There
+     are the same sequences of characters with special meaning as in a
+     character constant.  To denote a double quote mark use sequence \".
+     The single quote mark can be represented either by \' or simply by
+     '. To represent a backslash inside the character constant, use two
+     consecutive ASCII backslashes.
 
 
                  String = '"' {Char} '"'
@@ -472,31 +479,31 @@
          fomode         fprint         fprintln       fput
          fputln         fscan          fscanln        fsize
          ftype          fuidn          fumode
-         gc             get            getcwd         getegn
-         geteun         getgn          getgroups      getf
-         getln          getpid         getun          gmatch
-         gsub
+         gc             get            get_encoding   get_file_encoding
+         getcwd         getegn         geteun         getgn
+         getgroups      getf           getln          getpid
+         getun          gmatch         gsub
          immutable      indexop        indextype      indexvalue
          ins            inside         insv           invaccess
-         invcall        invector       invenv         invenvar
-         invextern      invfmt         invgrammar     invindex
-         invinput       invkey         invop          invparser
-         invregexp      invresult      invslice       invtoken
-         isa            isatty
+         invcall        invector       invencoding    invenv
+         invenvar       invextern      invfmt         invgrammar
+         invindex       invinput       invkey         invop
+         invparser      invregexp      invresult      invslice
+         invtoken       isa            isatty
          keyop          keys           keyvalue
          libclose       log            log10
          main_thread    match          matrixform     max
          min            mkdir
          nil_anode      noextern       noexternsupp   noshell
          open           optype         opvalue
-         parser         parnumber      partype        patternmatch
-         pclose         pmemory        popen          pow
-         print          println        put            putln
-         rand           readdir        remove         rename
-         rev            rmdir
-         scan           scanln         seek           signal
-         sigabrt        sigfpe         sigill         sigint
-         sigsegv        sigterm
+         parser         parnumber      partype        parvalue
+         patternmatch   pclose         pmemory        popen
+         pow            print          println        put
+         putln          rand           readdir        remove
+         rename         rev            rmdir
+         scan           scanln         seek           set_encoding
+         set_file_encoding signal      sigabrt        sigfpe
+         sigill         sigint         sigsegv        sigterm
          sin            sliceform      slicetype      sort
          split          split_regex    sprint         sprintln
          sput           sputln         sqrt           srand
@@ -977,7 +984,7 @@
 
 
 
-  o  character which represents ASCII characters.  For the
+  o  character which represents unicode characters.  For the
      representation see Character in the section Vocabulary and
      Representation.
 
@@ -2545,6 +2552,8 @@
      corresponds to the standard error stream.
 
      All these variables are final, so you can not change their values.
+     Encoding of the files is DINO current encoding at the program start
+     (see function set_encoding).
 
   9.1.5.  Miscellaneous variables
 
@@ -2572,7 +2581,11 @@
   are made through objects of the class. All declarations inside of
   class are private. The objects of the class can be created only by
   predeclared functions open or popen. If you create an object of the
-  class by calling the class, exception callop will be generated.
+  class by calling the class, exception callop will be generated. File
+  encoding is defined by the current DINO encoding at the file creation
+  time (see functions set_encoding, set_file_encoding). If you want to
+  work with files on the byte level without any encoding decoding, you
+  can use encoding called "RAW".
 
   9.2.2.  Exception classes
 
@@ -2657,8 +2670,17 @@
      o  partype. This class describes that a parameter value of a
         predeclared function is not of required type.
 
+     o  parvalue. This class describes that a parameter value of a
+        predeclared function is not one of permitted values (see
+        functions set_encoding, set_file_encoding).
+
      o  invfmt. This class describes that a format of a format output
-        function is wrong (see function putf.
+        function is wrong (see function putf).
+
+     o  invencoding. This class describes different exceptions with used
+        encodings, e.g. file contains bytes not corresponding to the
+        expected encoding or in some cases the encoding should contain
+        ASCII characters.
 
      o  invresult. This class describes that the result value of
         function call is not of required type, e.g. comparison function
@@ -3339,7 +3361,7 @@
   the list. If the list begins with ^, it matches any single character
   (but see below) not in the list. If two characters in the list are
   separated by -, this is shorthand for the full range of characters
-  between those two (inclusive) in the collating sequence of ASCII
+  between those two (inclusive) in the collating sequence of unicode
   codes, e.g. [0-9] matches any decimal digit. It is illegal for two
   ranges to share an endpoint, e.g. a-c-e.
 
@@ -3507,11 +3529,33 @@
   If the regular expression is incorrect, the functions generate excep-
   tion invregexp with a message explaining the error.
 
-  9.3.3.  File functions
+  9.3.3.  Encoding functions
+
+  Dino internally uses Unicode for characters. To provide communication
+  with the rest of world, it can use different encodings. The default
+  encoding is UTF-8. Dino has two functions to get and change the
+  current encoding:
+
+  o  get_encoding (). The function returns a new mutable string which is
+     a name of the current encoding.
+
+  o  set_encoding (name). The function accepts string and changes the
+     current encoding. If the name represents unknown encoding name, the
+     function generates exceptions parvalue.
+
+  Examples:
+
+
+                 putln (get_encoding ());
+                 set_encoding ("KOI8-R");
+
+
+
+  9.3.4.  File functions
 
   Dino has some predeclared functions to work on files and directories.
 
-  9.3.3.1.  Functions for access to file/directory information
+  9.3.4.1.  Functions for access to file/directory information
 
   The following predeclared functions can be used for accessing file or
   directory information. The functions may generate an exception
@@ -3617,7 +3661,7 @@
   o  chomod (path, mode). Analogous to the previous function except for
      the fact that it sets up rights for all other users.
 
-  9.3.3.2.  Functions for work with directories
+  9.3.4.2.  Functions for work with directories
 
   The following functions work with directories. The functions may
   generate an exception declared in class syserror (e.g. eaccess,
@@ -3646,7 +3690,7 @@
      (which should be a string after implicit string conversion) the
      current directory.
 
-  9.3.3.3.  Functions for work with files.
+  9.3.4.3.  Functions for work with files.
 
   The following functions (besides input/output functions) work with OS
   files. The functions may generate an exception declared in the class
@@ -3711,7 +3755,14 @@
      the start of the file, the current position indicator, or the end-
      of-file, respectively).
 
-  9.3.3.4.  File output functions
+  o  get_file_encoding (fileinstance). The function returns a new mutabe
+     string which is a name of the current file encoding.
+
+  o  set_file_encoding (fileinstance, name). The accepts file and string
+     and changes the current file encoding.  If the name represents
+     unknown encoding name, the function generates exceptions parvalue.
+
+  9.3.4.4.  File output functions
 
   The following functions are used to output something into opened
   files. All the function return values are undefined. The functions may
@@ -4014,7 +4065,7 @@
      fprint except for the fact that it additionally outputs a new line
      character after the output of all the parameters.
 
-  9.3.3.5.  File input functions
+  9.3.4.5.  File input functions
 
   The following functions are used to input something from opened files.
   The functions may generate an exception declared in the class syserror
@@ -4083,7 +4134,7 @@
      scanln except for that it reads from an opened file associated with
      a class file instance which is the parameter value.
 
-  9.3.4.  Time functions
+  9.3.5.  Time functions
 
   The following functions can be used to get information about real
   time.
@@ -4158,7 +4209,7 @@
 
      o  %% - a literal `%' character.
 
-  9.3.5.  Functions for access to process information
+  9.3.6.  Functions for access to process information
 
   There are Dino predeclared functions which are used to get information
   about the current OS process (the Dino interpreter which executes the
@@ -4188,7 +4239,7 @@
      (possibly the empty vector) representing supplementary group names
      for the current OS process.
 
-  9.3.6.  Miscellaneous functions
+  9.3.7.  Miscellaneous functions
 
   There are the following miscellaneous functions:
 
@@ -4667,6 +4718,12 @@
               dino interprets a program in the Dino programming language.   The  pro
               gram file (and include files) must have the suffix .d
 
+              The  program  encodings  are  defined by the current encoding.  You can
+              change  the  current  input  encoding  defining  environment   variable
+              DINO_ENCODING  or  calling  DINO function set_encoding in case of REPL.
+              Each program file can define own encoding putting  -*- coding:  <encod
+              ing-name> -*-  anywhere on the first two lines of the file.
+
               The  description  of  Dino language is in the report of the Programming
               Language Dino.
 
@@ -4792,6 +4849,11 @@
                      or  ";"  (on  Windows).  The value has less priority than values
                      given in -L options.
 
+              DINO_ENCODING
+                     If not null, it defines the current encoding  of  dino  program.
+                     By  defaull  the  current encoding is UTF-8 encoding.  Use iconv
+                     utility to get possible encoding names.
+
        DIAGNOSTICS
               DINO diagnostics are self-explanatory.
 
@@ -4803,7 +4865,7 @@
 
 
 
-       Dino                              25 May 2015                          Dino(1)
+       Dino                              10 Dec 2015                          Dino(1)
 
 
 

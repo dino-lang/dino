@@ -135,15 +135,23 @@ letters are considered to be distinct.
         backslash have a special meaning inside a Dino character
         constant:
           <itemize>
-          <item><tt><bf>\a</bf>    -</tt> ASCII character alert
-          <item><tt><bf>\b</bf>    -</tt> ASCII character backspace
-          <item><tt><bf>\f</bf>    -</tt> ASCII character form feed
-          <item><tt><bf>\n</bf>    -</tt> ASCII character new line
-          <item><tt><bf>\r</bf>    -</tt> ASCII character carriage return
-          <item><tt><bf>\t</bf>    -</tt> ASCII character horizontal tab
-          <item><tt><bf>\v</bf>    -</tt> ASCII character vertical tab
-          <item><tt><bf>\code</bf> -</tt> ASCII character with given octal code
-          <item><tt><bf>\char</bf> -</tt> ASCII character char for all remaining characters
+          <item><tt><bf>\a</bf>    - </tt> ASCII character alert
+          <item><tt><bf>\b</bf>     -</tt> ASCII character backspace
+          <item><tt><bf>\f</bf>     -</tt> ASCII character form feed
+          <item><tt><bf>\n</bf>     -</tt> ASCII character new line
+          <item><tt><bf>\r</bf>     -</tt> ASCII character carriage return
+          <item><tt><bf>\t</bf>     -</tt> ASCII character horizontal tab
+          <item><tt><bf>\v</bf>     -</tt> ASCII character vertical tab
+          <item><tt><bf>\code</bf>  -</tt> Character with code given
+          up to tree octal digits
+          <item><tt><bf>\xcode</bf> -</tt> Character with code given
+          by two hexdecimal digits
+          <item><tt><bf>\ucode</bf> -</tt> Character with code given
+          by four hexdecimal digits
+          <item><tt><bf>\Ucode</bf> -</tt> Character with code given
+          by eight hexdecimal digits
+          <item><tt><bf>\char</bf>  -</tt> Character char for all
+          remaining characters
           </itemize>
         To denote a single quote mark use the sequence <tt>\'</tt>.
         The double quote mark can be represented either by <tt>\"</tt>
@@ -152,7 +160,7 @@ letters are considered to be distinct.
 <tscreen><verb>
           Character = "'" Char "'"
 
-          Char = <any ASCII character except for the single quote ',
+          Char = <any character except for the single quote ',
                   backslash \, or line break>
                | SimpleEscapeSeq
                | OctalEscapeSeq
@@ -165,8 +173,8 @@ letters are considered to be distinct.
 <tscreen><verb>
           'a'  '\''  '\\'  '\12'  '"'
 </verb></tscreen>
-     <item>A <em>string</em> is sequence of ASCII characters enclosed
-        in double quotes. There are the same sequences of ASCII
+     <item>A <em>string</em> is sequence of characters enclosed
+        in double quotes. There are the same sequences of
         characters with special meaning as in a character constant.
         To denote a double quote mark use sequence <tt>\"</tt>.  The
         single quote mark can be represented either by <tt>\'</tt> or
@@ -359,31 +367,31 @@ more detail later in the report.
   fomode         fprint         fprintln       fput
   fputln         fscan          fscanln        fsize
   ftype          fuidn          fumode
-  gc             get            getcwd         getegn
-  geteun         getgn          getgroups      getf
-  getln          getpid         getun          gmatch
-  gsub
+  gc             get            get_encoding   get_file_encoding
+  getcwd         getegn         geteun         getgn
+  getgroups      getf           getln          getpid
+  getun          gmatch         gsub
   immutable      indexop        indextype      indexvalue     
   ins            inside         insv           invaccess
-  invcall        invector       invenv         invenvar
-  invextern      invfmt         invgrammar     invindex
-  invinput       invkey         invop          invparser
-  invregexp      invresult      invslice       invtoken
-  isa            isatty
+  invcall        invector       invencoding    invenv
+  invenvar       invextern      invfmt         invgrammar
+  invindex       invinput       invkey         invop
+  invparser      invregexp      invresult      invslice
+  invtoken       isa            isatty
   keyop          keys           keyvalue
   libclose       log            log10
   main_thread    match          matrixform     max
   min            mkdir
   nil_anode      noextern       noexternsupp   noshell
   open           optype         opvalue
-  parser         parnumber      partype        patternmatch
-  pclose         pmemory        popen          pow
-  print          println        put            putln
-  rand           readdir        remove         rename
-  rev            rmdir
-  scan           scanln         seek           signal
-  sigabrt        sigfpe         sigill         sigint
-  sigsegv        sigterm
+  parser         parnumber      partype        parvalue
+  patternmatch   pclose         pmemory        popen
+  pow            print          println        put
+  putln          rand           readdir        remove
+  rename         rev            rmdir
+  scan           scanln         seek           set_encoding
+  set_file_encoding signal      sigabrt        sigfpe
+  sigill         sigint         sigsegv        sigterm
   sin            sliceform      slicetype      sort
   split          split_regex    sprint         sprintln
   sput           sputln         sqrt           srand
@@ -825,7 +833,7 @@ Dino has the following types of values:
 <tscreen><verb>
                  Expr = nil
 </verb></tscreen>
-          <item><em>character</em> which represents ASCII characters.
+          <item><em>character</em> which represents unicode characters.
             For the representation see <tt>Character</tt> in the
             section <em>Vocabulary and Representation</em>.
 <tscreen><verb>
@@ -2247,6 +2255,8 @@ the standard input stream, the following variables can be used:
        stream.
      </itemize>
 All these variables are final, so you can not change their values.
+Encoding of the files is DINO current encoding at the program start
+(see function <tt>set_encoding</tt>).
 
 <sect2>Miscellaneous variables
 <p>
@@ -2276,7 +2286,11 @@ Dino program are made through objects of the class.  All declarations
 inside of class are private.  The objects of the class can be created
 only by predeclared functions <tt>open</tt> or <tt>popen</tt>.  If you
 create an object of the class by calling the class, exception
-<tt>callop</tt> will be generated.
+<tt>callop</tt> will be generated.  File encoding is defined by the
+current DINO encoding at the file creation time (see
+functions <tt>set_encoding</tt>, <tt>set_file_encoding</tt>).  If you
+want to work with files on the byte level without any encoding
+decoding, you can use encoding called <tt>"RAW"</tt>.
 
 <sect2>Exception classes
 <p>
@@ -2358,9 +2372,17 @@ The following classes are declared in the class <tt>error</tt>:
          <item><tt>partype</tt>.  This class describes that a
            parameter value of a predeclared function is not of
            required type.
+         <item><tt>parvalue</tt>.  This class describes that a
+           parameter value of a predeclared function is not one of
+           permitted values (see functions <tt>set_encoding</tt>,
+           <tt>set_file_encoding</tt>).
          <item><tt>invfmt</tt>.  This class describes that a format of
            a format output function is wrong (see function
-           <tt>putf</tt>.
+           <tt>putf</tt>).
+         <item><tt>invencoding</tt>.  This class describes different
+           exceptions with used encodings, e.g. file contains bytes
+           not corresponding to the expected encoding or in some cases
+           the encoding should contain ASCII characters.
          <item><tt>invresult</tt>.  This class describes that the
            result value of function call is not of required type,
            e.g. comparison function used in a call to function
@@ -3025,7 +3047,7 @@ single character from the list.  If the list begins with <tt>^</tt>,
 it matches any single character (but see below) not in the list.  If
 two characters in the list are separated by <tt>-</tt>, this is
 shorthand for the full <em>range</em> of characters between those two
-(inclusive) in the collating sequence of ASCII codes,
+(inclusive) in the collating sequence of unicode codes,
 e.g. <tt>[0-9]</tt> matches any decimal digit.  It is illegal for two
 ranges to share an <em>endpoint</em>, e.g. <tt>a-c-e</tt>.
 <p>
@@ -3176,6 +3198,27 @@ There are the following Dino pattern matching functions:
      </itemize>
 If the regular expression is incorrect, the functions generate
 exception <tt>invregexp</tt> with a message explaining the error.
+
+<sect2>Encoding functions
+<p>
+Dino internally uses Unicode for characters.  To provide communication
+with the rest of world, it can use different encodings.  The default
+encoding is UTF-8.  Dino has two functions to get and change the
+current encoding:
+     <itemize>
+     <item><tt>get_encoding ()</tt>.  The function returns a new
+       mutable string which is a name of the current encoding.
+     <item><tt>set_encoding (name)</tt>.  The function accepts string
+       and changes the current encoding.  If the name represents
+       unknown encoding name, the function generates
+       exceptions <tt>parvalue</tt>.
+     </itemize>
+       <p>
+       Examples:
+<tscreen><verb>
+          putln (get_encoding ());
+          set_encoding ("KOI8-R");
+</verb></tscreen>
 
 <sect2>File functions
 <p>
@@ -3372,6 +3415,13 @@ renaming a directory, not only a file.
        <tt>'e'</tt> (these characters mean that the offset is relative
        to the start of the file, the current position indicator, or
        the end-of-file, respectively).
+     <item><tt>get_file_encoding (fileinstance)</tt>.  The function
+       returns a new mutabe string which is a name of the current file
+       encoding.
+     <item><tt>set_file_encoding (fileinstance, name)</tt>.  The
+       accepts file and string and changes the current file encoding.
+       If the name represents unknown encoding name, the function
+       generates exceptions <tt>parvalue</tt>.
      </itemize>
 
 <sect3>File output functions

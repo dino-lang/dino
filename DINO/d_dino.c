@@ -766,7 +766,7 @@ initiate_cds (void)
 static inline int
 raw_encoding_name_p (const char *str)
 {
-  return strcmp (str, RAW_STRING) == 0;
+  return strcmp (str, RAW_STRING) == 0 || strcmp (str, RAW_STRING2) == 0;
 }
 
 /* Set up BYTE_CD, UCODE_CD, and REVERSE_UCODE_CD (BYTE_CD and
@@ -782,27 +782,32 @@ set_conv_descs (const char *encoding_name,
 #ifdef HAVE_ICONV_H
   const char *utf32 = big_endian_p ? "UTF32BE" : "UTF32LE";
   
-  if (byte_cd != NULL)
+  if (raw_encoding_name_p (encoding_name))
+    bcd = ucd = rucd = NO_CONV_DESC;
+  else
     {
-      bcd = iconv_open (encoding_name, LATIN1_STRING);
-      if (bcd == NO_CONV_DESC)
-	return FALSE;
-    }
-  if (ucode_cd != NULL)
-    {
-      ucd = iconv_open (encoding_name, utf32);
-      if (ucd == NO_CONV_DESC)
+      if (byte_cd != NULL)
+	{
+	  bcd = iconv_open (encoding_name, LATIN1_STRING);
+	  if (bcd == NO_CONV_DESC)
+	    return FALSE;
+	}
+      if (ucode_cd != NULL)
+	{
+	  ucd = iconv_open (encoding_name, utf32);
+	  if (ucd == NO_CONV_DESC)
+	    {
+	      iconv_close (bcd);
+	      return FALSE;
+	    }
+	}
+      rucd = iconv_open (utf32, encoding_name);
+      if (rucd == NO_CONV_DESC)
 	{
 	  iconv_close (bcd);
+	  iconv_close (ucd);
 	  return FALSE;
 	}
-    }
-  rucd = iconv_open (utf32, encoding_name);
-  if (rucd == NO_CONV_DESC)
-    {
-      iconv_close (bcd);
-      iconv_close (ucd);
-      return FALSE;
     }
 #else
   if (! raw_encoding_name_p (encoding_name))

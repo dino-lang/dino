@@ -80,7 +80,9 @@ class <CODE>file</CODE> which corresponds to the standard error
 stream.</LI>
 </UL>
 
-All these variables are final, so you can not change their values.</P>
+All these variables are final, so you can not change their values.
+Encoding of the files is DINO current encoding at the program start
+(see function <CODE>set_encoding</CODE>).</P>
 
 <H3>Miscellaneous variables</H3>
 
@@ -112,7 +114,11 @@ Dino program are made through objects of the class.  All declarations
 inside of class are private.  The objects of the class can be created
 only by predeclared functions <CODE>open</CODE> or <CODE>popen</CODE>.  If you
 create an object of the class by calling the class, exception
-<CODE>callop</CODE> will be generated.</P>
+<CODE>callop</CODE> will be generated.  File encoding is defined by the
+current DINO encoding at the file creation time (see
+functions <CODE>set_encoding</CODE>, <CODE>set_file_encoding</CODE>).  If you
+want to work with files on the byte level without any encoding
+decoding, you can use encoding called <CODE>"RAW"</CODE>.</P>
 
 <H3>Exception classes</H3>
 
@@ -198,9 +204,17 @@ class.</LI>
 <LI><CODE>partype</CODE>.  This class describes that a
 parameter value of a predeclared function is not of
 required type.</LI>
+<LI><CODE>parvalue</CODE>.  This class describes that a
+parameter value of a predeclared function is not one of
+permitted values (see functions <CODE>set_encoding</CODE>,
+<CODE>set_file_encoding</CODE>).</LI>
 <LI><CODE>invfmt</CODE>.  This class describes that a format of
 a format output function is wrong (see function
-<CODE>putf</CODE>.</LI>
+<CODE>putf</CODE>).</LI>
+<LI><CODE>invencoding</CODE>.  This class describes different
+exceptions with used encodings, e.g. file contains bytes
+not corresponding to the expected encoding or in some cases
+the encoding should contain ASCII characters.</LI>
 <LI><CODE>invresult</CODE>.  This class describes that the
 result value of function call is not of required type,
 e.g. comparison function used in a call to function
@@ -897,7 +911,7 @@ single character from the list.  If the list begins with <CODE>^</CODE>,
 it matches any single character (but see below) not in the list.  If
 two characters in the list are separated by <CODE>-</CODE>, this is
 shorthand for the full <EM>range</EM> of characters between those two
-(inclusive) in the collating sequence of ASCII codes,
+(inclusive) in the collating sequence of unicode codes,
 e.g. <CODE>[0-9]</CODE> matches any decimal digit.  It is illegal for two
 ranges to share an <EM>endpoint</EM>, e.g. <CODE>a-c-e</CODE>.</P>
 
@@ -1072,6 +1086,30 @@ outputs
 
 If the regular expression is incorrect, the functions generate
 exception <CODE>invregexp</CODE> with a message explaining the error.</P>
+
+<H3>Encoding functions</H3>
+
+<P>Dino internally uses Unicode for characters.  To provide communication
+with the rest of world, it can use different encodings.  The default
+encoding is UTF-8.  Dino has two functions to get and change the
+current encoding:
+<UL>
+<LI><CODE>get_encoding ()</CODE>.  The function returns a new
+mutable string which is a name of the current encoding.</LI>
+<LI><CODE>set_encoding (name)</CODE>.  The function accepts string
+and changes the current encoding.  If the name represents
+unknown encoding name, the function generates
+exceptions <CODE>parvalue</CODE>.</LI>
+</UL>
+</P>
+<P>Examples:
+<BLOCKQUOTE><CODE>
+<PRE>
+          putln (get_encoding ());
+          set_encoding ("KOI8-R");
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
 
 <H3>File functions</H3>
 
@@ -1273,6 +1311,13 @@ of the string should be <CODE>'s'</CODE>, <CODE>'c'</CODE>, or
 <CODE>'e'</CODE> (these characters mean that the offset is relative
 to the start of the file, the current position indicator, or
 the end-of-file, respectively).</LI>
+<LI><CODE>get_file_encoding (fileinstance)</CODE>.  The function
+returns a new mutabe string which is a name of the current file
+encoding.</LI>
+<LI><CODE>set_file_encoding (fileinstance, name)</CODE>.  The
+accepts file and string and changes the current file encoding.
+If the name represents unknown encoding name, the function
+generates exceptions <CODE>parvalue</CODE>.</LI>
 </UL>
 </P>
 

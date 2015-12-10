@@ -12878,7 +12878,7 @@ println (match ("aaa", "baaab"));
 println (match ("(a)(a)(a)", "baaab"));
 println (match ("aba", "baaab"));                 // no matching
 println (match ("ab.", "baaab\n"));               // no matching with NL
-println (match ("[:alpha:]", "z"));
+println (match ("[[:alpha:]]", "z"));
 println (match ("^.aa", "baaab"));
 println (match ("1", 10));
 println (match ("1", 0));
@@ -49324,6 +49324,28 @@ KOI8-R
 UTF-8
 Бб
 OUTPUT842
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 843.
+if test $result = ok -a $start_test_number -le 843; then
+	echo test 843: output in different encoding
+        cat >$test_file <<'TEST843'
+set_file_encoding (stdin, "RAW");
+println (getln ());
+TEST843
+        echo '      ' "echo -e '\0342\0302' | " $DINO '-O' $test_file "2>$stderr"
+        if echo -e '\0342\0302' | $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 << OUTPUT843 && $CMP $stdout $ftemp2; then
+"\xe2\xc2"
+OUTPUT843
                         result=ok
                 else
                         result=fail

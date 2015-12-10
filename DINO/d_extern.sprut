@@ -389,7 +389,8 @@ heap_vect :: heap_vect_tab
      representation.  This is used during transformation unpacked
      vector into packed vector (see heap allocator and GC). */
   pack_vect_el_mode : ER_node_mode_t
-  /* ????? */
+  /* Offset in bytes of the zero element of the vector.  When we
+     remove 0-th element, we only change this offset.  */
   disp : size_t
 ;
 

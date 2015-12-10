@@ -100,15 +100,23 @@ character.  The following sequences starting with the ASCII
 backslash have a special meaning inside a Dino character
 constant:
 <UL>
-<LI><CODE><B>\a</B>    -</CODE> ASCII character alert</LI>
-<LI><CODE><B>\b</B>    -</CODE> ASCII character backspace</LI>
-<LI><CODE><B>\f</B>    -</CODE> ASCII character form feed</LI>
-<LI><CODE><B>\n</B>    -</CODE> ASCII character new line</LI>
-<LI><CODE><B>\r</B>    -</CODE> ASCII character carriage return</LI>
-<LI><CODE><B>\t</B>    -</CODE> ASCII character horizontal tab</LI>
-<LI><CODE><B>\v</B>    -</CODE> ASCII character vertical tab</LI>
-<LI><CODE><B>\code</B> -</CODE> ASCII character with given octal code</LI>
-<LI><CODE><B>\char</B> -</CODE> ASCII character char for all remaining characters</LI>
+<LI><CODE><B>\a</B>    - </CODE> ASCII character alert</LI>
+<LI><CODE><B>\b</B>     -</CODE> ASCII character backspace</LI>
+<LI><CODE><B>\f</B>     -</CODE> ASCII character form feed</LI>
+<LI><CODE><B>\n</B>     -</CODE> ASCII character new line</LI>
+<LI><CODE><B>\r</B>     -</CODE> ASCII character carriage return</LI>
+<LI><CODE><B>\t</B>     -</CODE> ASCII character horizontal tab</LI>
+<LI><CODE><B>\v</B>     -</CODE> ASCII character vertical tab</LI>
+<LI><CODE><B>\code</B>  -</CODE> Character with code given
+up to tree octal digits</LI>
+<LI><CODE><B>\xcode</B> -</CODE> Character with code given
+by two hexdecimal digits</LI>
+<LI><CODE><B>\ucode</B> -</CODE> Character with code given
+by four hexdecimal digits</LI>
+<LI><CODE><B>\Ucode</B> -</CODE> Character with code given
+by eight hexdecimal digits</LI>
+<LI><CODE><B>\char</B>  -</CODE> Character char for all
+remaining characters</LI>
 </UL>
 
 To denote a single quote mark use the sequence <CODE>\'</CODE>.
@@ -119,7 +127,7 @@ character constant, use two consecutive ASCII backslashes.
 <PRE>
           Character = "'" Char "'"
 
-          Char = &lt;any ASCII character except for the single quote ',
+          Char = &lt;any character except for the single quote ',
                   backslash \, or line break>
                | SimpleEscapeSeq
                | OctalEscapeSeq
@@ -137,8 +145,8 @@ Examples:
 </PRE>
 </CODE></BLOCKQUOTE>
 </LI>
-<LI>A <EM>string</EM> is sequence of ASCII characters enclosed
-in double quotes. There are the same sequences of ASCII
+<LI>A <EM>string</EM> is sequence of characters enclosed
+in double quotes. There are the same sequences of
 characters with special meaning as in a character constant.
 To denote a double quote mark use sequence <CODE>\"</CODE>.  The
 single quote mark can be represented either by <CODE>\'</CODE> or

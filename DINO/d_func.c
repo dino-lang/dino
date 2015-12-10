@@ -2335,7 +2335,7 @@ general_str_to_world (void *str, vlo_t *vlo, int byte_p,
   else if (unicode_cd != NO_CONV_DESC)
     repr = encode_ucode_str_vlo ((ucode_t *) str, unicode_cd, vlo, len);
   else
-    repr = encode_ucode_str_to_raw_vlo ((ucode_t *) str, vlo); // ???
+    repr = encode_ucode_str_to_raw_vlo ((ucode_t *) str, vlo);
   if (repr != NULL)
     return repr;
   eval_error (invencoding_bc_decl, call_pos (),
@@ -3541,7 +3541,6 @@ general_get_ln_file_call (FILE *f, int *unget_char_ptr, int param_flag,
 	set_packed_vect_el (vect, i,
 			    ((ER_node_t *) VLO_BEGIN (temp_vlobj2)) [i]);
     }
-  /* ??? */
   if (ch == EOF && ch_n == 0)
     eval_error (eof_bc_decl, call_pos (), DERR_eof_occured, ifun_name);
   /* Place the result instead of the function. */
@@ -4721,7 +4720,10 @@ process_errno_call (int pars_number)
   else
     {
       to_vect_string_conversion (ctop, NULL, NULL);
-      name = ER_pack_els (ER_vect (ctop)); // ???
+      d_assert (ER_NODE_MODE (ctop) == ER_NM_vect
+		&& ER_NODE_MODE (ER_vect (ctop)) == ER_NM_heap_pack_vect
+		&& ER_pack_vect_el_mode (ER_vect (ctop)) == ER_NM_byte);
+      name = ER_pack_els (ER_vect (ctop));
     }
   if (errno)
     process_system_errors (name);
@@ -5718,7 +5720,7 @@ transpose_call (int pars_number)
       row = ((ER_node_t *) pack_els) [i];
       GO_THROUGH_REDIR (row);
       eltp = (ER_NODE_MODE (row) == ER_NM_heap_pack_vect
-	      ? ER_pack_vect_el_mode (row) : ER_NM__error); // ???
+	      ? ER_pack_vect_el_mode (row) : ER_NM__error); /* ??? */
       if (i == 0)
 	{
 	  ncols = ER_els_number (row);
@@ -5761,7 +5763,7 @@ transpose_call (int pars_number)
 	      eltp = ER_pack_vect_el_mode (row);
 	      el_size = type_size_table [eltp];
 	      res_el = IVAL (ER_unpack_els (col), i);
-	      ER_SET_MODE (res_el, eltp); // ????
+	      ER_SET_MODE (res_el, eltp); /* ???? */
 	      displ = val_displ_table[eltp];
 	      memcpy ((char *) res_el + displ,
 		      (char *) ER_pack_els (row) + j * el_size, el_size);
