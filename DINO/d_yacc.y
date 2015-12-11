@@ -2237,11 +2237,14 @@ get_full_file_and_encoding_name (IR_node_t ir_fname, const char **encoding)
 		      IR_string_value (IR_unique_string (ir_fname)));
       fname = encode_byte_str_vlo (VLO_BEGIN (temp_scanner_vlo2),
 				   curr_byte_cd, &temp_scanner_vlo, &len);
-      /* Check NULL bytes:  */
-      for (i = 0; i < len && fname[i] != 0; i++)
-	;
-      if (i < len)
-	fname = NULL;
+      if (fname != NULL)
+	{
+	  /* Check NULL bytes:  */
+	  for (i = 0; i < len && fname[i] != 0; i++)
+	    ;
+	  if (i < len)
+	    fname = NULL;
+	}
     }
   else if (curr_ucode_cd != NO_CONV_DESC) /* ucodestr */
     {
@@ -2249,15 +2252,16 @@ get_full_file_and_encoding_name (IR_node_t ir_fname, const char **encoding)
       
       for (len = 0; ustr[len] != 0; len++)
 	;
-      VLO_ADD_MEMORY (temp_scanner_vlo2,
-		      IR_ucodestr_value (IR_unique_ucodestr (ir_fname)),
-		      sizeof (ucode_t) * (len + 1));
+      VLO_ADD_MEMORY (temp_scanner_vlo2, ustr, sizeof (ucode_t) * (len + 1));
       fname = encode_ucode_str_vlo (VLO_BEGIN (temp_scanner_vlo2),
 				    curr_ucode_cd, &temp_scanner_vlo, &len);
-      for (i = 0; i < len && fname[i] != 0; i++)
-	;
-      if (i < len)
-	fname = NULL;
+      if (fname != NULL)
+	{
+	  for (i = 0; i < len && fname[i] != 0; i++)
+	    ;
+	  if (i < len)
+	    fname = NULL;
+	}
     }
   else
     fname = encode_ucode_str_to_raw_vlo (IR_ucodestr_value (IR_unique_ucodestr (ir_fname)),

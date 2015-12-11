@@ -1,5 +1,13 @@
 2015-12-10  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/dino.tst.in (DERR_in_ucode_encoding): Make more meaningful output.
+	(DERR_unexpected_input_encoding): Ditto.
+	* DINO/d_yacc.y (get_full_file_and_encoding_name): Process null
+	fname after encoding.
+	* DINO/dino.tst.in (844-848): New tests.
+
+2015-12-10  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/d_common.h (RAW_STRING2): New.
 	* DINO/d_dino.c (raw_encoding_name_p): Use it.
 	(set_conv_descs): Recognize RAW encoding.

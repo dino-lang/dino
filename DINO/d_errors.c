@@ -346,9 +346,9 @@ char DERR_invalid_format [] = "run time error - invalid format in `%s'";
 char DERR_too_big_ucode_for_byte_representation []
   = "run time error - unicode is too big to be represented by a byte for `%s'";
 char DERR_in_ucode_encoding []
-  = "run time error - in unicode encoding for `%s'";
+  = "run time error - wrong unicode for encoding used by `%s'";
 char DERR_unexpected_input_encoding []
-  = "run time error - unexpected input encoding for `%s'";
+  = "run time error - unexpected input for encoding used by `%s'";
 char DERR_non_ascii_default_encoding[]
   = "encoding %s given for `%s' does not contain ascii byte codes";
 char DERR_eof_occured []
