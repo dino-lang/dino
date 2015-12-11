@@ -635,6 +635,8 @@ EXTERN_GCC_FPIC
 DINO_GCC_FPIC
 C_DEBUG_DEFINE
 START_SPRUT_OPTIONS
+YAEPDIR
+YAEPLIB
 ALLOCA
 EGREP
 GREP
@@ -5791,14 +5793,49 @@ done
 
 
 
-if test x$cocom_debug = x; then
+YAEPLIB=cocom
+YAEPDIR=../AMMUNITION
+
+
+
+if test x$cocom_debug = x -a x$dino_debug = x; then
   C_DEBUG_DEFINE=-DNDEBUG
   START_SPRUT_OPTIONS=-only-macro
 else
+  CFLAGS=-g3
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether CC supports -g3" >&5
+$as_echo_n "checking whether CC supports -g3... " >&6; }
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+      g3=yes
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+  if test "$g3" = yes; then
+    CFLAGS='-O0 -g3'
+    CXXFLAGS='-O0 -g3'
+  else
+    CFLAGS='-O0 -g'
+    CXXFLAGS='-O0 -g'
+  fi
   C_DEBUG_DEFINE=
   START_SPRUT_OPTIONS=-debug
-  CFLAGS='-O0 -g'
-  CXXFLAGS='-O0 -g'
 fi
 
 
@@ -5921,7 +5958,7 @@ fi
 esac
 
 
-if test "$GCC" = yes && test x$cocom_debug = x; then
+if test "$GCC" = yes && test x$cocom_debug = x -a x$dino_debug = x; then
   my_save_cflags="$CFLAGS"
   CFLAGS=-Ofast
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether CC supports -Ofast" >&5
@@ -6159,15 +6196,15 @@ output_files="DINO/Makefile DINO/dino.tst\
           AMMUNITION/spset.tst AMMUNITION/cspset.tst\
           AMMUNITION/commline.tst AMMUNITION/position.tst\
           AMMUNITION/errors.tst AMMUNITION/ticker.tst AMMUNITION/bits.tst\
-          AMMUNITION/arithm.tst AMMUNITION/IEEE.tst AMMUNITION/earley.tst\
+          AMMUNITION/arithm.tst AMMUNITION/IEEE.tst AMMUNITION/yaep.tst\
           AMMUNITION/allocate++.tst AMMUNITION/vlobject++.tst\
           AMMUNITION/objstack++.tst AMMUNITION/hashtab++.tst\
           AMMUNITION/spset++.tst AMMUNITION/cspset++.tst\
           AMMUNITION/commline++.tst AMMUNITION/position++.tst\
           AMMUNITION/errors++.tst AMMUNITION/ticker++.tst\
           AMMUNITION/bits++.tst AMMUNITION/arithm++.tst AMMUNITION/IEEE++.tst\
-          AMMUNITION/earley++.tst\
-          MSTA/msta.tst MSTA/quality.tst MSTA/compare.tst\
+          AMMUNITION/yaep++.tst AMMUNITION/compare_parsers.tst\
+          MSTA/msta.tst MSTA/quality.tst\
 	  SHILKA/shilka.tst SHILKA/compare.tst\
           Makefile"
 

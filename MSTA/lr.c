@@ -719,7 +719,7 @@ finish_dependence_nodes_table (void)
        "Dependence nodes table: entries - %lu, elements - %lu, collisions - %d%%\n",
        hash_table_size (dependence_nodes_table),
        hash_table_elements_number (dependence_nodes_table),
-       hash_table_collisions (dependence_nodes_table));
+       get_collisions (dependence_nodes_table));
 #endif
   delete_hash_table (dependence_nodes_table);
 }

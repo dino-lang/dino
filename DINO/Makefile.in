@@ -227,7 +227,7 @@ ammunition = ../AMMUNITION/C/allocate.o ../AMMUNITION/C/vlobject.o\
 	     ../AMMUNITION/C/spset.o ../AMMUNITION/C/cspset.o\
 	     ../AMMUNITION/C/objstack.o ../AMMUNITION/C/errors.o\
 	     ../AMMUNITION/C/commline.o ../AMMUNITION/C/ticker.o\
-	     ../AMMUNITION/C/bits.o ../AMMUNITION/C/earley.o
+	     ../AMMUNITION/C/bits.o ../AMMUNITION/C/yaep.o
 
 additional_files = Makefile.in README INSTALL dino.1 compare.tst dino.tst.in\
                    UnicodeData.txt process_ucodedb.d ldAix
@@ -820,7 +820,7 @@ d_func.o: $(top_srcdir)/DINO/../DINO/d_func.c d_run.h \
  $(top_srcdir)/DINO/../DINO/d_udb.h \
  $(top_srcdir)/DINO/../DINO/d_func.h \
  $(top_srcdir)/ONIGURUMA/oniguruma.h \
- $(top_srcdir)/AMMUNITION/earley.h
+ $(top_srcdir)/AMMUNITION/yaep.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_func.c
 d_eval.o: $(top_srcdir)/DINO/../DINO/d_eval.c \
  $(top_srcdir)/DINO/../DINO/d_common.h d_config.h \
@@ -913,6 +913,7 @@ d_dino.o: $(top_srcdir)/DINO/../DINO/d_dino.c \
  $(top_srcdir)/DINO/d_runtab.h \
  $(top_srcdir)/DINO/../DINO/d_yacc.h \
  $(top_srcdir)/DINO/../DINO/d_context.h \
+ $(top_srcdir)/DINO/../DINO/d_bcio.h \
  $(top_srcdir)/DINO/../DINO/d_inference.h \
  $(top_srcdir)/DINO/../DINO/d_eval.h \
  $(top_srcdir)/DINO/../DINO/d_func.h

@@ -29,6 +29,7 @@
 #include "d_run.h"
 #include "d_yacc.h"
 #include "d_context.h"
+#include "d_bcio.h"
 #include "d_inference.h"
 #include "d_eval.h"
 #include "d_func.h"
@@ -1170,6 +1171,16 @@ set_signal_actions (void)
 }
 
 static int print_ucode_string (FILE *, ucode_t *, conv_desc_t);
+
+/* Print INDENT spaces into stdout. */
+void
+print_indent (int indent)
+{
+  int i;
+
+  for (i = 0; i < indent; i++)
+    printf (" ");
+}
 
 /* Prompts used in REPL for starting new stmt, for continue type
    the stmt, and prefix used for error output.  */

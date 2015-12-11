@@ -324,7 +324,7 @@ finish_traverse_cache (void)
        hash_table_size (traverse_cache),
        hash_table_elements_number (traverse_cache),
        traverse_cache_entries_size,
-       hash_table_collisions (traverse_cache));
+       get_collisions (traverse_cache));
 #endif
   delete_hash_table (traverse_cache);
 }
@@ -523,7 +523,7 @@ finish_goto_set_cache (void)
        "Goto set cache: entries - %lu, elements - %lu, collisions - %d%%\n",
        hash_table_size (goto_set_cache),
        hash_table_elements_number (goto_set_cache),
-       hash_table_collisions (goto_set_cache));
+       get_collisions (goto_set_cache));
 #endif
   delete_hash_table (goto_set_cache);
 }

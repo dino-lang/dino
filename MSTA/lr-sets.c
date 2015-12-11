@@ -283,7 +283,7 @@ finish_LR_core_table (void)
        "LR-core table: entries - %lu, elements - %lu, collisions - %d%%\n",
        hash_table_size (LR_core_table),
        hash_table_elements_number (LR_core_table),
-       hash_table_collisions (LR_core_table));
+       get_collisions (LR_core_table));
 #endif
   delete_hash_table (LR_core_table);
 }
@@ -399,7 +399,7 @@ finish_LR_set_table (void)
        "LR-set table: entries - %lu, elements - %lu, collisions - %d%%\n",
        hash_table_size (LR_set_table),
        hash_table_elements_number (LR_set_table),
-       hash_table_collisions (LR_set_table));
+       get_collisions (LR_set_table));
 #endif
   delete_hash_table (LR_set_table);
 }

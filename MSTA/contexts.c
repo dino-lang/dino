@@ -381,7 +381,7 @@ finish_token_strings (void)
        "Token string table: entries - %lu, elements - %lu, collisions - %d%%\n",
        hash_table_size (token_string_table),
        hash_table_elements_number (token_string_table),
-       hash_table_collisions (token_string_table));
+       get_collisions (token_string_table));
 #endif
   delete_hash_table (token_string_table);
   VLO_DELETE (token_string_array_representation);
@@ -944,7 +944,7 @@ finish_contexts (void)
        "Context table: entries - %lu, elements - %lu, collisions - %d%%\n",
        hash_table_size (context_table),
        hash_table_elements_number (context_table),
-       hash_table_collisions (context_table));
+       get_collisions (context_table));
 #endif
   delete_hash_table (context_table);
   finish_token_strings ();

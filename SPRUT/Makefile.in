@@ -798,7 +798,8 @@ ird.o: ird.c ../AMMUNITION/cocom-config.h ird.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
  $(top_srcdir)/AMMUNITION/position.h
 	$(CC) -c $(CFLAGS) -o $@ ird.c
-common.o: $(top_srcdir)/SPRUT/../SPRUT/common.c ird.h \
+common.o: \
+ $(top_srcdir)/SPRUT/../SPRUT/common.c ird.h \
  $(top_srcdir)/AMMUNITION/objstack.h \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/allocate.h \

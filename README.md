@@ -1,6 +1,6 @@
 # Programming language Dino and its implementation
 ## Vladimir Makarov, vmakarov@gcc.gnu.org
-## Jun, 2015
+## Oct, 2015
 
 # Description Layout
 * Introduction to Dino
@@ -20,9 +20,12 @@
 
 # Some history
 * 1993: Original language design and implementation ![Dino logo](Dino.jpg "Dino logo")
-    * Was used in russian computer game company ANIMATEK as a simple scripting language for describing dinosaurus movements
+    * Was used in russian computer game company ANIMATEK as a simple scripting language
+      for describing dinosaurus movements
 * 1998, 2002, 2007 : Major language and implementation revisions
-* 2015: Latest major revision
+* The next major release is planed to be done in winter of 2015/2016.
+  * This document describes the current state of Dino language and implementation.
+    The document will be changed as the current Dino state is changing.
 
 # The first taste of Dino
   * Eratosthenes sieve:
@@ -189,8 +192,6 @@
   * pattern can be nested, e.g. `node ([v, ...], 10)`
 * Pattern matching in variable declaration, e.g. `var [a, b, ...] = v;`
   * `v` should be a vector with at least 2 elements, new declared variables `a` and `b` will hold values of the two first elements
-* Pattern matching in parameters, e.g. `fun f ([a, b, ...]) {a + b;}`
-  * Analogously for the single parameter of function `f`
 
 ---
 
@@ -222,9 +223,9 @@
 ```
     fun exists_leaf (test, t) {
       switch (t) {
-        case leaf (v): test (v);
+        case leaf (v): return test (v);
         case node (l, r):
-          exists_leaf (test, l) || exists_leaf (test, r);
+          return exists_leaf (test, l) || exists_leaf (test, r);
       }
     }
 ```
@@ -538,6 +539,7 @@ Ocaml   |8.2    |1.1    |11.7   |165    |0.4   |0.8   |1.9   |3.7  |2.1    |4.8 
 
 # Implementation - Conclusions
 * A lot of research was done on Dino implementation
+  (see [article about this](https://github.com/dino-lang/implemenation-article))
 * It can be used to improve performance of popular dynamic language implementations:
     * to make them faster
     * to make them more portable
@@ -562,7 +564,8 @@ Ocaml   |8.2    |1.1    |11.7   |165    |0.4   |0.8   |1.9   |3.7  |2.1    |4.8 
 ```
 * Configure in a debug mode: -O0 and full IR checking (it makes DINO several times slower):
 ```
-  cocom_debug=y <dino-path>/configure --srcidir=<dino-path> --prefix=<install-path>
+  dino_debug=y <dino-path>/configure --srcidir=<dino-path> --prefix=<install-path>
+  or cocom_debug=y ...
 ```
 * Make:
 ```
@@ -576,6 +579,11 @@ Ocaml   |8.2    |1.1    |11.7   |165    |0.4   |0.8   |1.9   |3.7  |2.1    |4.8 
 ```
   cd DINO; make test
 ```
+
+* Testig Dino is to run two shell scripts:
+    * Tests are in file <build-directory>/DINO/dino.tst generated from DINO/dino.tst.in
+    * Benchmarks are in file DINO/compare.tst
+
 * Installing all COCOM and DINO:
 ```
   make install

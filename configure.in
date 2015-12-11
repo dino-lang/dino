@@ -71,16 +71,34 @@ AC_TYPE_SIGNAL
 AC_CHECK_FUNCS(strerror memcpy memset memcmp memmove vsprintf dlopen getgroups\
                strtol strtoll strtoull strtod setitimer sigaction sigemptyset)
 
+AC_SUBST(YAEPLIB)
+AC_SUBST(YAEPDIR)
+YAEPLIB=cocom
+YAEPDIR=../AMMUNITION
+
 AC_SUBST(START_SPRUT_OPTIONS)
 AC_SUBST(C_DEBUG_DEFINE)
-if test x$cocom_debug = x; then
+if test x$cocom_debug = x -a x$dino_debug = x; then
   C_DEBUG_DEFINE=-DNDEBUG
   START_SPRUT_OPTIONS=-only-macro
 else
+  CFLAGS=-g3
+  AC_MSG_CHECKING([whether CC supports -g3])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
+      [AC_MSG_RESULT([yes])]
+      [g3=yes],
+      [AC_MSG_RESULT([no])]
+  )
+
+  if test "$g3" = yes; then
+    CFLAGS='-O0 -g3'
+    CXXFLAGS='-O0 -g3'
+  else
+    CFLAGS='-O0 -g'
+    CXXFLAGS='-O0 -g'
+  fi
   C_DEBUG_DEFINE=
   START_SPRUT_OPTIONS=-debug
-  CFLAGS='-O0 -g'
-  CXXFLAGS='-O0 -g'
 fi
 
 AC_SUBST(DINO_GCC_FPIC)
@@ -97,7 +115,7 @@ AC_SUBST(DINO_ADDITIONAL_LINK_OPTION)
 AC_SUBST(DINO_LIB_NAME)
 AC_SUBST(DINO_ADDITIONAL_LIBS)
 
-dnl if test x$no_shlib != x -o x$cocom_debug != x; then
+dnl if test x$no_shlib != x -o x$cocom_debug != x -o x$dino_debug != x; then
 dnl   no_extern_shlib=yes
 dnl   dino_shlib=
 dnl fi
@@ -189,7 +207,7 @@ case $system in
 esac
 
 
-if test "$GCC" = yes && test x$cocom_debug = x; then
+if test "$GCC" = yes && test x$cocom_debug = x -a x$dino_debug = x; then
   my_save_cflags="$CFLAGS"
   CFLAGS=-Ofast
   AC_MSG_CHECKING([whether CC supports -Ofast])
@@ -312,15 +330,15 @@ output_files="DINO/Makefile DINO/dino.tst\
           AMMUNITION/spset.tst AMMUNITION/cspset.tst\
           AMMUNITION/commline.tst AMMUNITION/position.tst\
           AMMUNITION/errors.tst AMMUNITION/ticker.tst AMMUNITION/bits.tst\
-          AMMUNITION/arithm.tst AMMUNITION/IEEE.tst AMMUNITION/earley.tst\
+          AMMUNITION/arithm.tst AMMUNITION/IEEE.tst AMMUNITION/yaep.tst\
           AMMUNITION/allocate++.tst AMMUNITION/vlobject++.tst\
           AMMUNITION/objstack++.tst AMMUNITION/hashtab++.tst\
           AMMUNITION/spset++.tst AMMUNITION/cspset++.tst\
           AMMUNITION/commline++.tst AMMUNITION/position++.tst\
           AMMUNITION/errors++.tst AMMUNITION/ticker++.tst\
           AMMUNITION/bits++.tst AMMUNITION/arithm++.tst AMMUNITION/IEEE++.tst\
-          AMMUNITION/earley++.tst\
-          MSTA/msta.tst MSTA/quality.tst MSTA/compare.tst\
+          AMMUNITION/yaep++.tst AMMUNITION/compare_parsers.tst\
+          MSTA/msta.tst MSTA/quality.tst\
 	  SHILKA/shilka.tst SHILKA/compare.tst\
           Makefile"
 
