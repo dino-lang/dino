@@ -1,3 +1,47 @@
+2015-12-12  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* configure.in: Check getc_unlocked.
+	* configure: Update.
+	* AMMUNITION/cocom-config.h.in: Update.
+	* DINO/Makefile.in: Update deps.
+	(source): Add d_enc.shilka.
+	(d_enc.c): New.
+	(clean): Add d_enc.c.
+	(depend): Ditto.
+	* DINO/d_bc.sprut (FILE_ENCODING_TYPE_NAME): New.
+	(file_encoding_type_bc_decl): New.
+	(bc_decls_table): Add entry for file_encoding_type_bc_decl.
+	* DINO/d_bcio.c: Use dino_getc instead of getc.
+	* DINO/d_common.h (curr_encoding_name, get_encoding_type): New.
+	(set_conv_descs, encode_byte_str_vlo, encode_ucode_str_vlo): Add
+	param tp.
+	(get_ucode_from_stream): Ditto.
+	(dino_getc): New.
+	(read_byte): Use dino_getc insteadd of fgetc.
+	* DINO/d_dino.c: Include d_enc.c.
+	(get_encoding_type, curr_encoding_type): New.
+	(initiate_cds): Set up curr_encoding_type.
+	(raw_encoding_name_p): Delete.  Use get_encoding_type instead.
+	(set_conv_descs, encode_byte_str_vlo, encode_ucode_str_vlo): Add
+	param tp.  Use it.
+	(get_ucode_from_stream, print_ucode_string): Ditto.
+	* DINO/d_eval.c (find_catch_pc): Pass new arg to
+	encode_byte_str_vlo, encode_ucode_str_vlo.
+	* DINO/d_func.c (get_file_encoding_type): New.
+	(set_file_encoding, general_str_to_world, finish_output): Add
+	param tp.  Pass it calls.
+	(general_put_call, general_print_call, get_file_char): Ditto.
+	(general_get_call, general_get_ln_file_call, get_char_code): Ditto.
+	(invinput_error, get_token, scanel, general_scan_call): Ditto.
+	(general_putf_call): Ditto.
+	(number_file_encoding_type): New.  Setup it get_token.
+	* DINO/d_ir.sprut (ENVIRONMENT): Add file_encoding_type.
+	* DINO/d_types.h (enum encoding_type, encoding_type_t): New.
+	* DINO/d_yacc.y: Pass type to get_ucode_from_stream,
+	set_conv_descs, encode_byte_str_vlo, encode_ucode_str_vlo.  Use
+	dino_getc instead of fgetc.
+	* DINO/d_enc.shilka: New.
+
 2015-12-10  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/dino.tst.in (DERR_in_ucode_encoding): Make more meaningful output.

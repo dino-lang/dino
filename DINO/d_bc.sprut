@@ -458,6 +458,9 @@ extern BC_node_t file_ucode_ocd_bc_decl;
 #define FILE_ENCODING_NAME "file_encoding"
 extern BC_node_t file_encoding_bc_decl;
 
+#define FILE_ENCODING_TYPE_NAME "file_encoding_type"
+extern BC_node_t file_encoding_type_bc_decl;
+
 #define STDIN_NAME "stdin"
 extern BC_node_t stdin_bc_decl;
 
@@ -1576,6 +1579,7 @@ BC_node_t file_icd_bc_decl;
 BC_node_t file_byte_ocd_bc_decl;
 BC_node_t file_ucode_ocd_bc_decl;
 BC_node_t file_encoding_bc_decl;
+BC_node_t file_encoding_type_bc_decl;
 BC_node_t stdin_bc_decl;
 BC_node_t stdout_bc_decl;
 BC_node_t stderr_bc_decl;
@@ -1841,6 +1845,7 @@ static struct bc_decl_entry bc_decls_table [] =
   {&file_byte_ocd_bc_decl, FILE_BYTE_OCD_NAME, &file_bc_decl, NULL},
   {&file_ucode_ocd_bc_decl, FILE_UCODE_OCD_NAME, &file_bc_decl, NULL},
   {&file_encoding_bc_decl, FILE_ENCODING_NAME, &file_bc_decl, NULL},
+  {&file_encoding_type_bc_decl, FILE_ENCODING_TYPE_NAME, &file_bc_decl, NULL},
   {&stdin_bc_decl, STDIN_NAME, NULL, NULL},
   {&stdout_bc_decl, STDOUT_NAME, NULL, NULL},
   {&stderr_bc_decl, STDERR_NAME, NULL, NULL},

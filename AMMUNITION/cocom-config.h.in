@@ -37,6 +37,9 @@
 /* Define to 1 if you have the <float.h> header file. */
 #undef HAVE_FLOAT_H
 
+/* Define to 1 if you have the `getc_unlocked' function. */
+#undef HAVE_GETC_UNLOCKED
+
 /* Define to 1 if you have the `getgroups' function. */
 #undef HAVE_GETGROUPS
 

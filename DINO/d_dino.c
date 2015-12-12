@@ -739,14 +739,36 @@ get_size_repr (size_t size, char *unit)
   return size;
 }
 
+
+
+#include "d_enc.c"
+
+encoding_type_t
+get_encoding_type (const char *str)
+{
+#define MAX_ENC_NAME_LEN 30
+  char temp_str[MAX_ENC_NAME_LEN + 1];
+  int i, j;
+  
+  for (i = j = 0; j < MAX_ENC_NAME_LEN && str[i] != 0; i++)
+    if (isalpha_ascii (str[i]) && islower (str[i]))
+      temp_str[j++] = toupper (str[i]);
+    else
+      temp_str[j++] = str[i];
+  temp_str[j] = 0;
+  return ENC_find_keyword (temp_str, j);
+}
+
+
 /* These variables reflect the current global encoding.  Value
    NO_CONV_DESC means raw (one byte) encoding.  Two first encodings
    are used for world representation of byte (LATIN1) and ucode
    strings.  The reverse encoding is used to read UNICODE from
-   outside.  The last value contains the name of the current
-   encoding.  */
+   outside.  The last two values contain the name of the current
+   encoding and its type.  */
 conv_desc_t curr_byte_cd, curr_ucode_cd, curr_reverse_ucode_cd;
 const char *curr_encoding_name;
+encoding_type_t curr_encoding_type;
 
 static void
 initiate_cds (void)
@@ -755,35 +777,33 @@ initiate_cds (void)
   const char *utf32 = big_endian_p ? "UTF32BE" : "UTF32LE";
 
   curr_encoding_name = UTF8_STRING;
+  curr_encoding_type = UTF8_ENC;
   curr_byte_cd = iconv_open (UTF8_STRING, LATIN1_STRING);
   curr_ucode_cd = iconv_open (UTF8_STRING, utf32);
   curr_reverse_ucode_cd = iconv_open (utf32, UTF8_STRING);
 #else
   curr_encoding_name = RAW_STRING;
+  curr_encoding_type = RAW_ENC;
   curr_byte_cd = curr_ucode_cd = curr_reverse_ucode_cd = NO_CONV_DESC;
 #endif
 }
 
-static inline int
-raw_encoding_name_p (const char *str)
-{
-  return strcmp (str, RAW_STRING) == 0 || strcmp (str, RAW_STRING2) == 0;
-}
-
-/* Set up BYTE_CD, UCODE_CD, and REVERSE_UCODE_CD (BYTE_CD and
-   UCODE_CD may be NULL) from given ENCODING_NAME if it is known and
+/* Set up BYTE_CD, UCODE_CD, REVERSE_UCODE_CD (BYTE_CD and UCODE_CD
+   may be NULL), and TP from given ENCODING_NAME if it is known and
    implemented.  Return TRUE if encoding is a right one.  Otherwise,
    return FALSE. */
 int 
 set_conv_descs (const char *encoding_name,
 		conv_desc_t *byte_cd, conv_desc_t *ucode_cd,
-		conv_desc_t *reverse_ucode_cd)
+		conv_desc_t *reverse_ucode_cd,
+		encoding_type_t *tp)
 {
   conv_desc_t bcd, ucd, rucd;
 #ifdef HAVE_ICONV_H
   const char *utf32 = big_endian_p ? "UTF32BE" : "UTF32LE";
+  encoding_type_t type = get_encoding_type (encoding_name);
   
-  if (raw_encoding_name_p (encoding_name))
+  if (type == RAW_ENC)
     bcd = ucd = rucd = NO_CONV_DESC;
   else
     {
@@ -811,7 +831,7 @@ set_conv_descs (const char *encoding_name,
 	}
     }
 #else
-  if (! raw_encoding_name_p (encoding_name))
+  if (type != RAW)
     return FALSE;
   bcd = ucd = rucd = NO_CONV_DESC;
 #endif
@@ -820,6 +840,7 @@ set_conv_descs (const char *encoding_name,
   if (ucode_cd != NULL)
     *ucode_cd = ucd;
   *reverse_ucode_cd = rucd;
+  *tp = get_encoding_type (encoding_name);
   return TRUE;
 }
 
@@ -827,10 +848,11 @@ static int
 set_cds (const char *encoding)
 {
   conv_desc_t byte_cd, ucode_cd, reverse_ucode_cd;
-
+  encoding_type_t tp;
+  
   if (encoding == NULL)
     return TRUE;
-  if (! set_conv_descs (encoding, &byte_cd, &ucode_cd, &reverse_ucode_cd))
+  if (! set_conv_descs (encoding, &byte_cd, &ucode_cd, &reverse_ucode_cd, &tp))
     {
       fprintf (stderr, "Unrecognized or not implemented encoding %s\n",
                encoding);
@@ -1170,7 +1192,8 @@ set_signal_actions (void)
 #endif
 }
 
-static int print_ucode_string (FILE *, ucode_t *, conv_desc_t);
+static int print_ucode_string (FILE *, ucode_t *, conv_desc_t,
+			       encoding_type_t tp);
 
 /* Print INDENT spaces into stdout. */
 void
@@ -1229,7 +1252,7 @@ d_verror (int fatal_error_flag, position_t position,
       int i;
       ucode_t *ln = get_read_line (position.line_number - 1);
       
-      print_ucode_string (stderr, ln, curr_ucode_cd);
+      print_ucode_string (stderr, ln, curr_ucode_cd, curr_encoding_type);
       fprintf (stderr, "%s", ERROR_PREFIX);
       for (i = 1; i < position.column_number; i++)
 	fprintf (stderr, " ");
@@ -1273,14 +1296,16 @@ str_to_ucode_vlo (vlo_t *to, const char *from, size_t len)
     }
 }
 
-/* Put byte string STR into vlo *VLO encoded by CD.  Return start of
-   the encoded string start and its length in LEN (without encoded
-   null char).  Return NULL in case of any error.  */
+/* Put byte string STR into vlo *VLO encoded by CD with type TP.
+   Return start of the encoded string start and its length in LEN
+   (without encoded null char).  Return NULL in case of any error.  */
 char *
-encode_byte_str_vlo (byte_t *str, conv_desc_t cd, vlo_t *vlo, size_t *len)
+encode_byte_str_vlo (byte_t *str, conv_desc_t cd, encoding_type_t tp,
+		     vlo_t *vlo, size_t *len)
 {
   size_t i, out, r;
   char *is, *os;
+  int ascii_p;
 
   if (cd == NO_CONV_DESC)
     {
@@ -1290,10 +1315,19 @@ encode_byte_str_vlo (byte_t *str, conv_desc_t cd, vlo_t *vlo, size_t *len)
 #ifndef HAVE_ICONV_H
   d_assert (FALSE);
 #else
+  ascii_p = TRUE;
   for (i = 0; str[i]; i++)
-    ;
-  is = str;
+    if (str[i] >= 128)
+      ascii_p = FALSE;
   VLO_NULLIFY (*vlo);
+  if (ascii_p && (tp == UTF8_ENC || tp == LATIN1_ENC))
+    {
+      /* Fast track for slow iconv path */
+      VLO_ADD_MEMORY (*vlo, str, i + 1);
+      *len = i;
+      return VLO_BEGIN (*vlo);
+    }
+  is = str;
   out = (i + 1) * 4; /* longest utf8 is 4 bytes.  */
   VLO_EXPAND (*vlo, out);
   os = VLO_BEGIN (*vlo);
@@ -1322,22 +1356,35 @@ encode_byte_str_vlo (byte_t *str, conv_desc_t cd, vlo_t *vlo, size_t *len)
 #endif
 }
 
-/* Put ucode string STR into vlo *VLO encoded by CD.  Return the
-   string start in the vlo and its length in LEN (without encoded null
-   char).  Return NULL in case of any error.  */
+/* Put ucode string STR into vlo *VLO encoded by CD with type TP.
+   Return the string start in the vlo and its length in LEN (without
+   encoded null char).  Return NULL in case of any error.  */
 char *
-encode_ucode_str_vlo (ucode_t *str, conv_desc_t cd, vlo_t *vlo, size_t *len)
+encode_ucode_str_vlo (ucode_t *str, conv_desc_t cd, encoding_type_t tp,
+		      vlo_t *vlo, size_t *len)
 {
 #ifndef HAVE_ICONV_H
   d_assert (FALSE);
 #else
   size_t i, out, r;
   char *is, *os;
+  int ascii_p;
   
+  ascii_p = TRUE;
   for (i = 0; str[i]; i++)
-    ;
-  is = (char *) str;
+    if (str[i] >= 128)
+      ascii_p = FALSE;
   VLO_NULLIFY (*vlo);
+  if (ascii_p && (tp == UTF8_ENC || tp == LATIN1_ENC))
+    {
+      /* Fast track for slow iconv path */
+      for (i = 0; str[i]; i++)
+	VLO_ADD_BYTE (*vlo, str[i]);
+      VLO_ADD_BYTE (*vlo, 0);
+      *len = i;
+      return VLO_BEGIN (*vlo);
+    }
+  is = (char *) str;
   out = (i + 1) * 4; /* longest utf8 is 4 bytes.  */
   VLO_EXPAND (*vlo, out);
   os = VLO_BEGIN (*vlo);
@@ -1384,12 +1431,13 @@ encode_ucode_str_to_raw_vlo (const ucode_t *str, vlo_t *vlo)
 }
 
 /* Read unicode from stream provided by function GET_BYTE with
-   encoding given by CD.  DATA is transferred to GET_BYTE.  The
-   function returns UCODE_BOUND if the stream has a wrong format.  If
-   negative value is returned by the first call of GET_BYTE, the
+   encoding given by CD and typ TP.  DATA is transferred to GET_BYTE.
+   The function returns UCODE_BOUND if the stream has a wrong format.
+   If negative value is returned by the first call of GET_BYTE, the
    function returns the value.  */
 ucode_t
-get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd, void *data)
+get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd,
+		       encoding_type_t tp, void *data)
 {
   size_t in, out, res;
   char *is, *os;
@@ -1397,7 +1445,9 @@ get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd, void *data)
   char str[4]; /* 4 is longest utf-8 sequence.  */
   int i, n, b, r = get_byte (data);
   
-  if (cd == NO_CONV_DESC || r < 0)
+  d_assert (cd != NO_ONV_DESC);
+  /* Fast track for slow iconv.  */
+  if (r < 0 || tp == UTF8_ENC && r < 128 || tp == LATIN1_ENC)
     return r;
 #ifndef HAVE_ICONV_H
   d_assert (FALSE);
@@ -1440,11 +1490,11 @@ get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd, void *data)
 #endif
 }
 
-/* Print unicode string USTR encoded according to CD to file F and
-   return TRUE.  Do nothing if we can not encode it, just return
-   FALSE.  */
+/* Print unicode string USTR encoded according to CD with type TP to
+   file F and return TRUE.  Do nothing if we can not encode it, just
+   return FALSE.  */
 static int
-print_ucode_string (FILE *f, ucode_t *ustr, conv_desc_t cd)
+print_ucode_string (FILE *f, ucode_t *ustr, conv_desc_t cd, encoding_type_t tp)
 {
   size_t i, len;
   const char *str;
@@ -1458,7 +1508,7 @@ print_ucode_string (FILE *f, ucode_t *ustr, conv_desc_t cd)
     }
   else
     {
-      str = encode_ucode_str_vlo (ustr, cd, &repr_vlobj, &len);
+      str = encode_ucode_str_vlo (ustr, cd, tp, &repr_vlobj, &len);
       if (str == NULL)
 	return FALSE;
       fwrite (str, sizeof (char), len, f);
@@ -1471,7 +1521,7 @@ print_ucode_string (FILE *f, ucode_t *ustr, conv_desc_t cd)
 int
 check_encoding_on_ascii (const char *encoding)
 {
-  if (raw_encoding_name_p (encoding))
+  if (get_encoding_type (encoding) == RAW_ENC)
     return TRUE;
 #ifdef HAVE_ICONV_H
   {

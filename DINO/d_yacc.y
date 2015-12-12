@@ -1768,8 +1768,9 @@ read_line (FILE *f)
 
   for (;;)
     {
-      c = (curr_reverse_ucode_cd == NO_CONV_DESC ? fgetc (f)
-	   : get_ucode_from_stream (read_byte, curr_reverse_ucode_cd, f));
+      c = (curr_reverse_ucode_cd == NO_CONV_DESC ? dino_getc (f)
+	   : get_ucode_from_stream (read_byte, curr_reverse_ucode_cd,
+				    curr_encoding_type, f));
       if (c == EOF || c == '\n')
 	break;
       if (c == UCODE_BOUND)
@@ -1777,8 +1778,9 @@ read_line (FILE *f)
 	  /* Skip to the end of line: */
 	  do
 	    {
-	      c = (curr_reverse_ucode_cd == NO_CONV_DESC ? fgetc (f)
-		   : get_ucode_from_stream (read_byte, curr_reverse_ucode_cd, f));
+	      c = (curr_reverse_ucode_cd == NO_CONV_DESC ? dino_getc (f)
+		   : get_ucode_from_stream (read_byte, curr_reverse_ucode_cd,
+					    curr_encoding_type, f));
 	    }
 	  while (c != EOF && c != '\n');
 	  OS_TOP_NULLIFY (lines);
@@ -1849,6 +1851,8 @@ struct istream_state
   int uninput_lexema_code;
   /* Name of file encoding.  */
   const char *encoding_name;
+  /* Type of file encoding.  */
+  encoding_type_t encoding_type;
   /* Conversion descriptor used for the file.  */
   conv_desc_t cd;
 };
@@ -1957,7 +1961,8 @@ push_curr_istream (const char *new_file_name, const char *encoding_name,
 	= get_unique_string (encoding_name != NULL
 			     ? encoding_name : curr_encoding_name);
       if (! set_conv_descs (curr_istream_state.encoding_name,
-			    NULL, NULL, &curr_istream_state.cd))
+			    NULL, NULL, &curr_istream_state.cd,
+			    &curr_istream_state.encoding_type))
 	d_error (TRUE, no_position, ERR_source_file_encoding,
 		 curr_istream_state.encoding_name, curr_istream_state.file_name);
       else if (! check_encoding_on_ascii (curr_istream_state.encoding_name))
@@ -2017,7 +2022,8 @@ pop_istream_stack (void)
 			  "fatal error -- repeated opening file `%s': ", 
 			  curr_istream_state.file_name);
 	  if (! set_conv_descs (curr_istream_state.encoding_name,
-				NULL, NULL, &curr_istream_state.cd))
+				NULL, NULL, &curr_istream_state.cd,
+				&curr_istream_state.encoding_type))
 	    /* We already used the file encoding before.  */
 	    d_assert (FALSE);
 	}
@@ -2180,7 +2186,7 @@ read_str_line (FILE *f, vlo_t *container)
   int c;
   
   VLO_NULLIFY (*container);
-  while ((c = fgetc (f)) != EOF && c != '\n')
+  while ((c = dino_getc (f)) != EOF && c != '\n')
     VLO_ADD_BYTE (*container, c);
   VLO_ADD_BYTE (*container, '\0');
   return VLO_BEGIN (*container);
@@ -2236,7 +2242,8 @@ get_full_file_and_encoding_name (IR_node_t ir_fname, const char **encoding)
       VLO_ADD_STRING (temp_scanner_vlo2,
 		      IR_string_value (IR_unique_string (ir_fname)));
       fname = encode_byte_str_vlo (VLO_BEGIN (temp_scanner_vlo2),
-				   curr_byte_cd, &temp_scanner_vlo, &len);
+				   curr_byte_cd, curr_encoding_type,
+				   &temp_scanner_vlo, &len);
       if (fname != NULL)
 	{
 	  /* Check NULL bytes:  */
@@ -2254,7 +2261,8 @@ get_full_file_and_encoding_name (IR_node_t ir_fname, const char **encoding)
 	;
       VLO_ADD_MEMORY (temp_scanner_vlo2, ustr, sizeof (ucode_t) * (len + 1));
       fname = encode_ucode_str_vlo (VLO_BEGIN (temp_scanner_vlo2),
-				    curr_ucode_cd, &temp_scanner_vlo, &len);
+				    curr_ucode_cd, curr_encoding_type,
+				    &temp_scanner_vlo, &len);
       if (fname != NULL)
 	{
 	  for (i = 0; i < len && fname[i] != 0; i++)
@@ -2374,8 +2382,9 @@ d_getc (void)
 	{
 	  result
 	    = (curr_reverse_ucode_cd == NO_CONV_DESC
-	       ? fgetc (curr_istream_state.file)
+	       ? dino_getc (curr_istream_state.file)
 	       : get_ucode_from_stream (read_byte, curr_istream_state.cd,
+					curr_istream_state.encoding_type,
 					curr_istream_state.file));
 	  if (result == UCODE_BOUND)
 	    d_error (TRUE, current_position, ERR_file_decoding,
@@ -2390,8 +2399,9 @@ d_getc (void)
 	{
 	  result
 	    = (curr_istream_state.cd == NO_CONV_DESC
-	       ? fgetc (curr_istream_state.file)
+	       ? dino_getc (curr_istream_state.file)
 	       : get_ucode_from_stream (read_byte, curr_istream_state.cd,
+					curr_istream_state.encoding_type,
 					curr_istream_state.file));
 	  if (result == UCODE_BOUND)
 	    d_error (TRUE, current_position, ERR_file_decoding,

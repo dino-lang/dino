@@ -69,7 +69,8 @@ fi
 dnl Checks for library functions.
 AC_TYPE_SIGNAL
 AC_CHECK_FUNCS(strerror memcpy memset memcmp memmove vsprintf dlopen getgroups\
-               strtol strtoll strtoull strtod setitimer sigaction sigemptyset)
+               strtol strtoll strtoull strtod setitimer sigaction sigemptyset\
+	       getc_unlocked)
 
 AC_SUBST(YAEPLIB)
 AC_SUBST(YAEPDIR)

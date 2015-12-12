@@ -809,7 +809,7 @@ bc_getc (void)
 
   d_assert (input_file != NULL);
   if (previous_char == NOT_A_CHAR)
-    result = getc (input_file);
+    result = dino_getc (input_file);
   else
     {
       result = previous_char;
@@ -817,7 +817,7 @@ bc_getc (void)
     }
   if (result == '\r')
     {
-      result = getc (input_file);
+      result = dino_getc (input_file);
       if (result != '\n')
 	{
 	  ungetc (result, input_file);

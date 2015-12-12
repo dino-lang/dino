@@ -232,6 +232,7 @@ extern double start_time;
 extern int big_endian_p;
 extern conv_desc_t curr_byte_cd, curr_ucode_cd, curr_reverse_ucode_cd;
 extern const char *curr_encoding_name;
+extern encoding_type_t curr_encoding_type;
 
 extern unsigned str_hash_func (hash_table_entry_t str);
 extern int str_compare_func (hash_table_entry_t str1, hash_table_entry_t str2);
@@ -253,9 +254,11 @@ extern size_t hash_mpz (mpz_t mpz);
 #define UTF8_STRING "UTF-8"
 #define LATIN1_STRING "LATIN1"
 
+extern encoding_type_t get_encoding_type (const char *str);
 extern int set_conv_descs (const char *encoding_name,
 			   conv_desc_t *byte_cd, conv_desc_t *ucode_cd,
-			   conv_desc_t *reverse_ucode_cd);
+			   conv_desc_t *reverse_ucode_cd,
+			   encoding_type_t *tp);
 
 extern char *get_ucode_ascii_repr (ucode_t ch);
 extern int read_dino_string_code (int input_char, int *correct_newln,
@@ -283,13 +286,13 @@ extern void d_error (int fatal_error_flag, position_t position,
 		     const char *format, ...);
 extern void copy_vlo (vlo_t *to, vlo_t *from);
 extern void str_to_ucode_vlo (vlo_t *to, const char *from, size_t len);
-extern char *encode_byte_str_vlo (byte_t *str, conv_desc_t cd, vlo_t *vlo,
-				  size_t *len);
-extern char *encode_ucode_str_vlo (ucode_t *str, conv_desc_t cd, vlo_t *vlo,
-				   size_t *len);
+extern char *encode_byte_str_vlo (byte_t *str, conv_desc_t cd,
+				  encoding_type_t tp, vlo_t *vlo, size_t *len);
+extern char *encode_ucode_str_vlo (ucode_t *str, conv_desc_t cd,
+				   encoding_type_t tp, vlo_t *vlo, size_t *len);
 extern const char *encode_ucode_str_to_raw_vlo (const ucode_t *str, vlo_t *vlo);
 extern ucode_t get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd,
-				      void *data);
+				      encoding_type_t tp, void *data);
 
 extern void dino_finish (int code);
 
@@ -375,6 +378,16 @@ ucodestrlen (const ucode_t *s)
 
 #include <stdio.h>
 
+static inline int
+dino_getc (FILE *f)
+{
+#ifdef HAVE_GETC_UNLOCKED
+  return getc_unlocked (f);
+#else
+  return getc (f);
+#endif
+}
+
 /* Read and return by from file given by DATA.  Used by
    get_ucode_from_stream.  */
 static inline int
@@ -382,7 +395,7 @@ read_byte (void *data)
 {
   FILE *f = (FILE *) data;
   
-  return fgetc (f);
+  return dino_getc (f);
 }
 
 #endif /* #ifndef D_COMMON_H */

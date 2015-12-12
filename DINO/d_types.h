@@ -157,4 +157,15 @@ typedef unsigned int conv_desc_t;
 #define NO_CONV_DESC ((conv_desc_t) -1)
 #endif
 
+enum encoding_type
+{
+  RAW_ENC,
+  UTF8_ENC,
+  LATIN1_ENC,
+  OTHER_ENC
+};
+
+typedef enum encoding_type encoding_type_t;
+
+
 #endif /*#ifndef __D_CONFIG_H__ */

@@ -1198,9 +1198,11 @@ find_catch_pc (ER_node_t except)
 	      const char *message
 		= (ER_pack_vect_el_mode (vect) == ER_NM_byte
 		   ? encode_byte_str_vlo (ER_pack_els (vect),
-					  curr_byte_cd, &temp_vlobj, &len)
+					  curr_byte_cd, curr_encoding_type,
+					  &temp_vlobj, &len)
 		   : encode_ucode_str_vlo ((ucode_t *) ER_pack_els (vect),
-					   curr_ucode_cd, &temp_vlobj, &len));
+					   curr_ucode_cd, curr_encoding_type,
+					   &temp_vlobj, &len));
 	      
 	      /* No return after error unless REPL. */
 	      if (message != NULL)
