@@ -778,7 +778,7 @@ process_onig_errors (int code)
   UChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
   
   onig_error_code_to_str (s, code);
-  eval_error (invregexp_bc_decl, call_pos (), DERR_regexp, ifun_name, s);
+  eval_error (invregex_bc_decl, call_pos (), DERR_regex, ifun_name, s);
 }
 
 #define RE_DINO_SYNTAX (ONIG_SYNTAX_RUBY)
@@ -1145,7 +1145,7 @@ generall_sub_call (int pars_number, int global_flag)
   size_t len;
   ER_node_t result;
   ER_node_t vect;
-  ER_node_t regexp_val;
+  ER_node_t regex_val;
   size_t ch_size, els_num;
   size_t disp;
   size_t i;
@@ -1162,8 +1162,8 @@ generall_sub_call (int pars_number, int global_flag)
 		global_flag ? GSUB_NAME : SUB_NAME);
   to_vect_string_conversion (ctop, NULL, NULL);
   to_vect_string_conversion (below_ctop, NULL, NULL);
-  regexp_val = IVAL (ctop, -2);
-  to_vect_string_conversion (regexp_val, NULL, NULL);
+  regex_val = IVAL (ctop, -2);
+  to_vect_string_conversion (regex_val, NULL, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
       || (ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
@@ -1172,13 +1172,13 @@ generall_sub_call (int pars_number, int global_flag)
       || ER_NODE_MODE (ER_vect (below_ctop)) != ER_NM_heap_pack_vect
       || (ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_char
 	  && ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_byte)
-      || ER_NODE_MODE (regexp_val) != ER_NM_vect
-      || ER_NODE_MODE (ER_vect (regexp_val)) != ER_NM_heap_pack_vect
-      || (ER_pack_vect_el_mode (ER_vect (regexp_val)) != ER_NM_char
-	  && ER_pack_vect_el_mode (ER_vect (regexp_val)) != ER_NM_byte))
+      || ER_NODE_MODE (regex_val) != ER_NM_vect
+      || ER_NODE_MODE (ER_vect (regex_val)) != ER_NM_heap_pack_vect
+      || (ER_pack_vect_el_mode (ER_vect (regex_val)) != ER_NM_char
+	  && ER_pack_vect_el_mode (ER_vect (regex_val)) != ER_NM_byte))
     eval_error (partype_bc_decl, call_pos (),
 		DERR_parameter_type, global_flag ? GSUB_NAME : SUB_NAME);
-  pat_ucode_p = ER_pack_vect_el_mode (ER_vect (regexp_val)) == ER_NM_char;
+  pat_ucode_p = ER_pack_vect_el_mode (ER_vect (regex_val)) == ER_NM_char;
   str_ucode_p = ER_pack_vect_el_mode (ER_vect (below_ctop)) == ER_NM_char;
   if (pat_ucode_p && ! str_ucode_p)
     {
@@ -1199,7 +1199,7 @@ generall_sub_call (int pars_number, int global_flag)
       ER_set_vect (ctop, bytevect_to_ucodevect (ER_vect (ctop)));
       subst_ucode_p = TRUE;
     }
-  code = find_regex (ER_pack_els (ER_vect (regexp_val)),
+  code = find_regex (ER_pack_els (ER_vect (regex_val)),
 		     pat_ucode_p, str_ucode_p, &reg);
   if (code != ONIG_NORMAL)
     process_onig_errors (code);
@@ -3903,23 +3903,46 @@ get_token (FILE *f, int *unget_char_ptr, conv_desc_t cd,
 	    result.token_code = F_CHAR;
             return result;
           }
+        case '`':
         case '\"':
           {
+	    int no_escape_p = curr_char == '`';
             int correct_newln, wrong_escape_code;
             
             for (;;)
               {
                 curr_char = get_file_char (f, unget_char_ptr, cd, tp);
-                if (curr_char == '\"')
-                  break;
-                curr_char = get_char_code (f, unget_char_ptr, cd, tp, curr_char,
-					   &correct_newln, &wrong_escape_code);
-                if (curr_char < 0 || wrong_escape_code)
+		if (no_escape_p)
+		  {
+		    if (curr_char == '`')
+		      {
+			curr_char = get_file_char (f, unget_char_ptr, cd, tp);
+			if (curr_char != '`')
+			  {
+			    unget_file_char (curr_char, f, unget_char_ptr);
+			    break;
+			  }
+		      }
+		    else if (curr_char == '\n')
+		      {
+			unget_file_char (curr_char, f, unget_char_ptr);
+			invinput_error (f, unget_char_ptr, cd, tp, ln_flag);
+			break;
+		      }
+		  }
+                else
+		  {
+		    if (curr_char == '\"')
+		      break;
+		    curr_char = get_char_code (f, unget_char_ptr, cd, tp, curr_char,
+					       &correct_newln, &wrong_escape_code);
+		  }
+                if (curr_char < 0 || (! no_escape_p && wrong_escape_code))
                   {
 		    invinput_error (f, unget_char_ptr, cd, tp, ln_flag);
                     break;
                   }
-                if (!correct_newln)
+                if (no_escape_p || !correct_newln)
                   VLO_ADD_BYTE (el_text, curr_char);
               }
             VLO_ADD_BYTE (el_text, '\0');

@@ -164,6 +164,26 @@ Examples:
           "This is Dino"  "Don't worry\n"
 </PRE>
 </CODE></BLOCKQUOTE>
+
+Another variant of string representation uses
+back-quotes <CODE>`</CODE>.  A character inside the back-quotes are
+present in the string as it is, in other words, the escape
+sequences do now work in such representation.  To denote
+back-quote in such string representation use double back-qoutes.
+The newline may not be in such string representation.  It
+means that string with back-quotes can reside only on one line.
+<BLOCKQUOTE><CODE>
+<PRE>
+          String = '`' {Char} '`'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Examples:
+<BLOCKQUOTE><CODE>
+<PRE>
+          `\p{Greek}+`  `back qoute `` is here`
+</PRE>
+</CODE></BLOCKQUOTE>
 </LI>
 <LI>The remaining essential symbols are called
 <EM>operators</EM> and <EM>delimiters</EM>.  Operators are

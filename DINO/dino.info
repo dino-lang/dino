@@ -10,7 +10,7 @@ The Programming Language DINO
 *****************************
 
      Vladimir Makarov, `vmakarov@gcc.gnu.org'. Edited by Serhei Makarov.
-     Sep. 5, 2015
+     Dec. 16, 2015
 
    This document describes the programming language DINO.
 
@@ -202,6 +202,20 @@ considered to be distinct.
      Examples:
 
                     "This is Dino"  "Don't worry\n"
+
+     Another variant of string representation uses back-quotes "'.  A
+     character inside the back-quotes are present in the string as it
+     is, in other words, the escape sequences do now work in such
+     representation.  To denote back-quote in such string representation
+     use double back-qoutes.  The newline may not be in such string
+     representation.  It means that string with back-quotes can reside
+     only on one line.
+
+                    String = '`' {Char} '`'
+
+     Examples:
+
+                    `\p{Greek}+`  `back qoute `` is here`
   5. The remaining essential symbols are called _operators_ and
      _delimiters_.  Operators are used for forming expressions,
      delimiters are used for forming syntax constructions.  There is a
@@ -386,7 +400,7 @@ detail later in the report.
        invcall        invector       invencoding    invenv
        invenvar       invextern      invfmt         invgrammar
        invindex       invinput       invkey         invop
-       invparser      invregexp      invresult      invslice
+       invparser      invregex       invresult      invslice
        invtoken       isa            isatty
        keyop          keys           keyvalue
        libclose       log            log10
@@ -2585,7 +2599,7 @@ class 'error':
                parser got an input token with unknown (undeclared) code.
              * 'pmemory'.  This class describes the exception that there
                is not enough memory for internal parser data.
-        * 'invregexp'.  This class describes exceptions specific for
+        * 'invregex'.  This class describes exceptions specific for
           calling predeclared functions implementing regular expression
           pattern matching.
         * 'invextern'.  Classes inside this class describe exceptions in
@@ -3030,9 +3044,12 @@ File: dino.info,  Node: Pattern matching functions,  Next: Encoding functions,  
 --------------------------------
 
 Dino has the predeclared functions which are used for _pattern
-matching_.  The pattern is described by _regular expressions_ (_regex_).
-The pattern has syntax of _extended_ POSIX (1003.2) regular expressions,
-i.e.  the pattern has the following syntax:
+matching_.  The pattern is described by _regular expressions_ (_regex_)
+and actually a small program describing a string matching.  The pattern
+has _default_ syntax of ONIGURUMA package for Unicode.  It is hard to
+describe formally the pattern syntax.  Here is not a completely strict
+description for full reference, please see OINGURUMA package
+documentation.  The regular expressions have the following syntax:
 
                Regex = Branch {"|" Branch}
 
@@ -3044,124 +3061,371 @@ i.e.  the pattern has the following syntax:
 for the second piece, etc.  If the pieces are omitted, the branch
 matches the null string.
 
-               Piece = Atom ["*" | "+" | "?" | Bound]
+               Piece = Anchor | Unit
 
-               Bound = "{" Min ["," [Max]] "}" | "{" "," Max "}"
+               Unit = Atom
+                    | Unit Quantifier
 
-               Min = <unsigned integer between 0 and 255 inclusive>
+               Quantifier = Greedy
+                          | Reluctant
+                          | Possesive
 
-               Max = <unsigned integer between 0 and 255 inclusive>
+               Greedy = "?"                 // 0 or 1 times
+                      | "*"                 // 0 or more times
+                      | "+"                 // 1 or more times
+                      | Bound
 
-   An _atom_ followed by '*' matches a sequence of 0 or more matches of
-the atom.  An atom followed by '+' matches a sequence of 1 or more
-matches of the atom.  An atom followed by '?'  matches a sequence of 0
-or 1 matches of the atom.
+               Bound = "{" Min "," Max "}" // from Min to Max times
+                     | "{" Min "," "}"     // at least Min times
+                     | "{" "," Max "}"     // equivalent to {0, Max}
+                     | "{" Min "}"         // given number times
+
+               Reluctant = "??"
+                         | "*?"
+                         | "+?"
+                         | Bound "?"
+
+               Possesive : "?+"
+                         | "*+"
+                         | "++"
+
+               Min = <unsigned integer>
+
+               Max = <unsigned integer>
+
+   An _unit_ followed by '*' matches a sequence of 0 or more matches of
+the unit.  An unit followed by '+' matches a sequence of 1 or more
+matches of the unit.  An unit followed by '?'  matches a sequence of 0
+or 1 matches of the unit.
 
    There is a more general construction (a _bound_) for describing
-repetitions of an atom.  An atom followed by a bound containing only one
-integer 'min' matches a sequence of exactly 'min' matches of the atom.
-An atom followed by a bound containing one integer 'min' and a comma
-matches a sequence of 'min' or more matches of the atom.  An atom
+repetitions of an unit.  An unit followed by a bound containing only one
+integer 'Min' matches a sequence of exactly 'Min' matches of the unit.
+An unit followed by a bound containing one integer 'Min' and a comma
+matches a sequence of 'Min' or more matches of the unit.  An unit
 followed by a bound containing a comma and one integer 'Max' matches at
-most 'Max' repetitions of the atom.  An atom followed by a bound
-containing two integers 'min' and 'max' matches a sequence of 'min'
-through 'max' (inclusive) matches of the atom.
+most 'Max' repetitions of the unit.  An unit followed by a bound
+containing two integers 'Min' and 'Max' matches a sequence of 'Min'
+through 'Max' (inclusive) matches of the unit.
 
-               Atom = "(" Regex ")"
-                    | "(" ")"
-                    | "."
-                    | "^"
-                    | "$"
-                    | BracketedList
-                    | "\^"
-                    | "\["
-                    | "\$"
-                    | "\("
-                    | "\)"
-                    | "\*"
-                    | "\+"
-                    | "\?"
-                    | "\{"
-                    | "\."
-                    | <any pair the first character is \ and the second is any
-                       except for ^.[$()|*+? >
-                    | <any character except for ^.[$()|*+? >
+   The described above qualifiers are _greedy_ ones.  A gready qualifier
+first matches as much as possible and can back-track in case whole regex
+matching failure to try shorter sequence.  There are _reluctant_
+qualifiers too.  They have additional suffix '?'  and first matches as
+little as possible.  The last type of qualifiers is possesive.  Such
+qualifiers have additional suffix '+' and behave like the corresponding
+greedy ones, but they do not back-track.
 
-   A regular expression enclosed in '[]' can be an atom.  In this case
-it matches a match for the regular expression in the parentheses).  The
-atom '[]' matches the null string.  The atom '.'  matches any single
-character.  Atoms '^' and '$' match correspondingly the null string at
-the beginning of a line and the null string at the end of a line.
+   Examples:
 
-   An atom which is '\' followed by one of the characters '^.[$()|*+?{\'
-matches that character taken as an ordinary character.  Atom which is
-'\' followed by any other character matches the second character taken
-as an ordinary character, as if the '\' had not been present.  So you
-should use '\\' for matching with a single '\'.  An atom which is any
-other single character matches that character.  It is illegal to end a
-regular expression with '\'.  There is an exception which is not
-described by the atom syntax.  An '{' followed by a character other than
-a digit or comma is an ordinary character, not the beginning of a bound
-and matches the character '{'.
+               `.?foo` // matches first "xfoo" in "xfooxxxxfoo"
+               `.*foo` // matches all "xfooxxxxfoo"
+               `.+foo` // matches all "xfooxxxxfoo"
+               `.{1,8}foo` // matches all "xfooxxxxfoo"
+               `.*?foo` // matches first "xfoo" in "xfooxxxxfoo"
+               `.+?foo` // Ditto
+               `.{1,8}?foo` // Ditto
+               `.*+foo` // fail to match in "xfooxxxxfoo"
+               `.++foo` // fail to match in "xfooxxxxfoo"
 
-               BracketedList = "[" List "]"
+              Atom =  Anchors
+                    | Character
+                    | CharacterType
+                    | CharacterProperty
+                    | CharacterClass
+                    | Group
+                    | BackReference
+                    | SubexpCall
 
-               List = FirstChar ["-" Char] {Char ["-" Char]}
+               Character = "\t"     // horizontal tab (0x09)
+                         | "\v"     // vertical tab (0x0B)
+                         | "\n"     // newline tab (0x0A)
+                         | "\r"     // return (0x0D)
+                         | "\f"     // form feed (0x0C)
+                         | "\a"     // bell (0x07)
+                         | "\e"     // escape (0x1B)
+                         | "\" OctalCode // char with given octal code
+                         | "\x" HexCode  // char with given hexadecimal code
+                         | <any but special character \ ? * + ^ $ [ ( ) >
+                         | "\" <special character>
 
-               FirstChar = <any character except for ^ - and ]>
-                         | CollatingElement
+               OctalCode = <3 octal digits>
 
-               Char = FirstChar
-                    | "^"
+               HexCode = <2 heaxadecimal digits>
 
-               CollatingElement = "[:" Class ":]"
+               CharacterType = '.'  // any character but newline
+                             | "\w" // Unicode Letter, Mark, Number, or
+                                    //   Connector_Punctuation
+                             | "\W" // opposite to the above
+                             | "\s" // Unicode Line_Separator,
+                                    //   Paragraph_Separator, or
+                                    //   Space_Separator
+                             | "\S" // opposite to the above
+                             | "\d" // Unicode decimal number
+                             | "\D" // opposite to the above
+                             | "\h" // hexadecimal digit char [0-9a-fA-F]
+                             | "\H" // opposite to the above
 
-               Class = "alnum"
-                     | "alpha"
-                     | "blank"
-                     | "ctrl"
-                     | "digit"
-                     | "graph"
-                     | "lower"
-                     | "print"
-                     | "punct"
-                     | "space"
-                     | "upper"
-                     | "xdigit"
+               CharacterProperty = "\p{" PropertyName "}"
+                                 | "\p{^" PropertyName "}"
+                                 | "\P{" PropertyName "}"
 
-   An atom can be a bracket expression which is a _list_ of characters
-enclosed in '[]'.  Usually it is used to match any single character from
-the list.  If the list begins with '^', it matches any single character
-(but see below) not in the list.  If two characters in the list are
-separated by '-', this is shorthand for the full _range_ of characters
-between those two (inclusive) in the collating sequence of unicode
-codes, e.g.  '[0-9]' matches any decimal digit.  It is illegal for two
-ranges to share an _endpoint_, e.g.  'a-c-e'.
+              PropertyName = "Alnum" | "Alpha" | "Blank" | "Cntrl"
+                           | "Digit" | "Graph" | "Lower" | "Print"
+                           | "Punct" | "Space" | "Upper" | "XDigit"
+                           | "Word" | "ASCII"
+                           | "Any" | "Assigned" | "C" | "Cc" | "Cf"
+                           | "Cn" | "Co" | "Cs" | "L" | "Ll" | "Lm"
+                           | "Lo" | "Lt" | "Lu" | "M" | "Mc" | "Me"
+                           | "Mn" | "N" | "Nd" | "Nl" | "No" | "P"
+                           | "Pc" | "Pd" | "Pe" | "Pf" | "Pi" | "Po"
+                           | "Ps" | "S" | "Sc" | "Sk" | "Sm" | "So"
+                           | "Z" | "Zl" | "Zp" | "Zs" | "Arabic"
+                           | "Armenian" | "Bengali" | "Bopomofo"
+                           | "Braille" | "Buginese" |  "Buhid"
+                           | "Canadian_Aboriginal" | "Cherokee"
+                           | "Common" | "Coptic" | "Cypriot"
+                           | "Cyrillic" | "Deseret" | "Devanagari"
+                           | "Ethiopic" | "Georgian" |  "Glagolitic"
+                           | "Gothic" | "Greek" | "Gujarati"
+                           | "Gurmukhi" | "Han" | "Hangul" | "Hanunoo"
+                           | "Hebrew" | "Hiragana" | "Inherited"
+                           | "Kannada" | "Katakana" | "Kharoshthi"
+                           | "Khmer" | "Lao" | "Latin" | "Limbu"
+                           | "Linear_B" | "Malayalam" | "Mongolian"
+                           | "Myanmar" | "New_Tai_Lue" | "Ogham"
+                           | "Old_Italic" | "Old_Persian" | "Oriya"
+                           | "Osmanya" | "Runic" | "Shavian" | "Sinhala"
+                           | "Syloti_Nagri" | "Syriac" | "Tagalog"
+                           | "Tagbanwa" | "Tai_Le" | "Tamil" | "Telugu"
+                           | "Thaana" | "Thai" | "Tibetan" | "Tifinagh"
+                           | "Ugaritic" | "Yi"
 
-   There are exceptions which are not described by the atom syntax which
-is used to include a literal ']' in the list by making it the first
-character (following a possible '^').  To include a literal '-', make it
-the first or the last character, or the second endpoint of a range.  As
-you can see from the syntax, all special characters (except for '[')
-described in an atom lose their special significance within a bracket
-expression.
+               Anchors = "^"           // beginning of the line
+                       | "$"           // end of the line
+                       | "\b"          // word boundary
+                       | "\B"          // not word boundary
+                       | "\A"          // beginning of string
+                       | "\Z"          // end of string, or before newline
+                                       //   at the end
+                       | "\z"          // end of string
 
-   A collating element is a name of a character class enclosed in '[:'
-and ':]'.  It denotes the list of all characters belonging to that
-class.  Standard character class names are:
+   The atom can be an character.  Some characters has a special meaning
+in regex (see comments in the character syntax).  The rest characters
+match the same character in matching string.  To match a special
+character, use '\' before the character.  Some characters can be
+represented by a sequence starting with '\' (see the syntax comments).
 
-            alnum       digit       punct
-            alpha       graph       space
-            blank       lower       upper
-            cntrl       print       xdigit
+   Examples:
 
-   These names stand for the character classes defined in the ANSI C
-include file 'ctype.h'.  There is an exception not described by the
-syntax: a character class can not be used as an endpoint of a range.
+               `\t`        // matches "\\t"
+               `\x65`      // matches "e"
+               `\p{Alpha}` // matches "a"
+               `\w`        // matches "a"
+               `b$`        // matches "b" in "b\na"
 
-   There is an extension of regular expressions used by DINO and of ones
-defined in Posix 1003.2: no particular limit is imposed on the length of
-the regular expression.
+   The atom can be an anchor.  Matching anchors succeed only their
+positions correspond a specific place at the matching string (see
+comments in the anchor syntax).
+
+   Examples:
+
+               `b$`        // matches "b" in "b\na"
+               `abc\Z`     // matches "abc" in "abc"
+               `abc\Z`     // matches "abc" in "abc\n"
+
+   The atom which is a character type matches a specific class of
+character (see comments in the character type syntax).
+
+   The atom which is a character property matches a specific class of
+character.  For meaning 'Alnum' - 'ASCII', please see the corresponding
+'BracketClass'.  For meaning 'C' - 'Zs', please see Unicode categories.
+For meaning 'Armenian' - 'Yi', please see Unicode scripts (alphabets).
+If the property contains 'p' with '^' or 'P', the match succeeds when
+the matching character is not of the class.
+
+   Examples:
+
+               `\p{Alpha}` // matches "a"
+               `\p{ASCII}` // matches ";"
+
+               CharacterClass = "[" Intersections "]"
+                              | "[^" Intersections "]"
+
+               Intersections = Set
+                             | Intersections "&&" Set
+
+               Set = SetElement
+                   | Set SetElement
+
+               SetElement = Char ["-" Char]
+                          | "[:" BracketClass ":]"
+                          | "[:^" BracketClass ":]"
+                          | CharacterClass
+
+               BracketClass = "alnum"   // Unicode letter, mark,
+                                        //   or decimal number
+                            | "alpha"   // Unicode letter or mark
+                            | "ascii"   // character in range 0 - 0x7f
+                            | "blank"   // Unicode space separator
+                                        //   or \t (0x09)
+                            | "ctrl"    // Unicode control, format,
+                                        //   unassigned, private use,
+                                        //   or surrogate
+                            | "digit"   // Unicode decimal number
+                            | "graph"   // not a space class and not an
+                                        //   Unicode control, unassigned,
+                                        //   or surrogate
+                            | "lower"   // Unicode lower case letter
+                            | "print"   // graph or space class
+                            | "punct"   // any Unicode punctuation
+                            | "space"   // any Unicode separator,
+                                        //   \t (0x09), \n (0x0A), \v (0x0B),
+                                        //   \f (0x0C), \r (0x0D),
+                                        //   or 0x85 (next line)
+                            | "upper"   // Unicode upper case letter
+                            | "xdigit"  // ascii 0-9, a-f, or a-f
+                            | "word"    // Unicode letter, mark, decimal
+                                        //   number or punctuation connector
+
+   An atom can be a bracket expression which is a _list_ of
+intersections of character sets separated by '&&' and enclosed in '[]'.
+If the character class contains '^' right after '[', it matches any
+character which does match the corresponding character class without
+'^'.  A set is sequence of set elements.
+
+   Element given by a character denotes the character itself.  Element
+given by two characters in the list separated by '-' is shorthand for
+the full _range_ of characters between those two (inclusive) in the
+sequence of unicode codes, e.g.  '[0-9]' matches any decimal digit.
+
+   Element given by a bracket class enclosed in '[[::]]' matches a
+character from this class (see comments in BracketClass).  If character
+'^' is present right after '[[:', the match succeeds if the character is
+not in this class.
+
+   Element can be given by a character class, in other words the
+character clases can be nested.
+
+   If you need to use '[', '-', or ']' as a normal character in a
+character class, you can use prefix '\' for this.
+
+   Examples:
+
+               `[[:alpha:]]`  // matches "a"
+               `[[[:lower:]]&&[^a-x]]` // matches "y" or "z"
+
+   An atom can be a group, a regular expression enclosed in '[]'.  There
+are several types of groups:
+
+               Group = CapturedGroup
+                     | NonCapturedGroup
+                     | "(?#" <any characters but )> ")" // comment
+                     | "(?" Options ")"
+                     | Context
+
+               Options =
+                       | Options Option
+
+               Option = "-" | "i" | "m" | "x"
+
+               CapturedGroup = "(" [Regex] ")"
+                             | "(?<" Name ">" [Regex] ")"
+
+               Name = <one or more word character>
+
+               NonCapturedGroup = "(?" Options ":" [Regex] ")"
+                                | "(?>" [Regex] ")" /* Atomic group */
+
+               Context = "(?=" [Regex] ")" // look ahead
+                       | "(?!" [Regex] ")" // negative look ahead
+                       | "(?<=" [Regex] ")" // look behind
+                       | "(?<!" [Regex] ")" // negative look behind
+
+               BackReference = "\" Number    // back ref. by group
+                                             //   number
+                             | "\k<" Number ">" // back ref. by group
+                                                //   number
+                             | "\k<-" Number ">" // back ref. by relative
+                                                 //   group number
+                             | "\k<" Name ">" // back ref. by group name
+                             // back ref. by group name and nest level:
+                             | "\k<" Name "+" | "-" Number ">"
+
+               Number = <any integer >= 0>
+
+
+   Some groups are captured groups.  It means that you can refer the
+substrings they match (see back references) or get start and end
+positions of the matched substrings by calling Dino regex match
+functions.  A captured group may have a name which can be used in the
+back references or subexp calls.
+
+   You can place comments not containing ')' in regex betweeen '(?#' and
+')'.
+
+   Options without regex always matches.  They just change how matching
+works.  Option 'i' switches on igoring letter cases during matches.
+Option 'm' makes '.'  to match newline too.  Option 'x' switches on
+ignoring white spaces as character atom and permits to add comments
+starting with '#' and ending at the end of line.  Character '-' after
+the corresponding '?'  and before has an opposite effect, e.g.  it makes
+a letter case important in matching again etc.
+
+   You can define options in non captured groups.  These options affect
+only this group.  Another form of non-captured group is an atomic group.
+Once regex in an atomic group mathes something, the matching stays the
+same during back-tracking.
+
+   Examples:
+
+               `(?i:ab)`     // matches "Ab"
+               `(?x: a a a)` // matches "aaa"
+               `(?>.*)c`     // can not match "abc"
+
+   The atom can be a context.  A context match does not advance the
+current position in a matching string.  A look ahead context succeeds if
+the corresponding regex matches a sub-string starting from the current
+positions.  A look behind context succeeds if the corresponding regex
+matches a sub-string finishing right before the current positions.
+There are negative forms of context atom.  They succeed when the
+corresponding regex does not match.
+
+   Examples:
+
+               `(?=bcd)bc`   // matches "bc" in "aabcd"
+               `(?<=aa)bc`   // matches "bc" in "aabc"
+
+   The atom can be a back reference.  It refers to the matched string of
+the corresponding captured group.  The captured groups are counted by
+their left parantheses starting from one going from left to right.  The
+negative number denotes relative order number, in other words, the order
+is taken starting from the back reference going from right to left.  If
+captured group has a name, its matched string can be referenced by its
+name.  If several group has the same name, name in the back reference
+corresponds to the last such group.  You can add nest level to the name.
+If the nest level is zero it is the same as named back reference without
+nested level.  Back reference with non-zero nest level never matches.
+
+   Examples:
+
+               `(a)\k<1>`     // matches "aa"
+               `(?<p>a)\k<p>` // Ditto
+
+   Atom can be a subexp call:
+
+               SubexpCall = "\g<" Name ">"
+
+   Subexp call is actually another occurence of the group it refers to.
+But if the call is in the group it refers, it is a recursive
+description.  Only left recursion is not permitted as this results in
+never ending recursion.
+
+   Examples:
+
+               `(?<p>cd)\g<p>`   // matches "cdcd"
+               `(?<p>a|b\g<p>c)` // matches "a", "bac", "bbacc" etc
+               `(?<p>a|b\g<p>c)` // wrong left recursion.
 
    There are the following Dino pattern matching functions:
 
@@ -3193,18 +3457,18 @@ the regular expression.
      parentheses, the corresponding vector elements will have negative
      values.  Example: The program
 
-                    println (match ("()(a)((a)(a))", "baaab"));
+                    println (match (`\n()(a)((a)(a))`, "b\naaab"));
 
      outputs
 
-                    [1, 4, 1, 1, 1, 2, 2, 4, 2, 3, 3, 4]
+                    [1, 5, 2, 2, 2, 3, 3, 5, 3, 4, 4, 5]
 
    * 'gmatch (regex, string[, flag])'.  The function searches for
      different occurrences of regular expression 'regex' in 'string'.
      Both parameters should be strings after their implicit string
      conversion.  The third parameter is optional.  If it is present, it
      should be integer after implicit integer conversion.  If its value
-     is nonzero, the substrings matched by regexp can be overlapped.
+     is nonzero, the substrings matched by regex can be overlapped.
      Otherwise, the substrings are never overlapped.  If the parameter
      is absent, the function behaves as its value were zero.  The
      function returns a new mutable vector of integers.  The length of
@@ -3216,8 +3480,8 @@ the regular expression.
      last character plus one.  If there is no one occurrence, the
      function returns 'nil'.  Example: The program
 
-                    println (gmatch ("aa", "aaaaa"));
-                    println (gmatch ("aa", "aaaaa", 1));
+                    println (gmatch (`aa`, "aaaaa"));
+                    println (gmatch (`aa`, "aaaaa", 1));
 
      outputs
 
@@ -3261,14 +3525,14 @@ the regular expression.
 
      The program
 
-                    println (split ("abcdef", ""));
+                    println (split ("abcdef", ``));
 
      outputs
 
                     ["a", "b", "c", "d", "e", "f"]
 
    If the regular expression is incorrect, the functions generate
-exception 'invregexp' with a message explaining the error.
+exception 'invregex' with a message explaining the error.
 
 
 File: dino.info,  Node: Encoding functions,  Next: File functions,  Prev: Pattern matching functions,  Up: Predeclared functions
@@ -3933,9 +4197,9 @@ There are the following miscellaneous functions:
      implicit string conversion), 'what', and 'subst' are strings.  The
      function returns the new string 'str' in which its characters which
      are present in 'what' are changed to the corresponding characters
-     in <\tt>subst<\tt>.  The last two strings should have the same
-     length.  The second string may contain more than one occurence of a
-     character.  In this case the last correspondence is taken.
+     in 'subst'.  The last two strings should have the same length.  The
+     second string may contain more than one occurence of a character.
+     In this case the last correspondence is taken.
    * 'eltype (vect)'.  The function expects that the parameter value is
      a vector.  The function returns 'nil' if the vector is
      heterogenous, otherwise the function returns the type of the vector
@@ -4505,74 +4769,74 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- Syntax of
 
 Tag Table:
 Node: Top95
-Node: Introduction632
-Node: Syntax1930
-Node: Vocabulary and Representation2834
-Node: Declarations and Scope Rules10481
-Node: Variable Declarations18962
-Node: External Declarations20702
-Node: Functions and Classes22109
-Node: Use Clause30991
-Node: Singleton Object33196
-Node: Expressions34005
-Node: Types and Values34617
-Node: Designators43663
-Node: Calls48986
-Node: Operators51050
-Node: Logical operators55347
-Node: Bit operators57155
-Node: Comparison operators58278
-Node: Arithmetic operators60274
-Node: Miscellaneous operators61485
-Node: Slice Operators65599
-Node: Current block instance68514
-Node: Anonymous Functions and Classes68977
-Node: Patterns69819
-Node: Executive statements73647
-Node: Empty statement74581
-Node: Block-statement75001
-Node: Expression-statement75720
-Node: Assignment statements76500
-Node: If-statement79139
-Node: For-statement79995
-Node: Foreach-statement81478
-Node: Switch-statement82474
-Node: Break- and continue-statement84087
-Node: Return-statement85358
-Node: Throw-statement86124
-Node: Try-block86826
-Node: Wait-statement89259
-Node: Program90361
-Node: Predeclared identifiers93883
-Node: Predeclared variables94350
-Node: Arguments and environment94747
-Node: Version95397
-Node: Threads95930
-Node: Files96472
-Node: Miscellaneous variables97274
-Node: Predeclared classes98003
-Node: File98353
-Node: Exception classes99061
-Node: Earley parser classes110010
-Node: Parser-110389
-Node: Token-121198
-Node: Anode-121878
-Node: Nil_anode and error_anode-124024
-Node: Example of Earley parser usage-124435
-Node: Predeclared functions127313
-Node: Mathematical functions128566
-Node: Pattern matching functions130136
-Node: Encoding functions141629
-Node: File functions142439
-Node: Functions for access to file/directory information142864
-Node: Functions for work with directories147545
-Node: Functions for work with files-149133
-Node: File output functions153190
-Node: File input functions165655
-Node: Time functions169477
-Node: Functions for access to process information172454
-Node: Miscellaneous functions173966
-Node: Appendix A- Syntax of Dino187370
-Node: Appendix B- Implementation192541
+Node: Introduction633
+Node: Syntax1931
+Node: Vocabulary and Representation2835
+Node: Declarations and Scope Rules11044
+Node: Variable Declarations19525
+Node: External Declarations21265
+Node: Functions and Classes22672
+Node: Use Clause31554
+Node: Singleton Object33759
+Node: Expressions34568
+Node: Types and Values35180
+Node: Designators44226
+Node: Calls49549
+Node: Operators51613
+Node: Logical operators55910
+Node: Bit operators57718
+Node: Comparison operators58841
+Node: Arithmetic operators60837
+Node: Miscellaneous operators62048
+Node: Slice Operators66162
+Node: Current block instance69077
+Node: Anonymous Functions and Classes69540
+Node: Patterns70382
+Node: Executive statements74210
+Node: Empty statement75144
+Node: Block-statement75564
+Node: Expression-statement76283
+Node: Assignment statements77063
+Node: If-statement79702
+Node: For-statement80558
+Node: Foreach-statement82041
+Node: Switch-statement83037
+Node: Break- and continue-statement84650
+Node: Return-statement85921
+Node: Throw-statement86687
+Node: Try-block87389
+Node: Wait-statement89822
+Node: Program90924
+Node: Predeclared identifiers94446
+Node: Predeclared variables94913
+Node: Arguments and environment95310
+Node: Version95960
+Node: Threads96493
+Node: Files97035
+Node: Miscellaneous variables97837
+Node: Predeclared classes98566
+Node: File98916
+Node: Exception classes99624
+Node: Earley parser classes110572
+Node: Parser-110951
+Node: Token-121760
+Node: Anode-122440
+Node: Nil_anode and error_anode-124586
+Node: Example of Earley parser usage-124997
+Node: Predeclared functions127875
+Node: Mathematical functions129128
+Node: Pattern matching functions130698
+Node: Encoding functions154040
+Node: File functions154850
+Node: Functions for access to file/directory information155275
+Node: Functions for work with directories159956
+Node: Functions for work with files-161544
+Node: File output functions165601
+Node: File input functions178066
+Node: Time functions181888
+Node: Functions for access to process information184865
+Node: Miscellaneous functions186377
+Node: Appendix A- Syntax of Dino199772
+Node: Appendix B- Implementation204943
 
 End Tag Table

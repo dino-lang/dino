@@ -48713,7 +48713,7 @@ fi
 
 # Test 818.
 if test $result = ok -a $start_test_number -le 818; then
-	echo test 818: Empty regexp for gmatch
+	echo test 818: Empty regex for gmatch
         cat >$test_file <<'TEST818'
 println (gmatch ("", "abcd", 1));
 TEST818
@@ -48734,7 +48734,7 @@ fi
 
 # Test 819.
 if test $result = ok -a $start_test_number -le 819; then
-	echo test 819: Empty regexp for sub
+	echo test 819: Empty regex for sub
         cat >$test_file <<'TEST819'
 println (sub ("", "abcd", "12"));
 println (gsub ("", "abcd", "12"));
@@ -49417,6 +49417,563 @@ OUTPUT848
                 else
                         result=fail
                 fi
+        fi
+fi
+
+# Test 849.
+if test $result = ok -a $start_test_number -le 849; then
+	echo test 849: strings without escape
+        cat >$test_file <<'TEST849'
+putln (`\n\a`, `a``b`);
+TEST849
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 << 'OUTPUT849' && $CMP $stdout $ftemp2; then
+\n\aa`b
+OUTPUT849
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 850.
+if test $result = ok -a $start_test_number -le 850; then
+	echo test 850: unfinished string w/o escapes
+        cat >$test_file <<'TEST850'
+putln (`abc
+def`);
+TEST850
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT850' && $CMP $stderr $ftemp2; then
+test.d:1:13: string end is absent
+test.d:2:1: syntax error
+test.d:2:8: string end is absent
+OUTPUT850
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 851.
+if test $result = ok -a $start_test_number -le 851; then
+	echo test 851
+        cat >$test_file <<'TEST851'
+for (;1;)
+{
+  try {
+    println (scanln ());
+  } catch (eof) {putln ("eof"); break;}
+    catch (invinput) {putln ("catch invalid input");}
+}
+TEST851
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT851' ; then
+``
+`a\n`
+`a``b`
+`ac
+`d\\`
+INPUT851
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT851' && $CMP $stdout $ftemp2; then
+""
+"a\\n"
+"a`b"
+catch invalid input
+"d\\\\"
+eof
+OUTPUT851
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 852.
+if test $result = ok -a $start_test_number -le 852; then
+	echo test 852: Regex Characters
+        cat >$test_file <<'TEST852'
+println (match (`\y`, "y"));	// => [0, 1]
+println (match (`\t`, "\\t"));	// => nil   
+println (match (`\t`, "\t"));	// => [0, 1]
+println (match (`\n`, "\\n"));	// => nil   
+println (match (`\n`, "\n"));	// => [0, 1]
+println (match (`\r`, "\\r"));	// => nil   
+println (match (`\r`, "\r"));	// => [0, 1]
+println (match (`\a`, "\\a"));	// => nil   
+println (match (`\a`, "\a"));	// => [0, 1]
+println (match (`\f`, "\\f"));	// => nil   
+println (match (`\f`, "\f"));	// => [0, 1]
+println (match (`\e`, "\\e"));	// => nil   
+println (match (`\e`, "\x1b"));	// => [0, 1]
+println (match (`\e`, "e"));	// => nil   
+println (match (`\x65`, "e"));	// => [0, 1]
+println (match (`\b`, "\b"));	// => nil   
+println (match (`\b`, "\\b"));	// => [1, 1]
+println (match (`[\b]`, "\b"));	// => [0, 1]
+TEST852
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT852' ; then
+INPUT852
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT852' && $CMP $stdout $ftemp2; then
+[0, 1]
+nil
+[0, 1]
+nil
+[0, 1]
+nil
+[0, 1]
+nil
+[0, 1]
+nil
+[0, 1]
+nil
+[0, 1]
+nil
+[0, 1]
+nil
+[1, 1]
+[0, 1]
+OUTPUT852
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 853.
+if test $result = ok -a $start_test_number -le 853; then
+	echo test 853: Regex character types
+        cat >$test_file <<'TEST853'
+println (match (`.`, "a"));	// => [0, 1]
+println (match (`.`, "\n"));	// => nil   
+println (match (`\w`, "abc_"));	// => [0, 1]
+println (match (`\w`, "б"));	// => [0, 1]
+println (match (`\w`, "0"));	// => [0, 1]
+println (match (`\w`, "$"));	// => nil   
+println (match (`\W`, "abc_"));	// => nil   
+println (match (`\W`, "б"));	// => nil   
+println (match (`\W`, "0"));	// => nil   
+println (match (`\W`, "$"));	// => [0, 1]
+println (match (`\s`, "a"));	// => nil   
+println (match (`\s`, " "));	// => [0, 1]
+println (match (`\s`, "\n"));	// => [0, 1]
+println (match (`\S`, "a"));	// => [0, 1]
+println (match (`\S`, " "));	// => nil   
+println (match (`\S`, "\n"));	// => nil   
+println (match (`\d`, "a"));	// => nil   
+println (match (`\d`, "9"));	// => [0, 1]
+println (match (`\D`, "a"));	// => [0, 1]
+println (match (`\D`, "9"));	// => nil   
+println (match (`\h`, "9"));	// => [0, 1]
+println (match (`\h`, "f"));	// => [0, 1]
+println (match (`\h`, "g"));	// => nil   
+println (match (`\H`, "9"));	// => nil   
+println (match (`\H`, "f"));	// => nil   
+println (match (`\H`, "g"));	// => [0, 1]
+TEST853
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT853' ; then
+INPUT853
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT853' && $CMP $stdout $ftemp2; then
+[0, 1]
+nil
+[0, 1]
+[0, 1]
+[0, 1]
+nil
+nil
+nil
+nil
+[0, 1]
+nil
+[0, 1]
+[0, 1]
+[0, 1]
+nil
+nil
+nil
+[0, 1]
+[0, 1]
+nil
+[0, 1]
+[0, 1]
+nil
+nil
+nil
+[0, 1]
+OUTPUT853
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 854.
+if test $result = ok -a $start_test_number -le 854; then
+	echo test 854: Regex Properties
+        cat >$test_file <<'TEST854'
+println (match (`\p{Alpha}`, "a"));	// => [0, 1] 
+println (match (`\p{Alpha}`, "б"));	// => [0, 1] 
+println (match (`\p{Alpha}`, ";"));	// => nil    
+println (match (`\p{^Alpha}`, "a"));	// => nil    
+println (match (`\p{^Alpha}`, "б"));	// => nil    
+println (match (`\p{^Alpha}`, ";"));	// => [0, 1] 
+println (match (`\P{Alpha}`, "a"));	// => nil    
+println (match (`\P{Alpha}`, "б"));	// => nil    
+println (match (`\P{Alpha}`, ";"));	// => [0, 1] 
+println (match (`\p{Cyrillic}`, "б"));	// => [0, 1] 
+println (match (`\P{Cyrillic}`, "б"));	// => nil    
+println (match (`\p{^Cyrillic}`, "б"));	// => nil    
+TEST854
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT854' ; then
+INPUT854
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT854' && $CMP $stdout $ftemp2; then
+[0, 1]
+[0, 1]
+nil
+nil
+nil
+[0, 1]
+nil
+nil
+[0, 1]
+[0, 1]
+nil
+nil
+OUTPUT854
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 855.
+if test $result = ok -a $start_test_number -le 855; then
+	echo test 855: Regex anchors
+        cat >$test_file <<'TEST855'
+println (match (`^a`, "a"));		// =>     [0, 1]
+println (match (`b^a`, "a"));		// =>     nil   
+println (match (`b^a`, "b\na"));	// => nil   	
+println (match (`b\n^a`, "b\na"));	// => [0, 3]	
+println (match (`^$`, "b\na"));		// =>     nil   
+println (match (`b$`, "b\na"));		// =>     [0, 1]
+println (match (`a$`, "b\na"));		// =>     [2, 3]
+println (match (`a\b c`, "a c"));	// => [0, 3]	
+println (match (`aw\b`, "aw"));		// =>     [0, 2]
+println (match (`a\B c`, "a c"));	// => nil   	
+println (match (`aw\B`, "aw"));		// =>     nil   
+println (match (`abc\Z`, "abc"));	// => [0, 3]	
+println (match (`abc\Z`, "abc\n"));	// => [0, 3]	
+println (match (`abc\Z`, "abc\na"));	// => nil   	
+println (match (`abc\z`, "abc"));	// => [0, 3]	
+println (match (`abc\z`, "abc\n"));	// =>  nil   	
+println (match (`abc\z`, "abca"));	// =>  nil   	
+println (match (`\Aa`, "abca"));	// =>  [0, 1]
+println (match (`\Aa`, "\nabca"));	// =>  nil
+println (match (`a\A`, "abca"));	// =>  nil
+TEST855
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT855' ; then
+INPUT855
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT855' && $CMP $stdout $ftemp2; then
+[0, 1]
+nil
+nil
+[0, 3]
+nil
+[0, 1]
+[2, 3]
+[0, 3]
+[0, 2]
+nil
+nil
+[0, 3]
+[0, 3]
+nil
+[0, 3]
+nil
+nil
+[0, 1]
+nil
+nil
+OUTPUT855
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 856.
+if test $result = ok -a $start_test_number -le 856; then
+	echo test 856: Regex groups
+        cat >$test_file <<'TEST856'
+println (match (`(?#comment).`, ";"));	// =>      [0, 1]	    
+println (match (`ab`, "Ab"));		// => 	     nil	    
+println (match (`(?i)ab`, "Ab"));	// => 	     [0, 2]	    
+println (match (`(?-i)ab`, "Ab"));	// => 	     nil	    
+println (match (`.`, "\n"));		// => 	     nil	    
+println (match (`(?m).`, "\n"));	// => 	     [0, 1]	    
+println (match (`(?-m).`, "\n"));	// => 	     nil	    
+println (match (`(?i:ab)`, "Ab"));	// => 	     [0, 2]	    
+println (match (`(?-i:ab)`, "Ab"));	// => 	     nil	    
+println (match (`(ab)`, "ab"));		// => 	     [0, 2, 0, 2]
+println (match (`(?:ab)`, "ab"));	// => 	     [0, 2]	    
+println (match (`(?=ab)ab`, "ab"));	// => 	     [0, 2]	    
+println (match (`(?!ab)ab`, "ab"));	// => 	     nil	    
+println (match (`(?<=cd)ab`, "cdab"));	// => 	     [2, 4]	    
+println (match (`(?<!cd)ab`, "cdab"));	// => 	     nil	    
+println (match (`(?<prefix>cd)\k<prefix>`, "cdcd")); // => [0, 4, 0, 2]	
+println (match (`(?x: a a a)`, "aaa"));	// => [0, 3]
+println (match (`(?x: [a ])`, " "));	// => [0, 1]
+println (match (`(?x:(a a))`, "aa"));	// => [0, 2, 0, 2]
+println (match (`(?>.*)c`, "aabc"));    // => nil
+TEST856
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT856' ; then
+INPUT856
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT856' && $CMP $stdout $ftemp2; then
+[0, 1]
+nil
+[0, 2]
+nil
+nil
+[0, 1]
+nil
+[0, 2]
+nil
+[0, 2, 0, 2]
+[0, 2]
+[0, 2]
+nil
+[2, 4]
+nil
+[0, 4, 0, 2]
+[0, 3]
+[0, 1]
+[0, 2, 0, 2]
+nil
+OUTPUT856
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 857.
+if test $result = ok -a $start_test_number -le 857; then
+	echo test 857: Regex subexp call
+        cat >$test_file <<'TEST857'
+println (match (`(?<prefix>cd)\g<prefix>`, "cdcd"));	// => [0, 4, 2, 4]
+println (match (`(?<p>a|b\g<p>c)`, "bbbaccc")); // => [0, 7, 0, 7]
+TEST857
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT857' ; then
+INPUT857
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT857' && $CMP $stdout $ftemp2; then
+[0, 4, 2, 4]
+[0, 7, 0, 7]
+OUTPUT857
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 858.
+if test $result = ok -a $start_test_number -le 858; then
+	echo test 858: Regex Qualifiers
+        cat >$test_file <<'TEST858'
+println (match (`.?foo`, "xfooxxxxfoo"));       // => [0, 4]
+println (match (`.*foo`, "xfooxxxxfoo"));	// => [0, 11]
+println (match (`.+foo`, "xfooxxxxfoo"));	// => [0, 11]
+println (match (`.{4}foo`, "xfooxxxxfoo"));     // => [4, 11]
+println (match (`.{,11}foo`, "xfooxxxxfoo"));   // => [0, 11]
+println (match (`.{1,}foo`, "xfooxxxxfoo"));    // => [0, 11]
+println (match (`.{1,8}foo`, "xfooxxxxfoo"));   // => [0, 11]
+
+println (match (`.??foo`, "xfooxxxxfoo"));       // => [0, 4]
+println (match (`.*?foo`, "xfooxxxxfoo"));	 // => [0, 4]
+println (match (`.+?foo`, "xfooxxxxfoo"));	 // => [0, 4]
+println (match (`.{4}?foo`, "xfooxxxxfoo"));     // => [4, 11]
+println (match (`.{,11}?foo`, "xfooxxxxfoo"));   // => [0, 4]
+println (match (`.{1,}?foo`, "xfooxxxxfoo"));    // => [0, 4]
+println (match (`.{1,8}?foo`, "xfooxxxxfoo"));   // => [0, 4]
+
+println (match (`.?+foo`, "xfooxxxxfoo"));	// => [0, 4]
+println (match (`.*+foo`, "xfooxxxxfoo"));	// => nil
+println (match (`.++foo`, "xfooxxxxfoo"));	// => nil
+TEST858
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT858' ; then
+INPUT858
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT858' && $CMP $stdout $ftemp2; then
+[0, 4]
+[0, 11]
+[0, 11]
+[4, 11]
+[0, 11]
+[0, 11]
+[0, 11]
+[0, 4]
+[0, 4]
+[0, 4]
+[1, 4]
+[0, 4]
+[0, 4]
+[0, 4]
+[0, 4]
+nil
+nil
+OUTPUT858
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 859.
+if test $result = ok -a $start_test_number -le 859; then
+	echo test 859: Regex char classes
+        cat >$test_file <<'TEST859'
+println (match (`[[:alpha:]]`, "a"));	// => [0, 1]
+println (match (`[^[:alpha:]]`, "a"));	// => nil
+println (match (`[[:^alpha:]]`, "б"));	// => nil
+println (match (`[az&&bz]`, "z"));	// => [0, 1]
+println (match (`[az&&bz]`, "a"));	// => nil
+TEST859
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT859' ; then
+INPUT859
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT859' && $CMP $stdout $ftemp2; then
+[0, 1]
+nil
+nil
+[0, 1]
+nil
+OUTPUT859
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 860.
+if test $result = ok -a $start_test_number -le 860; then
+	echo test 860: Regex back refs
+        cat >$test_file <<'TEST860'
+println (match (`(a)\1`, "aa"));	// => [0, 2, 0, 1]
+println (match (`(a)\k<1>`, "aa"));	// => [0, 2, 0, 1]
+println (match (`(a)\k'1'`, "aa"));	// => nil
+println (match (`(a)\k<-1>`, "aa"));	// => [0, 2, 0, 1]
+println (match (`(a)\k'-1'`, "aa"));	// => nil
+println (match (`(?<p>a)\k<p>`, "aa"));	// => [0, 2, 0, 1]
+println (match (`(?<p>a)\k'p'`, "aa"));	// => nil
+println (match (`(?<p>a(?<p>b))\k<p>`, "abb")); // => [0, 3, 0, 2, 1, 2]
+println (match (`()()()()()()()()()()(a)\11`, "aa")); // => [0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+println (match (`()()()()()()()()()()(a)\k<11>`, "aa")); // => [0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+TEST860
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT860' ; then
+INPUT860
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT860' && $CMP $stdout $ftemp2; then
+[0, 2, 0, 1]
+[0, 2, 0, 1]
+[0, 2, 0, 1]
+[0, 2, 0, 1]
+[0, 2, 0, 1]
+[0, 2, 0, 1]
+[0, 2, 0, 1]
+[0, 3, 0, 2, 1, 2]
+[0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+[0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+OUTPUT860
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 861.
+if test $result = ok -a $start_test_number -le 861; then
+	echo test 861: Regex lookahead
+        cat >$test_file <<'TEST861'
+println (match (`(?=bcd)bc`, "aabcd"));	// => [2, 4]
+println (match (`(?=bce)bc`, "aabcd"));	// => nil
+println (match (`(?!bce)bc`, "aabc"));	// => [2, 4]
+println (match (`(?<=aa)bc`, "aabc"));	// => [2, 4]
+println (match (`(?<!a)bc`, "aabc"));	// => nil
+println (match (`(?<!ae)bc`, "aabc"));	// => [2, 4]
+TEST861
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT861' ; then
+INPUT861
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT861' && $CMP $stdout $ftemp2; then
+[2, 4]
+nil
+[2, 4]
+[2, 4]
+nil
+[2, 4]
+OUTPUT861
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
         fi
 fi
 

@@ -3002,10 +3002,12 @@ yylex (void)
             return CHARACTER;
           }
         case '\"':
+        case '`':
           {
             int correct_newln, unicode_p;
             IR_node_t unique_string_node_ptr;
             char *string_value_in_code_memory;
+	    int no_escape_p = input_char == '`';
             
 	    source_position = current_position;
 	    current_position.column_number++;
@@ -3014,22 +3016,45 @@ yylex (void)
               {
                 input_char = d_getc ();
 		current_position.column_number++;
-                if (input_char == '\"')
-                  break;
-                input_char = read_dino_string_code (input_char, &correct_newln,
-						    &wrong_escape_code,
-						    d_getc, d_ungetc);
-                if (input_char < 0)
+		if (no_escape_p)
+		  {
+		    if (input_char == '`')
+		      {
+			input_char = d_getc ();
+			if (input_char == '`')
+			  current_position.column_number++;
+			else
+			  {
+			    d_ungetc (input_char);
+			    break;
+			  }
+		      }
+		    else if (input_char == '\n')
+		      {
+			d_ungetc (input_char);
+			error (FALSE, current_position, ERR_string_end_absence);
+			break;
+		      }
+		  }
+                else
+		  {
+		    if (input_char == '\"')
+		      break;
+		    input_char = read_dino_string_code (input_char, &correct_newln,
+							&wrong_escape_code,
+							d_getc, d_ungetc);
+		  }
+		if (input_char < 0)
                   {
                     error (FALSE, current_position, ERR_string_end_absence);
                     break;
                   }
-                if (wrong_escape_code)
+                if (! no_escape_p && wrong_escape_code)
                   {
 		    error (FALSE, current_position, ERR_invalid_escape_code);
                     continue;
                   }
-                if (! correct_newln)
+                if (no_escape_p || ! correct_newln)
 		  {
 		    if (! unicode_p && ! in_byte_range_p (input_char))
 		      {

@@ -400,7 +400,7 @@ char DERR_no_shell []
   = "run time error - no shell found during call of `system'";
 char DERR_other_fail_in_system_call []
   = "run time error - fail during call of `system'";
-char DERR_regexp [] = "run time Oniguruma error in `%s' - %s";
+char DERR_regex [] = "run time Oniguruma error in `%s' - %s";
 char DERR_no_such_external []
   = "run time error - can not find external function %s";
 char DERR_library_close_error []

@@ -330,7 +330,7 @@ extern IR_node_t destroy_unique_ident;
   "   class systemcall (msg = nil) {use invcall former msg;}\n"\
   "    class noshell (msg = nil) {use systemcall former msg;}\n"\
   "    class systemfail (msg = nil) {use systemcall former msg;}\n"\
-  "   class invregexp (msg = nil) {use invcall former msg;}\n"\
+  "   class invregex (msg = nil) {use invcall former msg;}\n"\
   "   class invparser (msg = nil) {use invcall former msg;}\n"\
   "    class invgrammar (msg = nil) {use invparser former msg;}\n"\
   "    class invtoken (msg = nil) {use invparser former msg;}\n"\

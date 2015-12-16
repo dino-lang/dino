@@ -278,8 +278,8 @@ extern char DERR_exdev [];
 extern char DERR_no_shell [];
 /* Other fail during call of function `system' */
 extern char DERR_other_fail_in_system_call [];
-/* Errors in call of regexp functions. */
-extern char DERR_regexp [];
+/* Errors in call of regex functions. */
+extern char DERR_regex [];
 /* External function errors: */
 /* No external function is found. */
 extern char DERR_no_such_external [];

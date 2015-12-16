@@ -319,8 +319,8 @@ extern BC_node_t noshell_bc_decl;
 #define SYSTEMFAIL_NAME "systemfail"
 extern BC_node_t systemfail_bc_decl;
 
-#define INVREGEXP_NAME "invregexp"
-extern BC_node_t invregexp_bc_decl;
+#define INVREGEX_NAME "invregex"
+extern BC_node_t invregex_bc_decl;
 
 #define INVPARSER_NAME "invparser"
 extern BC_node_t invparser_bc_decl;
@@ -1539,7 +1539,7 @@ BC_node_t internal_bc_decl;
 BC_node_t systemcall_bc_decl;
 BC_node_t noshell_bc_decl;
 BC_node_t systemfail_bc_decl;
-BC_node_t invregexp_bc_decl;
+BC_node_t invregex_bc_decl;
 BC_node_t invparser_bc_decl;
 BC_node_t invgrammar_bc_decl;
 BC_node_t invtoken_bc_decl;
@@ -1789,7 +1789,7 @@ static struct bc_decl_entry bc_decls_table [] =
   {&systemcall_bc_decl, SYSTEMCALL_NAME, NULL, NULL},
   {&noshell_bc_decl, NOSHELL_NAME, NULL, NULL},
   {&systemfail_bc_decl, SYSTEMFAIL_NAME, NULL, NULL},
-  {&invregexp_bc_decl, INVREGEXP_NAME, NULL, NULL},
+  {&invregex_bc_decl, INVREGEX_NAME, NULL, NULL},
   {&invparser_bc_decl, INVPARSER_NAME, NULL, NULL},
   {&invgrammar_bc_decl, INVGRAMMAR_NAME, NULL, NULL},
   {&invtoken_bc_decl, INVTOKEN_NAME, NULL, NULL},

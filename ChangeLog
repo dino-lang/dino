@@ -1,3 +1,18 @@
+2015-12-16  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_bc.sprut: Change regexp to regex.
+	* DINO/d_errors.[ch]: Ditto.
+	* DINO/d_ir.sprut: Ditto.
+	* DINO/d_func.c: Ditto.
+	(get_token): Read a new form of string.
+	* DINO/d_yacc.y (yylex): Process a new form of string.
+	* DINO/dino.sgml.in: Change regexp to regex.  Describe a ne form
+	of string.  Rewrite regex description.
+	* DINO/dino.{html, dvi, info, pdf, ps, txt}: Update.
+	* DINO/dino-{3,4,9}.html: Update
+	* DINO/dino.tst.in: Change regexp to regex.
+	(849-861): New tests for string and regex.
+
 2015-12-12  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* configure.in: Check getc_unlocked.
