@@ -3258,10 +3258,13 @@ the matching character is not of the class.
                Set = SetElement
                    | Set SetElement
 
-               SetElement = Char ["-" Char]
+               SetElement = ElementChar ["-" ElementChar]
                           | "[:" BracketClass ":]"
                           | "[:^" BracketClass ":]"
                           | CharacterClass
+
+               ElementChar = Character
+                           | "\b"       // backspace 0x08
 
                BracketClass = "alnum"   // Unicode letter, mark,
                                         //   or decimal number
@@ -3298,6 +3301,8 @@ character which does match the corresponding character class without
 given by two characters in the list separated by '-' is shorthand for
 the full _range_ of characters between those two (inclusive) in the
 sequence of unicode codes, e.g.  '[0-9]' matches any decimal digit.
+Besides usual character representation you can use here also '\b' which
+is a backspace representation.
 
    Element given by a bracket class enclosed in '[[::]]' matches a
 character from this class (see comments in BracketClass).  If character
@@ -4826,17 +4831,17 @@ Node: Example of Earley parser usage-124997
 Node: Predeclared functions127875
 Node: Mathematical functions129128
 Node: Pattern matching functions130698
-Node: Encoding functions154040
-Node: File functions154850
-Node: Functions for access to file/directory information155275
-Node: Functions for work with directories159956
-Node: Functions for work with files-161544
-Node: File output functions165601
-Node: File input functions178066
-Node: Time functions181888
-Node: Functions for access to process information184865
-Node: Miscellaneous functions186377
-Node: Appendix A- Syntax of Dino199772
-Node: Appendix B- Implementation204943
+Node: Encoding functions154255
+Node: File functions155065
+Node: Functions for access to file/directory information155490
+Node: Functions for work with directories160171
+Node: Functions for work with files-161759
+Node: File output functions165816
+Node: File input functions178281
+Node: Time functions182103
+Node: Functions for access to process information185080
+Node: Miscellaneous functions186592
+Node: Appendix A- Syntax of Dino199987
+Node: Appendix B- Implementation205158
 
 End Tag Table

@@ -1,5 +1,16 @@
 2015-12-16  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/d_dino.c (get_ucode_from_stream): Fix assert.
+	(dino_main): Decode command line program.
+	* DINO/d_func.c (process_onig_errors, find_regex): Add param.
+	Pass the args to the calls.
+	* DINO/dino.sgml.in: Describe \b.
+	* DINO/dino-9.html: Update.
+	* DINO/dino.{dvi, pdf, ps, info, txt): Ditto.
+	* DINO/dino.tst.in (862-864): New tests.
+
+2015-12-16  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/d_bc.sprut: Change regexp to regex.
 	* DINO/d_errors.[ch]: Ditto.
 	* DINO/d_ir.sprut: Ditto.

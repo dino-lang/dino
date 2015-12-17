@@ -49977,6 +49977,70 @@ OUTPUT861
         fi
 fi
 
+# Test 862.
+if test $result = ok -a $start_test_number -le 862; then
+	echo test 862: A bug in Dino interface to ONIGURUMA
+        cat >$test_file <<'TEST862'
+println (match ("\\p{alpha}", "a"));
+TEST862
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT850' && $CMP $stderr $ftemp2; then
+test.d:1:16: run time Oniguruma error in `match' - invalid character property name {alpha}
+OUTPUT850
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 863.
+if test $result = ok -a $start_test_number -le 863; then
+	echo test 863: Nonascii command line program
+        echo '      ' "$DINO -c 'println ("б");' 2>$stderr"
+        if $DINO -c 'println ("б");' 2>$stderr >$stdout <<'INPUT863' ; then
+INPUT863
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT863' && $CMP $stdout $ftemp2; then
+"\u0431"
+OUTPUT863
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 864.
+if test $result = ok -a $start_test_number -le 864; then
+	echo test 864: Regex backspace
+        cat >$test_file <<'TEST864'
+println (match (`\b`, "\x08"));
+println (match (`[\b]`, "\x08"));
+TEST864
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT864' ; then
+INPUT864
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT864' && $CMP $stdout $ftemp2; then
+nil
+[0, 1]
+OUTPUT864
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
 # Final message
 
 if test $result = ok; then

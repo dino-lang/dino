@@ -773,11 +773,11 @@ isa_call (int pars_number)
 #include "oniguruma.h"
 
 static void
-process_onig_errors (int code)
+process_onig_errors (int code, OnigErrorInfo *einfo)
 {
   UChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
   
-  onig_error_code_to_str (s, code);
+  onig_error_code_to_str (s, code, einfo);
   eval_error (invregex_bc_decl, call_pos (), DERR_regex, ifun_name, s);
 }
 
@@ -881,12 +881,12 @@ get_str_size (const void *str, int ucode_p, int zero_char_p)
    compile it and insert it into the cache.  Returns nonzero if there
    were errors during the compilation. */
 static int
-find_regex (void *pat, int pat_ucode_p, int str_ucode_p, regex_t **result)
+find_regex (void *pat, int pat_ucode_p, int str_ucode_p, regex_t **result,
+	    OnigErrorInfo *einfo)
 {
   hash_table_entry_t *entry;
   struct regex_node *regn;
   regex_t *r;
-  OnigErrorInfo einfo;
   size_t len, size;
   int code;
   OnigCompileInfo ci;
@@ -919,7 +919,7 @@ find_regex (void *pat, int pat_ucode_p, int str_ucode_p, regex_t **result)
   ci.case_fold_flag  = ONIGENC_CASE_FOLD_DEFAULT;
   code = onig_new_deluxe (&r, pat,
 			  (char *) pat + get_str_size (pat, pat_ucode_p, FALSE),
-			  &ci, &einfo);
+			  &ci, einfo);
   if (code != ONIG_NORMAL)
     {
       onig_free (r);
@@ -999,7 +999,8 @@ match_call (int pars_number)
   size_t i;
   const char *start, *end;
   int code, pat_ucode_p, str_ucode_p;
-
+  OnigErrorInfo einfo;
+  
   if (pars_number != 2)
     eval_error (parnumber_bc_decl, call_pos (),
 		DERR_parameters_number, MATCH_NAME);
@@ -1024,9 +1025,9 @@ match_call (int pars_number)
       str_ucode_p = TRUE;
     }
   code = find_regex (ER_pack_els (ER_vect (below_ctop)),
-		     pat_ucode_p, str_ucode_p, &reg);
+		     pat_ucode_p, str_ucode_p, &reg, &einfo);
   if (code != ONIG_NORMAL)
-    process_onig_errors (code);
+    process_onig_errors (code, &einfo);
   start = ER_pack_els (ER_vect (ctop));
   end = start + get_str_size (start, str_ucode_p, FALSE);
   code = onig_search (reg, start, end, start, end, region, ONIG_OPTION_NONE);
@@ -1046,7 +1047,7 @@ match_call (int pars_number)
 	}
     }
   else
-    process_onig_errors (code);
+    process_onig_errors (code, &einfo);
   if (result == NULL)
     ER_SET_MODE (fun_result, ER_NM_nil);
   else
@@ -1065,6 +1066,7 @@ gmatch_call (int pars_number)
   rint_t el;
   size_t len, ch_size;
   const char *start, *end;
+  OnigErrorInfo einfo;
 
   if (pars_number != 2 && pars_number != 3)
     eval_error (parnumber_bc_decl, call_pos (),
@@ -1101,9 +1103,9 @@ gmatch_call (int pars_number)
       str_ucode_p = TRUE;
     }
   code = find_regex (ER_pack_els (ER_vect (par1)),
-		     pat_ucode_p, str_ucode_p, &reg);
+		     pat_ucode_p, str_ucode_p, &reg, &einfo);
   if (code != ONIG_NORMAL)
-    process_onig_errors (code);
+    process_onig_errors (code, &einfo);
   VLO_NULLIFY (temp_vlobj2);
   start = ER_pack_els (ER_vect (par2));
   end = start + get_str_size (start, str_ucode_p, FALSE);
@@ -1156,6 +1158,7 @@ generall_sub_call (int pars_number, int global_flag)
   ucode_t uc;
   byte_t ac;
   int code, pat_ucode_p, str_ucode_p, subst_ucode_p;
+  OnigErrorInfo einfo;
 
   if (pars_number != 3)
     eval_error (parnumber_bc_decl, call_pos (), DERR_parameters_number,
@@ -1200,9 +1203,9 @@ generall_sub_call (int pars_number, int global_flag)
       subst_ucode_p = TRUE;
     }
   code = find_regex (ER_pack_els (ER_vect (regex_val)),
-		     pat_ucode_p, str_ucode_p, &reg);
+		     pat_ucode_p, str_ucode_p, &reg, &einfo);
   if (code != ONIG_NORMAL)
-    process_onig_errors (code);
+    process_onig_errors (code, &einfo);
   else
     {
       d_assert (str_ucode_p == subst_ucode_p);
@@ -1354,6 +1357,7 @@ split_call (int pars_number)
   const char *str, *end;
   int ok, pat_ucode_p, str_ucode_p;
   int code;
+  OnigErrorInfo einfo;
 
   if (pars_number != 1 && pars_number != 2)
     eval_error (parnumber_bc_decl, call_pos (),
@@ -1407,9 +1411,9 @@ split_call (int pars_number)
       ER_set_vect (vect, bytevect_to_ucodevect (ER_vect (vect )));
       str_ucode_p = TRUE;
     }
-  code = find_regex (split_regex, pat_ucode_p, str_ucode_p, &reg);
+  code = find_regex (split_regex, pat_ucode_p, str_ucode_p, &reg, &einfo);
   if (code != 0)
-    process_onig_errors (code);
+    process_onig_errors (code, &einfo);
   else
     {
       vect = ER_vect (pars_number == 2 ? below_ctop : ctop);

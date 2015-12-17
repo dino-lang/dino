@@ -3177,10 +3177,13 @@ of the class.
 	  Set = SetElement
               | Set SetElement
 	  
-          SetElement = Char ["-" Char]
+          SetElement = ElementChar ["-" ElementChar]
                      | "[:" BracketClass ":]"
                      | "[:^" BracketClass ":]"
                      | CharacterClass
+
+	  ElementChar = Character
+                      | "\b"       // backspace 0x08
 
           BracketClass = "alnum"   // Unicode letter, mark,
 		                   //   or decimal number
@@ -3218,7 +3221,8 @@ Element given by a character denotes the character itself.  Element
 given by two characters in the list separated by <tt>-</tt> is
 shorthand for the full <em>range</em> of characters between those two
 (inclusive) in the sequence of unicode codes, e.g. <tt>[0-9]</tt>
-matches any decimal digit.
+matches any decimal digit.  Besides usual character representation you
+can use here also <tt>\b</tt> which is a backspace representation.
 <p>
 Element given by a bracket class enclosed in <tt>[[::]]</tt> matches a
 character from this class (see comments in BracketClass).  If

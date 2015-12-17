@@ -1445,7 +1445,7 @@ get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd,
   char str[4]; /* 4 is longest utf-8 sequence.  */
   int i, n, b, r = get_byte (data);
   
-  d_assert (cd != NO_ONV_DESC);
+  d_assert (cd != NO_CONV_DESC);
   /* Fast track for slow iconv.  */
   if (r < 0 || tp == UTF8_ENC && r < 128 || tp == LATIN1_ENC)
     return r;
@@ -1567,7 +1567,8 @@ dino_main (int argc, char *argv[], char *envp[])
   const char *string;
   const char *home, *dino_encoding;
   int code;
-
+  size_t len;
+  
   start_time = clock ();
   set_big_endian_flag ();
   command_line_program = NULL;
@@ -1612,11 +1613,7 @@ dino_main (int argc, char *argv[], char *envp[])
 	  dino_finish (1);
 	}
       else if (strcmp (option, "-c") == 0)
-	{
-	  str_to_ucode_vlo (&command_line_vlo, argument_vector [i + 1],
-			    strlen (argument_vector [i + 1]) + 1);
-	  command_line_program = VLO_BEGIN (command_line_vlo);
-	}
+	command_line_program = (ucode_t *) argument_vector [i + 1];
       else if (strcmp (option, "-O") == 0)
 	optimize_flag = TRUE;
       else if (strcmp (option, "-s") == 0)
@@ -1733,6 +1730,12 @@ dino_main (int argc, char *argv[], char *envp[])
 	 dino_encoding, DINO_ENCODING);
       dino_finish (1);
     }
+  if (command_line_program != NULL)
+    command_line_program
+      = (ucode_t *) encode_byte_str_vlo ((char *) command_line_program,
+					 curr_reverse_ucode_cd,
+					 OTHER_ENC,
+					 &command_line_vlo, &len);
   MALLOC (program_arguments, (program_arguments_number + 1) * sizeof (char *));
   for (i = 0; i < program_arguments_number; i++)
     {

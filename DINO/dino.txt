@@ -3498,10 +3498,13 @@
                  Set = SetElement
                      | Set SetElement
 
-                 SetElement = Char ["-" Char]
+                 SetElement = ElementChar ["-" ElementChar]
                             | "[:" BracketClass ":]"
                             | "[:^" BracketClass ":]"
                             | CharacterClass
+
+                 ElementChar = Character
+                             | "\b"       // backspace 0x08
 
                  BracketClass = "alnum"   // Unicode letter, mark,
                                           //   or decimal number
@@ -3540,6 +3543,8 @@
   given by two characters in the list separated by - is shorthand for
   the full range of characters between those two (inclusive) in the
   sequence of unicode codes, e.g. [0-9] matches any decimal digit.
+  Besides usual character representation you can use here also \b which
+  is a backspace representation.
 
   Element given by a bracket class enclosed in [[::]] matches a
   character from this class (see comments in BracketClass). If character
