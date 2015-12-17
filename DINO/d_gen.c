@@ -443,6 +443,7 @@ execute_typeof_op (ER_node_t res, ER_node_t op1, int vect_p)
       unary_vect_op (res, op1);
       return;
     }
+  d_assert (ER_NODE_MODE (op1) != ER_NM_byte);
   type = mode_to_type (ER_NODE_MODE (op1));
   if (type == type_fun)
     type = code_type (ID_TO_CODE (ER_code_id (op1)));
@@ -465,7 +466,7 @@ execute_charof_op (ER_node_t res, ER_node_t op1, int vect_p)
   if (doubt (ER_NODE_MODE (op1) != ER_NM_int))
     eval_error (optype_bc_decl, get_cpos (),
 		DERR_conversion_to_char_operand_type);
-  if (ER_i (op1) > MAX_CHAR || ER_i (op1) < 0)
+  if (ER_i (op1) > UCODE_MAX || ER_i (op1) < 0)
     {
 #ifdef ERANGE
       errno = ERANGE;
@@ -557,24 +558,25 @@ execute_vectorof_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 	  return;
 	}
     }
-  if (op2 != NULL && ER_NODE_MODE (op2) != ER_NM_nil) // ???
+  if (op2 != NULL && ER_NODE_MODE (op2) != ER_NM_nil)
     {
       if (ER_NODE_MODE (op1) != ER_NM_char
 	  && ER_NODE_MODE (op1) != ER_NM_int
 	  && ER_NODE_MODE (op1) != ER_NM_long
 	  && ER_NODE_MODE (op1) != ER_NM_float
 	  && (ER_NODE_MODE (ER_vect (op1)) != ER_NM_heap_pack_vect
-	      || ER_pack_vect_el_mode (ER_vect (op1)) != ER_NM_char))
+	      || (ER_pack_vect_el_mode (ER_vect (op1)) != ER_NM_char
+		  && ER_pack_vect_el_mode (ER_vect (op2)) != ER_NM_byte)))
 	eval_error (optype_bc_decl, get_cpos (),
 		    DERR_format_conversion_to_vector_operand_type);
       op2 = to_vect_string_conversion (op2, NULL, (ER_node_t) &tvar2);
       if (ER_NODE_MODE (op2) != ER_NM_vect
 	  || ER_NODE_MODE (ER_vect (op2)) != ER_NM_heap_pack_vect
-	  || ER_pack_vect_el_mode (ER_vect (op2)) != ER_NM_char)
+	  || (ER_pack_vect_el_mode (ER_vect (op2)) != ER_NM_char
+	      && ER_pack_vect_el_mode (ER_vect (op2)) != ER_NM_byte))
 	eval_error (optype_bc_decl, get_cpos (),
 		    DERR_vector_conversion_format_type);
-      op1 = to_vect_string_conversion (op1, ER_pack_els (ER_vect (op2)),
-				       (ER_node_t) &tvar1);
+      op1 = to_vect_string_conversion (op1, ER_vect (op2), (ER_node_t) &tvar1);
       vect = ER_vect (op1);
       ER_SET_MODE (res, ER_NM_vect);
       set_vect_dim (res, vect, 0);
@@ -909,6 +911,16 @@ lds (ER_node_t res)
   ER_node_t vect;
 	    
   vect = create_string (BC_str (cpc));
+  ER_SET_MODE (res, ER_NM_vect);
+  set_vect_dim (res, vect, 0);
+}
+
+static void do_always_inline
+ldus (ER_node_t res)
+{
+  ER_node_t vect;
+	    
+  vect = create_ucodestr (BC_ustr (cpc));
   ER_SET_MODE (res, ER_NM_vect);
   set_vect_dim (res, vect, 0);
 }
@@ -3277,13 +3289,14 @@ chstel (ER_node_t op1, ER_node_t op2, ER_node_t op3, int op4n, int op5n,
 }
 
 static int do_always_inline
-rmatch_common (ER_node_t op1, ER_node_t op2, const char *string)
+rmatch_common (ER_node_t op1, ER_node_t op2, const char *string, int ucode_p)
 {
   if (ER_NODE_MODE (op2) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (op2)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_mode (ER_vect (op2)) != ER_NM_char)
+      || (ER_pack_vect_el_mode (ER_vect (op2)) != ER_NM_char
+	  && ER_pack_vect_el_mode (ER_vect (op2)) != ER_NM_byte))
     eval_error (optype_bc_decl, call_pos (), DERR_rmatch_expr_type);
-  internal_match_call (op1, string, ER_pack_els (ER_vect (op2)), "rmatch");
+  internal_match_call (op1, string, ucode_p, op2, "rmatch");
   return ER_NODE_MODE (op1) == ER_NM_nil;
 }
 
@@ -3295,15 +3308,17 @@ rmatch (ER_node_t op1, ER_node_t op2, ER_node_t op3)
   op3 = to_vect_string_conversion (op3, NULL, (ER_node_t) &tvar1);
   if (ER_NODE_MODE (op3) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (op3)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_mode (ER_vect (op3)) != ER_NM_char)
+      || (ER_pack_vect_el_mode (ER_vect (op3)) != ER_NM_char
+	  && ER_pack_vect_el_mode (ER_vect (op3)) != ER_NM_byte))
     eval_error (optype_bc_decl, get_cpos (), DERR_rmatch_case_expr_type);
-  return rmatch_common (op1, op2, ER_pack_els (ER_vect (op3)));
+  return rmatch_common (op1, op2, ER_pack_els (ER_vect (op3)),
+			ER_pack_vect_el_mode (ER_vect (op3)) == ER_NM_char);
 }
 
 static int do_always_inline
 rmatchs (ER_node_t op1, ER_node_t op2)
 {
-  return rmatch_common (op1, op2, BC_rm_str (cpc));
+  return rmatch_common (op1, op2, BC_rm_str (cpc), FALSE);
 }
 
 static void do_always_inline

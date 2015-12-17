@@ -87,7 +87,8 @@ initiate_int_tables (void)
   type_size_table [ER_NM_undef] = 0;
   type_size_table [ER_NM_nil] = 0;
   type_size_table [ER_NM_hide] = sizeof (hide_t);
-  type_size_table [ER_NM_char] = sizeof (char_t);
+  type_size_table [ER_NM_char] = sizeof (ucode_t);
+  type_size_table [ER_NM_byte] = sizeof (char);
   type_size_table [ER_NM_int] = sizeof (rint_t);
   type_size_table [ER_NM_long] = sizeof (ER_node_t);
   type_size_table [ER_NM_float] = sizeof (rfloat_t);
@@ -128,8 +129,8 @@ initiate_int_tables (void)
 static size_t do_always_inline
 val_displ (ER_node_t var)
 {
-  size_t res = val_displ_table [ER_NODE_MODE (var)];
-  return res;
+  d_assert (ER_NODE_MODE (var) != ER_NM_byte);
+  return val_displ_table [ER_NODE_MODE (var)];
 }
 
 
@@ -710,7 +711,7 @@ stack_for_shrink_p (ER_node_t stack)
 static size_t
 tailored_heap_object_size (ER_node_t obj)
 {
-  size_t size, el_size, head_size, all_els_size, optimal_size;
+  size_t size, el_size, els_num, head_size, all_els_size, optimal_size;
   ER_node_mode_t node_mode = ER_NODE_MODE (obj);
   
   if (node_mode == ER_NM_heap_pack_vect || node_mode == ER_NM_heap_unpack_vect)
@@ -719,9 +720,10 @@ tailored_heap_object_size (ER_node_t obj)
       el_size = (node_mode == ER_NM_heap_pack_vect
 		 ? type_size_table [ER_pack_vect_el_mode (obj)]
 		 : sizeof (val_t));
-      all_els_size = ER_els_number (obj) * el_size;
+      els_num = ER_els_number (obj);
+      all_els_size = els_num * el_size;
       head_size = ALLOC_SIZE (ER_node_size [node_mode]);
-      optimal_size = (head_size + OPTIMAL_ELS_SIZE (all_els_size));
+      optimal_size = (head_size + OPTIMAL_ELS_NUM (els_num) * el_size);
       if (optimal_size < head_size + all_els_size + ER_disp (obj))
 	optimal_size = head_size + all_els_size + ER_disp (obj);
       if (size > optimal_size)
@@ -833,8 +835,9 @@ traverse_used_heap_object (ER_node_t obj)
 	
 	if (el_type == ER_NM_undef || el_type == ER_NM_nil
 	    || el_type == ER_NM_hide
-	    || el_type == ER_NM_char || el_type == ER_NM_int
-	    || el_type == ER_NM_float || el_type == ER_NM_type)
+	    || el_type == ER_NM_char || el_type == ER_NM_byte
+	    || el_type == ER_NM_int || el_type == ER_NM_float
+	    || el_type == ER_NM_type)
 	  return;
 	el_size = type_size_table [el_type];
 	if (el_type == ER_NM_hideblock || el_type == ER_NM_long
@@ -981,8 +984,8 @@ define_new_heap_object (ER_node_t obj, struct heap_chunk **descr, char *place)
     {
       int temp_refs_p = in_heap_temp_refs (obj);
 
-      if (ER_NODE_MODE (obj) == ER_NM_heap_unpack_vect && !temp_refs_p)
-	pack_vector_if_possible (obj);
+      if (!temp_refs_p)
+	try_full_pack (obj);
       size = (!temp_refs_p
 	      ? tailored_heap_object_size (obj) : heap_object_size (obj));
       if (place + size > (*descr)->chunk_bound)
@@ -1060,6 +1063,7 @@ change_val (ER_node_mode_t mode, ER_node_t *val_addr)
     case ER_NM_nil:
     case ER_NM_hide:
     case ER_NM_char:
+    case ER_NM_byte:
     case ER_NM_int:
     case ER_NM_float:
     case ER_NM_type:
@@ -1144,8 +1148,9 @@ change_obj_refs (ER_node_t obj)
 	  
 	  el_type = ER_pack_vect_el_mode (obj);
 	  if (el_type == ER_NM_undef || el_type == ER_NM_nil || el_type == ER_NM_hide
-	      || el_type == ER_NM_char || el_type == ER_NM_int
-	      || el_type == ER_NM_float || el_type == ER_NM_type)
+	      || el_type == ER_NM_char || el_type == ER_NM_byte
+	      || el_type == ER_NM_int || el_type == ER_NM_float
+	      || el_type == ER_NM_type)
 	    break;
 	  el_size = type_size_table [el_type];
 	  if (el_type == ER_NM_hideblock || el_type == ER_NM_long
@@ -1738,7 +1743,7 @@ create_unpack_vector (size_t els_number)
   size_t allocated_length;
 
   allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_unpack_vect))
-		      + OPTIMAL_ELS_SIZE (els_number * sizeof (val_t)));
+		      + OPTIMAL_ELS_NUM (els_number) * sizeof (val_t));
   unpack_vect = heap_allocate (allocated_length, FALSE);
   ER_SET_MODE (unpack_vect, ER_NM_heap_unpack_vect);
   ER_set_immutable (unpack_vect, FALSE);
@@ -1757,8 +1762,8 @@ create_pack_vector (size_t els_number, ER_node_mode_t eltype)
   size_t allocated_length;
 
   allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_pack_vect))
-		      + OPTIMAL_ELS_SIZE (els_number
-					  * type_size_table [eltype]));
+		      + OPTIMAL_ELS_NUM (els_number)
+		      * type_size_table [eltype]);
   pack_vect = heap_allocate (allocated_length, FALSE);
   ER_SET_MODE (pack_vect, ER_NM_heap_pack_vect);
   ER_set_pack_vect_el_mode (pack_vect, eltype);
@@ -1783,7 +1788,8 @@ expand_vector (ER_node_t vect, size_t els_number)
   vect_els_number = ER_els_number (vect);
   allocated_length = ER_allocated_length (vect);
   if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
-      && ER_pack_vect_el_mode (vect) == ER_NM_char)
+      && (ER_pack_vect_el_mode (vect) == ER_NM_char
+	  || ER_pack_vect_el_mode (vect) == ER_NM_byte))
     {
       els_number++; /* for trailing zero byte */
       vect_els_number++;
@@ -1803,7 +1809,7 @@ expand_vector (ER_node_t vect, size_t els_number)
     }
   if (allocated_length < header_length + els_number * el_length)
     allocated_length = (header_length
-			+ OPTIMAL_ELS_SIZE (els_number * el_length));
+			+ OPTIMAL_ELS_NUM (els_number) * el_length);
   if (allocated_length != prev_vect_allocated_length)
     {
       prev_vect = vect;
@@ -1831,7 +1837,7 @@ expand_vector (ER_node_t vect, size_t els_number)
       /* Set it before getting els.  */
       ER_set_disp (vect, 0);
       memmove (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect
-	       ? (char*) ER_unpack_els (vect) : (char *) ER_pack_els (vect),
+	       ? (char *) ER_unpack_els (vect) : (char *) ER_pack_els (vect),
 	       els, ER_els_number (vect) * el_length);
       
     }
@@ -1852,52 +1858,58 @@ unpack_vector (ER_node_t vect)
   size_t displ;
   size_t i, disp;
   val_t temp_var;
-
+  const char *pack_els;
+  
   disp = ER_disp (vect);
-  allocated_length = ER_allocated_length (vect);
+  pack_vect_allocated_length = allocated_length = ER_allocated_length (vect);
   immutable = ER_immutable (vect);
   els_number = ER_els_number (vect);
+  pack_els =  ER_pack_els (vect);
   el_type = ER_pack_vect_el_mode (vect);
   el_size = type_size_table [el_type];
   prev_vect = vect;
-  pack_vect_allocated_length = allocated_length;
   if (allocated_length - disp < (ALLOC_SIZE (sizeof (_ER_heap_unpack_vect))
 				 + els_number * sizeof (val_t)))
     {
       allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_unpack_vect))
-			  + OPTIMAL_ELS_SIZE (els_number * sizeof (val_t)));
+			  + OPTIMAL_ELS_NUM (els_number) * sizeof (val_t));
       vect = heap_allocate (allocated_length, FALSE);
-      ER_SET_MODE (vect, ER_NM_heap_unpack_vect);
-      ER_set_disp (vect, 0);
     }
-  ER_SET_MODE ((ER_node_t) &temp_var, el_type);
-  displ = val_displ ((ER_node_t) &temp_var);
-  if (els_number != 0)
-    {
-      ER_node_mode_t mode = ER_NODE_MODE (vect);
-      ER_node_t els;
-
-      ER_SET_MODE (vect, ER_NM_heap_unpack_vect);
-      els = ER_unpack_els (vect);
-      ER_SET_MODE (vect, mode);
-      for (i = els_number - 1; ; i--)
-	{
-	  /* Use this order!!!  It is important when we have only one
-             element. */
-	  memcpy ((char *) IVAL (els, i) + displ,
-		  (char *) ER_pack_els (prev_vect) + i * el_size,
-		  el_size);
-	  ER_SET_MODE (IVAL (els, i), el_type);
-	  if (el_type == ER_NM_vect)
-	    ER_set_dim (IVAL (els, i), 0);
-	  if (i == 0)
-	    break;
-	}
-      }
   ER_SET_MODE (vect, ER_NM_heap_unpack_vect);
+  ER_set_disp (vect, 0);
   ER_set_allocated_length (vect, allocated_length);
   ER_set_immutable (vect, immutable);
   ER_set_els_number (vect, els_number);
+  ER_SET_MODE ((ER_node_t) &temp_var, el_type == ER_NM_byte ? ER_NM_char : el_type);
+  displ = val_displ ((ER_node_t) &temp_var);
+  if (els_number != 0)
+    {
+      ER_node_t els;
+
+      els = ER_unpack_els (vect);
+      for (i = els_number - 1;; i--)
+	{
+	  if (el_type == ER_NM_byte)
+	    {
+	      byte_t b = ((byte_t *) pack_els)[i];
+	      
+	      ER_SET_MODE (IVAL (els, i), ER_NM_char);
+	      ER_set_ch (IVAL (els, i), b);
+	    }
+	  else
+	    {
+	      /* Use this order with essting mode!!!  It is important
+		 when we have only one element. */
+	      memcpy ((char *) IVAL (els, i) + displ, pack_els + i * el_size,
+		      el_size);
+	      ER_SET_MODE (IVAL (els, i), el_type);
+	      if (el_type == ER_NM_vect)
+		ER_set_dim (IVAL (els, i), 0);
+	    }
+	  if (i == 0)
+	    break;
+	}
+    }
   if (prev_vect != vect)
     {
       ER_SET_MODE (prev_vect, ER_NM_heap_redir);
@@ -1908,8 +1920,7 @@ unpack_vector (ER_node_t vect)
   return vect;
 }
 
-/* The function should not call GC. */
-void
+static void
 pack_vector_if_possible (ER_node_t unpack_vect)
 {
   ER_node_t pack_vect;
@@ -1944,7 +1955,7 @@ pack_vector_if_possible (ER_node_t unpack_vect)
 		(char *) IVAL (ER_unpack_els (unpack_vect), i) + displ,
 		el_size);
       if (el_type == ER_NM_char)
-	els [els_number] = '\0';
+	((ucode_t *) els) [els_number] = '\0';
       ER_SET_MODE (pack_vect, ER_NM_heap_pack_vect);
       ER_set_immutable (pack_vect, immutable);
       ER_set_pack_vect_el_mode (pack_vect, el_type);
@@ -1963,16 +1974,8 @@ eq_vector (ER_node_t v1, ER_node_t v2)
     return TRUE;
   if (ER_els_number (v1) != ER_els_number (v2))
     return FALSE;
-  if (ER_NODE_MODE (v1) == ER_NM_heap_pack_vect
-      && ER_NODE_MODE (v2) == ER_NM_heap_pack_vect)
-    return (ER_pack_vect_el_mode (v1) == ER_pack_vect_el_mode (v2)
-	    && memcmp (ER_pack_els (v1), ER_pack_els (v2),
-		       ER_els_number (v1)
-		       * type_size_table [ER_pack_vect_el_mode (v1)]) == 0);
-  if (ER_NODE_MODE (v1) == ER_NM_heap_unpack_vect)
-    pack_vector_if_possible (v1);
-  if (ER_NODE_MODE (v2) == ER_NM_heap_unpack_vect)
-    pack_vector_if_possible (v2);
+  try_full_pack (v1);
+  try_full_pack (v2);
   if (ER_NODE_MODE (v1) != ER_NODE_MODE (v2))
     return FALSE;
   else if (ER_NODE_MODE (v1) == ER_NM_heap_pack_vect)
@@ -2008,13 +2011,14 @@ create_empty_string (size_t min_length)
 {
   ER_node_t vect;
   
-  vect = create_pack_vector (min_length, ER_NM_char);
+  vect = create_pack_vector (min_length, ER_NM_byte);
   ER_set_immutable (vect, TRUE);
   ER_set_els_number (vect, 0);
   ER_pack_els (vect) [0] = '\0';
   return vect;
 }
 
+/* Create and return packed byte vector from regular string STR.  */
 ER_node_t
 create_string (const char *string)
 {
@@ -2022,13 +2026,120 @@ create_string (const char *string)
   size_t chars_number;
   
   chars_number = strlen (string);
-  vect = create_pack_vector (chars_number + 1, ER_NM_char);
+  vect = create_pack_vector (chars_number + 1, ER_NM_byte);
   ER_set_immutable (vect, TRUE);
   ER_set_els_number (vect, chars_number);
   strcpy (ER_pack_els (vect), string);
   return vect;
 }
 
+
+/* Create and return packed ucode vector from ucode string STR with
+   trailing zero.  */
+ER_node_t
+create_ucodestr (const ucode_t *str)
+{
+  ER_node_t vect;
+  size_t chars_number;
+  
+  chars_number = ucodestrlen (str);
+  vect = create_pack_vector (chars_number + 1, ER_NM_char);
+  ER_set_immutable (vect, TRUE);
+  ER_set_els_number (vect, chars_number);
+  memcpy (ER_pack_els (vect), str, (chars_number + 1) * sizeof (ucode_t));
+  return vect;
+}
+
+/* Transform byte packed vector VECT into ucode packed vector.  */
+ER_node_t
+bytevect_to_ucodevect (ER_node_t vect)
+{
+  size_t allocated_length;
+  int immutable;
+  size_t els_number;
+  ER_node_t prev_vect;
+  size_t prev_vect_allocated_length;
+  size_t i, disp;
+  ucode_t *els;
+  byte_t *prev_els;
+  
+  d_assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
+	    && ER_pack_vect_el_mode (vect) == ER_NM_byte);
+  disp = ER_disp (vect);
+  prev_vect_allocated_length = allocated_length = ER_allocated_length (vect);
+  immutable = ER_immutable (vect);
+  els_number = ER_els_number (vect);
+  prev_els = (byte_t *) ER_pack_els (vect);
+  prev_vect = vect;
+  if (allocated_length - disp < (ALLOC_SIZE (sizeof (_ER_heap_pack_vect))
+				 + (els_number + 1) * sizeof (ucode_t)))
+    {
+      allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_pack_vect))
+			  + OPTIMAL_ELS_NUM (els_number)
+			  * sizeof (ucode_t));
+      vect = heap_allocate (allocated_length, FALSE);
+      ER_SET_MODE (vect, ER_NM_heap_pack_vect);
+    }
+  ER_set_disp (vect, 0);
+  els = (ucode_t *) ER_pack_els (vect);
+  if (els_number != 0)
+    for (i = els_number - 1;; i--)
+      {
+	els[i] = prev_els[i];
+	if (i == 0)
+	  break;
+      }
+  els[els_number] = '\0';
+  ER_set_pack_vect_el_mode (vect, ER_NM_char);
+  if (prev_vect != vect)
+    {
+      ER_set_allocated_length (vect, allocated_length);
+      ER_set_immutable (vect, immutable);
+      ER_set_els_number (vect, els_number);
+      ER_SET_MODE (prev_vect, ER_NM_heap_redir);
+      ER_set_allocated_length (prev_vect, prev_vect_allocated_length);
+      ER_set_redir (prev_vect, vect);
+      ER_set_unique_number (vect, ER_unique_number (prev_vect));
+    }
+  return vect;
+}
+
+/* Transform ucode packed vector VECT into byte packed vector if
+   possible.  */
+static void
+ucodevect_to_bytevect_if_possible (ER_node_t vect)
+{
+  size_t i, els_num, el_size;
+  const ucode_t *char_els;
+  byte_t *els;
+  
+  d_assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
+	    && ER_pack_vect_el_mode (vect) == ER_NM_char);
+  els_num = ER_els_number (vect);
+  char_els = (ucode_t *) ER_pack_els (vect);
+  for (i = 0; i < els_num; i++)
+    if (! in_byte_range_p (char_els[i]))
+      return;
+  el_size = type_size_table [ER_NM_byte];
+  els = ER_pack_els (vect) - ER_disp (vect);
+  for (i = 0; i < els_num; i++)
+    els [i] = char_els [i];
+  els [els_num] = '\0';
+  ER_set_pack_vect_el_mode (vect, ER_NM_byte);
+  ER_set_disp (vect, 0);
+}
+
+/* Transform OBJ to packed byte vector if possible, otherwise to
+   packed vector.  */
+void
+try_full_pack (ER_node_t obj)
+{
+  if (ER_NODE_MODE (obj) == ER_NM_heap_unpack_vect)
+    pack_vector_if_possible (obj);
+  if (ER_NODE_MODE (obj) == ER_NM_heap_pack_vect
+      && ER_pack_vect_el_mode (obj) == ER_NM_char)
+    ucodevect_to_bytevect_if_possible (obj);
+}
 
 
 
@@ -2280,9 +2391,8 @@ hash_key (ER_node_t key)
 	vect = ER_vect (key);
 	GO_THROUGH_REDIR (vect);
 	ER_set_vect (key, vect);
-	if (ER_NODE_MODE (ER_vect (key)) == ER_NM_heap_unpack_vect)
-	  pack_vector_if_possible (ER_vect (key));
-	if (ER_NODE_MODE (ER_vect (key)) == ER_NM_heap_pack_vect)
+	try_full_pack (ER_vect (key));
+ 	if (ER_NODE_MODE (ER_vect (key)) == ER_NM_heap_pack_vect)
 	  {
 	    ER_node_t pv = ER_vect (key);
 
@@ -2401,7 +2511,7 @@ eq_key (ER_node_t entry_key, ER_node_t key)
 
 /* The following function returns the nearest prime number which is
    greater than given source number. */
-static unsigned long
+unsigned long
 higher_prime_number (unsigned long number)
 {
   unsigned long i;
@@ -2733,11 +2843,19 @@ vector_to_table_conversion (ER_node_t vect)
 	  ER_node_mode_t el_type = ER_pack_vect_el_mode (vect);
 	  size_t el_type_size = type_size_table [el_type];
 
-	  ER_SET_MODE (v, el_type);
-	  memcpy ((char *) v + val_displ (v),
-		  ER_pack_els (vect) + i * el_type_size, el_type_size);
-	  if (el_type == ER_NM_vect)
-	    ER_set_dim (v, 0);
+	  if (el_type == ER_NM_byte)
+	    {
+	      ER_SET_MODE (v, ER_NM_char);
+	      ER_set_ch (v, ((byte_t *) ER_pack_els (vect)) [i]);
+	    }
+	  else
+	    {
+	      ER_SET_MODE (v, el_type);
+	      memcpy ((char *) v + val_displ (v),
+		      ER_pack_els (vect) + i * el_type_size, el_type_size);
+	      if (el_type == ER_NM_vect)
+		ER_set_dim (v, 0);
+	    }
 	}
     }
   return tab;

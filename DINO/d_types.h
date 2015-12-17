@@ -135,10 +135,37 @@ static const char __infinity[8] = { 0, 0, 0, 0, 0, 0, 0xf0, 0x7f };
 #define RFLOAT_NAN (*(rfloat_t *) __infinity)
 #endif
 
-typedef unsigned char char_t;
-
-#define MAX_CHAR  UCHAR_MAX /* unsigned char */
-
 typedef char bool_t;
+
+typedef const char *string_t;
+
+typedef unsigned char byte_t;
+
+typedef int ucode_t;
+
+#define UCODE_MAX ((int) 0x10ffff)
+#define UCODE_BOUND (UCODE_MAX + 1)
+
+typedef const ucode_t *ucodestr_t;
+
+#ifdef HAVE_ICONV_H
+#include <iconv.h>
+typedef iconv_t conv_desc_t;
+#define NO_CONV_DESC ((iconv_t) -1)
+#else
+typedef unsigned int conv_desc_t;
+#define NO_CONV_DESC ((conv_desc_t) -1)
+#endif
+
+enum encoding_type
+{
+  RAW_ENC,
+  UTF8_ENC,
+  LATIN1_ENC,
+  OTHER_ENC
+};
+
+typedef enum encoding_type encoding_type_t;
+
 
 #endif /*#ifndef __D_CONFIG_H__ */

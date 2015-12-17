@@ -128,6 +128,10 @@ extern void fold_call (int pars_number);
 extern void filter_call (int pars_number);
 extern void map_call (int pars_number);
 extern void transpose_call (int pars_number);
+extern void set_encoding_call (int pars_number);
+extern void get_encoding_call (int pars_number);
+extern void set_file_encoding_call (int pars_number);
+extern void get_file_encoding_call (int pars_number);
 extern void init_call (int pars_number);
 
 extern void int_earley_parse_grammar (int pars_number);

@@ -49,9 +49,10 @@
 
 #define INCREMENT_PC() (cpc = BC_next (cpc))
 
-/* The macro call returns optimal allocation size for vector elements.
-   Remember vector can grow.  Remember also about string end char. */
-#define OPTIMAL_ELS_SIZE(s) (((s) + 1) * 3 / 2)
+/* The macro call returns optimal allocation number for vector
+   elements.  Remember vector can grow.  Remember also about string
+   end char. */
+#define OPTIMAL_ELS_NUM(n) (((n) + 1) * 3 / 2)
 
 extern int sync_flag;
 
@@ -188,6 +189,8 @@ extern void initiate_tables (void);
 extern int executed_stmts_count;
 extern int process_quantum;
 
+extern unsigned long higher_prime_number (unsigned long number);
+
 extern ER_node_t create_process (pc_t start_process_pc, BC_node_t fun,
 	                         ER_node_t fun_context);
 extern void interrupt (pc_t first_resume_pc);
@@ -226,7 +229,9 @@ mode_to_type (ER_node_mode_t mode)
   switch (mode)
     {
     case ER_NM_nil: return type_nil;
-    case ER_NM_char: return type_char;
+    case ER_NM_char:
+    case ER_NM_byte:
+      return type_char;
     case ER_NM_int: return type_int;
     case ER_NM_long: return type_long;
     case ER_NM_float: return type_float;

@@ -28,8 +28,9 @@ extern int internal_inside_call (const char **message_ptr, ER_node_t where,
 extern int code_use_p (BC_node_t code, BC_node_t where);
 extern int internal_isa_call (const char **message_ptr, ER_node_t where,
 			      ER_node_t what);
-extern void internal_match_call (ER_node_t result_op, const char *regexp_string,
-				 const char *string,
+extern void internal_match_call (ER_node_t result_op,
+				 const char *regexp_string, int pat_ucode_p,
+				 ER_node_t string_op,
 				 const char *additional_msg);
 extern void print_trace_stack (void);
 extern void process_imm_ifun_call (BC_node_t code, int actuals_num,
@@ -41,3 +42,4 @@ extern void process_fun_class_call (BC_node_t fdecl, ER_node_t context,
 extern void process_call (ER_node_t call_start, int actuals_num,
 			  int tail_flag, int from_c_code_p);
 extern void initiate_funcs (void);
+extern void finish_funcs (void);

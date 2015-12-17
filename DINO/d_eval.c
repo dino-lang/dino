@@ -327,7 +327,11 @@ load_packed_vector_element (ER_node_t to, ER_node_t vect, rint_t index_val)
       ER_set_hide (to, ((hide_t *) ER_pack_els (vect)) [index_val]);
       break;
     case ER_NM_char:
-      ER_set_ch (to, ((char_t *) ER_pack_els (vect)) [index_val]);
+      ER_set_ch (to, ((ucode_t *) ER_pack_els (vect)) [index_val]);
+      break;
+    case ER_NM_byte:
+      ER_SET_MODE (to, ER_NM_char);
+      ER_set_ch (to, ((byte_t *) ER_pack_els (vect)) [index_val]);
       break;
     case ER_NM_int:
       ER_set_i (to, ((rint_t *) ER_pack_els (vect)) [index_val]);
@@ -385,7 +389,8 @@ load_vector_element_by_index (ER_node_t to, ER_node_t vect, ER_node_t index)
     *(val_t *) to = *(val_t *) IVAL (ER_unpack_els (vect), index_val);
 }
 
-/* Store VAL into element INDEX_VAL of packed VECT.  */
+/* Store VAL into element INDEX_VAL of packed VECT.  The function can
+   transform VECT into redirection.  */
 static void do_inline
 store_packed_vector_element (ER_node_t vect, rint_t index_val, ER_node_t val)
 {
@@ -394,7 +399,8 @@ store_packed_vector_element (ER_node_t vect, rint_t index_val, ER_node_t val)
   
   d_assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
   el_type = ER_pack_vect_el_mode (vect);
-  d_assert (ER_NODE_MODE (val) == el_type);
+  d_assert (ER_NODE_MODE (val) == el_type
+	    || (ER_NODE_MODE (val) == ER_NM_char && el_type == ER_NM_byte));
   switch ((unsigned char) el_type)
     {
 #ifdef __GNUC__
@@ -410,7 +416,20 @@ store_packed_vector_element (ER_node_t vect, rint_t index_val, ER_node_t val)
       ((hide_t *) ER_pack_els (vect)) [index_val] = ER_hide (val);
       break;
     case ER_NM_char:
-      ((char_t *) ER_pack_els (vect)) [index_val] = ER_ch (val);
+      ((ucode_t *) ER_pack_els (vect)) [index_val] = ER_ch (val);
+      break;
+    case ER_NM_byte:
+      {
+	ucode_t ch = ER_ch (val);
+
+	if (in_byte_range_p (ch))
+	  {
+	    ((byte_t *) ER_pack_els (vect)) [index_val] = ch;
+	    break;
+	  }
+	vect = bytevect_to_ucodevect (vect);
+	((ucode_t *) ER_pack_els (vect)) [index_val] = ch;
+      }
       break;
     case ER_NM_int:
       ((rint_t *) ER_pack_els (vect)) [index_val] = ER_i (val);
@@ -447,6 +466,7 @@ store_packed_vector_element (ER_node_t vect, rint_t index_val, ER_node_t val)
     }
 }
 
+/* It can transform VECT into redirection.  */
 static void do_inline
 store_vector_element (ER_node_t vect, ER_node_t index, ER_node_t val)
 {
@@ -459,7 +479,9 @@ store_vector_element (ER_node_t vect, ER_node_t index, ER_node_t val)
     eval_error (immutable_bc_decl, get_designator_pos (),
 		DERR_immutable_vector_modification);
   index_val = check_vector_index (vect, index);
-  if (pack_flag && ER_pack_vect_el_mode (vect) != ER_NODE_MODE (val))
+  if (pack_flag && ER_pack_vect_el_mode (vect) != ER_NODE_MODE (val)
+      && (ER_pack_vect_el_mode (vect) != ER_NM_byte
+	  || ER_NODE_MODE (val) != ER_NM_char))
     {
       vect = unpack_vector (vect);
       pack_flag = FALSE;
@@ -639,7 +661,11 @@ process_slice_extract (ER_node_t container1, ER_node_t start_val1, int dim1,
 	      break;
 	    case ER_NM_char:
 	      for (i = 0, i1 = start1; i1 != bound1; i++, i1 += step1)
-		((char_t *) pack_els) [i] = ((char_t *) pack_els1) [i1];
+		((ucode_t *) pack_els) [i] = ((ucode_t *) pack_els1) [i1];
+	      break;
+	    case ER_NM_byte:
+	      for (i = 0, i1 = start1; i1 != bound1; i++, i1 += step1)
+		((byte_t *) pack_els) [i] = ((byte_t *) pack_els1) [i1];
 	      break;
 	    case ER_NM_int:
 	      for (i = 0, i1 = start1; i1 != bound1; i++, i1 += step1)
@@ -761,7 +787,7 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int dim1,
   ER_node_t vect1, vect2 = NULL;
   int pack_flag1, pack_flag2 = FALSE;
   ER_node_t v1, v2;
-  ER_node_mode_t el_type1;
+  ER_node_mode_t el_type1, el_type2;
 
   d_assert (dim1 > 0);
   vect1 = container1;
@@ -787,68 +813,87 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int dim1,
 		(long) niter1, (long) niter2, depth);
   if (dim1 == 1 && dim2 == 0)
     {
-      if (pack_flag1 && ER_pack_vect_el_mode (vect1) == ER_NODE_MODE (container2))
+      int done_p = FALSE;
+      
+      if (pack_flag1)
 	{
-	  pack_els1 = ER_pack_els (vect1);
 	  el_type1 = ER_pack_vect_el_mode (vect1);
-	  switch (el_type1)
+	  el_type2 = ER_NODE_MODE (container2);
+	  if (el_type1 == el_type2
+	      || (el_type1 == ER_NM_byte && el_type2 == ER_NM_char))
 	    {
-	    case ER_NM_nil:
-	      break;
-	    case ER_NM_hide:
-	      for (i1 = start1; i1 != bound1; i1 += step1)
-		((hide_t *) pack_els1) [i1] = ER_hide (container2);
-	      break;
-	    case ER_NM_char:
-	      for (i1 = start1; i1 != bound1; i1 += step1)
-		((char_t *) pack_els1) [i1] = ER_ch (container2);
-	      break;
-	    case ER_NM_int:
-	      for (i1 = start1; i1 != bound1; i1 += step1)
-		((rint_t *) pack_els1) [i1] = ER_i (container2);
-	      break;
-	    case ER_NM_float:
-	      for (i1 = start1; i1 != bound1; i1 += step1)
-		((rfloat_t *) pack_els1) [i1] = ER_f (container2);
-	      break;
-	    case ER_NM_long:
-	      for (i1 = start1; i1 != bound1; i1 += step1)
-		((ER_node_t *) pack_els1) [i1] = ER_l (container2);
-	      break;
-	    case ER_NM_type:
-	      for (i1 = start1; i1 != bound1; i1 += step1)
-		((ER_node_mode_t *) pack_els1) [i1] = ER_type (container2);
-	      break;
-	    case ER_NM_vect:
-	      v2 = ER_vect (container2);
-	      goto node_common1;
-	    case ER_NM_tab:
-	      v2 = ER_tab (container2);
-	      goto node_common1;
-	    case ER_NM_process:
-	      v2 = ER_process (container2);
-	      goto node_common1;
-	    case ER_NM_stack:
-	      v2 = ER_process (container2);
-	    node_common1:
-	      for (i1 = start1; i1 != bound1; i1 += step1)
-		((ER_node_t *) pack_els1) [i1] = v2;
-	      break;
-	    case ER_NM_code:
-	      {
-		size_t el_type_size1 = type_size_table [el_type1];
-		char *v = ((char *) container2
-			   + val_displ_table [ER_NODE_MODE (container2)]);
-		
-		for (i1 = start1; i1 != bound1; i1 += step1)
-		  memcpy (pack_els1 + i1 * el_type_size1, v, el_type_size1);
-		break;
-	      }
-	    default:
-	      d_unreachable ();
+	      pack_els1 = ER_pack_els (vect1);
+	      switch (el_type1)
+		{
+		case ER_NM_nil:
+		  break;
+		case ER_NM_hide:
+		  for (i1 = start1; i1 != bound1; i1 += step1)
+		    ((hide_t *) pack_els1) [i1] = ER_hide (container2);
+		  break;
+		case ER_NM_byte:
+		  if (in_byte_range_p (ER_ch (container2)))
+		    {
+		      for (i1 = start1; i1 != bound1; i1 += step1)
+			((byte_t *) pack_els1) [i1] = ER_ch (container2);
+		      break;
+		    }
+		  vect1 = bytevect_to_ucodevect (vect1);
+		  pack_els1 = ER_pack_els (vect1);
+		  /* Fall through: */
+		case ER_NM_char:
+		  for (i1 = start1; i1 != bound1; i1 += step1)
+		    ((ucode_t *) pack_els1) [i1] = ER_ch (container2);
+		  break;
+		  break;
+		case ER_NM_int:
+		  for (i1 = start1; i1 != bound1; i1 += step1)
+		    ((rint_t *) pack_els1) [i1] = ER_i (container2);
+		  break;
+		case ER_NM_float:
+		  for (i1 = start1; i1 != bound1; i1 += step1)
+		    ((rfloat_t *) pack_els1) [i1] = ER_f (container2);
+		  break;
+		case ER_NM_long:
+		  for (i1 = start1; i1 != bound1; i1 += step1)
+		    ((ER_node_t *) pack_els1) [i1] = ER_l (container2);
+		  break;
+		case ER_NM_type:
+		  for (i1 = start1; i1 != bound1; i1 += step1)
+		    ((ER_node_mode_t *) pack_els1) [i1] = ER_type (container2);
+		  break;
+		case ER_NM_vect:
+		  v2 = ER_vect (container2);
+		  goto node_common1;
+		case ER_NM_tab:
+		  v2 = ER_tab (container2);
+		  goto node_common1;
+		case ER_NM_process:
+		  v2 = ER_process (container2);
+		  goto node_common1;
+		case ER_NM_stack:
+		  v2 = ER_process (container2);
+		node_common1:
+		  for (i1 = start1; i1 != bound1; i1 += step1)
+		    ((ER_node_t *) pack_els1) [i1] = v2;
+		  break;
+		case ER_NM_code:
+		  {
+		    size_t el_type_size1 = type_size_table [el_type1];
+		    char *v = ((char *) container2
+			       + val_displ_table [ER_NODE_MODE (container2)]);
+		    
+		    for (i1 = start1; i1 != bound1; i1 += step1)
+		      memcpy (pack_els1 + i1 * el_type_size1, v, el_type_size1);
+		    break;
+		  }
+		default:
+		  d_unreachable ();
+		}
 	    }
+	  done_p = TRUE;
 	}
-      else
+      if (! done_p)
 	{
 	  if (pack_flag1)
 	    vect1 = unpack_vector (vect1);
@@ -868,6 +913,15 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int dim1,
 	{
 	  pack_flag2 = FALSE;
 	  vect2 = unpack_vector (vect2);
+	}
+      else if (pack_flag1 && pack_flag2)
+	{
+	  if (ER_pack_vect_el_mode (vect1) == ER_NM_char
+	      && ER_pack_vect_el_mode (vect2) == ER_NM_byte)
+	    vect2 = bytevect_to_ucodevect (vect2);
+	  else if (ER_pack_vect_el_mode (vect1) == ER_NM_byte
+		   && ER_pack_vect_el_mode (vect2) == ER_NM_char)
+	    vect1 = bytevect_to_ucodevect (vect1);
 	}
       if (pack_flag1
 	  && ER_pack_vect_el_mode (vect1) != ER_pack_vect_el_mode (vect2))
@@ -893,7 +947,11 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int dim1,
 	      break;
 	    case ER_NM_char:
 	      for (i1 = start1, i2 = 0; i1 != bound1; i1 += step1, i2++)
-		((char_t *) pack_els1) [i1] = ((char_t *) pack_els2) [i2];
+		((ucode_t *) pack_els1) [i1] = ((ucode_t *) pack_els2) [i2];
+	      break;
+	    case ER_NM_byte:
+	      for (i1 = start1, i2 = 0; i1 != bound1; i1 += step1, i2++)
+		((byte_t *) pack_els1) [i1] = ((byte_t *) pack_els2) [i2];
 	      break;
 	    case ER_NM_int:
 	      for (i1 = start1, i2 = 0; i1 != bound1; i1 += step1, i2++)
@@ -939,7 +997,7 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int dim1,
 	  unpack_els2 = ER_unpack_els (vect2);
 	  for (i1 = start1, i2 = 0; i1 != bound1; i1 += step1, i2++)
 	    *(val_t *)IVAL (unpack_els1, i1) = *(val_t *)IVAL (unpack_els2, i2);
-	  pack_vector_if_possible (vect1);
+	  try_full_pack (vect1);
 	}
     }
   else if (dim2 == 0)
@@ -1128,19 +1186,33 @@ find_catch_pc (ER_node_t except)
       if (ER_NODE_MODE (message) == ER_NM_vect)
 	{
 	  ER_node_t vect;
-	  
+	  size_t len;
+
 	  vect = ER_vect (message);
 	  GO_THROUGH_REDIR (vect);
-	  if (ER_NODE_MODE (vect) != ER_NM_heap_pack_vect)
-	    pack_vector_if_possible (vect);
+	  try_full_pack (vect);
 	  if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
-	      && ER_pack_vect_el_mode (vect) == ER_NM_char)
-	    /* No return after error unless REPL. */
-	    d_error (! repl_flag, exception_position, ER_pack_els (vect));
+	      && (ER_pack_vect_el_mode (vect) == ER_NM_char
+		  || ER_pack_vect_el_mode (vect) == ER_NM_byte))
+	    {
+	      const char *message
+		= (ER_pack_vect_el_mode (vect) == ER_NM_byte
+		   ? encode_byte_str_vlo (ER_pack_els (vect),
+					  curr_byte_cd, curr_encoding_type,
+					  &temp_vlobj, &len)
+		   : encode_ucode_str_vlo ((ucode_t *) ER_pack_els (vect),
+					   curr_ucode_cd, curr_encoding_type,
+					   &temp_vlobj, &len));
+	      
+	      /* No return after error unless REPL. */
+	      if (message != NULL)
+		d_error (! repl_flag, exception_position, message);
+	    }
 	}
     }
   if (! repl_flag)
     {
+      /* Message is not a string or wrong message encoding.  */
       if (ER_block_node (except) != sigint_bc_decl
 	  && ER_block_node (except) != sigterm_bc_decl)
 	d_error (TRUE, exception_position, DERR_unprocessed_exception,
@@ -1363,6 +1435,16 @@ execute_concat_op (ER_node_t res, ER_node_t op1, ER_node_t op2,
   vect1 = ER_vect (op1);
   vect2 = ER_vect (op2);
   d_assert (! append_p || vect1 != vect2);
+  if (ER_NODE_MODE (vect2) == ER_NODE_MODE (vect1)
+      && ER_NODE_MODE (vect1) == ER_NM_heap_pack_vect)
+    {
+      if (ER_pack_vect_el_mode (vect1) == ER_NM_byte
+	  && ER_pack_vect_el_mode (vect2) == ER_NM_char)
+	vect1 = bytevect_to_ucodevect (vect1);
+      else if (ER_pack_vect_el_mode (vect2) == ER_NM_byte
+	       && ER_pack_vect_el_mode (vect1) == ER_NM_char)
+	vect2 = bytevect_to_ucodevect (vect2);
+    }
   if (ER_NODE_MODE (vect2) != ER_NODE_MODE (vect1)
       || (ER_NODE_MODE (vect2) == ER_NM_heap_pack_vect
 	  && (ER_pack_vect_el_mode (vect2)
@@ -1406,9 +1488,12 @@ execute_concat_op (ER_node_t res, ER_node_t op1, ER_node_t op2,
 		  ER_pack_els (vect2), ER_els_number (vect2) * el_size);
 	  ER_set_els_number (result, els_number1 + ER_els_number (vect2));
 	}
-      if (result_el_type == ER_NM_char)
-	ER_pack_els (result)
-	  [els_number1 + ER_els_number (vect2)] = '\0';
+      if (result_el_type == ER_NM_byte)
+	((byte_t *) ER_pack_els (result)) [els_number1
+					   + ER_els_number (vect2)] = '\0';
+      else if (result_el_type == ER_NM_char)
+	((ucode_t *) ER_pack_els (result)) [els_number1
+					    + ER_els_number (vect2)] = '\0';
       ER_SET_MODE (res, ER_NM_vect);
       set_vect_dim (res, result, 0);
     }
@@ -1815,7 +1900,7 @@ float_pack_vect_op (int rev_p, size_t len, char *pack_res_els, char *pack_els1,
 /* Analogous the function above but used for char comparison
    operations.  */
 static do_always_inline void
-char_pack_vect_cmp_op (size_t len, char *pack_res_els, char *pack_els1,
+ucode_pack_vect_cmp_op (size_t len, char *pack_res_els, char *pack_els1,
 		       char *pack_els2, ER_node_t op2, int icmp (rint_t, rint_t))
 {
   size_t i;
@@ -1825,14 +1910,38 @@ char_pack_vect_cmp_op (size_t len, char *pack_res_els, char *pack_els1,
     {
       for (i = 0; i < len; i++)
 	((rint_t *) pack_res_els) [i]
-	  = icmp (((char_t *) pack_els1) [i], ((char_t *) pack_els2) [i]);
+	  = icmp (((ucode_t *) pack_els1) [i], ((ucode_t *) pack_els2) [i]);
     }
   else
     {
-      op_i2 = ER_i (op2);
+      op_i2 = ER_ch (op2);
       for (i = 0; i < len; i++)
 	((rint_t *) pack_res_els) [i]
-	  = icmp (((char_t *) pack_els1) [i], op_i2);
+	  = icmp (((ucode_t *) pack_els1) [i], op_i2);
+    }
+}
+
+/* Analogous the function above but used for byte comparison
+   operations.  */
+static do_always_inline void
+byte_pack_vect_cmp_op (size_t len, char *pack_res_els, char *pack_els1,
+		       char *pack_els2, ER_node_t op2, int icmp (rint_t, rint_t))
+{
+  size_t i;
+  rint_t op_i2;
+
+  if (pack_els2 != NULL)
+    {
+      for (i = 0; i < len; i++)
+	((rint_t *) pack_res_els) [i]
+	  = icmp (((byte_t *) pack_els1) [i], ((byte_t *) pack_els2) [i]);
+    }
+  else
+    {
+      op_i2 = ER_ch (op2);
+      for (i = 0; i < len; i++)
+	((rint_t *) pack_res_els) [i]
+	  = icmp (((byte_t *) pack_els1) [i], op_i2);
     }
 }
 
@@ -2168,7 +2277,7 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int dim1,
 	    }
 	}
       ER_set_els_number (res, len1);
-      pack_vector_if_possible (res);
+      try_full_pack (res);
       return res;
     case BC_NM_lsh:
     case BC_NM_lsh_st:
@@ -2301,7 +2410,7 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int dim1,
 	    }
 	}
       ER_set_els_number (res, len1);
-      pack_vector_if_possible (res);
+      try_full_pack (res);
       return res;
     case BC_NM_concat:
     case BC_NM_concat_st:
@@ -2333,7 +2442,7 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int dim1,
 			     (ER_node_t) &l, (ER_node_t) &r, FALSE, FALSE);
 	}
       ER_set_els_number (res, len1);
-      pack_vector_if_possible (res);
+      try_full_pack (res);
       return res;
     case BC_NM_eq:
     case BC_NM_ne:
@@ -2343,27 +2452,46 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int dim1,
       ER_set_els_number (res, 0);
       pack_res_els = ER_pack_els (res);
       neg_p = oper == BC_NM_ne || oper == BC_NM_unid;
-      if (pack_flag1 && pack_flag2 && el_type1 == el_type2)
+      if (pack_flag1 && pack_flag2)
 	{
-	  switch (el_type1)
+	  if (el_type1 == ER_NM_byte && el_type2 == ER_NM_char && ! scalar_p2)
 	    {
-	    case ER_NM_char:
-	      char_pack_vect_cmp_op (len1, pack_res_els, pack_els1,
-				     pack_els2, op2, neg_p ? i_ne : i_eq);
-	      break;
-	    case ER_NM_int:
-	      int_pack_vect_cmp_op (len1, pack_res_els, pack_els1,
-				    pack_els2, op2, neg_p ? i_ne : i_eq);
-	      break;
-	    case ER_NM_float:
-	      float_pack_vect_cmp_op (len1, pack_res_els, pack_els1,
-				      pack_els2, op2, neg_p ? f_ne : f_eq);
-	      break;
-	    default:
-	      goto eq_common;
+	      op1 = bytevect_to_ucodevect (op1);
+	      el_type1 = ER_NM_char;
+	      pack_els1 = ER_pack_els (op1);
 	    }
-	  ER_set_els_number (res, len1);
-	  return res;
+	  else if (el_type2 == ER_NM_byte && el_type1 == ER_NM_char)
+	    {
+	      op2 = bytevect_to_ucodevect (op2);
+	      el_type2 = ER_NM_char;
+	      pack_els2 = ER_pack_els (op2);
+	    }
+	  if (el_type1 == el_type2)
+	    {
+	      switch (el_type1)
+		{
+		case ER_NM_char:
+		  ucode_pack_vect_cmp_op (len1, pack_res_els, pack_els1,
+					  pack_els2, op2, neg_p ? i_ne : i_eq);
+		  break;
+		case ER_NM_byte:
+		  byte_pack_vect_cmp_op (len1, pack_res_els, pack_els1,
+					 pack_els2, op2, neg_p ? i_ne : i_eq);
+		  break;
+		case ER_NM_int:
+		  int_pack_vect_cmp_op (len1, pack_res_els, pack_els1,
+					pack_els2, op2, neg_p ? i_ne : i_eq);
+		  break;
+		case ER_NM_float:
+		  float_pack_vect_cmp_op (len1, pack_res_els, pack_els1,
+					  pack_els2, op2, neg_p ? f_ne : f_eq);
+		  break;
+		default:
+		  goto eq_common;
+		}
+	      ER_set_els_number (res, len1);
+	      return res;
+	    }
 	}
     eq_common:
       if (pack_flag1)
@@ -2563,7 +2691,7 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int dim1,
 			       (ER_node_t) &l, (ER_node_t) &r, FALSE);
 	}
       ER_set_els_number (res, len1);
-      pack_vector_if_possible (res);
+      try_full_pack (res);
       return res;
     default:
       d_unreachable ();
@@ -2804,7 +2932,7 @@ process_unary_vect_op (ER_node_t op, int dim, int depth)
 	}
     }
   ER_set_els_number (res, len);
-  pack_vector_if_possible (res);
+  try_full_pack (res);
   return res;
 }
 
@@ -3256,6 +3384,7 @@ evaluate_code (void)
       goto_table [BC_NM_ldf] = &&l_BC_NM_ldf;
       goto_table [BC_NM_lds] = &&l_BC_NM_lds;
       goto_table [BC_NM_ldtp] = &&l_BC_NM_ldtp;
+      goto_table [BC_NM_ldus] = &&l_BC_NM_ldus;
       goto_table [BC_NM_flat] = &&l_BC_NM_flat;
       goto_table [BC_NM_fld] = &&l_BC_NM_fld;
       goto_table [BC_NM_lfld] = &&l_BC_NM_lfld;
@@ -3591,6 +3720,10 @@ evaluate_code (void)
 	  BREAK;
 	CASE (BC_NM_lds):
 	  lds (get_op (BC_op1 (cpc)));
+	  INCREMENT_PC ();
+	  BREAK;
+	CASE (BC_NM_ldus):
+	  ldus (get_op (BC_op1 (cpc)));
 	  INCREMENT_PC ();
 	  BREAK;
 	CASE (BC_NM_ldtp):

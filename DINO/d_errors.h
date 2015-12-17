@@ -25,8 +25,14 @@
 #include "errors.h"
 
 extern char ERR_no_memory[];
+extern char ERR_source_file_encoding[];
+extern char ERR_non_ascii_source_file_encoding[];
+extern char ERR_file_decoding[];
+extern char ERR_line_decoding[];
+extern char ERR_file_name_cannot_represented_in_current_encoding[];
 extern char ERR_invalid_char_constant[];
 extern char ERR_invalid_input_char[];
+extern char ERR_invalid_escape_code[];
 extern char ERR_octal_int_value[];
 extern char ERR_float_value_not_in_decimal_base[];
 extern char ERR_float_value[];
@@ -213,12 +219,18 @@ extern char DERR_none_class_or_fun_before_left_bracket [];
 extern char DERR_undefined_class_or_fun [];
 /* Parameter type. */
 extern char DERR_parameter_type [];
+/* Parameter value. */
+extern char DERR_parameter_value [];
 /* Invalid result. */
 extern char DERR_invalid_result [];
 /* Invalid input. */
 extern char DERR_invalid_input [];
 /* Invalid format. */
 extern char DERR_invalid_format [];
+extern char DERR_too_big_ucode_for_byte_representation [];
+extern char DERR_in_ucode_encoding [];
+extern char DERR_unexpected_input_encoding [];
+extern char DERR_non_ascii_default_encoding[];
 /* EOF. */
 extern char DERR_eof_occured [];
 /* Parameter number. */
@@ -267,17 +279,8 @@ extern char DERR_exdev [];
 extern char DERR_no_shell [];
 /* Other fail during call of function `system' */
 extern char DERR_other_fail_in_system_call [];
-/* Errors in call of regexp functions. */
-extern char DERR_reg_ebrack [];
-extern char DERR_reg_erange [];
-extern char DERR_reg_ectype [];
-extern char DERR_reg_eparen [];
-extern char DERR_reg_esubreg [];
-extern char DERR_reg_eend [];
-extern char DERR_reg_eescape [];
-extern char DERR_reg_badpat [];
-extern char DERR_reg_esize [];
-extern char DERR_reg_espace [];
+/* Errors in call of regex functions. */
+extern char DERR_regex [];
 /* External function errors: */
 /* No external function is found. */
 extern char DERR_no_such_external [];

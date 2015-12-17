@@ -1,3 +1,821 @@
+2015-12-16  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_dino.c (get_ucode_from_stream): Fix assert.
+	(dino_main): Decode command line program.
+	* DINO/d_func.c (process_onig_errors, find_regex): Add param.
+	Pass the args to the calls.
+	* DINO/dino.sgml.in: Describe \b.
+	* DINO/dino-9.html: Update.
+	* DINO/dino.{dvi, pdf, ps, info, txt): Ditto.
+	* DINO/dino.tst.in (862-864): New tests.
+
+2015-12-16  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_bc.sprut: Change regexp to regex.
+	* DINO/d_errors.[ch]: Ditto.
+	* DINO/d_ir.sprut: Ditto.
+	* DINO/d_func.c: Ditto.
+	(get_token): Read a new form of string.
+	* DINO/d_yacc.y (yylex): Process a new form of string.
+	* DINO/dino.sgml.in: Change regexp to regex.  Describe a ne form
+	of string.  Rewrite regex description.
+	* DINO/dino.{html, dvi, info, pdf, ps, txt}: Update.
+	* DINO/dino-{3,4,9}.html: Update
+	* DINO/dino.tst.in: Change regexp to regex.
+	(849-861): New tests for string and regex.
+
+2015-12-12  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* configure.in: Check getc_unlocked.
+	* configure: Update.
+	* AMMUNITION/cocom-config.h.in: Update.
+	* DINO/Makefile.in: Update deps.
+	(source): Add d_enc.shilka.
+	(d_enc.c): New.
+	(clean): Add d_enc.c.
+	(depend): Ditto.
+	* DINO/d_bc.sprut (FILE_ENCODING_TYPE_NAME): New.
+	(file_encoding_type_bc_decl): New.
+	(bc_decls_table): Add entry for file_encoding_type_bc_decl.
+	* DINO/d_bcio.c: Use dino_getc instead of getc.
+	* DINO/d_common.h (curr_encoding_name, get_encoding_type): New.
+	(set_conv_descs, encode_byte_str_vlo, encode_ucode_str_vlo): Add
+	param tp.
+	(get_ucode_from_stream): Ditto.
+	(dino_getc): New.
+	(read_byte): Use dino_getc insteadd of fgetc.
+	* DINO/d_dino.c: Include d_enc.c.
+	(get_encoding_type, curr_encoding_type): New.
+	(initiate_cds): Set up curr_encoding_type.
+	(raw_encoding_name_p): Delete.  Use get_encoding_type instead.
+	(set_conv_descs, encode_byte_str_vlo, encode_ucode_str_vlo): Add
+	param tp.  Use it.
+	(get_ucode_from_stream, print_ucode_string): Ditto.
+	* DINO/d_eval.c (find_catch_pc): Pass new arg to
+	encode_byte_str_vlo, encode_ucode_str_vlo.
+	* DINO/d_func.c (get_file_encoding_type): New.
+	(set_file_encoding, general_str_to_world, finish_output): Add
+	param tp.  Pass it calls.
+	(general_put_call, general_print_call, get_file_char): Ditto.
+	(general_get_call, general_get_ln_file_call, get_char_code): Ditto.
+	(invinput_error, get_token, scanel, general_scan_call): Ditto.
+	(general_putf_call): Ditto.
+	(number_file_encoding_type): New.  Setup it get_token.
+	* DINO/d_ir.sprut (ENVIRONMENT): Add file_encoding_type.
+	* DINO/d_types.h (enum encoding_type, encoding_type_t): New.
+	* DINO/d_yacc.y: Pass type to get_ucode_from_stream,
+	set_conv_descs, encode_byte_str_vlo, encode_ucode_str_vlo.  Use
+	dino_getc instead of fgetc.
+	* DINO/d_enc.shilka: New.
+
+2015-12-10  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/dino.tst.in (DERR_in_ucode_encoding): Make more meaningful output.
+	(DERR_unexpected_input_encoding): Ditto.
+	* DINO/d_yacc.y (get_full_file_and_encoding_name): Process null
+	fname after encoding.
+	* DINO/dino.tst.in (844-848): New tests.
+
+2015-12-10  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_common.h (RAW_STRING2): New.
+	* DINO/d_dino.c (raw_encoding_name_p): Use it.
+	(set_conv_descs): Recognize RAW encoding.
+	* DINO/d_extern.sprut: Add comment for disp field.
+	* DINO/d_func.c (process_errno_call): Add an assert.
+	* DINO/dino.1: Add description of encoding and environment
+	variable DINO_ENCODING.
+	* DINO/dino.sgml.in: Descirbe \x, \u, \U, parvalue, invencoding,
+	{get,set}_[file_]encoding.
+	* DINO/dino-{2-5, 9, 11}.html: Update.
+	* DINO/dino.{dvi, info, pdf, ps, txt}: Update.
+	* DINO/dino.tst.in (72): Change [:alpha:] to [[:alpha:]].
+	(843): New test for RAW.
+
+2015-12-09  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/ammunition[++].{ps, dvi, pdf}: Update.
+	* DINO/d_bc.sprut (EBRACK_NAME, REG_ERANGE_NAME, ECTYPE_NAME):
+	Remove.
+	(EPAREN_NAME, ESUBREG_NAME, EEND_NAME, EESCAPE_NAME, BADPAT_NAME):
+	Ditto.
+	(ESIZE_NAME, ESPACE_NAME): Ditto.
+	(ebrack_bc_decl, reg_erange_bc_decl, ectype_bc_decl): Remove.
+	(eparen_bc_decl, esubreg_bc_decl, eend_bc_decl, eescape_bc_decl):
+	Ditto.
+	(badpat_bc_decl, esize_bc_decl, espace_bc_decl): Ditto.
+	(bc_decls_table): Remove the corresponding entries.
+	* DINO/d_bcio.c (dump_code): Use isgraph_ascii instead of isgraph.
+	(get_token): Use isalpha_ascii instead of isalpha.  Use
+	isdigit_ascii instead of isdigit.
+	* DINO/d_common.h (isalpha_ascii, isdigit_ascii, isspace_ascii):
+	New.
+	(isgraph_ascii, isprint_ascii): New.
+	(print_ucode_string): Remove prototype.
+	* DINO/d_conv.c (implicit_arithmetic_conversion): Use
+	isdigit_ascii instead of isdigit.
+	* DINO/d_dino.c (get_first_nondigit, read_dino_string_code): Use
+	isdigit_ascii instead of isdigit.
+	(read_dino_number): Ditto.
+	(get_ucode_ascii_repr): Use isprint_ascii instead of isprint.
+	(print_ucode_string): Make static.
+	(get_ucode_from_stream): Zeroing errno for incomplete seq.
+	* DINO/d_errors.[ch]
+	(ERR_file_name_cannot_represented_in_current_encoding): New.
+	(DERR_reg_ebrack, DERR_reg_erange, DERR_reg_ectype): Remove.
+	(DERR_reg_eparen, DERR_reg_esubreg, DERR_reg_eend): Ditto.
+	(DERR_reg_eescape, DERR_reg_badpat, DERR_reg_esize): Ditto.
+	(DERR_reg_espace): Ditto.
+	(DERR_regexp): New.
+	* DINO/d_func.c (process_onig_errors): Remove switched of code.
+	Use DERR_regexp.
+	(get_char_code): Return int.  Use isdigit_ascii instead of
+	isdigit.
+	* DINO/d_ir.sprut (ENVIRONMENT): Remove exceptions ebrack, erange,
+	ectype, eparen, esubreg, eend, eescape, badpat, esize, espace.
+	* DINO/d_yacc.y (get_full_file_and_encoding_name): Pass name as
+	IR_node_t.  Encode name.  Check it on null char.
+	(add_include_file): Ditto.
+	(temp_scanner_vlo2): New.
+	(skip_spaces): Use isspace_ascii instead of isspace.
+	(find_encoding): Use isalpha_ascii instead of isalpha.
+	(yylex): Ditto. Use isdigit_ascii instead of isdigit.
+	(initiate_scanner, finish_scanner): Create destroy
+	temp_scanner_vlo2.
+	* DINO/dino.sgml.in: Unicode escape codes.
+	(ebrack, erange, ectype, eparen, esubreg, eend, eescape, badpat):
+	Remove.
+	(esize, espace): Remove.
+	* DINO/dino-{3,4,9}.html: Update.
+	* DINO/dino.{html, dvi, info, pdf, ps, txt}: Update.
+	* DINO/dino.tst.in: Add file encoding.
+	(82-87, 459): Change expected regexp errors.
+	(831-832, 839, 840): Use echo -e.
+	(841-842): New.
+
+2015-09-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_common.h (value_of_hex_digit): Add 10 for letters.
+	(print_string, print_byte): Remove.
+	* DINO/d_dino.c (d_verror): Use fprintf instead of print_string.
+	(get_ucode_from_stream): Start from the same char when input is
+	incomplete.
+	(print_string): Remove.
+	(DEFAULT_DINO_ENCODING): New.
+	(dino_main): Process DEFAULT_DINO_ENCODING. Use
+	check_encoding_on_ascii.
+	* DINO/d_errors.c (ERR_file_encoding): Rename to
+	ERR_source_file_encoding.
+	(ERR_file_decoding): Change message.
+	(ERR_non_ascii_source_file_encoding): New.
+	(DERR_non_ascii_default_encoding): New.
+	* DINO/d_errors.h (ERR_file_encoding): Rename to
+	ERR_source_file_encoding.
+	(ERR_non_ascii_source_file_encoding): New.
+	(DERR_non_ascii_default_encoding): New.
+	* DINO/d_func.c (print_val): Use byte_t cast.
+	(general_put_call): Use FALSE for res_byte_p.
+	(set_encoding_call): Use check_encoding_on_ascii.
+	* DINO/d_inference.c (get_insn_op_place, type_transf): Process
+	ldus.
+	(specialize_insn): Ditto.
+	* DINO/d_yacc.y (push_curr_istream): Use check_encoding_on_ascii.
+	(d_getc): Use current position for errors.
+	* DINO/dino.tst.in: New tests 821-840.
+	* Makefile.in: Remove REGEX mentioning.
+	* README.md: Oniguruma, Unicode 8 support, and 2 Bcode
+	representations.
+
+2015-08-04  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_common.h (encode_byte_str_vlo): Add inout param len.
+	(encode_ucode_str_vlo): Ditto.
+	(encode_ucode_str_to_raw_vlo, get_ucode_from_stream): New.
+	(print_string, print_ucode_string): New.
+	(get_ucode_from_stream, get_ucode_from_utf8_stream): Remove.
+	(put_ucode_to_utf8_stream, print_ucode_string_as_utf8): Ditto.
+	* DINO/d_dino.c (dino_finish): Move deleting vlos below.
+	(dino_start): Move created vlos up.
+	(d_verror): Use print_string.
+	(get_utf8_byte, utf8_str_to_ucode_vlo): Remove.
+	(encode_byte_str_vlo): Add inout param len.
+	(encode_ucode_str_vlo): Ditto.
+	(encode_ucode_str_to_raw_vlo, get_ucode_from_stream): New.
+	(print_string, print_ucode_string): New.
+	(check_encoding_on_ascii): New.
+	* DINO/d_eval.c (find_catch_pc): Add param to call
+	encode_{byte,ucode}_str_vlo.
+	* DINO/d_func.c (add_string_to_print): New.
+	(print_contex): Add parameter.
+	(ucode_str_to_raw): Remove.
+	(general_str_to_world): Add parameter.
+	(strvect_to_world): Add argumentto call of general_str_to_world.
+	(in_str_p): Add parameter.
+	(chumod_call, chgmode_call, chomod_call): Pass new arg to
+	in_str_p.
+	(popen_call): Add non-byte case.
+	(print_ch): Add parameter.  Use add_string_to_print.
+	(print_val): Change prototype.  Use add_string_to_print.
+	(end_printed_string): New.
+	(repl_print, general_put_call, general_print_call): Use it.
+	(finish_output): Use fwrite.
+	(general_putf_call): Process errno.
+	* DINO/d_yacc.y (find_encoding): Permit /.: in encoding name.
+	(get_read_line): Remove const from return type.
+	* DINO/d_yacc.h (get_read_line): Ditto.
+
+2015-07-20  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_yacc.y (temp_scanner_vlo): Move up.
+	(read_line): Use current encoding.
+	(read_str_line, find_encoding, skip_spaces): New.
+	(read_file_encoding): Fully implement.
+	* DINO/d_errors.[ch] (ERR_line_decoding): New.
+	* DINO/d_dino.c (d_verror): Don't print line for
+	ERR_line_decoding.
+
+2015-07-19  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_dino.c (set_conv_descs): Process null byte_cd and
+	ucode_cd.  Do not call eval_error, just return FALSE.
+	(dino_finish): Finish unique strings later.
+	(dino_start): Initiate unique strings earlier.
+	(dino_main): Add encoding argment to calls of start_scanner_file.
+	Use source_file_encoding.
+	* DINO/d_errors.[ch] (ERR_file_encoding, ERR_file_decoding): New.
+	(DERR_unexpected_input_encoding): New.
+	* DINO/d_func.c (get_file_char): Add eval_error call.
+	(general_get_call, general_get_ln_file_call): Ditto.
+	(readdir_call): Use curr_reverse_ucode_cd.
+	* DINO/d_yacc.h (source_file_encoding): New.
+	(sstart_scanner file): Add parameter.  Set it up.
+	* DINO/d_yacc.y (full_file_name): Rename to
+	get_full_file_and_encoding_name.
+	(struct istream_state): Add encoding_name.  Use conv_desc_t for
+	cd.
+	(initiate_istream_stack): Initiate cd and file_encoding.
+	(finish_istream_stack): Finish cd.
+	(push_curr_istream): Add parameter encoding_name.  Close cd.  Set
+	up new encoding name and cd.
+	(pop_istream_stack): Close old cd.  Set up new cd.
+	(read_file_encoding, source_file_encoding): New.
+	(d_getc): Use file encoding.  Check char correctness.
+	(start_scanner_file): Add parameter encoding name.  Pass it to
+	push_curr_istream.
+
+2015-07-13  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_dino.c (command_line_os): Rename to command_line_vlo.
+	Make it vlo.
+	(encode_str_os): Remove.
+	(dino_main): Use str_to_ucode_vlo to make command line.  Do not
+	encode program_arguments.
+
+2015-07-13  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Makefile.in: Update dependencies.
+	* DINO/d_bc.sprut (UNGET_CHAR_NAME, unget_char_bc_decl): New.
+	(bc_decls_table): Add entry for unget_char_bc_decl.
+	* DINO/d_common.h: Move most definitions from d_dino.h.  Move
+	ucode functions from d_types.h.
+	(curr_byte_cd, curr_ucode_cd, curr_reverse_ucode_cd): Move from
+	d_ir.sprut.
+	(curr_encoding_name, RAW_STRING, UTF8_STRING, LATIN1_STRING):
+	Ditto.
+	(set_conv_descs): Move from d_func.c.
+	(get_ucode_from_stream): New.
+	(get_file_char): Remove.
+	* DINO/d_dino.c (curr_byte_cd, curr_ucode_cd): Move from
+	d_ir.sprut.
+	(curr_reverse_ucode_cd, curr_encoding_name): Ditto.
+	(initiate_cds, finish_cds): Move from d_eval.c.
+	(set_cds): New.
+	(raw_encoding_name, set_conv_descs): Move from d_func.c.
+	(command_line_vlo): Rename to command_line_os.  Make it an
+	objstack.
+	(encode_str_os): New.
+	(dino_finish): Call finish_cds.
+	(dino_main): Use current encoding for command line and arguments.
+	Print error if command line is not in this encoding.  Call set_cds
+	and initiate_cds.
+	* DINO/d_dino.h: Move most definitions to d_common.h.
+	(DINO_ENCODING): New.
+	* DINO/d_eval.h (finish_cds): Remove.
+	* DINO/d_eval.c (initiate_cds, finish_cds): Move to d_dino.c.
+	* DINO/d_func.c (get_file_unget_char_ptr): New.
+	(raw_encoding_name, set_conv_descs): Move to d_dino.c.
+	(place_file_instance): Initiate unget_char of the file.
+	(get_file_char, unget_file_char): New.
+	(general_get_call): Add param unget_char_ptr.
+	(general_get_ln_file_call, invinput_error): Ditto.
+	(finish_io): Ditto. Use unget_file_char.
+	(get_call, getln_call, getf_call, fget_call, fgetln_call): Pass
+	new param to general get calls.
+	(fgetf_call): Ditto.
+	(number_unget_char_ptr): New.
+	(number_previous_char): Remove.
+	(n_getc, n_ungetc): Rewrite using unget_char_ptr.
+	(get_token, scanel, general_scan_call): Add param unget_char_ptr.
+	(scan_call, scanln_call, fscan_call): Pass new param to general
+	scan calls.
+	(set_encoding_call, set_file_encoding_call): Check and report
+	encoding correctness.
+	* DINO/d_ir.sprut (ENVIRONMENT): Add unget_char to file.
+	* DINO/d_run.sput (curr_byte_cd, curr_ucode_cd): Move to
+	d_common.h.
+	(curr_reverse_ucode_cd, curr_encoding_name, RAW_STRING): Ditto.
+	(UTF8_STRING, LATIN1_STRING): Ditto.
+	* DINO/d_types.h: Move to d_common.h.
+
+2015-07-10  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/cocom-config.h.in (HAVE_ICONV_H): New undef.
+	* configure.in (AC_CHECK_HEADERS): Add iconv.h.
+	* configure: Update.
+	* DINO/d_yacc.y (struct istream_state): Add cd.
+	* DINO/d_run.sprut (curr_byte_cd, curr_ucode_cd): New.
+	(curr_reverse_ucode_cd, curr_encoding_name): Ditto.
+	(RAW_STRING, UTF8_STRING, LATIN1_STRING): Ditto.
+	* DINO/d_dino.h (conv_desc_t, NO_CONV_DESC): New.
+	* DINO/d_dino.c (str_hash_func, str_compare_func): Moved from
+	d_bcio.c.
+	(unique_strings, unique_string_hash_table): New.
+	(initiate_unique_strings, get_unique_string): Ditto.
+	(finish_unique_strings): Ditto.
+	(dino_finish): Call finish_unique_string, finish_cds, and
+	finish_funcs.
+	(dino_start): Call initiate_unique_strings.
+	(put_utf8_byte, ucode_str_to_utf8_vlo, ucode_char_to_utf8_vlo): Delete.
+	(encode_byte_str_vlo, encode_ucode_str_vlo): New.
+	* DINO/d_errors.[ch] (DERR_parameter_value): New.
+	(DERR_in_ucode_encoding): New.
+	* DINO/d_eval.c (find_catch_pc): Use encode functions.  Check null
+	result.
+	(initiate_cds, finish_cds): New.
+	(evaluate_program): Call initiate_cds.
+	* DINO/d_eval.h (finish_cds): New.
+	* DINO/d_func.c (ifun_name): New.
+	(curr_raw_p); Delete.
+	(process_onig_errors): Remove function_name param.  Use ifun_name.
+	(get_file_encoding): Rename to get_file_encoding_name.  Rewrite
+	returning a string.
+	(get_file): Remove function_name param.  Use ifun_name.  Delete
+	param raw_p.  Add param file_instance.  Set it up.
+	(get_file_input_cd, get_file_output_cd): New.
+	(raw_encoding_name_p, setc_conv_descs, set_file_encoding): New.
+	(place_file_instance): Remove raw_p param.  Use the new functions.
+	(two_strings_fun_start, string_fun_start, get_stat): Remove
+	function_name param.  Use ifun_name.
+	(general_chmod, file_start): Ditto.
+	(general_str_to_world): Remove raw_p, add byte_cd and unicode_cd.
+	Use the encode functions.
+	(strvect_to_world): Remove raw_p.  Use curr_byte_cd and
+	curr_ucode_cd.
+	(close_call): Close file cds.
+	(print_val): Remove raw_p, add byte_cd and unicode_cd.
+	(file_function_call_start): Remove function_name param.  Use
+	ifun_name.  Delete param raw_p.  Add param file_instance.
+	(finish_output, general_put_call, general_print_call): Remove
+	raw_p, add byte_cd and unicode_cd.
+	(put_call, putln_call, fput_call, fputln_call): Use
+	get_file_output_cds.
+	(print_call, println_call, fprint_call, fprintln_call): Ditto.
+	(general_get_call): Remove param raw_p, add cd.
+	(general_get_ln_file_call): Ditto.  Remove fun_name param.
+	Use ifun_name.
+	(get_call, getln_call, getf_call): Use get_file_input_cd.
+	(fget_function_call_start): Remove function_name param.  Use
+	ifun_name.
+	(get_char_code, general_scan_call): Remove param raw_p, add cd.
+	(invinput_error, get_token, scanel): Ditto.  Remove function_name
+	param.  Use ifun_name.
+	(number_file_raw_p): Delete.
+	(number_file_cd): New.
+	(function_without_par): Remove function_name param.  Use
+	ifun_name.
+	(general_putf_call): Remove raw_p, add byte_cd and unicode_cd.
+	(putf_call, fputf_call): Use get_file_output_cds.
+	(float_function_start, float_function_start2): Remove
+	function_name param.  Use ifun_name.
+	(float_function_finish, stat_start): Ditto.
+	(set_encoding_call, get_encoding_call): Ditto.
+	(set_file_encoding_call, get_file_encoding_call): Ditto.
+	* DINO/d_func.h (finish_funcs): New.
+	* DINO/d_ir.sprut (ENVORONMENT): Add parvalue, set_encoding,
+	get_encoding, set_file_encoding, get_file_encoding.  Add file_icd,
+	file_byte_ocd, file_ucode_ocd to file.
+	* DINO/d_bc.spurt (PARVALUE_NAME, parvalue_bc_decl): New.
+	(FILE_ICD_NAME, file_icd_bc_decl): Ditto.
+	(FILE_BYTE_OCD_NAME, file_byte_ocd_bc_decl): Ditto.
+	(FILE_UCODE_OCD_NAME, file_ucode_ocd_bc_decl): Ditto.
+	(SET_ENCODING_NAME, set_encoding_bc_decl): Ditto.
+	(GET_ENCODING_NAME, get_encoding_bc_decl): Ditto.
+	(SET_FILE_ENCODING_NAME, set_file_encoding_bc_decl): Ditto.
+	(GET_FILE_ENCODING_NAME, get_file_encoding_bc_decl): Ditto.
+	(bc_decls_table): Add entries for parvalue_bc_decl,
+	file_icd_bc_decl, file_byte_ocd_bc_decl, file_ucode_ocd_bc_decl,
+	set_encoding_bc_decl, get_encoding_bc_decl,
+	set_file_encoding_bc_decl, get_file_encoding_bc_decl.
+	* DINO/d_bcio.c (str_hash_func, str_compare_func): Move to
+	d_dino.c.
+	* DINO/d_built.h (set_encoding_call, get_encoding_call): New.
+	(set_file_encoding_call, get_file_encoding_call): Ditto.
+	* DINO/d_common.h (str_hash_func, str_compare_func): New.
+	(get_unique_string): Ditto.
+	(ucode_str_to_utf8_vlo, ucode_char_to_utf8_vlo); Delete.
+	(byte_str_to_utf8_vlo): Delete.
+	(encode_byte_str_vlo, encode_ucode_str_vlo): New.
+	(get_file_char): Make second paramater a conversion descriptor.
+
+2015-07-01  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_ir.sprut (ENVIRONMENT): Add invencoding and
+	file_encoding.
+	* DINO/d_bc.sprut (INVENCODING_NAME, invencoding_bc_decl): New.
+	(FILE_ENCODING_NAME, file_encoding_bc_decl): New.
+	(bc_decls_table): Add entries for invencoding and file_encoding.
+	* DINO/d_common.h (get_file_char): New.
+	* DINO/d_dino.c: Add ???.
+	* DINO/d_errors.[ch] (DERR_too_big_ucode_for_byte_representation):
+	New.
+	* DINO/d_func.c (curr_raw_p, get_file_encoding): New.
+	(get_file): Return encoding.
+	(place_file_instance): Set file encoding.
+	(ucode_str_to_raw): New.
+	(general_str_to_utf8): Rename to general_str_to_world, add
+	encoding parameter.
+	(strvect_to_utf8): Rename to strvect_to_world, add encoding
+	parameter.
+	(rename_call, remove_call, mkdir_call, rmdir_call, readdir_call):
+	Use curr_raw_p.
+	(chdir_call, get_stat, get_chmod, chumod_call, chgmod_call):
+	Ditto.
+	(chomod_call, isatty_call, popen_call, repl_print): Ditto.
+	(file_start, file_function_call_start, finish_output): Add
+	encoding parameter.
+	(close_call, pclose_call, tell_call): Pass NULL arg to get_file.
+	(seek_call): Ditto.  Use curr_raw_p.
+	(print_val, general_put_call, general_print_call): Add encoding
+	parameter.  Use it.
+	(put_call, putln_call, fput_call, fputln_call): Use file encoding.
+	(sput_call, sputln_call): Use raw encoding.
+	(print_call, println_call, fprint_call, fprintln_call): Use file
+	encoding.
+	(sprint_call, sprintln_call): Use raw encoding.
+	(general_get_call): Use get_file_char.
+	(general_get_ln_file_call, get_char_code, invinput_error): Ditto.
+	Add encoding parameter.  Use it.
+	(get_token): Ditto.
+	(get_call, getf_call, fget_call, fgetln_call, fgetf_call): Use
+	file encoding.
+	(fget_function_call_start, scanel, general_scan_call): Add
+	encoding parameter.  Use it.
+	(general_putf_call): Ditto.
+	(number_file_raw_p, number_previous_char): New.
+	(n_getc, n_ungetc): Rewrite using the above vars.
+	(scan_call, scanln_call, fscan_call, fscanln_call): Use
+	file encoding.
+	(putf_call, fputf_call): Use file encoding.
+	(sputf_call): Use raw encoding.
+	(init_call): Pass utf8 encoding to place_file_instance.
+	(initiate_funcs): Set curr_raw_p.
+	(int_earley_parse_grammar): Use curr_raw_p.
+
+2015-06-27  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_run.sprut (long higher_prime_number): New prototype.
+	* DINO/d_heap.c (long higher_prime_number): Make it external.
+	* DINO/d_func.c (struct subst_map_el): New.
+	(subst_map_hash_index, subst_map_hash_index_len): New.
+	(subst_map_els, subst_map_els_len, subst_map_els_bound): New.
+	(initiate_subst_map, free_subst_map, finish_subst_map): New.
+	(start_subst_map, set_map_subst, get_map_subst): New.
+	(translit_call): Rewrite with the new functions.
+	(initiate_funcs): Call initiate_subst_map.
+	(finish_funcs): Call finish_subst_map.
+
+2015-06-27  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_udb.h (ucode_tolower, ucode_toupper): New.
+	* DINO/d_udb.c (ucode_tolower, ucode_toupper): New.
+	* DINO/d_func.c (to_lower_upper): Permit chars.  Rewrite using the
+	new functions.
+
+2015-06-26  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_func.c (gmatch_call): Check empty string matched.  Check
+	disp to break the loop.
+	(general_sub_call): Add comment.  Change empty string match
+	condition.
+	(split_call): Scale els_number by ch_size.
+	* DINO/dino.tst.in (818-820): New tests.
+
+2015-06-26  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_func.c (split_call): Check disp to break loop.
+	* DINO/dino.tst.in (73): Change expected output.
+	(374): Check empty matched string.
+	(817): New.
+
+2015-06-26  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/{process_ucodedb.d, UnicodeDB.c, UnicodeData.txt): New
+	files.
+	* DINO/d_udb.[ch]: New files.
+	* DINO/d_func.c (d_udb.h): Include.
+	(initiate_funcs): Call check_ucode_db.
+	(split_call): Use other criterium of empty pattern match.
+	* DINO/Makefile.in: Update dependencies.
+	(objects): Add d_udb.o.
+	(sources): Add d_udb.h and d_udb.c.
+	(additional_files): Add UnicodeData.txt and process_ucodedb.d.
+	(prepare-unicode, $(srcdir)/UnicodeDB.c): New entries.
+
+2015-06-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* REGEX: Remove all the directory.
+	* DINO/Makefile.in: Update dependencies.
+
+2015-06-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_bc.sprut (ucodestr_t): New type.
+	(string_t): Remove.
+	(ldus): New.
+	* DINO/d_bcf.shilka (ustr): New.
+	* DINO/d_bcio.c: Add comment about using only Latin-1.
+	(print_ustr): New.
+	(dump_code): Process ldus.
+	(token): Add D_UCODESTR.
+	(token_attr): Add new field ustr.
+	(bc_getc): Check on NOT_A_CHAR.
+	(bc_ungetc): Don't use ungetc.
+	(ucodestr_hash_table): New.
+	(hash_func, compare_func): Rename to str_hash_func and
+	str_compare_func.
+	(ustr_hash_func, ustr_compare_func): New.
+	(initiate_string_table, delete_string_table): Rename to
+	initiate_string_tables and delete_string_tables.  Handle new ustr
+	tables.
+	(ucodestr_to_table): New.
+	(temp_vlo): New.
+	(get_token): Process wrong escape code.  Create ucodestr if
+	necessary.
+	(get_decl): Process ustr field.
+	(initiate_read_bc, finish_read_bc): Handle temp_vlo.
+	* DINO/d_bcf.shilka (ldus): New.
+	* DINO/d_common.h: Add #ifdef for the header.
+	(big_endian_p): New.
+	(get_ch_repr): Rename to get_ucode_ascii_repr.
+	(read_string_code): Rename to read_dino_string_code.
+	(copy_vlo, str_to_ucode_vlo): New.
+	(ucode_str_to_utf8_vlo): New.
+	(unicode_char_to_utf8_vlo, byte_str_to_utf8_vlo): New.
+	* DINO/d_context.c (first_expr_processing): Process ucodestr.
+	(second_expr_processing): Ditto.
+	* DINO/d_conv.h (form_format_string): Transfer Dino vector for
+	format instead of string.  Return byte string flag.
+	(to_vect_string_conversion): Transfer Dino vector as format
+	instead of string.
+	* DINO/d_conv.c (cptr_add, ptr_add, ptr_ref, char_assign): New.
+	(add_char): New.
+	(form_format_string): Treat fmt as packed vector.  Deal with byte
+	and ucode strings.  Return flag of byte string result.  Use the
+	new functions.
+	(to_vect_string_conversion ): Treat fmt as packed vector.  Call
+	unconditionally try_full_pack instead of
+	pack_vector-if_possible. Process byte and ucode strings after
+	form_format_string.
+	(implicit_arithmetic_conversion): Use ER_NM_byte vs. ER_NM_char.
+	(implicit_conversion_for_eq_op): Permit byte elements too.  Call
+	try_full_pack.
+	* DINO/d_dino.h: Remove 'ifdef DINO_H'
+	(big_endian_p): Remove.
+	* DINO/d_dino.c (command_line_program): Define as unicode string.
+	(get_ch_repr): Rename to get_ucode_ascii_repr.  Print hexadecimal
+	and ucode escape chars.
+	(read_string_code): Rename to read_dino_string_code.  Add new
+	param wrong_escape_code.  Process hexadecimal and ucode escape
+	chars.
+	(read_number): Rename to read_dino_number.
+	(command_line_vlo): New.
+	(dino_finish): Delete command_line_vlo.
+	(dino_start): Create command_line_vlo.
+	(d_verror): Make ln an ucode string.  Use print_ucode_string_as_utf8.
+	(copy_vlo, str_to_ucode_vlo, get_ut8_byte): New.
+	(utf8_str_to_ucode_vlo, put_utf8_byte, ucode_str_to_utf8_vlo):
+	New.
+	(unicode_char_to_utf8_vlo, byte_str_to_utf8_vlo): New.
+	(dino_main): Apply utf8_to_ucode for the command line.
+	* DINO/d_errors.h (ERR_invalid_escape_code): New.
+	* DINO/d_errors.c (ERR_invalid_escape_code): New.
+	* DINO/d_eval.c (load_packed_vector_element):  Process byte case.
+	(store_packed_vector_element): Process byte case.  Transform
+	vector into ucode vect if necessary.
+	(store_vector_element): Permit byte vector and char element case.
+	(process_slice_extract): Process byte vectors too.
+	(process_slice_assign): Process byte vector cases.  Transform
+	vectors into ucode vect if necessary.  Call try_full_pack instead
+	of pack_vector_if_possible.
+	(find_catch_pc): Call try_full_pack instead
+	of pack_vector_if_possible.  Permit byte case.  Transform message
+	to utf8.
+	(execute_concat_op): Transform vectors into ucode vect if
+	necessary.
+	(char_pack_vect_cmp_op): Rename to ucode_pack_vect_cmp_op.  Use
+	ucode_t.  Use ER_ch instead of wrong ER_i.
+	(byte_pack_vect_cmp_op): New.
+	(process_unary_vect_op): Call try_full_pack
+	instead of pack_vector_if_possible.
+	(process_binary_vect_op): Ditto.  Transform vectors into ucode
+	vect if necessary for eq/ne/id/unid.
+	(evaluate_code): Process ldus.
+	* DINO/d_extern.sprut (char_t): Rename to ucode_t.
+	(pack_vector_if_possible): Remove.
+	(create_ucodestr, bytevect_to_ucodevect, try_full_pack): New.
+	(byte): New node.
+	* DINO/d_func.c (to_lower_upper): Use ER_NM_byte instead of
+	ER_NM_char.
+	(translit_call): Ditto.  Call try_full_pack instead of
+	pack_vector_if_possible.
+	(eltype_call, keys_call): Call try_full_pack instead of
+	pack_vector_if_possible.
+	(struct regex_node): Remove regex.  Add fields ucode_p,
+	latin1_latin1_regex, latin1_ucode_regex, ucode_ucode_regex.
+	(regex_node_hash): Process byte and ucode string cases.
+	(regex_node_eq): Ditto.
+	(get_str_size): New.
+	(find_regex): Add parameters pat_ucode_p, str_ucode_p.  Use
+	onig_new_deluxe instead of onig_new.
+	(finish_regex_tab): Free latin1_latin1_regex, latin1_ucode_regex,
+	ucode_ucode_regex.
+	(match_call): Permit byte vectors.  Transform matched string to
+	ucode vector if necessary.  Use get_str_size.  Scale element by
+	ch_size.
+	(gmatch_call): Ditto.
+	(generall_sub_call): Permit byte vectors.  Transform matched
+	string and substitution to ucode vector if necessary.  Use
+	get_str_size.  Scale len to elements number.  Rewrite to use
+	matching once.
+	(split_call): Permit byte vectors. Transform matched string to
+	ucode vector if necessary.  Use get_str_size.  Scale len to
+	elements number.  Rewrite to use matching once.
+	(compare_elements): Process bytes.
+	(subv_call): Add processing byte case.
+	(cmpv_call, del_call): Ditto.
+	(general_ins_call): Transform vectors to ucode vector if
+	necessary.
+	(array_sort_compare_function): Add special case for char.
+	(sort_call): Permit byte vectors.  Call try_full_pack
+	unconditionally instead of pack_vector_if_possible.
+	(two_strings_fun_start): Permit byte vectors.
+	(general_str_to_utf8, strvect_to_utf8): New.
+	(rename_call, remove_call, mkdir_call, rmdir_call): Use
+	strvcet_to_utf8.
+	(chdir_call, general_chmod, chumod_call, chgmod_call): Ditto.
+	(chomod_call, open_call, popen_call): Ditto.
+	(get_stat, seek_call): Ditto.  Permit byte vector.
+	(string_fun_start): Permit byte vector.
+	(print_ch): Use get_ucode_ascii_repr.
+	(print_val): Permit byte vector.  Use strvcet_to_utf8 and
+	ucode_char_to_utf8_vlo.
+	(finish_output): Remove pars_number.  Add parameter byte_p.  Use
+	general_str_to_utf8 for file case.  Generate byte or ucode vector
+	otherwise.
+	(general_put_call): Permit byte vector.  Transform vector to ucode
+	vector if necessary.  Generate output byte or ucode vector.
+	(general_print_call): Remove quote_flag.
+	(print_call, println_call, fprint_call, fprintln_call): Remove
+	flag in general_print_call.
+	(sprint_call, sprintln_call): Ditto.
+	(general_get_call): Use get_ucode_from_utf8_stream.
+	(F_CHAR, F_INT, F_FLOAT, F_LONG, F_STRING, F_TAB): Use UCODE_MAX
+	as base.
+	(struct token): Define ch as ucode_t.
+	(get_char_code):
+	(invinput_error): Use get_ucode_from_utf8_stream.
+	(n_getc): Use get_ucode_from_utf8_stream.
+	(get_token): Ditto.  Process wrong_escape_code from get_char_code.
+	(general_scan_call): Use get_ucode_from_utf8_stream.
+	(general_putf_call): Permit byte format vector.  Pass format
+	vector.
+	(readdir_call, system_call): Permit byte vector.  Use
+	strvect_to_utf8.
+	(strtime_call): Use ER_NM_byte instead of ER_NM_char.
+	(fold_function, filter_function, map_function): Add case for byte.
+	(fold_call, process_filter_vect_op, filter_call): Call
+	try_full_pack unconditionally instead of pack_vector_if_possible.
+	(process_map_vect_op, map_call, transpose_call): Ditto.
+	(call_external_fun, int_earley_parse): Ditto.
+	(int_earley_parse_grammar): Ditto.  Permit byte format vector.
+	Use strvect_to_utf8.
+	* DINO/d_gen.c (execute_typeof_op): Add assert for byte value.
+	(execute_charof_op): Use UCODE_MAX instead of MAX_CHAR.
+	(execute_vectorof_op): Permit byte elements beside char ones.
+	Transfer vector to to_vect_string_conversion.
+	(ldus): New.
+	* DINO/d_heap.c (initiate_int_tables): Process ER_NM_byte.
+	(val_displ): Add assert on ER_NM_byte.
+	(tailored_heap_object_size, create_unpack_vector): Use
+	OPTIMAL_ELS_NUM and element size for size calculation.
+	(traverse_used_heap_object, change_val, change_obj_refs): Process
+	ER_NM_byte.
+	(expand_vector): Process ER_NM_byte for trailing zero.  Use
+	OPTIMAL_ELS_NUM.
+	(unpack_vector): Use OPTIMAL_ELS_NUM.  Add code for byte case.
+	(pack_vector_if_possible): Make it static.  Treat els as ucode
+	string.
+	(eq_vector): Call try_full_pack.  Remove duplicated fast track
+	code.
+	(create_empty_string): Use ER_NM_byte instead of ER_NM_char.
+	(create_ucodestr, bytevect_to_ucodevect): New.
+	(ucodevect_to_bytevect_if_possible, try_full_pack): New.
+	(hash_key): Call try_full_pack unconditionally instead of
+	pack_vector_if_possible.
+	(vector_to_table_conversion): Process byte element separately.
+	* DINO/d_ir.sprut (string_t, ustring_t): Remove.
+	(create_unique_node_with_string): Add param len.  Rewrite.
+	(temp_unique_ucodestr): New.
+	(char_t): Rename to ucode_t.
+	(size_t): New field type.
+	(unique_ustring, ustring): Remove nodes.
+	(unique_ucodestr, ucodestr): New nodes.
+	(hash_func): Process unique_ucodestr.  Use mask 0x7 for the shift.
+	(create_unique_ident_node): Pass len to
+	create_unique_node_with_string.
+	(initiate_icode): Create temp_unique_ucodestr.
+	* DINO/d_minimize.d (get_decl): Use \A instead of ^.
+	(factor): New.  Use it everywhere.
+	* DINO/d_run.sprut (OPTIMAL_ELS_SIZE): Rename to OPTIMAL_ELS_NUM.
+	Change its meaning in the comment.
+	(mode_to_type): Process ER_NM_byte.
+	* DINO/d_socket.c (_sread, _recvfrom): Use ER_NM_byte instead of
+	ER_NM_char.
+	* DINO/d_types.h (char_t, MAX_CHAR): Remove.
+	(string_t, byte_t, ucode_t, UCODE_MAX, UCODE_BOUND, ucodestr_t):
+	New.
+	(in_byte_range_p, in_ucode_range, ucodestrlen): New.
+	(get_ucode_from_utf8_stream): New
+	(put_ucode_to_utf8_stream, read_byte, print_byte): New.
+	(print_ucode_string_as_utf8): New.
+	* DINO/d_yacc.h (get_read_line): Use ucode_t instead of char in
+	the return type.
+	* DINO/d_yacc.y (read_line, get_read_line): Return unicode.
+	(previous_char): Change the comment.
+	(empty_ucode_string): New.
+	(push_curr_istream): Use it.
+	(d_getc): Use get_ucode instead of getc.  Simplify code with
+	previous_char.
+	(d_ungetc): Simplify code with previous_char.
+	(temp_scanner_vlo): New.
+	(yylex): Process wrong escape code.  Generate ucode string if
+	necessary.
+	(initiate_scanner): Create temp_scanner_vlo.
+	(finish_scanner): Delete temp_scanner_vlo and symbol_text.
+	* DINO/dino.tst.in (72): Change expected matching . and eol.
+	(475): Change 300 onto 0xffffff.
+	(594): Expect \x escape sequences.
+
+2015-06-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Makefile.in (OPTIONS): Use ONIGURUMA instead of REGEX.
+	(dino_lib): Use ONIGURUMA/*.o instead of REGEX/regex.o.
+	* DINO/d_dino.c (big_endian_p, set_big_endian_flag): New.
+	(dino_main): Call set_big_endian_flag.
+	* DINO/d_dino.h (big_endian_p): New.
+	* DINO/d_func.c (regex.h): Remove the include.
+	(oniguruma.h): Add the include.
+	(process_regcomp_errors): Rename to process_onig_errors.  Comment
+	processing the old codes.
+	(RE_DINO_SYNTAX): Use ONIG_SYNTAX_RUBY.
+	(struct regex_node): Make regex a pointer.
+	(region): New.
+	(find_regex): Rewrite using oniguruma.
+	(initiate_regex_tab, finish_regex_tab): Initiate and finilize
+	region and oniguruma.
+	(match_call, gmatch_call, generall_sub_call, split_call): Rewrite
+	using oniguruma.
+	* configure.in: Remove ONIGURUMA from comments.  Remove
+	REGEX/Makefile, REGEX/doc/Makefile, and  REGEX/test/Makefile from
+	output_files.
+	* configure: Update.
+
+2015-06-11  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* configure.in: Add AC_CONFIG_SUBDIRS(ONIGURUMA).
+	* configure: Update.
+	* ONIGURUMA/configure.in: Change -O2 option.
+	* ONIGURUMA/configure: Update.
+	* ONIGURUMA/PREPARATION-FOR-DINO: New file.
+	* DINO/Makefile.in (RX): Change to ONIGURUMA.
+
+2015-06-11  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* ONIGURUMA: New directory.  Release 5.9.6.
+
+2015-06-11  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_ir.sprut (ustring_t, unique_ustring, ustring): New.
+
 2015-12-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* README.md: Rename switcto pmatch.  Ad slide about rmatch.
@@ -2311,7 +3129,7 @@
 	(it_is_int_string): Remove.
 	(a2i): Add parameter.
 	(enum read_number_code): New.
-	(read_number): New external.
+	(read_dino_number): New external.
 	* DINO/d_context.c (first_expr_processing): Process IR_NM_long,
 	IR_NM_longof, and IR_NM_long_type.
 	(second_expr_processing): Ditto.

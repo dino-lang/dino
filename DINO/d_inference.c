@@ -621,7 +621,7 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
       break;
     case BC_NM_ldnil: case BC_NM_ldthis:
     case BC_NM_ldi: case BC_NM_ldbi: case BC_NM_ldch: case BC_NM_ldtp:
-    case BC_NM_ldl: case BC_NM_ldf: case BC_NM_lds:
+    case BC_NM_ldl: case BC_NM_ldf: case BC_NM_lds: case BC_NM_ldus:
     case BC_NM_var: case BC_NM_evar:
     case BC_NM_fun: case BC_NM_efun: case BC_NM_class:
       if (! result_p)
@@ -1801,7 +1801,7 @@ type_transf (node_t node)
     case BC_NM_ldf: case BC_NM_fof:
       res_tp = TP_float;
       break;
-    case BC_NM_lds: case BC_NM_vec: case BC_NM_vecof: case BC_NM_fmtvecof:
+    case BC_NM_lds: case BC_NM_ldus: case BC_NM_vec: case BC_NM_vecof: case BC_NM_fmtvecof:
       res_tp = TP_vec;
       break;
     case BC_NM_tab: case BC_NM_tabof:
@@ -2047,7 +2047,7 @@ specialize_insn (df_insn_t insn)
     case BC_NM_ldi: case BC_NM_ldbi: case BC_NM_iof:
     case BC_NM_ldl: case BC_NM_lof:
     case BC_NM_ldf: case BC_NM_fof:
-    case BC_NM_lds: case BC_NM_vec: case BC_NM_vecof: case BC_NM_fmtvecof:
+    case BC_NM_lds: case BC_NM_ldus: case BC_NM_vec: case BC_NM_vecof: case BC_NM_fmtvecof:
     case BC_NM_tab: case BC_NM_tabof:
       break;
     case BC_NM_plus:

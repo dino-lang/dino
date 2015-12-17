@@ -1,7 +1,7 @@
 .\" Process this file with
 .\" groff -man -Tascii foo.1
 .\"
-.TH Dino 1 "25 May 2015" Dino "User Manuals"
+.TH Dino 1 "10 Dec 2015" Dino "User Manuals"
 .SH NAME
 dino \- the interpreter of the programming language Dino
 .SH SYNOPSIS
@@ -17,7 +17,18 @@ dino \- the interpreter of the programming language Dino
 interprets a program in the Dino programming language.  The
 program file (and include files) must have the suffix
 .B .d
-.
+.PP
+The program encodings are defined
+by the current encoding.  You can change the current input encoding defining
+environment variable
+.B DINO_ENCODING
+or calling DINO function
+.B set_encoding
+in case of REPL.  Each program file can define own encoding putting
+.BR
+-*- coding: <encoding-name> -*-
+.BR
+anywhere on the first two lines of the file.
 .PP
 The description of Dino language is in the report of the Programming
 Language Dino.
@@ -153,6 +164,11 @@ The libraries should be separated by ":" (on Unix) or ";" (on Windows).
 The value has less priority than values given in
 .B -L
 options.
+.IP DINO_ENCODING
+If not null, it defines the current encoding of dino program.
+By defaull the current encoding is
+.B UTF-8
+encoding.  Use iconv utility to get possible encoding names.
 .SH DIAGNOSTICS
 DINO diagnostics are self-explanatory.
 .SH AUTHOR

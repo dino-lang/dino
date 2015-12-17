@@ -1,5 +1,5 @@
 #!/bin/sh
-
+# -*- coding: utf-8 -*-
 #
 # Script to test of DINO.
 #
@@ -12877,8 +12877,8 @@ if test $result = ok -a $start_test_number -le 72; then
 println (match ("aaa", "baaab"));
 println (match ("(a)(a)(a)", "baaab"));
 println (match ("aba", "baaab"));                 // no matching
-println (match ("ab.", "baaab\n"));               // matching with NL
-println (match ("[:alpha:]", "p"));
+println (match ("ab.", "baaab\n"));               // no matching with NL
+println (match ("[[:alpha:]]", "z"));
 println (match ("^.aa", "baaab"));
 println (match ("1", 10));
 println (match ("1", 0));
@@ -12892,7 +12892,7 @@ TEST72
 [1, 4]
 [1, 4, 1, 2, 2, 3, 3, 4]
 nil
-[3, 6]
+nil
 [0, 1]
 [0, 3]
 [0, 1]
@@ -12933,9 +12933,9 @@ TEST73
 ["aaa", "bbb", "ccc", "ddd"]
 ["aaa", "bbb", "ccc", "ddd"]
 ["aaa", "bbb", "ccc", "ddd"]
-["aaa", "bbb", "ccc", "ddd"]
+["", "aaa", "bbb", "ccc", "ddd", ""]
 ["a", "b", "c", "d", "e", "f"]
-["aaa", "bbb", "ccc", "ddd"]
+["", "", "aaa", "", "", "bbb", "", "", "ccc", "ddd", "", ""]
 ["aaabbbcccddd"]
 [""]
 [""]
@@ -13274,7 +13274,7 @@ TEST82
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT82' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - unmatched bracket list operators in regexp
+test.d:1:7: run time Oniguruma error in `match' - premature end of char-class
 OUTPUT82
                         result=ok
                 else
@@ -13295,7 +13295,7 @@ TEST83
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT83' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid use of the range operator in regexp
+test.d:1:7: run time Oniguruma error in `match' - empty range in char class
 OUTPUT83
                         result=ok
                 else
@@ -13316,7 +13316,7 @@ TEST84
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT84' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - unknown character class name in regexp
+test.d:1:7: run time Oniguruma error in `match' - invalid POSIX bracket type
 OUTPUT84
                         result=ok
                 else
@@ -13337,7 +13337,7 @@ TEST85
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT85' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - unmatched parenthesis group operators in regexp
+test.d:1:7: run time Oniguruma error in `match' - end pattern with unmatched parenthesis
 OUTPUT85
                         result=ok
                 else
@@ -13358,7 +13358,7 @@ TEST86
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT86' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid back reference to a subexpr. in regexp
+test.d:1:7: run time Oniguruma error in `match' - invalid backref number/name
 OUTPUT86
                         result=ok
                 else
@@ -13379,7 +13379,7 @@ TEST87
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT87' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid escape sequence in regexp
+test.d:1:7: run time Oniguruma error in `match' - end pattern at escape
 OUTPUT87
                         result=ok
                 else
@@ -21223,7 +21223,8 @@ for (;;)
       continue;
     a = split (ln, "[^[:alnum:]]");
     for (i = 0; i < #a; i++)
-      voc [a[i]] = (a[i] in voc ? voc [a[i]] + 1 : 1);
+      if (#a[i] != 0)
+        voc [a[i]] = (a[i] in voc ? voc [a[i]] + 1 : 1);
   } catch (eof) {
     break;
   }
@@ -26532,7 +26533,7 @@ TEST459
         if $DINO $test_file 2>$stderr; then
                 result=fail
         elif $SCMP $stderr - <<'TEST459-1'; then
-test.d:1:8: run time error - unmatched bracket list operators in regexp
+test.d:1:8: run time Oniguruma error in `gmatch' - premature end of char-class
 TEST459-1
                 result=ok
         else
@@ -26866,7 +26867,7 @@ fi
 if test $result = ok -a $start_test_number -le 475; then
 	echo test 475
         cat >$test_file <<'TEST475'
-println (char (300));
+println (char (0xffffff));
 TEST475
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -35998,12 +35999,12 @@ TEST594
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT594' && $CMP $stdout $ftemp2; then
 "type()"[int, int, int, int, int, int, int, int, int, int]
-"char()""\2\2\2\2\2\2\2\2\2\2"
+"char()""\x2\x2\x2\x2\x2\x2\x2\x2\x2\x2"
 "int()"[2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 "float()"[2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 --------------------------------
 "type()"[float, float, float, float, float, float, float, float, float, float]
-"char()""\2\2\2\2\2\2\2\2\2\2"
+"char()""\x2\x2\x2\x2\x2\x2\x2\x2\x2\x2"
 "int()"[2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 "float()"[2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5]
 --------------------------------
@@ -48701,24 +48702,15 @@ fi
 
 # Test 817.
 if test $result = ok -a $start_test_number -le 817; then
-	echo test 817: try-operator
+	echo test 817: Empty field split
         cat >$test_file <<'TEST817'
-var i;
-println (try (i = 5/0));
-println (try (i = 5/1, except));
-println (try (i = 5/0;, except));
-println (try (i = 5/0;, sigfpe));
-println (try (return 10));
+println (split ("0000;<control>;Cc;0;BN;;;;;N;NULL;;;;", ";"));
 TEST817
         echo '      ' $DINO '-O' $test_file "2>$stderr"
         if $DINO -O $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT817' && $CMP $stdout $ftemp2; then
-0
-1
-0
-0
-10
+["0000", "<control>", "Cc", "0", "BN", "", "", "", "", "N", "NULL", "", "", "", ""]
 OUTPUT817
                         result=ok
                 else
@@ -48731,45 +48723,38 @@ fi
 
 # Test 818.
 if test $result = ok -a $start_test_number -le 818; then
-	echo test 818: Break in try-operator
+	echo test 818: Empty regex for gmatch
         cat >$test_file <<'TEST818'
-for (var i = 0; i < 10; i++)
-  try (break);
+println (gmatch ("", "abcd", 1));
 TEST818
-        echo '      ' $DINO '-O' $test_file ">$stdout"
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
         if $DINO -O $test_file 2>$stderr >$stdout; then
-                result=fail
-        else
-                echo '      ' $CMP $ftemp2 $stderr
-                if cat >$ftemp2 <<'OUTPUT818' && $CMP $stderr $ftemp2; then
-test.d:2:8: statement break is not in for-statement or in match case
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT818' && $CMP $stdout $ftemp2; then
+[0, 0, 1, 1, 2, 2, 3, 3]
 OUTPUT818
-			result=ok
+                        result=ok
                 else
                         result=fail
                 fi
+        else
+                result=fail
         fi
 fi
 
 # Test 819.
 if test $result = ok -a $start_test_number -le 819; then
-	echo test 819: try-operator with getln
+	echo test 819: Empty regex for sub
         cat >$test_file <<'TEST819'
-var ln;
-for (;try (ln = getln (), eof);)
-  println (ln);
+println (sub ("", "abcd", "12"));
+println (gsub ("", "abcd", "12"));
 TEST819
         echo '      ' $DINO '-O' $test_file "2>$stderr"
-        if $DINO -O $test_file 2>$stderr >$stdout  <<'INPUT819'; then
-one
-two
-three
-INPUT819
+        if $DINO -O $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT819' && $CMP $stdout $ftemp2; then
-"one"
-"two"
-"three"
+"12abcd"
+"12a12b12c12d"
 OUTPUT819
                         result=ok
                 else
@@ -48782,24 +48767,17 @@ fi
 
 # Test 820.
 if test $result = ok -a $start_test_number -le 820; then
-	echo test 820: Folding concat operation
+	echo test 820: Empty sub-matching for sub
         cat >$test_file <<'TEST820'
-var v1;
-v1 = []; println (.@v1[:]);
-v1 = [10, 42]; println (.@v1[:]);
-v1 = [10, 42.0]; println (.@v1[:]);
-v1 = ["a", 42]; println (.@v1[:]);
-v1 = [["a", "b"], [42, 24]]; println (.@v1[:]);
+println (gsub ("(a)|(b)", "abcd", "\\1"));
+println (gsub ("(a)|(b)", "abcd", "\\2"));
 TEST820
-        echo '      ' $DINO -t $test_file "2>$stderr"
-        if $DINO -t $test_file 2>$stderr >$stdout; then
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT820' && $CMP $stdout $ftemp2; then
-[]
-"1042"
-"1042"
-"a42"
-["a", "b", 42, 24]
+"acd"
+"bcd"
 OUTPUT820
                         result=ok
                 else
@@ -48812,47 +48790,36 @@ fi
 
 # Test 821.
 if test $result = ok -a $start_test_number -le 821; then
-	echo test 821: Wrong operand for folding concat
+	echo test 821: Hex chars
         cat >$test_file <<'TEST821'
-var v1 = [10, 42]; println (.@ v1);
+println ("\xa0\x20");
 TEST821
-        echo '      ' $DINO '-O' $test_file ">$stdout"
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
         if $DINO -O $test_file 2>$stderr >$stdout; then
-                result=fail
-        else
-                echo '      ' $CMP $ftemp2 $stderr
-                if cat >$ftemp2 <<'OUTPUT821' && $CMP $stderr $ftemp2; then
-test.d:1:32: run time error - wrong vector form for vector operation
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT821' && $CMP $stdout $ftemp2; then
+"\xa0 "
 OUTPUT821
-			result=ok
+                        result=ok
                 else
                         result=fail
                 fi
+        else
+                result=fail
         fi
 fi
 
 # Test 822.
 if test $result = ok -a $start_test_number -le 822; then
-	echo test 822: rmatch
+	echo test 822: Small unicode chars
         cat >$test_file <<'TEST822'
-rmatch ("baaab") {
-case "aaa": put ("1:"); println (m); continue;
-case "(a)" @ "(a)" @ "(a)": put ("2:"); println (m); continue;
-case "aba": put ("3:"); println (m);
-case "^.aa": put ("4:"); println (m); continue;
-case "()aaa": put ("5:"); println (m); continue;
-case _: putln ("default");
-}
+println ("\u0410\u0430");
 TEST822
-        echo '      ' $DINO -t $test_file "2>$stderr"
-        if $DINO -t $test_file 2>$stderr >$stdout; then
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT822' && $CMP $stdout $ftemp2; then
-1:[1, 4]
-2:[1, 4, 1, 2, 2, 3, 3, 4]
-4:[0, 3]
-5:[1, 4, 1, 1]
-default
+"\u0410\u0430"
 OUTPUT822
                         result=ok
                 else
@@ -48865,20 +48832,60 @@ fi
 
 # Test 823.
 if test $result = ok -a $start_test_number -le 823; then
-	echo test 823: Wrong case for rmatch
+	echo test 823: Big unicode chars
         cat >$test_file <<'TEST823'
-rmatch ("aaaa") {
-case [10, 9]: putln ("wrong");
-}
+println ("\U00010330\U00010331");
 TEST823
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT823' && $CMP $stdout $ftemp2; then
+"\U00010330\U00010331"
+OUTPUT823
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 824.
+if test $result = ok -a $start_test_number -le 824; then
+	echo test 824: UTF-8
+        cat >$test_file <<'TEST824'
+putln ("\u0411\u0431");
+TEST824
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT824' && $CMP $stdout $ftemp2; then
+Бб
+OUTPUT824
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 825.
+if test $result = ok -a $start_test_number -le 825; then
+	echo test 825: Wrong encoding
+        cat >$test_file <<'TEST825'
+set_encoding ("abracadabra");
+TEST825
         echo '      ' $DINO '-O' $test_file ">$stdout"
         if $DINO -O $test_file 2>$stderr >$stdout; then
                 result=fail
         else
                 echo '      ' $CMP $ftemp2 $stderr
-                if cat >$ftemp2 <<'OUTPUT823' && $CMP $stderr $ftemp2; then
-test.d:2:6: run time error - rmatch case expression is not a string
-OUTPUT823
+                if cat >$ftemp2 <<'OUTPUT825' && $CMP $stderr $ftemp2; then
+test.d:1:14: run time error - invalid parameter value for `set_encoding'
+OUTPUT825
 			result=ok
                 else
                         result=fail
@@ -48886,26 +48893,1371 @@ OUTPUT823
         fi
 fi
 
-# Test 824.
-if test $result = ok -a $start_test_number -le 824; then
-	echo test 824: Wrong usage of _ and ...
-        cat >$test_file <<'TEST824'
+# Test 826.
+if test $result = ok -a $start_test_number -le 826; then
+	echo test 826: Non-ascii encoding
+        cat >$test_file <<'TEST826'
+set_encoding ("GREEK7");
+TEST826
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT826' && $CMP $stderr $ftemp2; then
+test.d:1:14: encoding GREEK7 given for `set_encoding' does not contain ascii byte codes
+OUTPUT826
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 827.
+if test $result = ok -a $start_test_number -le 827; then
+	echo test 827: Wrong par type for set_encoding
+        cat >$test_file <<'TEST827'
+set_encoding (tab[]);
+TEST827
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT827' && $CMP $stderr $ftemp2; then
+test.d:1:14: run time error - invalid parameter type of `set_encoding'
+OUTPUT827
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 828.
+if test $result = ok -a $start_test_number -le 828; then
+	echo test 828: Wrong par number for set_encoding
+        cat >$test_file <<'TEST828'
+set_encoding ();
+TEST828
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT828' && $CMP $stderr $ftemp2; then
+test.d:1:14: run time error - unexpected number of parameters for `set_encoding'
+OUTPUT828
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 829.
+if test $result = ok -a $start_test_number -le 829; then
+	echo test 829: Wrong par number for get_encoding
+        cat >$test_file <<'TEST829'
+get_encoding (1);
+TEST829
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT829' && $CMP $stderr $ftemp2; then
+test.d:1:14: run time error - unexpected number of parameters for `get_encoding'
+OUTPUT829
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 830.
+if test $result = ok -a $start_test_number -le 830; then
+	echo test 830: Set/get encoding
+        cat >$test_file <<'TEST830'
+putln (get_encoding ());
+set_encoding ("arabic");
+putln (get_encoding ());
+TEST830
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT830' && $CMP $stdout $ftemp2; then
+UTF-8
+arabic
+OUTPUT830
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 831.
+if test $result = ok -a $start_test_number -le 831; then
+	echo test 831: Source file encoding
+        cat >$test_file <<'TEST831'
+// -*- coding: KOI8-R -*-
+val s =
+TEST831
+	echo -e '"\0342\0302";' >>$test_file
+        cat >>$test_file <<'TEST831-2'
+putln (get_encoding ());
+putln (s);
+TEST831-2
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT831' && $CMP $stdout $ftemp2; then
+UTF-8
+Бб
+OUTPUT831
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 832.
+if test $result = ok -a $start_test_number -le 832; then
+	echo test 832: Source file encoding: 2nd line
+        cat >$test_file <<'TEST832'
+//
+// -*- coding: KOI8-R -*-
+val s = 
+TEST832
+	echo -e '"\0342\0302";' >>$test_file
+        cat >>$test_file <<'TEST832'
+putln (get_encoding ());
+putln (s);
+TEST832
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT832' && $CMP $stdout $ftemp2; then
+UTF-8
+Бб
+OUTPUT832
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 833.
+if test $result = ok -a $start_test_number -le 833; then
+	echo test 833:  Source file encoding: 3rd line is ignored
+        cat >$test_file <<'TEST833'
+//
+//
+// -*- coding: KOI8-R -*-
+val s = 
+TEST833
+	echo -e '"\0342\0302";' >>$test_file
+        cat >>$test_file <<'TEST833'
+putln (get_encoding ());
+putln (s);
+TEST833
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT833' && $CMP $stderr $ftemp2; then
+test.d:5:2: wrong encoding `UTF-8' in a source file
+OUTPUT833
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 834.
+if test $result = ok -a $start_test_number -le 834; then
+	echo test 834: Set/get file encoding
+        cat >$test_file <<'TEST834'
+putln (get_file_encoding (stdout));
+set_file_encoding (stdout, "arabic");
+putln (get_file_encoding (stdout));
+TEST834
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT834' && $CMP $stdout $ftemp2; then
+UTF-8
+arabic
+OUTPUT834
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 835.
+if test $result = ok -a $start_test_number -le 835; then
+	echo test 835: Wrong par number for get_file_encoding
+        cat >$test_file <<'TEST835'
+get_file_encoding ();
+TEST835
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT835' && $CMP $stderr $ftemp2; then
+test.d:1:19: run time error - unexpected number of parameters for `get_file_encoding'
+OUTPUT835
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 836.
+if test $result = ok -a $start_test_number -le 836; then
+	echo test 836: Wrong par value for get_file_encoding
+        cat >$test_file <<'TEST836'
+get_file_encoding (10);
+TEST836
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT836' && $CMP $stderr $ftemp2; then
+test.d:1:19: run time error - invalid parameter type of `get_file_encoding'
+OUTPUT836
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 837.
+if test $result = ok -a $start_test_number -le 837; then
+	echo test 837: Wrong file encoding
+        cat >$test_file <<'TEST837'
+set_file_encoding (stdout, "abracadabra");
+TEST837
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT837' && $CMP $stderr $ftemp2; then
+test.d:1:19: run time error - invalid parameter value for `set_file_encoding'
+OUTPUT837
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 838.
+if test $result = ok -a $start_test_number -le 838; then
+	echo test 838: Wrong parameter for set_file_encoding
+        cat >$test_file <<'TEST838'
+set_file_encoding (10, "abracadabra");
+TEST838
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT838' && $CMP $stderr $ftemp2; then
+test.d:1:19: run time error - invalid parameter value for `set_file_encoding'
+OUTPUT838
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 839.
+if test $result = ok -a $start_test_number -le 839; then
+	echo test 839: output in different encoding
+        cat >$test_file <<'TEST839'
+val s = "Бб";
+set_file_encoding (stdout, "KOI8-R");
+putln (s);
+TEST839
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if echo -e '\0342\0302' >$ftemp2 && $CMP $stdout $ftemp2; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 840.
+if test $result = ok -a $start_test_number -le 840; then
+	echo test 840: REPL encoding printing
+        cat >$test_file <<'TEST840'
+set_encoding ("KOI8-R");
+TEST840
+	echo -e 'val s = "\0342\0302";' >>$test_file
+        cat >>$test_file <<'TEST840'
+s;
+TEST840
+        echo '      ' $DINO "<" $test_file "2>&1 | egrep -v 'version|Copyright|if-stmt' >$stdout"
+        if $DINO < $test_file 2>&1 | egrep -v 'version|Copyright|if-stmt' >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT840' && $CMP $stdout $ftemp2; then
+Use "exit(<int>);" or Ctrl-D to exit
+dino> "KOI8-R"
+dino> dino> "\u0411\u0431"
+dino> 
+OUTPUT840
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 841.
+if test $result = ok -a $start_test_number -le 841; then
+	echo test 841: input/output in UTF-8
+        cat >$test_file <<'TEST841'
+putln (get_file_encoding (stdin));
+putln (get_file_encoding (stdout));
+val s = getln ();
+putln (s);
+TEST841
+        echo '      ' $DINO '-O' $test_file "2>$stderr <$ftemp"
+        if cat >$ftemp <<'INPUT841' && $DINO -O $test_file 2>$stderr >$stdout <$ftemp; then
+Бб
+INPUT841
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT841' && $CMP $stdout $ftemp2; then
+UTF-8
+UTF-8
+Бб
+OUTPUT841
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 842.
+if test $result = ok -a $start_test_number -le 842; then
+	echo test 842: input in different encoding
+        cat >$test_file <<'TEST842'
+set_file_encoding (stdin, "KOI8-R");
+putln (get_file_encoding (stdin));
+putln (get_file_encoding (stdout));
+val s = getln ();
+putln (s);
+TEST842
+        echo '       ' "echo -e '\0342\0302' >$ftemp && " $DINO '-O' $test_file "2>$stderr <$ftemp"
+        if echo -e '\0342\0302' >$ftemp && $DINO -O $test_file 2>$stderr >$stdout <$ftemp; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT842' && $CMP $stdout $ftemp2; then
+KOI8-R
+UTF-8
+Бб
+OUTPUT842
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 843.
+if test $result = ok -a $start_test_number -le 843; then
+	echo test 843: raw output
+        cat >$test_file <<'TEST843'
+set_file_encoding (stdin, "RAW");
+println (getln ());
+TEST843
+        echo '      ' "echo -e '\0342\0302' | " $DINO '-O' $test_file "2>$stderr"
+        if echo -e '\0342\0302' | $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 << OUTPUT843 && $CMP $stdout $ftemp2; then
+"\xe2\xc2"
+OUTPUT843
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 844.
+if test $result = ok -a $start_test_number -le 844; then
+	echo test 844: narrow encoding for input
+        cat >$test_file <<'TEST844'
+set_file_encoding (stdin, "ascii");
+println (getln ());
+TEST844
+        echo '      ' "echo -e '\0342\0302' | " $DINO '-O' $test_file "2>$stderr"
+        if echo -e '\0342\0302' | $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT844' && $CMP $stderr $ftemp2; then
+test.d:2:16: run time error - unexpected input for encoding used by `getln'
+OUTPUT844
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 845.
+if test $result = ok -a $start_test_number -le 845; then
+	echo test 845: narrow encoding for output
+        cat >$test_file <<'TEST845'
+set_file_encoding (stdout, "latin1");
+putln ("\u0140");
+TEST845
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT845' && $CMP $stderr $ftemp2; then
+test.d:2:7: run time error - wrong unicode for encoding used by `putln'
+OUTPUT845
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 846.
+if test $result = ok -a $start_test_number -le 846; then
+	echo test 846: narrow raw encoding for output
+        cat >$test_file <<'TEST846'
+set_file_encoding (stdout, "raw");
+putln ("\u0140");
+TEST846
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT846' && $CMP $stderr $ftemp2; then
+test.d:2:7: run time error - unicode is too big to be represented by a byte for `putln'
+OUTPUT846
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 847.
+if test $result = ok -a $start_test_number -le 847; then
+	echo test 847: narrow raw encoding for open
+        cat >$test_file <<'TEST847'
+set_encoding ("raw");
+open ("\u0140", "r");
+TEST847
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT847' && $CMP $stderr $ftemp2; then
+test.d:2:6: run time error - unicode is too big to be represented by a byte for `open'
+OUTPUT847
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 848.
+if test $result = ok -a $start_test_number -le 848; then
+	echo test 848: wrong include
+        cat >$test_file <<'TEST848'
+include "\u0342";
+TEST848
+        echo '      ' "DINO_ENCODING=ascii " $DINO '-O' $test_file "2>$stderr"
+        if DINO_ENCODING=ascii $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT848' && $CMP $stderr $ftemp2; then
+test.d:1:9: can not represent string as file name using current encoding
+OUTPUT848
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 849.
+if test $result = ok -a $start_test_number -le 849; then
+	echo test 849: strings without escape
+        cat >$test_file <<'TEST849'
+putln (`\n\a`, `a``b`);
+TEST849
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 << 'OUTPUT849' && $CMP $stdout $ftemp2; then
+\n\aa`b
+OUTPUT849
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 850.
+if test $result = ok -a $start_test_number -le 850; then
+	echo test 850: unfinished string w/o escapes
+        cat >$test_file <<'TEST850'
+putln (`abc
+def`);
+TEST850
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT850' && $CMP $stderr $ftemp2; then
+test.d:1:13: string end is absent
+test.d:2:1: syntax error
+test.d:2:8: string end is absent
+OUTPUT850
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 851.
+if test $result = ok -a $start_test_number -le 851; then
+	echo test 851
+        cat >$test_file <<'TEST851'
+for (;1;)
+{
+  try {
+    println (scanln ());
+  } catch (eof) {putln ("eof"); break;}
+    catch (invinput) {putln ("catch invalid input");}
+}
+TEST851
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT851' ; then
+``
+`a\n`
+`a``b`
+`ac
+`d\\`
+INPUT851
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT851' && $CMP $stdout $ftemp2; then
+""
+"a\\n"
+"a`b"
+catch invalid input
+"d\\\\"
+eof
+OUTPUT851
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 852.
+if test $result = ok -a $start_test_number -le 852; then
+	echo test 852: Regex Characters
+        cat >$test_file <<'TEST852'
+println (match (`\y`, "y"));	// => [0, 1]
+println (match (`\t`, "\\t"));	// => nil   
+println (match (`\t`, "\t"));	// => [0, 1]
+println (match (`\n`, "\\n"));	// => nil   
+println (match (`\n`, "\n"));	// => [0, 1]
+println (match (`\r`, "\\r"));	// => nil   
+println (match (`\r`, "\r"));	// => [0, 1]
+println (match (`\a`, "\\a"));	// => nil   
+println (match (`\a`, "\a"));	// => [0, 1]
+println (match (`\f`, "\\f"));	// => nil   
+println (match (`\f`, "\f"));	// => [0, 1]
+println (match (`\e`, "\\e"));	// => nil   
+println (match (`\e`, "\x1b"));	// => [0, 1]
+println (match (`\e`, "e"));	// => nil   
+println (match (`\x65`, "e"));	// => [0, 1]
+println (match (`\b`, "\b"));	// => nil   
+println (match (`\b`, "\\b"));	// => [1, 1]
+println (match (`[\b]`, "\b"));	// => [0, 1]
+TEST852
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT852' ; then
+INPUT852
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT852' && $CMP $stdout $ftemp2; then
+[0, 1]
+nil
+[0, 1]
+nil
+[0, 1]
+nil
+[0, 1]
+nil
+[0, 1]
+nil
+[0, 1]
+nil
+[0, 1]
+nil
+[0, 1]
+nil
+[1, 1]
+[0, 1]
+OUTPUT852
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 853.
+if test $result = ok -a $start_test_number -le 853; then
+	echo test 853: Regex character types
+        cat >$test_file <<'TEST853'
+println (match (`.`, "a"));	// => [0, 1]
+println (match (`.`, "\n"));	// => nil   
+println (match (`\w`, "abc_"));	// => [0, 1]
+println (match (`\w`, "б"));	// => [0, 1]
+println (match (`\w`, "0"));	// => [0, 1]
+println (match (`\w`, "$"));	// => nil   
+println (match (`\W`, "abc_"));	// => nil   
+println (match (`\W`, "б"));	// => nil   
+println (match (`\W`, "0"));	// => nil   
+println (match (`\W`, "$"));	// => [0, 1]
+println (match (`\s`, "a"));	// => nil   
+println (match (`\s`, " "));	// => [0, 1]
+println (match (`\s`, "\n"));	// => [0, 1]
+println (match (`\S`, "a"));	// => [0, 1]
+println (match (`\S`, " "));	// => nil   
+println (match (`\S`, "\n"));	// => nil   
+println (match (`\d`, "a"));	// => nil   
+println (match (`\d`, "9"));	// => [0, 1]
+println (match (`\D`, "a"));	// => [0, 1]
+println (match (`\D`, "9"));	// => nil   
+println (match (`\h`, "9"));	// => [0, 1]
+println (match (`\h`, "f"));	// => [0, 1]
+println (match (`\h`, "g"));	// => nil   
+println (match (`\H`, "9"));	// => nil   
+println (match (`\H`, "f"));	// => nil   
+println (match (`\H`, "g"));	// => [0, 1]
+TEST853
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT853' ; then
+INPUT853
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT853' && $CMP $stdout $ftemp2; then
+[0, 1]
+nil
+[0, 1]
+[0, 1]
+[0, 1]
+nil
+nil
+nil
+nil
+[0, 1]
+nil
+[0, 1]
+[0, 1]
+[0, 1]
+nil
+nil
+nil
+[0, 1]
+[0, 1]
+nil
+[0, 1]
+[0, 1]
+nil
+nil
+nil
+[0, 1]
+OUTPUT853
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 854.
+if test $result = ok -a $start_test_number -le 854; then
+	echo test 854: Regex Properties
+        cat >$test_file <<'TEST854'
+println (match (`\p{Alpha}`, "a"));	// => [0, 1] 
+println (match (`\p{Alpha}`, "б"));	// => [0, 1] 
+println (match (`\p{Alpha}`, ";"));	// => nil    
+println (match (`\p{^Alpha}`, "a"));	// => nil    
+println (match (`\p{^Alpha}`, "б"));	// => nil    
+println (match (`\p{^Alpha}`, ";"));	// => [0, 1] 
+println (match (`\P{Alpha}`, "a"));	// => nil    
+println (match (`\P{Alpha}`, "б"));	// => nil    
+println (match (`\P{Alpha}`, ";"));	// => [0, 1] 
+println (match (`\p{Cyrillic}`, "б"));	// => [0, 1] 
+println (match (`\P{Cyrillic}`, "б"));	// => nil    
+println (match (`\p{^Cyrillic}`, "б"));	// => nil    
+TEST854
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT854' ; then
+INPUT854
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT854' && $CMP $stdout $ftemp2; then
+[0, 1]
+[0, 1]
+nil
+nil
+nil
+[0, 1]
+nil
+nil
+[0, 1]
+[0, 1]
+nil
+nil
+OUTPUT854
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 855.
+if test $result = ok -a $start_test_number -le 855; then
+	echo test 855: Regex anchors
+        cat >$test_file <<'TEST855'
+println (match (`^a`, "a"));		// =>     [0, 1]
+println (match (`b^a`, "a"));		// =>     nil   
+println (match (`b^a`, "b\na"));	// => nil   	
+println (match (`b\n^a`, "b\na"));	// => [0, 3]	
+println (match (`^$`, "b\na"));		// =>     nil   
+println (match (`b$`, "b\na"));		// =>     [0, 1]
+println (match (`a$`, "b\na"));		// =>     [2, 3]
+println (match (`a\b c`, "a c"));	// => [0, 3]	
+println (match (`aw\b`, "aw"));		// =>     [0, 2]
+println (match (`a\B c`, "a c"));	// => nil   	
+println (match (`aw\B`, "aw"));		// =>     nil   
+println (match (`abc\Z`, "abc"));	// => [0, 3]	
+println (match (`abc\Z`, "abc\n"));	// => [0, 3]	
+println (match (`abc\Z`, "abc\na"));	// => nil   	
+println (match (`abc\z`, "abc"));	// => [0, 3]	
+println (match (`abc\z`, "abc\n"));	// =>  nil   	
+println (match (`abc\z`, "abca"));	// =>  nil   	
+println (match (`\Aa`, "abca"));	// =>  [0, 1]
+println (match (`\Aa`, "\nabca"));	// =>  nil
+println (match (`a\A`, "abca"));	// =>  nil
+TEST855
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT855' ; then
+INPUT855
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT855' && $CMP $stdout $ftemp2; then
+[0, 1]
+nil
+nil
+[0, 3]
+nil
+[0, 1]
+[2, 3]
+[0, 3]
+[0, 2]
+nil
+nil
+[0, 3]
+[0, 3]
+nil
+[0, 3]
+nil
+nil
+[0, 1]
+nil
+nil
+OUTPUT855
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 856.
+if test $result = ok -a $start_test_number -le 856; then
+	echo test 856: Regex groups
+        cat >$test_file <<'TEST856'
+println (match (`(?#comment).`, ";"));	// =>      [0, 1]	    
+println (match (`ab`, "Ab"));		// => 	     nil	    
+println (match (`(?i)ab`, "Ab"));	// => 	     [0, 2]	    
+println (match (`(?-i)ab`, "Ab"));	// => 	     nil	    
+println (match (`.`, "\n"));		// => 	     nil	    
+println (match (`(?m).`, "\n"));	// => 	     [0, 1]	    
+println (match (`(?-m).`, "\n"));	// => 	     nil	    
+println (match (`(?i:ab)`, "Ab"));	// => 	     [0, 2]	    
+println (match (`(?-i:ab)`, "Ab"));	// => 	     nil	    
+println (match (`(ab)`, "ab"));		// => 	     [0, 2, 0, 2]
+println (match (`(?:ab)`, "ab"));	// => 	     [0, 2]	    
+println (match (`(?=ab)ab`, "ab"));	// => 	     [0, 2]	    
+println (match (`(?!ab)ab`, "ab"));	// => 	     nil	    
+println (match (`(?<=cd)ab`, "cdab"));	// => 	     [2, 4]	    
+println (match (`(?<!cd)ab`, "cdab"));	// => 	     nil	    
+println (match (`(?<prefix>cd)\k<prefix>`, "cdcd")); // => [0, 4, 0, 2]	
+println (match (`(?x: a a a)`, "aaa"));	// => [0, 3]
+println (match (`(?x: [a ])`, " "));	// => [0, 1]
+println (match (`(?x:(a a))`, "aa"));	// => [0, 2, 0, 2]
+println (match (`(?>.*)c`, "aabc"));    // => nil
+TEST856
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT856' ; then
+INPUT856
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT856' && $CMP $stdout $ftemp2; then
+[0, 1]
+nil
+[0, 2]
+nil
+nil
+[0, 1]
+nil
+[0, 2]
+nil
+[0, 2, 0, 2]
+[0, 2]
+[0, 2]
+nil
+[2, 4]
+nil
+[0, 4, 0, 2]
+[0, 3]
+[0, 1]
+[0, 2, 0, 2]
+nil
+OUTPUT856
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 857.
+if test $result = ok -a $start_test_number -le 857; then
+	echo test 857: Regex subexp call
+        cat >$test_file <<'TEST857'
+println (match (`(?<prefix>cd)\g<prefix>`, "cdcd"));	// => [0, 4, 2, 4]
+println (match (`(?<p>a|b\g<p>c)`, "bbbaccc")); // => [0, 7, 0, 7]
+TEST857
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT857' ; then
+INPUT857
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT857' && $CMP $stdout $ftemp2; then
+[0, 4, 2, 4]
+[0, 7, 0, 7]
+OUTPUT857
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 858.
+if test $result = ok -a $start_test_number -le 858; then
+	echo test 858: Regex Qualifiers
+        cat >$test_file <<'TEST858'
+println (match (`.?foo`, "xfooxxxxfoo"));       // => [0, 4]
+println (match (`.*foo`, "xfooxxxxfoo"));	// => [0, 11]
+println (match (`.+foo`, "xfooxxxxfoo"));	// => [0, 11]
+println (match (`.{4}foo`, "xfooxxxxfoo"));     // => [4, 11]
+println (match (`.{,11}foo`, "xfooxxxxfoo"));   // => [0, 11]
+println (match (`.{1,}foo`, "xfooxxxxfoo"));    // => [0, 11]
+println (match (`.{1,8}foo`, "xfooxxxxfoo"));   // => [0, 11]
+
+println (match (`.??foo`, "xfooxxxxfoo"));       // => [0, 4]
+println (match (`.*?foo`, "xfooxxxxfoo"));	 // => [0, 4]
+println (match (`.+?foo`, "xfooxxxxfoo"));	 // => [0, 4]
+println (match (`.{4}?foo`, "xfooxxxxfoo"));     // => [4, 11]
+println (match (`.{,11}?foo`, "xfooxxxxfoo"));   // => [0, 4]
+println (match (`.{1,}?foo`, "xfooxxxxfoo"));    // => [0, 4]
+println (match (`.{1,8}?foo`, "xfooxxxxfoo"));   // => [0, 4]
+
+println (match (`.?+foo`, "xfooxxxxfoo"));	// => [0, 4]
+println (match (`.*+foo`, "xfooxxxxfoo"));	// => nil
+println (match (`.++foo`, "xfooxxxxfoo"));	// => nil
+TEST858
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT858' ; then
+INPUT858
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT858' && $CMP $stdout $ftemp2; then
+[0, 4]
+[0, 11]
+[0, 11]
+[4, 11]
+[0, 11]
+[0, 11]
+[0, 11]
+[0, 4]
+[0, 4]
+[0, 4]
+[1, 4]
+[0, 4]
+[0, 4]
+[0, 4]
+[0, 4]
+nil
+nil
+OUTPUT858
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 859.
+if test $result = ok -a $start_test_number -le 859; then
+	echo test 859: Regex char classes
+        cat >$test_file <<'TEST859'
+println (match (`[[:alpha:]]`, "a"));	// => [0, 1]
+println (match (`[^[:alpha:]]`, "a"));	// => nil
+println (match (`[[:^alpha:]]`, "б"));	// => nil
+println (match (`[az&&bz]`, "z"));	// => [0, 1]
+println (match (`[az&&bz]`, "a"));	// => nil
+TEST859
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT859' ; then
+INPUT859
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT859' && $CMP $stdout $ftemp2; then
+[0, 1]
+nil
+nil
+[0, 1]
+nil
+OUTPUT859
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 860.
+if test $result = ok -a $start_test_number -le 860; then
+	echo test 860: Regex back refs
+        cat >$test_file <<'TEST860'
+println (match (`(a)\1`, "aa"));	// => [0, 2, 0, 1]
+println (match (`(a)\k<1>`, "aa"));	// => [0, 2, 0, 1]
+println (match (`(a)\k'1'`, "aa"));	// => nil
+println (match (`(a)\k<-1>`, "aa"));	// => [0, 2, 0, 1]
+println (match (`(a)\k'-1'`, "aa"));	// => nil
+println (match (`(?<p>a)\k<p>`, "aa"));	// => [0, 2, 0, 1]
+println (match (`(?<p>a)\k'p'`, "aa"));	// => nil
+println (match (`(?<p>a(?<p>b))\k<p>`, "abb")); // => [0, 3, 0, 2, 1, 2]
+println (match (`()()()()()()()()()()(a)\11`, "aa")); // => [0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+println (match (`()()()()()()()()()()(a)\k<11>`, "aa")); // => [0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+TEST860
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT860' ; then
+INPUT860
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT860' && $CMP $stdout $ftemp2; then
+[0, 2, 0, 1]
+[0, 2, 0, 1]
+[0, 2, 0, 1]
+[0, 2, 0, 1]
+[0, 2, 0, 1]
+[0, 2, 0, 1]
+[0, 2, 0, 1]
+[0, 3, 0, 2, 1, 2]
+[0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+[0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+OUTPUT860
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 861.
+if test $result = ok -a $start_test_number -le 861; then
+	echo test 861: Regex lookahead
+        cat >$test_file <<'TEST861'
+println (match (`(?=bcd)bc`, "aabcd"));	// => [2, 4]
+println (match (`(?=bce)bc`, "aabcd"));	// => nil
+println (match (`(?!bce)bc`, "aabc"));	// => [2, 4]
+println (match (`(?<=aa)bc`, "aabc"));	// => [2, 4]
+println (match (`(?<!a)bc`, "aabc"));	// => nil
+println (match (`(?<!ae)bc`, "aabc"));	// => [2, 4]
+TEST861
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT861' ; then
+INPUT861
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT861' && $CMP $stdout $ftemp2; then
+[2, 4]
+nil
+[2, 4]
+[2, 4]
+nil
+[2, 4]
+OUTPUT861
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 862.
+if test $result = ok -a $start_test_number -le 862; then
+	echo test 862: A bug in Dino interface to ONIGURUMA
+        cat >$test_file <<'TEST862'
+println (match ("\\p{alpha}", "a"));
+TEST862
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT850' && $CMP $stderr $ftemp2; then
+test.d:1:16: run time Oniguruma error in `match' - invalid character property name {alpha}
+OUTPUT850
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 863.
+if test $result = ok -a $start_test_number -le 863; then
+	echo test 863: Nonascii command line program
+        echo '      ' "$DINO -c 'println ("б");' 2>$stderr"
+        if $DINO -c 'println ("б");' 2>$stderr >$stdout <<'INPUT863' ; then
+INPUT863
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT863' && $CMP $stdout $ftemp2; then
+"\u0431"
+OUTPUT863
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 864.
+if test $result = ok -a $start_test_number -le 864; then
+	echo test 864: Regex backspace
+        cat >$test_file <<'TEST864'
+println (match (`\b`, "\x08"));
+println (match (`[\b]`, "\x08"));
+TEST864
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout <<'INPUT864' ; then
+INPUT864
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT864' && $CMP $stdout $ftemp2; then
+nil
+[0, 1]
+OUTPUT864
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 865.
+if test $result = ok -a $start_test_number -le 865; then
+	echo test 865: try-operator
+        cat >$test_file <<'TEST865'
+var i;
+println (try (i = 5/0));
+println (try (i = 5/1, except));
+println (try (i = 5/0;, except));
+println (try (i = 5/0;, sigfpe));
+println (try (return 10));
+TEST865
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT865' && $CMP $stdout $ftemp2; then
+0
+1
+0
+0
+10
+OUTPUT865
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 866.
+if test $result = ok -a $start_test_number -le 866; then
+	echo test 866: Break in try-operator
+        cat >$test_file <<'TEST866'
+for (var i = 0; i < 10; i++)
+  try (break);
+TEST866
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT866' && $CMP $stderr $ftemp2; then
+test.d:2:8: statement break is not in for-statement or in match case
+OUTPUT866
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 867.
+if test $result = ok -a $start_test_number -le 867; then
+	echo test 867: try-operator with getln
+        cat >$test_file <<'TEST867'
+var ln;
+for (;try (ln = getln (), eof);)
+  println (ln);
+TEST867
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout  <<'INPUT867'; then
+one
+two
+three
+INPUT867
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT867' && $CMP $stdout $ftemp2; then
+"one"
+"two"
+"three"
+OUTPUT867
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 868.
+if test $result = ok -a $start_test_number -le 868; then
+	echo test 868: Folding concat operation
+        cat >$test_file <<'TEST868'
+var v1;
+v1 = []; println (.@v1[:]);
+v1 = [10, 42]; println (.@v1[:]);
+v1 = [10, 42.0]; println (.@v1[:]);
+v1 = ["a", 42]; println (.@v1[:]);
+v1 = [["a", "b"], [42, 24]]; println (.@v1[:]);
+TEST868
+        echo '      ' $DINO -t $test_file "2>$stderr"
+        if $DINO -t $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT868' && $CMP $stdout $ftemp2; then
+[]
+"1042"
+"1042"
+"a42"
+["a", "b", 42, 24]
+OUTPUT868
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 869.
+if test $result = ok -a $start_test_number -le 869; then
+	echo test 869: Wrong operand for folding concat
+        cat >$test_file <<'TEST869'
+var v1 = [10, 42]; println (.@ v1);
+TEST869
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT869' && $CMP $stderr $ftemp2; then
+test.d:1:32: run time error - wrong vector form for vector operation
+OUTPUT869
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 870.
+if test $result = ok -a $start_test_number -le 870; then
+	echo test 870: rmatch
+        cat >$test_file <<'TEST870'
+rmatch ("baaab") {
+case "aaa": put ("1:"); println (m); continue;
+case "(a)" @ "(a)" @ "(a)": put ("2:"); println (m); continue;
+case "aba": put ("3:"); println (m);
+case "^.aa": put ("4:"); println (m); continue;
+case "()aaa": put ("5:"); println (m); continue;
+case _: putln ("default");
+}
+TEST870
+        echo '      ' $DINO -t $test_file "2>$stderr"
+        if $DINO -t $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT870' && $CMP $stdout $ftemp2; then
+1:[1, 4]
+2:[1, 4, 1, 2, 2, 3, 3, 4]
+4:[0, 3]
+5:[1, 4, 1, 1]
+default
+OUTPUT870
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 871.
+if test $result = ok -a $start_test_number -le 871; then
+	echo test 871: Wrong case for rmatch
+        cat >$test_file <<'TEST871'
+rmatch ("aaaa") {
+case [10, 9]: putln ("wrong");
+}
+TEST871
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT871' && $CMP $stderr $ftemp2; then
+test.d:2:6: run time error - rmatch case expression is not a string
+OUTPUT871
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 872.
+if test $result = ok -a $start_test_number -le 872; then
+	echo test 872: Wrong usage of _ and ...
+        cat >$test_file <<'TEST872'
 rmatch ("aaaa") {
 case "[a-z]+": putln ("lower"); println (m);
 case _ + "a":
 case [...]:
 case [10, 9]:
 }
-TEST824
+TEST872
         echo '      ' $DINO '-O' $test_file ">$stdout"
         if $DINO -O $test_file 2>$stderr >$stdout; then
                 result=fail
         else
                 echo '      ' $CMP $ftemp2 $stderr
-                if cat >$ftemp2 <<'OUTPUT824' && $CMP $stderr $ftemp2; then
+                if cat >$ftemp2 <<'OUTPUT872' && $CMP $stderr $ftemp2; then
 test.d:3:6: `_' in expression
 test.d:4:7: `...' in expression
-OUTPUT824
+OUTPUT872
 			result=ok
                 else
                         result=fail
@@ -48913,10 +50265,10 @@ OUTPUT824
         fi
 fi
 
-# Test 825.
-if test $result = ok -a $start_test_number -le 825; then
-	echo test 825: Difference in pattern variable and value
-        cat >$test_file <<'TEST825'
+# Test 873.
+if test $result = ok -a $start_test_number -le 873; then
+	echo test 873: Difference in pattern variable and value
+        cat >$test_file <<'TEST873'
 val v = 20;
 pmatch (10) {
 case (v): putln ("val");
@@ -48927,14 +50279,14 @@ pmatch ([0, 10]) {
 case [0, (v)]: putln ("val");
 case [0, v]: putln ("var");
 }
-TEST825
+TEST873
         echo '      ' $DINO -t $test_file "2>$stderr"
         if $DINO -t $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
-                if cat >$ftemp2 <<'OUTPUT825' && $CMP $stdout $ftemp2; then
+                if cat >$ftemp2 <<'OUTPUT873' && $CMP $stdout $ftemp2; then
 var
 var
-OUTPUT825
+OUTPUT873
                         result=ok
                 else
                         result=fail

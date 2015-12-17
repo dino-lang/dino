@@ -32,7 +32,16 @@
    evaluation. */
 
 char ERR_no_memory[] = "no memory";
+char ERR_source_file_encoding[]
+  = "unknown or not implemented encoding `%s' of file `%s'";
+char ERR_non_ascii_source_file_encoding[]
+  = "encoding `%s' of file `%s' does not contain ascii byte codes";
+char ERR_file_decoding[] = "wrong encoding `%s' in a source file";
+char ERR_line_decoding[] = "wrong encoding `%s' during reading a line";
+char ERR_file_name_cannot_represented_in_current_encoding[]
+  = "can not represent string as file name using current encoding";
 char ERR_invalid_char_constant[] = "invalid character constant";
+char ERR_invalid_escape_code[] = "invalid escape hex or unicode code";
 char ERR_invalid_input_char[] = "invalid symbol";
 char ERR_octal_int_value[] = "octal int with non-octal digit";
 char ERR_float_value_not_in_decimal_base[] = "float is not in decimal base";
@@ -329,11 +338,21 @@ char DERR_none_class_or_fun_before_left_bracket []
   = "run time error - none class or function is before \"(\"";
 char DERR_parameter_type []
   = "run time error - invalid parameter type of `%s'";
+char DERR_parameter_value []
+  = "run time error - invalid parameter value for `%s'";
 char DERR_invalid_result []
   = "run time error - invalid function result used by function `%s'";;
 char DERR_invalid_input []
   = "run time error - invalid input read by function `%s'";;
 char DERR_invalid_format [] = "run time error - invalid format in `%s'";
+char DERR_too_big_ucode_for_byte_representation []
+  = "run time error - unicode is too big to be represented by a byte for `%s'";
+char DERR_in_ucode_encoding []
+  = "run time error - wrong unicode for encoding used by `%s'";
+char DERR_unexpected_input_encoding []
+  = "run time error - unexpected input for encoding used by `%s'";
+char DERR_non_ascii_default_encoding[]
+  = "encoding %s given for `%s' does not contain ascii byte codes";
 char DERR_eof_occured []
   = "run time error - EOF occured in `%s'";
 char DERR_parameters_number []
@@ -383,26 +402,7 @@ char DERR_no_shell []
   = "run time error - no shell found during call of `system'";
 char DERR_other_fail_in_system_call []
   = "run time error - fail during call of `system'";
-char DERR_reg_ebrack []
-  = "run time error - unmatched bracket list operators in regexp";
-char DERR_reg_erange []
-  = "run time error - invalid use of the range operator in regexp";
-char DERR_reg_ectype []
-  = "run time error - unknown character class name in regexp";
-char DERR_reg_eparen []
-  = "run time error - unmatched parenthesis group operators in regexp";
-char DERR_reg_esubreg []
-  = "run time error - invalid back reference to a subexpr. in regexp";
-char DERR_reg_eend []
-  = "run time error - non specific error in regexp";
-char DERR_reg_eescape []
-  = "run time error - invalid escape sequence in regexp";
-char DERR_reg_badpat []
-  = "run time error - invalid  use  of pattern operators in regexp";
-char DERR_reg_esize []
-  = "run time error - too big compiled regular expression";
-char DERR_reg_espace []
-  = "run time error - regexp routines ran out of memory";
+char DERR_regex [] = "run time Oniguruma error in `%s' - %s";
 char DERR_no_such_external []
   = "run time error - can not find external function %s";
 char DERR_library_close_error []

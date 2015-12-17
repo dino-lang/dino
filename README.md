@@ -59,6 +59,7 @@
     * Exception handling
     * Concurrency
     * Pattern matching
+    * Unicode 8 support
 
 
 ---
@@ -463,7 +464,7 @@ for (i = 0; i < n; i++);
     * SHILKA - fast keyword recognizer generator
     * AMMUNITION - different packages (source position handling, error reporting, Earley parser etc)
 * GMP - multi-precision integer library
-* GNU regex library
+* Oniguruma regexp library
 
 ---
 

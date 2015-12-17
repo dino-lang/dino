@@ -150,19 +150,16 @@ more detail later in the report.
   chumod         clock          close          closure
   cmpv           context        cos            curr_thread
   deadlock       del
-  eaccess        eagain         ebadf          ebrack
-  ebusy
-  echild         ectype         edeadlk        edom
-  eend           eescape        eexist         efault
-  efbig          eintr          einval         eio
-  eisdir         eltype         emfile         emlink
-  enametoolong   enfile         enodev         enoent
-  enoexec        enolck         enomem         enospc
-  enosys         enotdir        enotempty      enotty
-  env            enxio          eof            eparen
-  eperm          epipe          erange         erofs
-  error_anode    error          esize          espace
-  espipe         esrch          esubreg        exdev
+  eaccess        eagain         ebadf          ebusy
+  echild         edeadlk        edom           eexist
+  efault         efbig          eintr          einval
+  eio            eisdir         eltype         emfile
+  emlink         enametoolong   enfile         enodev
+  enoent         enoexec        enolck         enomem
+  enospc         enosys         enotdir        enotempty
+  enotty         env            enxio          eof
+  eperm          epipe          erofs          error_anode
+  error          espipe         esrch          exdev
   except         exit           exp
   fatime         fctime         fget           fgetf
   fgetln         fgmode         fgrpn          file
@@ -170,31 +167,31 @@ more detail later in the report.
   fomode         fprint         fprintln       fput
   fputln         fscan          fscanln        fsize
   ftype          fuidn          fumode
-  gc             get            getcwd         getegn
-  geteun         getgn          getgroups      getf
-  getln          getpid         getun          gmatch
-  gsub
+  gc             get            get_encoding   get_file_encoding
+  getcwd         getegn         geteun         getgn
+  getgroups      getf           getln          getpid
+  getun          gmatch         gsub
   immutable      indexop        indextype      indexvalue     
   ins            inside         insv           invaccess
-  invcall        invector       invenv         invenvar
-  invextern      invfmt         invgrammar     invindex
-  invinput       invkey         invop          invparser
-  invregexp      invresult      invslice       invtoken
-  isa            isatty
+  invcall        invector       invencoding    invenv
+  invenvar       invextern      invfmt         invgrammar
+  invindex       invinput       invkey         invop
+  invparser      invregex       invresult      invslice
+  invtoken       isa            isatty
   keyop          keys           keyvalue
   libclose       log            log10
   main_thread    match          matrixform     max
   min            mkdir
   nil_anode      noextern       noexternsupp   noshell
   open           optype         opvalue
-  parser         parnumber      partype        patternmatch
-  pclose         pmemory        popen          pow
-  print          println        put            putln
-  rand           readdir        remove         rename
-  rev            rmdir
-  scan           scanln         seek           signal
-  sigabrt        sigfpe         sigill         sigint
-  sigsegv        sigterm
+  parser         parnumber      partype        parvalue
+  patternmatch   pclose         pmemory        popen
+  pow            print          println        put
+  putln          rand           readdir        remove
+  rename         rev            rmdir
+  scan           scanln         seek           set_encoding
+  set_file_encoding signal      sigabrt        sigfpe
+  sigill         sigint         sigsegv        sigterm
   sin            sliceform      slicetype      sort
   split          split_regex    sprint         sprintln
   sput           sputln         sqrt           srand

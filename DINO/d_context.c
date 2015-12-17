@@ -244,6 +244,7 @@ first_expr_processing (IR_node_t expr, enum pattern_type pattern)
     case IR_NM_long:
     case IR_NM_float:
     case IR_NM_string:
+    case IR_NM_ucodestr:
     case IR_NM_nil:
     case IR_NM_char_type:
     case IR_NM_int_type:
@@ -2006,7 +2007,7 @@ bc_decl_mode (IR_node_t decl)
     return BC_NM_evar;
   else if (IR_NODE_MODE (decl) == IR_NM_external_fun)
     return BC_NM_efun;
-  else if (IR_NODE_MODE (decl) == IR_NM_fun) // ??? ifunc
+  else if (IR_NODE_MODE (decl) == IR_NM_fun) /* ??? ifunc */
     return BC_NM_fun;
   else if (IR_NODE_MODE (decl) == IR_NM_class)
     return BC_NM_class;
@@ -2346,6 +2347,13 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
       IR_set_value_type (expr, EVT_VEC);
       add_to_bcode (bc);
       break;
+    case IR_NM_ucodestr:
+      bc = new_bc_code_with_src (BC_NM_ldus, expr);
+      BC_set_op1 (bc, setup_result_var_number (result, curr_temp_vars_num));
+      BC_set_ustr (bc, IR_ucodestr_value (IR_unique_ucodestr (expr)));
+      IR_set_value_type (expr, EVT_VEC);
+      add_to_bcode (bc);
+      break;
     case IR_NM_nil:
       bc = new_bc_code_with_src (BC_NM_ldnil, expr);
       BC_set_op1 (bc, setup_result_var_number (result, curr_temp_vars_num));
@@ -2458,7 +2466,7 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	d_assert (! lvalue_p
 		  || result == NULL || *result == not_defined_result);
 	SET_SOURCE_POSITION (expr);
-	bc = new_bc_code_with_src (BC_NM_fld, expr); // ??? should be decl
+	bc = new_bc_code_with_src (BC_NM_fld, expr); /* ??? should be decl */
 	BC_set_fldid (bc,
 		      IR_ident_string (IR_unique_ident (IR_component (expr))));
 	IR_set_designator
