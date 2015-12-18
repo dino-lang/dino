@@ -31,6 +31,10 @@
 #include "d_inference.h"
 #include "d_run.h"
 
+/* Bcode internal representation uses only ISO 8859-1 (aka Latin-1).
+   Unicode chars in a string are always represented with escape codes
+   \u or \U.  */
+
 /* The line number of the last printed node. */
 static const char *curr_file_name = NULL;
 static unsigned curr_line_number = 0;
@@ -43,7 +47,19 @@ print_str (const char *str)
 
   printf ("\"");
   for (s = str; *s != '\0'; s++)
-    printf ("%s", get_ch_repr (*s));
+    printf ("%s", get_ucode_ascii_repr (*s));
+  printf ("\"");
+}
+
+/* Print representation of unicode string STR. */
+static void
+print_ustr (const ucode_t *str)
+{
+  const ucode_t *s;
+
+  printf ("\"");
+  for (s = str; *s != '\0'; s++)
+    printf ("%s", get_ucode_ascii_repr (*s));
   printf ("\"");
 }
 
@@ -143,7 +159,7 @@ dump_code (BC_node_t infos, int indent)
 	case BC_NM_ldch:
 	  printf (" op1=%d op2=%d // %d <- ",
 		  BC_op1 (bc), BC_op2 (bc), BC_op1 (bc));
-	  if (isgraph (BC_op2 (bc)))
+	  if (isgraph_ascii (BC_op2 (bc)))
 	    printf ("(%c -- %x)", BC_op2 (bc), BC_op2 (bc));
 	  else
 	    printf ("d(%x)", BC_op2 (bc));
@@ -185,6 +201,11 @@ dump_code (BC_node_t infos, int indent)
 	case BC_NM_lds:
 	  printf (" op1=%d str=", BC_op1 (bc));
 	  print_str (BC_str (bc));
+	  printf (" // %d <- string", BC_op1 (bc));
+	  break;
+	case BC_NM_ldus:
+	  printf (" op1=%d ustr=", BC_op1 (bc));
+	  print_ustr (BC_ustr (bc));
 	  printf (" // %d <- string", BC_op1 (bc));
 	  break;
 	case BC_NM_fld:
@@ -229,6 +250,7 @@ dump_code (BC_node_t infos, int indent)
 	case BC_NM_fold_and:
 	case BC_NM_fold_xor:
 	case BC_NM_fold_or:
+	case BC_NM_fold_concat:
 	case BC_NM_const:
 	case BC_NM_new:
 	case BC_NM_tpof:
@@ -756,6 +778,21 @@ dump_code (BC_node_t infos, int indent)
 	  if (BC_ch_op5 (bc) != 2)
 	    printf (", val with %s", BC_ch_op5 (bc) ? " assign" : "compare");
 	  break;
+	case BC_NM_rmatch:
+	  printf (" op1=%d ch_op2=%d ch_op3=%d", BC_op1 (bc), BC_ch_op2 (bc), BC_ch_op3 (bc));
+	  if ((cl = BC_fail_pc (bc)) != NULL)
+	    printf (" fail_pc=%d", BC_idn (BC_info (BC_fail_pc (bc))));
+	  printf (" // %d <- regexp_match (%d, %d)",
+		  BC_op1 (bc), BC_ch_op2 (bc), BC_ch_op3 (bc));
+	  break;
+	case BC_NM_rmatchs:
+	  printf (" op1=%d ch_op2=%d rm_str=", BC_op1 (bc), BC_ch_op2 (bc));
+	  print_str (BC_rm_str (bc));
+	  if ((cl = BC_fail_pc (bc)) != NULL)
+	    printf (" fail_pc=%d", BC_idn (BC_info (BC_fail_pc (bc))));
+	  printf (" // %d <- regexp_match (%d, string)",
+		  BC_op1 (bc), BC_ch_op2 (bc));
+	  break;
 	default:
 	  /* Other nodes should not occur here. */
 	  d_unreachable ();
@@ -785,7 +822,8 @@ enum token
   D_INT,
   D_LONG,
   D_FLOAT,
-  D_STRING
+  D_STRING,
+  D_UCODESTR
 };
 
 /* The token attributes. */
@@ -794,6 +832,7 @@ static union
   rint_t i;
   rfloat_t f;
   const char *str;
+  const ucode_t *ustr;
 } token_attr;
 
 /* We keep it here as it needs initialization/finalization only once.  */
@@ -806,8 +845,7 @@ static position_t curr_token_position;
 /* Input BC file. */
 static FILE *input_file;
 
-/* The variable is used for implementation of getc when reading from
-   the command line string. */
+/* The variable is used for implementation of bc_ungetc.  */
 static int previous_char;
 
 /* Getc for byte code reader.  Replacing "\r\n" onto "\n". */
@@ -817,8 +855,8 @@ bc_getc (void)
   int result;
 
   d_assert (input_file != NULL);
-  if (previous_char != '\r')
-    result = getc (input_file);
+  if (previous_char == NOT_A_CHAR)
+    result = dino_getc (input_file);
   else
     {
       result = previous_char;
@@ -826,7 +864,7 @@ bc_getc (void)
     }
   if (result == '\r')
     {
-      result = getc (input_file);
+      result = dino_getc (input_file);
       if (result != '\n')
 	{
 	  ungetc (result, input_file);
@@ -841,40 +879,50 @@ static void
 bc_ungetc (int ch)
 {
   d_assert (input_file != NULL);
-  if (ch != '\r')
-    ungetc (ch, input_file);
-  else
-    previous_char = ch;
+  d_assert (previous_char == NOT_A_CHAR);
+  previous_char = ch;
 }
 
 /* The string hash table. */
 static hash_table_t string_hash_table;
 
-/* Func for evaluation of hash value of STR. */
+/* The unicode string hash table. */
+static hash_table_t ucodestr_hash_table;
+
+/* Func for evaluation of hash value of unicode string STR. */
 static unsigned
-hash_func (hash_table_entry_t str)
+ustr_hash_func (hash_table_entry_t str)
 {
-  const char *s = str;
+  const ucode_t *s = str;
   unsigned int i, hash_value;
 
   for (hash_value = i = 0; *s != 0; i++, s++)
-    hash_value += (*s) << (i & 0xf);
+    hash_value += (*s) << (i & 0x7);
   return hash_value;
 }
 
-/* Func used for comparison of strings represented by STR1 and STR2.
-   Return TRUE if the elements represent equal string. */
+/* Func used for comparison of unicode strings represented by STR1 and
+   STR2.  Return TRUE if the elements represent equal string. */
 static int
-compare_func (hash_table_entry_t str1, hash_table_entry_t str2)
+ustr_compare_func (hash_table_entry_t str1, hash_table_entry_t str2)
 {
-  return strcmp (str1, str2) == 0;
+  size_t i;
+  const ucode_t *s1 = str1, *s2 = str2;
+  
+  for (i = 0;; i++)
+    if (s1[i] != s2[i])
+      return FALSE;
+    else if (s1[i] == 0)
+      return TRUE;
 }
 
 /* Create the string hash table. */
 static void
-initiate_string_table (void)
+initiate_string_tables (void)
 {
-  string_hash_table = create_hash_table (1000, hash_func, compare_func);
+  string_hash_table = create_hash_table (1000, str_hash_func, str_compare_func);
+  ucodestr_hash_table = create_hash_table (1000,
+					   ustr_hash_func, ustr_compare_func);
 }
 
 /* Include STR into string table if it is necessary and return the
@@ -898,16 +946,43 @@ string_to_table (const char *str)
   return string_in_table;
 }
 
-/* Delete the string hash table. */
+/* Include unicode STR into unicode string table if it is necessary
+   and return the string in the table. */
+static const ucode_t *
+ucodestr_to_table (const ucode_t *str)
+{
+  size_t len;
+  const ucode_t **table_entry_pointer;
+  ucode_t *string_in_table;
+  
+  table_entry_pointer
+    = (const ucode_t **) find_hash_table_entry (ucodestr_hash_table,
+						(hash_table_entry_t) str, TRUE);
+  if (*table_entry_pointer != NULL)
+    return *table_entry_pointer;
+  len = ucodestrlen (str) + 1;
+  OS_TOP_EXPAND (read_bc, len);
+  string_in_table = OS_TOP_BEGIN (read_bc);
+  OS_TOP_FINISH (read_bc);
+  memcpy (string_in_table, str, len);
+  *table_entry_pointer = string_in_table;
+  return string_in_table;
+}
+
+/* Delete the string hash tables. */
 static void
-delete_string_table (void)
+delete_string_tables (void)
 {
   delete_hash_table (string_hash_table);
+  delete_hash_table (ucodestr_hash_table);
 }
 
 /* Var length string used by func yylval for text presentation of the
    symbol. */
 static vlo_t symbol_text;
+
+/* Temporary container.  */
+static vlo_t temp_vlo;
 
 /* The following func recognizes next source symbol from the input
    file, returns its code, modifies var current_position so that its
@@ -977,32 +1052,64 @@ get_token (void)
           return curr_token = D_EOF;
         case '\"':
           {
-            int correct_newln;
-            
+            int unicode_p, correct_newln, wrong_escape_code;
+	    ucode_t ch;
+	    
 	    curr_token_position = current_position;
 	    current_position.column_number++;
+	    unicode_p = FALSE;
             for (;;)
               {
-                input_char = bc_getc ();
+                ch = bc_getc ();
 		current_position.column_number++;
-                if (input_char == '\"')
+                if (ch == '\"')
                   break;
-                input_char = read_string_code (input_char, &correct_newln,
-					       bc_getc, bc_ungetc);
-                if (input_char < 0)
+                ch = read_dino_string_code (ch, &correct_newln,
+					    &wrong_escape_code,
+					    bc_getc, bc_ungetc);
+                if (ch < 0)
                   {
                     error (FALSE, current_position, ERR_string_end_absence);
                     break;
                   }
+                if (wrong_escape_code)
+                  {
+		    error (FALSE, current_position, ERR_invalid_escape_code);
+                    continue;
+                  }
                 if (!correct_newln)
-                  VLO_ADD_BYTE (symbol_text, input_char);
+		  {
+		    if (! unicode_p && ! in_byte_range_p (ch))
+		      {
+			unicode_p = TRUE;
+			copy_vlo (&temp_vlo, &symbol_text);
+			str_to_ucode_vlo (&symbol_text,
+					  VLO_BEGIN (temp_vlo),
+					  VLO_LENGTH (symbol_text));
+			
+		      }
+		    if (unicode_p)
+		      VLO_ADD_MEMORY (symbol_text, &ch, sizeof (ucode_t));
+		    else
+		      VLO_ADD_BYTE (symbol_text, ch);
+		  }
               }
-            VLO_ADD_BYTE (symbol_text, '\0');
-	    token_attr.str = string_to_table (VLO_BEGIN (symbol_text));
-            return curr_token = D_STRING;
+	    if (unicode_p)
+	       {
+		ch = '\0';
+		VLO_ADD_MEMORY (symbol_text, &ch, sizeof (ucode_t));
+		token_attr.ustr = ucodestr_to_table (VLO_BEGIN (symbol_text));
+		return curr_token = D_STRING;
+	      }
+	    else
+	      {
+		VLO_ADD_BYTE (symbol_text, '\0');
+		token_attr.str = string_to_table (VLO_BEGIN (symbol_text));
+		return curr_token = D_STRING;
+	      }
           }
         default:
-          if (isalpha (input_char) || input_char == '_' )
+          if (isalpha_ascii (input_char) || input_char == '_' )
             {
 	      curr_token_position = current_position;
               /* Ident recognition. */
@@ -1012,15 +1119,15 @@ get_token (void)
                   VLO_ADD_BYTE (symbol_text, input_char);
                   input_char = bc_getc ();
                 }
-              while (isalpha (input_char)
-		     || isdigit (input_char)
+              while (isalpha_ascii (input_char)
+		     || isdigit_ascii (input_char)
                      || input_char == '_');
               bc_ungetc (input_char);
               VLO_ADD_BYTE (symbol_text, '\0');
 	      token_attr.str = string_to_table (VLO_BEGIN (symbol_text));
 	      return curr_token = D_IDENT;
             }
-          else if (input_char == '-' || isdigit (input_char))
+          else if (input_char == '-' || isdigit_ascii (input_char))
             {
               /* Recognition numbers. */
 	      int float_flag = FALSE, long_flag = FALSE;
@@ -1033,7 +1140,7 @@ get_token (void)
                   VLO_ADD_BYTE (symbol_text, input_char);
                   input_char = bc_getc ();
                 }
-              while (isdigit (input_char));
+              while (isdigit_ascii (input_char));
               if (input_char == '.')
                 {
                   float_flag = TRUE;
@@ -1045,7 +1152,7 @@ get_token (void)
 	              VLO_ADD_BYTE (symbol_text, input_char);
                       input_char = bc_getc ();
                     }
-	          while (isdigit (input_char));
+	          while (isdigit_ascii (input_char));
                 }
               if (input_char == 'e' || input_char == 'E')
                 {
@@ -1053,7 +1160,7 @@ get_token (void)
 		  current_position.column_number++;
                   input_char = bc_getc ();
 		  if (input_char != '+' && input_char != '-'
-		      && !isdigit (input_char))
+		      && !isdigit_ascii (input_char))
                     error (FALSE, current_position, ERR_exponent_absence);
 		  else
                     {
@@ -1066,7 +1173,7 @@ get_token (void)
 			  VLO_ADD_BYTE (symbol_text, input_char);
 			  input_char = bc_getc ();
 			}
-		      while (isdigit (input_char));
+		      while (isdigit_ascii (input_char));
                     }
                 }
 	      else if (! float_flag && (input_char == 'l' || input_char == 'L'))
@@ -1249,7 +1356,7 @@ get_decl (int label)
      label : D_INT
      nodename : D_IDENT
      field : D_IDENT '=' value
-     value : D_INT | D_LONG | D_FLOAT | D_IDENT | D_STRING
+     value : D_INT | D_LONG | D_FLOAT | D_IDENT | D_STRING | D_UCODESTR
 
    Some fields are not obligatory as they have a default value.  Some
    fields represent nodes different from node where they present
@@ -1278,6 +1385,7 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
   VLO_CREATE (decl_map, 2048);
   if (info_p)
     VLO_CREATE (block_infos, 2048);
+  previous_char = NOT_A_CHAR;
   for (skip_ln = FALSE;;)
     {
       get_token ();
@@ -1575,6 +1683,13 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	      if (check_fld (BC_NM_lds, D_STRING)) goto fail;
 	      BC_set_str (curr_node, token_attr.str);
 	      break;
+	    case FR_rm_str:
+	      if (check_fld (BC_NM_rmatchs, D_STRING)) goto fail;
+	      BC_set_rm_str (curr_node, token_attr.str);
+	    case FR_ustr:
+	      if (check_fld (BC_NM_ldus, D_UCODESTR)) goto fail;
+	      BC_set_ustr (curr_node, token_attr.ustr);
+	      break;
 	    case FR_fldid:
 	      if (check_fld (BC_NM_field, D_IDENT)) goto fail;
 	      BC_set_fldid (curr_node, token_attr.str);
@@ -1707,6 +1822,8 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
       check_fld_set (BC_NM_objomicall, FR_mfblock, "mfblock");
       check_fld_set (BC_NM_ldf, FR_f, "f");
       check_fld_set (BC_NM_lds, FR_str, "str");
+      check_fld_set (BC_NM_rmatchs, FR_rm_str, "rm_str");
+      check_fld_set (BC_NM_ldus, FR_ustr, "ustr");
       check_fld_set (BC_NM_field, FR_fldid, "fldid");
       check_fld_set (BC_NM_mcall, FR_mid, "mid");
       check_fld_set (BC_NM_foreach, FR_body_pc, "body_pc");
@@ -1918,9 +2035,10 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 void
 initiate_read_bc (void)
 {
+  VLO_CREATE (temp_vlo, 0);
   VLO_CREATE (symbol_text, 0);
   OS_CREATE (read_bc, 0);
-  initiate_string_table ();
+  initiate_string_tables ();
 }
 
 /* Finilize data structures for read byte code.  It should be done
@@ -1929,7 +2047,8 @@ initiate_read_bc (void)
 void
 finish_read_bc (void)
 {
-  delete_string_table ();
+  delete_string_tables ();
   OS_DELETE (read_bc);
   VLO_DELETE (symbol_text);
+  VLO_DELETE (temp_vlo);
 }

@@ -44,6 +44,7 @@ ldch		{return BC_NM_ldch;}
 ldtp		{return BC_NM_ldtp;}
 ldf		{return BC_NM_ldf;}
 lds		{return BC_NM_lds;}
+ldus		{return BC_NM_ldus;}
 var		{return BC_NM_var;}
 lvar		{return BC_NM_lvar;}
 lvarv		{return BC_NM_lvarv;}
@@ -283,4 +284,6 @@ chtend		{return BC_NM_chtend;}
 chst		{return BC_NM_chst;}
 chstel		{return BC_NM_chstel;}
 chstend		{return BC_NM_chstend;}
+rmatch		{return BC_NM_rmatch;}
+rmatchs		{return BC_NM_rmatchs;}
 %other {return 0;}

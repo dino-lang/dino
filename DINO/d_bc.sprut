@@ -24,8 +24,8 @@
 
 */
 
-%type position_t int_t rint_t gmp_t rfloat_t string_t bool_t fun_mode_t
-      implementation_fun_t ticker_t ER_hidden_node_t void_ptr_t
+%type position_t int_t rint_t gmp_t rfloat_t string_t ucodestr_t bool_t
+      fun_mode_t implementation_fun_t ticker_t ER_hidden_node_t void_ptr_t
 
 %import {
 
@@ -36,8 +36,6 @@ typedef int int_t;
 typedef void *void_ptr_t;
 
 typedef struct ER_node *ER_hidden_node_t;
-
-typedef const char *string_t;
 
 typedef enum
 {
@@ -177,6 +175,9 @@ extern BC_node_t callop_bc_decl;
 #define PARTYPE_NAME "partype"
 extern BC_node_t partype_bc_decl;
 
+#define PARVALUE_NAME "parvalue"
+extern BC_node_t parvalue_bc_decl;
+
 #define INVRESULT_NAME "invresult"
 extern BC_node_t invresult_bc_decl;
 
@@ -185,6 +186,9 @@ extern BC_node_t invinput_bc_decl;
 
 #define INVFMT_NAME "invfmt"
 extern BC_node_t invfmt_bc_decl;
+
+#define INVENCODING_NAME "invencoding"
+extern BC_node_t invencoding_bc_decl;
 
 #define EOF_NAME "eof"
 extern BC_node_t eof_bc_decl;
@@ -315,38 +319,8 @@ extern BC_node_t noshell_bc_decl;
 #define SYSTEMFAIL_NAME "systemfail"
 extern BC_node_t systemfail_bc_decl;
 
-#define INVREGEXP_NAME "invregexp"
-extern BC_node_t invregexp_bc_decl;
-
-#define EBRACK_NAME "ebrack"
-extern BC_node_t ebrack_bc_decl;
-
-#define REG_ERANGE_NAME "erange"
-extern BC_node_t reg_erange_bc_decl;
-
-#define ECTYPE_NAME "ectype"
-extern BC_node_t ectype_bc_decl;
-
-#define EPAREN_NAME "eparen"
-extern BC_node_t eparen_bc_decl;
-
-#define ESUBREG_NAME "esubreg"
-extern BC_node_t esubreg_bc_decl;
-
-#define EEND_NAME "eend"
-extern BC_node_t eend_bc_decl;
-
-#define EESCAPE_NAME "eescape"
-extern BC_node_t eescape_bc_decl;
-
-#define BADPAT_NAME "badpat"
-extern BC_node_t badpat_bc_decl;
-
-#define ESIZE_NAME "esize"
-extern BC_node_t esize_bc_decl;
-
-#define ESPACE_NAME "espace"
-extern BC_node_t espace_bc_decl;
+#define INVREGEX_NAME "invregex"
+extern BC_node_t invregex_bc_decl;
 
 #define INVPARSER_NAME "invparser"
 extern BC_node_t invparser_bc_decl;
@@ -468,6 +442,24 @@ extern BC_node_t file_bc_decl;
 
 #define FILE_PTR_NAME "file_ptr"
 extern BC_node_t file_ptr_bc_decl;
+
+#define UNGET_CHAR_NAME "unget_char"
+extern BC_node_t unget_char_bc_decl;
+
+#define FILE_ICD_NAME "file_icd"
+extern BC_node_t file_icd_bc_decl;
+
+#define FILE_BYTE_OCD_NAME "file_byte_ocd"
+extern BC_node_t file_byte_ocd_bc_decl;
+
+#define FILE_UCODE_OCD_NAME "file_ucode_ocd"
+extern BC_node_t file_ucode_ocd_bc_decl;
+
+#define FILE_ENCODING_NAME "file_encoding"
+extern BC_node_t file_encoding_bc_decl;
+
+#define FILE_ENCODING_TYPE_NAME "file_encoding_type"
+extern BC_node_t file_encoding_type_bc_decl;
 
 #define STDIN_NAME "stdin"
 extern BC_node_t stdin_bc_decl;
@@ -796,6 +788,18 @@ extern BC_node_t map_bc_decl;
 #define TRANSPOSE_NAME "transpose"
 extern BC_node_t transpose_bc_decl;
 
+#define SET_ENCODING_NAME "set_encoding"
+extern BC_node_t set_encoding_bc_decl;
+
+#define GET_ENCODING_NAME "get_encoding"
+extern BC_node_t get_encoding_bc_decl;
+
+#define SET_FILE_ENCODING_NAME "set_file_encoding"
+extern BC_node_t set_file_encoding_bc_decl;
+
+#define GET_FILE_ENCODING_NAME "get_file_encoding"
+extern BC_node_t get_file_encoding_bc_decl;
+
 #define INIT_NAME "__init__"
 extern BC_node_t init_bc_decl;
 
@@ -930,6 +934,11 @@ lds :: op1 /* result place */
         str : string_t;
 ;
 
+ldus :: op1 /* unicode string */
+%other
+        ustr : ucodestr_t;
+;
+
 /* non-local / external var value / reference [and value].
    Decl is vdecl (var, lvar, lvarv), evdecl (evar, levar, levarv)  */
 var, lvar, lvarv, evar, levar, levarv :: op1_decl; /* result place */
@@ -965,7 +974,7 @@ inot, iplus, iminus, ibnot :: op2;
 fplus, fminus :: op2;
 
 /* vector folding operation (info is source2: pos2 is an operand one): */
-fold_add, fold_mult, fold_and, fold_or, fold_xor :: fold_op
+fold_add, fold_mult, fold_and, fold_or, fold_xor, fold_concat :: fold_op
 ;
 
 /* result and two operand places.  */
@@ -1170,6 +1179,16 @@ chstend :: check2i; /* check that stack op1 has immed op2 params */
    is 2, don't assign or check equality (op3 is ignored in this
    case). */
 chstel :: check5i45;
+
+/* Check that string ch_op2 matches regexp ch_op3.  The result of
+   matching (array of indexes) is put into op.  */
+rmatch :: check3;
+
+/* As above but regexp is given as string  */
+rmatchs :: check2
+%other
+     rm_str : string_t
+;
 
 /* These codes represent printing expr in REPL.  It is never output or
    input.  Code rpr_def never prints undefined values (e.g. proc call
@@ -1508,9 +1527,11 @@ BC_node_t invcall_bc_decl;
 BC_node_t abstrcall_bc_decl;
 BC_node_t callop_bc_decl;
 BC_node_t partype_bc_decl;
+BC_node_t parvalue_bc_decl;
 BC_node_t invresult_bc_decl;
 BC_node_t invinput_bc_decl;
 BC_node_t invfmt_bc_decl;
+BC_node_t invencoding_bc_decl;
 BC_node_t eof_bc_decl;
 BC_node_t parnumber_bc_decl;
 BC_node_t syncthreadcall_bc_decl;
@@ -1560,17 +1581,7 @@ BC_node_t internal_bc_decl;
 BC_node_t systemcall_bc_decl;
 BC_node_t noshell_bc_decl;
 BC_node_t systemfail_bc_decl;
-BC_node_t invregexp_bc_decl;
-BC_node_t ebrack_bc_decl;
-BC_node_t reg_erange_bc_decl;
-BC_node_t ectype_bc_decl;
-BC_node_t eparen_bc_decl;
-BC_node_t esubreg_bc_decl;
-BC_node_t eend_bc_decl;
-BC_node_t eescape_bc_decl;
-BC_node_t badpat_bc_decl;
-BC_node_t esize_bc_decl;
-BC_node_t espace_bc_decl;
+BC_node_t invregex_bc_decl;
 BC_node_t invparser_bc_decl;
 BC_node_t invgrammar_bc_decl;
 BC_node_t invtoken_bc_decl;
@@ -1605,6 +1616,12 @@ BC_node_t int_earley_parse_bc_decl;
 BC_node_t int_earley_create_grammar_bc_decl;
 BC_node_t file_bc_decl;
 BC_node_t file_ptr_bc_decl;
+BC_node_t unget_char_bc_decl;
+BC_node_t file_icd_bc_decl;
+BC_node_t file_byte_ocd_bc_decl;
+BC_node_t file_ucode_ocd_bc_decl;
+BC_node_t file_encoding_bc_decl;
+BC_node_t file_encoding_type_bc_decl;
 BC_node_t stdin_bc_decl;
 BC_node_t stdout_bc_decl;
 BC_node_t stderr_bc_decl;
@@ -1714,6 +1731,10 @@ BC_node_t fold_bc_decl;
 BC_node_t filter_bc_decl;
 BC_node_t map_bc_decl;
 BC_node_t transpose_bc_decl;
+BC_node_t set_encoding_bc_decl;
+BC_node_t get_encoding_bc_decl;
+BC_node_t set_file_encoding_bc_decl;
+BC_node_t get_file_encoding_bc_decl;
 BC_node_t init_bc_decl;
 
 struct bc_decl_entry
@@ -1762,9 +1783,11 @@ static struct bc_decl_entry bc_decls_table [] =
   {&abstrcall_bc_decl, ABSTRCALL_NAME, NULL, NULL},
   {&callop_bc_decl, CALLOP_NAME, NULL, NULL},
   {&partype_bc_decl, PARTYPE_NAME, NULL, NULL},
+  {&parvalue_bc_decl, PARVALUE_NAME, NULL, NULL},
   {&invresult_bc_decl, INVRESULT_NAME, NULL, NULL},
   {&invinput_bc_decl, INVINPUT_NAME, NULL, NULL},
   {&invfmt_bc_decl, INVFMT_NAME, NULL, NULL},
+  {&invencoding_bc_decl, INVENCODING_NAME, NULL, NULL},
   {&eof_bc_decl, EOF_NAME, NULL, NULL},
   {&parnumber_bc_decl, PARNUMBER_NAME, NULL, NULL},
   {&syncthreadcall_bc_decl, SYNCTHREADCALL_NAME, NULL, NULL},
@@ -1808,17 +1831,7 @@ static struct bc_decl_entry bc_decls_table [] =
   {&systemcall_bc_decl, SYSTEMCALL_NAME, NULL, NULL},
   {&noshell_bc_decl, NOSHELL_NAME, NULL, NULL},
   {&systemfail_bc_decl, SYSTEMFAIL_NAME, NULL, NULL},
-  {&invregexp_bc_decl, INVREGEXP_NAME, NULL, NULL},
-  {&ebrack_bc_decl, EBRACK_NAME, NULL, NULL},
-  {&reg_erange_bc_decl, REG_ERANGE_NAME, NULL, NULL},
-  {&ectype_bc_decl, ECTYPE_NAME, NULL, NULL},
-  {&eparen_bc_decl, EPAREN_NAME, NULL, NULL},
-  {&esubreg_bc_decl, ESUBREG_NAME, NULL, NULL},
-  {&eend_bc_decl, EEND_NAME, NULL, NULL},
-  {&eescape_bc_decl, EESCAPE_NAME, NULL, NULL},
-  {&badpat_bc_decl, BADPAT_NAME, NULL, NULL},
-  {&esize_bc_decl, ESIZE_NAME, NULL, NULL},
-  {&espace_bc_decl, ESPACE_NAME, NULL, NULL},
+  {&invregex_bc_decl, INVREGEX_NAME, NULL, NULL},
   {&invparser_bc_decl, INVPARSER_NAME, NULL, NULL},
   {&invgrammar_bc_decl, INVGRAMMAR_NAME, NULL, NULL},
   {&invtoken_bc_decl, INVTOKEN_NAME, NULL, NULL},
@@ -1869,6 +1882,12 @@ static struct bc_decl_entry bc_decls_table [] =
    &parser_bc_decl, int_earley_create_grammar},
   {&file_bc_decl, FILE_NAME, NULL, NULL},
   {&file_ptr_bc_decl, FILE_PTR_NAME, &file_bc_decl, NULL},
+  {&unget_char_bc_decl, UNGET_CHAR_NAME, &file_bc_decl, NULL},
+  {&file_icd_bc_decl, FILE_ICD_NAME, &file_bc_decl, NULL},
+  {&file_byte_ocd_bc_decl, FILE_BYTE_OCD_NAME, &file_bc_decl, NULL},
+  {&file_ucode_ocd_bc_decl, FILE_UCODE_OCD_NAME, &file_bc_decl, NULL},
+  {&file_encoding_bc_decl, FILE_ENCODING_NAME, &file_bc_decl, NULL},
+  {&file_encoding_type_bc_decl, FILE_ENCODING_TYPE_NAME, &file_bc_decl, NULL},
   {&stdin_bc_decl, STDIN_NAME, NULL, NULL},
   {&stdout_bc_decl, STDOUT_NAME, NULL, NULL},
   {&stderr_bc_decl, STDERR_NAME, NULL, NULL},
@@ -1977,6 +1996,10 @@ static struct bc_decl_entry bc_decls_table [] =
   {&filter_bc_decl, FILTER_NAME, NULL, filter_call},
   {&map_bc_decl, MAP_NAME, NULL, map_call},
   {&transpose_bc_decl, TRANSPOSE_NAME, NULL, transpose_call},
+  {&set_encoding_bc_decl, SET_ENCODING_NAME, NULL, set_encoding_call},
+  {&get_encoding_bc_decl, GET_ENCODING_NAME, NULL, get_encoding_call},
+  {&set_file_encoding_bc_decl, SET_FILE_ENCODING_NAME, NULL, set_file_encoding_call},
+  {&get_file_encoding_bc_decl, GET_FILE_ENCODING_NAME, NULL, get_file_encoding_call},
   {&init_bc_decl, INIT_NAME, NULL, init_call}
 };
 
@@ -2178,7 +2201,9 @@ print_node (FILE *f, BC_node_t bc)
       else
 	print_op (f, TRUE, BC_ch_op5 (bc));
     }
-  if (BC_IS_OF_TYPE (bc, BC_NM_check))
+  if (BC_IS_OF_TYPE (bc, BC_NM_check)
+      && BC_NODE_MODE (bc) != BC_NM_rmatch
+      && BC_NODE_MODE (bc) != BC_NM_rmatchs)
     fprintf (f, ", (pc_t) 0x%lx", BC_fail_pc (bc));
   if (BC_IS_OF_TYPE (bc, BC_NM_br))
     fprintf (f, ")) goto l%d;\n", BC_label_num (BC_info (BC_pc (bc))));

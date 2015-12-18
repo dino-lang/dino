@@ -621,7 +621,7 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
       break;
     case BC_NM_ldnil: case BC_NM_ldthis:
     case BC_NM_ldi: case BC_NM_ldbi: case BC_NM_ldch: case BC_NM_ldtp:
-    case BC_NM_ldl: case BC_NM_ldf: case BC_NM_lds:
+    case BC_NM_ldl: case BC_NM_ldf: case BC_NM_lds: case BC_NM_ldus:
     case BC_NM_var: case BC_NM_evar:
     case BC_NM_fun: case BC_NM_efun: case BC_NM_class:
       if (! result_p)
@@ -711,7 +711,7 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
     case BC_NM_tpof: case BC_NM_chof: case BC_NM_iof:
     case BC_NM_lof: case BC_NM_fof: case BC_NM_vecof: case BC_NM_tabof:
     case BC_NM_fold_add: case BC_NM_fold_mult: case BC_NM_fold_and:
-    case BC_NM_fold_or: case BC_NM_fold_xor:
+    case BC_NM_fold_or: case BC_NM_fold_xor: case BC_NM_fold_concat:
     case BC_NM_addi: case BC_NM_multi: case BC_NM_eqi: case BC_NM_nei:
     case BC_NM_lti: case BC_NM_gti: case BC_NM_lei: case BC_NM_gei:
     case BC_NM_iaddi: case BC_NM_imulti: case BC_NM_ieqi: case BC_NM_inei:
@@ -921,7 +921,7 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
 	return NO_MORE_OPERAND;
       else
 	{
-	  if  (nop == 0 && BC_ch_op5 (bc))
+	  if (nop == 0 && BC_ch_op5 (bc))
 	    res = BC_ch_op4 (bc);
 	  else
 	    return NO_MORE_OPERAND;
@@ -932,7 +932,7 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
 	return NO_MORE_OPERAND;
       else
 	{
-	  if  (nop == 0 && BC_ch_op4 (bc))
+	  if (nop == 0 && BC_ch_op4 (bc))
 	    res = BC_ch_op3 (bc);
 	  else
 	    return NO_MORE_OPERAND;
@@ -943,8 +943,21 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
 	return NO_MORE_OPERAND;
       else
 	{
-	  if  (nop == 0 && BC_ch_op5 (bc))
+	  if (nop == 0 && BC_ch_op5 (bc))
 	    res = BC_ch_op3 (bc);
+	  else
+	    return NO_MORE_OPERAND;
+	}
+      break;
+    case BC_NM_rmatch:
+    case BC_NM_rmatchs:
+      if (! result_p)
+	return NO_MORE_OPERAND; /* We don't calculate operand types
+				   for rmatch.  */
+      else
+	{
+	  if (nop == 0)
+	    res = BC_op1 (bc);
 	  else
 	    return NO_MORE_OPERAND;
 	}
@@ -1804,7 +1817,7 @@ type_transf (node_t node)
     case BC_NM_ldf: case BC_NM_fof:
       res_tp = TP_float;
       break;
-    case BC_NM_lds: case BC_NM_vec: case BC_NM_vecof: case BC_NM_fmtvecof:
+    case BC_NM_lds: case BC_NM_ldus: case BC_NM_vec: case BC_NM_vecof: case BC_NM_fmtvecof:
       res_tp = TP_vec;
       break;
     case BC_NM_tab: case BC_NM_tabof:
@@ -1870,8 +1883,8 @@ type_transf (node_t node)
       t2 = insn->types[1]; /* slice/vec(converted to vec)/tab */
       res_tp = TP_int;
       break;
-    case BC_NM_fold_add: case BC_NM_fold_mult:
-    case BC_NM_fold_and: case BC_NM_fold_or: case BC_NM_fold_xor:
+    case BC_NM_fold_add: case BC_NM_fold_mult: case BC_NM_fold_and:
+    case BC_NM_fold_or: case BC_NM_fold_xor: case BC_NM_fold_concat:
       res_tp = TP_varying; /* int/float/long/slice depended on els */
       break;
     case BC_NM_in:
@@ -2009,6 +2022,9 @@ type_transf (node_t node)
       if (! BC_ch_op5 (bc))
 	return FALSE;
       break;
+    case BC_NM_rmatch:
+    case BC_NM_rmatchs:
+      break;
     default:
       d_assert (FALSE);
     }
@@ -2050,7 +2066,7 @@ specialize_insn (df_insn_t insn)
     case BC_NM_ldi: case BC_NM_ldbi: case BC_NM_iof:
     case BC_NM_ldl: case BC_NM_lof:
     case BC_NM_ldf: case BC_NM_fof:
-    case BC_NM_lds: case BC_NM_vec: case BC_NM_vecof: case BC_NM_fmtvecof:
+    case BC_NM_lds: case BC_NM_ldus: case BC_NM_vec: case BC_NM_vecof: case BC_NM_fmtvecof:
     case BC_NM_tab: case BC_NM_tabof:
       break;
     case BC_NM_plus:
@@ -2228,8 +2244,8 @@ specialize_insn (df_insn_t insn)
     case BC_NM_const:
     case BC_NM_new:
     case BC_NM_length:
-    case BC_NM_fold_add: case BC_NM_fold_mult:
-    case BC_NM_fold_and: case BC_NM_fold_or: case BC_NM_fold_xor:
+    case BC_NM_fold_add: case BC_NM_fold_mult: case BC_NM_fold_and:
+    case BC_NM_fold_or: case BC_NM_fold_xor: case BC_NM_fold_concat:
     case BC_NM_in:
     case BC_NM_concat:
     case BC_NM_brts: case BC_NM_brfs: case BC_NM_lconv:
@@ -2375,6 +2391,8 @@ specialize_insn (df_insn_t insn)
     case BC_NM_chst:
     case BC_NM_chstend:
     case BC_NM_chstel:
+    case BC_NM_rmatch:
+    case BC_NM_rmatchs:
       break;
     default:
       d_assert (FALSE);

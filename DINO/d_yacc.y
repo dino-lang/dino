@@ -56,7 +56,7 @@ process_var_pattern (access_val_t access, IR_node_t pattern, int val_flag,
 
 static void process_header (int, IR_node_t, IR_node_t);
 static IR_node_t process_formal_parameters (IR_node_t, IR_node_t);
- static IR_node_t process_header_block (IR_node_t, IR_node_t, hint_val_t);
+static IR_node_t process_header_block (IR_node_t, IR_node_t, hint_val_t);
 
 static hint_val_t get_hint (IR_node_t);
 
@@ -65,6 +65,13 @@ static IR_node_t merge_additional_stmts (IR_node_t);
 static void process_obj_header (IR_node_t);
 static IR_node_t process_obj_block (IR_node_t, IR_node_t, access_val_t);
 static IR_node_t process_fun_start (IR_node_t, int, access_val_t);
+static IR_node_t create_except_class (IR_node_t before_list, IR_node_t expr);
+static IR_node_t create_catch_block (position_t pos);
+static void finish_catch_block (IR_node_t catch_block, IR_node_t block,
+				IR_node_t excepts, IR_node_t friend_list);
+static IR_node_t create_try_expr (IR_node_t try_block, IR_node_t stmt,
+				  IR_node_t excepts,
+				  position_t lpar_pos, position_t rpar_pos);
 
 /* The following vars are used by yacc analyzer. */
 
@@ -88,7 +95,8 @@ static position_t actual_parameters_construction_pos;
    Its value is flag of variable number parameters (usage of ...). */
 static int formal_parameter_args_flag;
 
-static const char *full_file_name  (const char *extend_identifier);
+static const char *get_full_file_and_encoding_name (IR_node_t fname,
+						    const char **encoding);
 
 static IR_node_t get_new_ident (position_t);
 
@@ -97,7 +105,7 @@ static void finish_scanner_file (void);
 
 static void start_block (void);
 static void finish_block (void);
-static int add_include_file (const char *name);
+static int add_include_file (IR_node_t fname);
 
 static int repl_can_process_p (void);
 
@@ -114,9 +122,9 @@ static int repl_can_process_p (void);
 
 %token <pointer> NUMBER CHARACTER STRING IDENT
 %token <pos> BREAK CASE CATCH CHAR CLASS CONTINUE ELSE EXPOSE EXTERN
-       FINAL FLOAT FOR FORMER FRIEND FUN HIDE HIDEBLOCK
-       IF IN INT LONG LATER NEW NIL OBJ PRIV PROCESS PUB
-       RETURN SWITCH TAB THIS THREAD THROW TRY TYPE USE VAL VAR VEC WAIT
+       FINAL FLOAT FOR FORMER FRIEND FUN HIDE HIDEBLOCK IF IN INT
+       LONG LATER NEW NIL OBJ PMATCH PRIV PROCESS PUB RETURN RMATCH
+       TAB THIS THREAD THROW TRY TYPE USE VAL VAR VEC WAIT
 %token <pos> LOGICAL_OR LOGICAL_AND EQ NE IDENTITY UNIDENTITY LE GE
              LSHIFT RSHIFT ASHIFT
 %token <pos> MULT_ASSIGN DIV_ASSIGN MOD_ASSIGN PLUS_ASSIGN MINUS_ASSIGN
@@ -124,7 +132,7 @@ static int repl_can_process_p (void);
 %token <pos> XOR_ASSIGN OR_ASSIGN
 %token <pos> INCR DECR
 %token <pos> DOTS
-%token <pos> FOLD_PLUS FOLD_MULT FOLD_AND FOLD_XOR FOLD_OR
+%token <pos> FOLD_PLUS FOLD_MULT FOLD_AND FOLD_XOR FOLD_OR FOLD_CONCAT
 %token <pos> INCLUDE INCLUSION END_OF_FILE END_OF_INCLUDE_FILE WILDCARD
 %token <pos> '?' ':' '|' '^' '&' '<' '>' '@' '+' '-' '*' '/' '%' '!' '~' '#'
 %token <pos> '(' ')' '[' ']' '{' '}' ';' '.' ',' '='
@@ -143,7 +151,7 @@ static int repl_can_process_p (void);
 %left '@'
 %left '+' '-'
 %left '*' '/' '%'
-%left '!' '#' '~' FOLD_PLUS FOLD_MULT FOLD_AND FOLD_XOR FOLD_OR FINAL NEW
+%left '!' '#' '~' FOLD_PLUS FOLD_MULT FOLD_AND FOLD_XOR FOLD_OR FOLD_CONCAT FINAL NEW
 /* For resolution of conflicts: `TAB .' and `TAB . [' or `TAB . (',
    and `CHAR .' and `CHAR. (' etc.  */
 %nonassoc TAB CHAR INT LONG FLOAT VEC TYPE
@@ -151,18 +159,18 @@ static int repl_can_process_p (void);
 %left '(' '[' '.'
 
 %type <pos> all_fields pos
-%type <pointer> aheader expr designator type
+%type <pointer> aheader expr designator type except_class_list_opt
                 elist_parts_list elist_parts_list_empty elist_part
                 expr_list expr_list_empty actual_parameters friend_list
                 val_var_list val_var assign stmt executive_stmt incr_decr
-                case_list switch_case opt_cond pattern for_guard_expr
+                match_head case_list a_case opt_cond pattern regexp_pattern for_guard_expr
                 block_stmt try_block_stmt catch_list catch except_class_list
                 header declaration expose_clause qual_ident expose_qual_ident
                 use_clause_list use_item_list use_item alias_opt extern_list
                 extern_item fun_thread_class fun_thread_class_start else_part
                 expr_empty opt_step par_list par_list_empty par
                 formal_parameters block stmt_list program inclusion
-%type <flag> clear_flag set_flag  par_kind
+%type <flag> clear_flag set_flag  set_flag2 par_kind
 %type <hint> hint
 %type <access> access
 
@@ -173,6 +181,8 @@ static int repl_can_process_p (void);
 clear_flag : {$$ = 0;}
            ;
 set_flag   : {$$ = 1;}
+           ;
+set_flag2  : {$$ = 2;}
            ;
 expr : NUMBER        {$$ = $1;}
      | CHARACTER     {$$ = $1;}
@@ -374,6 +384,11 @@ expr : NUMBER        {$$ = $1;}
           $$ = create_node_with_pos (IR_NM_fold_or, $1);
           IR_set_operand ($$, $2);
         }
+     | FOLD_CONCAT expr
+       	{
+          $$ = create_node_with_pos (IR_NM_fold_concat, $1);
+          IR_set_operand ($$, $2);
+        }
      | FINAL expr
        	{
           $$ = create_node_with_pos (IR_NM_const, $1);
@@ -392,7 +407,16 @@ expr : NUMBER        {$$ = $1;}
 	  IR_set_actuals ($$, $2);
 	}
      | designator    {$$ = $1;}
-     | '(' expr ')'  {$$ = $2;}
+     | '(' expr ')'
+          {
+	    if (IR_IS_OF_TYPE ($2, IR_NM_paren))
+	      $$ = $2;
+	    else
+	      {
+		$$ = create_node_with_pos (IR_NM_paren, $1);
+		IR_set_operand ($$, $2);
+	      }
+	  }
      | '(' error
           {
 	    if (repl_flag)
@@ -469,6 +493,36 @@ expr : NUMBER        {$$ = $1;}
           IR_set_operand ($$, $3);
         }
      | THIS { $$ = create_node_with_pos (IR_NM_this, $1); }
+     | TRY  '('
+         {
+	   IR_node_t fun;
+
+	   /* Create anonymous fun: */
+	   fun = create_node (IR_NM_fun);
+	   IR_set_thread_flag (fun, FALSE);
+	   IR_set_pos (fun, $2);
+	   IR_set_final_flag (fun, TRUE);
+	   IR_set_args_flag (fun, FALSE);
+	   process_header (TRUE, fun, get_new_ident ($2)); /* creates fun block */
+	   start_block (); /* start func block */
+	   $<pointer>$ = create_empty_block (current_scope); /* try block */
+	   current_scope = $<pointer>$;
+	   IR_set_pos (current_scope, $2);
+	   start_block (); /* start try block */
+	 }
+       set_flag2  executive_stmt  except_class_list_opt  ')'
+         {
+	   $$ = create_try_expr ($<pointer>3, $5, $6, $2, $7);
+	 }
+     | TRY '(' error
+          {
+	    if (repl_flag)
+	      YYABORT;
+          }
+       bracket_stop
+	  {
+	    $$ = NULL;
+	  }
      /* The following is allowed only for patterns.  */
      | WILDCARD { $$ = create_node_with_pos (IR_NM_wildcard, $1); }
      | DOTS     { $$ = create_node_with_pos (IR_NM_dots, $1); }
@@ -494,6 +548,14 @@ type : CHAR          {$$ = create_node_with_pos (IR_NM_char_type, $1);}
      | PROCESS       {$$ = create_node_with_pos (IR_NM_process_type, $1);}
      | TYPE          {$$ = create_node_with_pos (IR_NM_type_type, $1);}
      ;
+except_class_list_opt :  {
+                           $$ = create_except_class (NULL,
+						     get_ident_node
+						     (EXCEPT_NAME,
+						      current_position));
+                         }
+                      | ',' except_class_list  { $$ = $2; }
+	              ;
 aheader : fun_thread_class
             {
 	      IR_set_final_flag ($1, TRUE);
@@ -774,27 +836,27 @@ incr_decr : INCR {$$ = get_int_node (1, $1);}
           | DECR {$$ = get_int_node (-1, $1);}
           ;
 executive_stmt :
-      {$<flag>$ = $<flag>0;} end_simple_stmt      {$$ = NULL;}
+      {$<flag>$ = $<flag>0;} end_exec_stmt      {$$ = NULL;}
     | expr {$<pos>$ = current_position; $<pos>$.column_number--; }
-        {$<flag>$ = $<flag>0;} end_simple_stmt
+        {$<flag>$ = $<flag>0;} end_exec_stmt
         {
           $$ = create_node_with_pos (IR_NM_expr_stmt,
 				     $1 == NULL ? $<pos>2 : IR_pos ($1));
 	  IR_set_stmt_expr ($$, $1);
         }
-    | designator assign expr {$<flag>$ = $<flag>0;} end_simple_stmt
+    | designator assign expr {$<flag>$ = $<flag>0;} end_exec_stmt
        	{
           $$ = $2;
           IR_set_assignment_var ($$, $1);
           IR_set_assignment_expr ($$, $3);
         }
-    | designator incr_decr {$<flag>$ = $<flag>0;} end_simple_stmt
+    | designator incr_decr {$<flag>$ = $<flag>0;} end_exec_stmt
        	{
           $$ = create_node_with_pos (IR_NM_plus_assign, IR_pos ($2));
           IR_set_assignment_var ($$, $1); 
           IR_set_assignment_expr ($$, $2);
         }
-    | incr_decr designator {$<flag>$ = $<flag>0;} end_simple_stmt
+    | incr_decr designator {$<flag>$ = $<flag>0;} end_exec_stmt
        	{
           $$ = create_node_with_pos (IR_NM_plus_assign, IR_pos ($1));
           IR_set_assignment_var ($$, $2); 
@@ -849,21 +911,21 @@ executive_stmt :
           IR_set_for_iterate_stmt ($$, NULL);
           IR_set_foreach_stmts ($$, uncycle_stmt_list ($7));
         }
-    | SWITCH '(' expr ')' '{'
+    | match_head '(' expr ')' '{'
         {
-	  $<pointer>$ = create_node_with_pos (IR_NM_switch_stmt, $1);
-          IR_set_switch_expr ($<pointer>$, $3);
+          IR_set_match_expr ($1, $3);
+	  $<pointer>$ = $1;
 	}
       case_list '}'
         {
-	  $$ = $<pointer>6;
-          IR_set_switch_cases ($$, uncycle_stmt_list ($7)); 
+	  $$ = $1;
+          IR_set_cases ($$, uncycle_stmt_list ($7)); 
 	}
-    | BREAK {$<flag>$ = $<flag>0;} end_simple_stmt
+    | BREAK {$<flag>$ = $<flag>0;} end_exec_stmt
         {$$ = create_node_with_pos (IR_NM_break_stmt, $1);}
-    | CONTINUE {$<flag>$ = $<flag>0;} end_simple_stmt
+    | CONTINUE {$<flag>$ = $<flag>0;} end_exec_stmt
         {$$ = create_node_with_pos (IR_NM_continue_stmt, $1);}
-    | RETURN expr_empty {$<flag>$ = $<flag>0;} end_simple_stmt
+    | RETURN expr_empty {$<flag>$ = $<flag>0;} end_exec_stmt
        	{
           if ($2 == NULL)
             $$ = create_node_with_pos (IR_NM_return_without_result, $1);
@@ -873,7 +935,7 @@ executive_stmt :
               IR_set_returned_expr ($$, $2);
             }
        	}
-    | THROW expr {$<flag>$ = $<flag>0;} end_simple_stmt
+    | THROW expr {$<flag>$ = $<flag>0;} end_exec_stmt
        	{
           $$ = create_node_with_pos (IR_NM_throw, $1);
           IR_set_throw_expr ($$, $2); 
@@ -898,9 +960,12 @@ executive_stmt :
     | block_stmt     {$$ = $1;}
     | try_block_stmt {$$ = $1;}
     ;
-/* attribute before is the case-stmt  */
+match_head : PMATCH { $$ = create_node_with_pos (IR_NM_pmatch_stmt, $1); }
+           | RMATCH { $$ = create_node_with_pos (IR_NM_rmatch_stmt, $1); }
+           ;
+/* attribute before is the match-stmt  */
 case_list :                        { $$ = NULL; }
-          | case_list {$<pointer>$ = $<pointer>0; } switch_case
+          | case_list {$<pointer>$ = $<pointer>0; } a_case
 	      { $$ = merge_stmt_lists ($1, $3); }
           | error
               {
@@ -909,36 +974,37 @@ case_list :                        { $$ = NULL; }
 		$$ = NULL;
 	      }
           ;
-/* attribute before is the case-stmt  */
-switch_case :   {
-                  $<pointer>$ = create_empty_block (current_scope);
-                  current_scope = $<pointer>$;
-                }
-       	     CASE pattern opt_cond ':' stmt_list
-                {
-		  IR_node_t break_stmt;
-		  
-                  $$ = $<pointer>1;
-		  IR_set_switch_stmt ($$, $<pointer>0);
-		  IR_set_case_pattern ($$, $3);
-		  IR_set_case_cond ($$, $4);
-		  /* Add implicit break at the end of case-stmts. */
-		  break_stmt = create_node_with_pos (IR_NM_break_stmt,
-						     current_position);
-		  IR_set_next_stmt (break_stmt, break_stmt);
-		  IR_set_implicit_case_break_stmt ($$, break_stmt);
-		  IR_set_block_stmts ($$, uncycle_stmt_list (merge_stmt_lists
-							     ($6, break_stmt)));
-		  IR_set_next_stmt ($$, $$);
-       		  current_scope = IR_block_scope ($$);
-		}
-            ;
+/* attribute before is the match-stmt  */
+a_case :   {
+              $<pointer>$ = create_empty_block (current_scope);
+              current_scope = $<pointer>$;
+            }
+       	 CASE regexp_pattern opt_cond ':' stmt_list
+            {
+	      IR_node_t break_stmt;
+	      
+              $$ = $<pointer>1;
+	      IR_set_match_stmt ($$, $<pointer>0);
+	      IR_set_case_pattern ($$, $3);
+	      IR_set_case_cond ($$, $4);
+	      /* Add implicit break at the end of case-stmts. */
+	      break_stmt = create_node_with_pos (IR_NM_break_stmt,
+						 current_position);
+	      IR_set_next_stmt (break_stmt, break_stmt);
+	      IR_set_implicit_case_break_stmt ($$, break_stmt);
+	      IR_set_block_stmts ($$, uncycle_stmt_list (merge_stmt_lists
+							 ($6, break_stmt)));
+	      IR_set_next_stmt ($$, $$);
+	      current_scope = IR_block_scope ($$);
+	    }
+        ;
 opt_cond :           { $$ = NULL; }
          | IF expr   { $$ = $2; }
          ;
 pattern : expr  { $$ = $1; }
         ;
-
+regexp_pattern : expr  { $$ = $1; }
+               ;
 for_guard_expr :      {$$ = get_int_node (1, source_position);}
                | expr {$$ = $1;}
                ;
@@ -955,13 +1021,14 @@ block_stmt :    {
        		  current_scope = IR_block_scope ($$);
                 }
            ;
-try_block_stmt :    {
+try_block_stmt : TRY
+                    {
                       $<pointer>$ = create_empty_block (current_scope);
 		      current_scope = $<pointer>$;
                     }
-                 TRY block
+                 block
        		    {
-		      $<pointer>$ = $<pointer>1;
+		      $<pointer>$ = $<pointer>2;
 		      IR_set_block_stmts ($<pointer>$, uncycle_stmt_list ($3));
 		      IR_set_friend_list
 			($<pointer>$, uncycle_friend_list (IR_friend_list
@@ -986,26 +1053,14 @@ catch_list :                           {$$ = NULL;}
    the last one. */
 catch : CATCH  '(' except_class_list ')'
           {
-            $<pointer>$ = create_empty_block (current_scope);
-            current_scope = $<pointer>$;
-	    /* Add variable for catched exception. */
-	    $<pointer>$ = create_node_with_pos (IR_NM_var, $4);
-	    IR_set_next_stmt ($<pointer>$, $<pointer>$);
-	    IR_set_scope ($<pointer>$, current_scope);
-	    IR_set_ident ($<pointer>$, get_ident_node (CATCH_EXCEPTION_NAME,
-						       current_position));
+            $<pointer>$ = create_catch_block ($4);
           }
        	block
        	  {
-	    IR_set_block_stmts (current_scope,
-				uncycle_stmt_list (merge_stmt_lists
-						   ($<pointer>5, $6)));
-	    IR_set_friend_list
-	      (current_scope,
+	    finish_catch_block
+	      ($<pointer>5, $6, $3,
 	       uncycle_friend_list (IR_friend_list (current_scope)));
 	    $$ = $3;
-	    IR_set_catch_block (IR_next_exception ($3), current_scope);
-	    current_scope = IR_block_scope (current_scope);
 	  }
       | error
           {
@@ -1016,27 +1071,8 @@ catch : CATCH  '(' except_class_list ')'
       ;
 /* Attribute value is cyclic list of exceptions with the pointer to
    the last one. */
-except_class_list : expr
-                      {
-			position_t pos = current_position;
-			pos.column_number--;
-
-			$$ = create_node_with_pos (IR_NM_exception, pos);
-			IR_set_exception_class_expr ($$, $1);
-			IR_set_catch_block ($$, NULL);
-			IR_set_next_exception ($$, $$);
-		      }
-                  | except_class_list ',' expr
-                      {
-			position_t pos = current_position;
-			pos.column_number--;
-
-			$$ = create_node_with_pos (IR_NM_exception, pos);
-			IR_set_exception_class_expr ($$, $3);
-			IR_set_catch_block ($$, NULL);
-			IR_set_next_exception ($$, IR_next_exception ($1));
-			IR_set_next_exception ($1, $$);
-		      }
+except_class_list : expr { $$ = create_except_class (NULL, $1); }
+                  | except_class_list ',' expr  { $$ = create_except_class ($1, $3); }
                   ;
 /* Attribute value is cyclic list of ident in clause with the pointer
    to the last one. */
@@ -1106,8 +1142,7 @@ declaration : access VAL {$<access>$ = $1;} set_flag
             | INCLUDE STRING {$<flag>$ = $<flag>0;} end_simple_stmt
                 {
 		  $<pointer>$ = $2;
-                  if (add_include_file (IR_string_value
-					(IR_unique_string ($2))))
+                  if (add_include_file ($2))
                     add_lexema_to_file (INCLUSION);
                 }
               inclusion
@@ -1117,7 +1152,7 @@ declaration : access VAL {$<access>$ = $1;} set_flag
             | INCLUDE '+' STRING {$<flag>$ = $<flag>0;} end_simple_stmt
                 {
 		  $<pointer>$ = $3;
-                  add_include_file (IR_string_value (IR_unique_string ($3)));
+                  add_include_file ($3);
 		  add_lexema_to_file (INCLUSION);
                 }
               inclusion
@@ -1239,9 +1274,11 @@ inclusion :   {$$ = NULL;}
               }
             INCLUSION
               {
-                start_scanner_file (full_file_name (IR_string_value
-						    (IR_unique_string
-						     ($<pointer>0))),
+		const char *fname, *encoding;
+
+		fname = get_full_file_and_encoding_name ($<pointer>0,
+							 &encoding);
+                start_scanner_file (fname, encoding,
 				    IR_pos ($<pointer>0));
               }
             stmt_list END_OF_INCLUDE_FILE
@@ -1265,6 +1302,19 @@ end_simple_stmt : ';'
 			}
                     }
                 ;
+end_exec_stmt : end_simple_stmt
+              | ',' 
+                  {
+                    if ($<flag>0 == 2)
+                      yychar = ',';
+	            else if (!YYRECOVERING ())
+		      {
+			yyerror ("syntax error");
+			if (repl_flag)
+			  YYABORT;
+		      }
+                  }
+              ;
 header : fun_thread_class_start IDENT
            {
 	     IR_set_pos ($1, IR_pos ($2));
@@ -1441,6 +1491,10 @@ program :   {
 	    }
         ;
 %%
+
+/* Containers used temporary by the scanner.  */
+static vlo_t temp_scanner_vlo;
+static vlo_t temp_scanner_vlo2;
 
 /* True if we did not print syntax error yet.  We can not leave
    yyparse by longjmp as we need to finalize some data.  We leave
@@ -1779,7 +1833,116 @@ process_fun_start (IR_node_t fun, int final_flag, access_val_t access)
   return fun;
 }
 
+static IR_node_t
+create_except_class (IR_node_t before_list, IR_node_t expr)
+{
+  IR_node_t res;
+  position_t pos = current_position;
+  pos.column_number--;
+  
+  res = create_node_with_pos (IR_NM_exception, pos);
+  IR_set_exception_class_expr (res, expr);
+  IR_set_catch_block (res, NULL);
+  if (before_list == NULL)
+    IR_set_next_exception (res, res);
+  else
+    {
+      IR_set_next_exception (res, IR_next_exception (before_list));
+      IR_set_next_exception (before_list, res);
+    }
+  return res;
+}
+
+static IR_node_t
+create_catch_block (position_t pos)
+{
+  IR_node_t res = create_empty_block (current_scope);
+
+  current_scope = res;
+  /* Add variable for catched exception. */
+  res = create_node_with_pos (IR_NM_var, pos);
+  IR_set_next_stmt (res, res);
+  IR_set_scope (res, current_scope);
+  IR_set_ident (res,
+		get_ident_node (CATCH_EXCEPTION_NAME, current_position));
+  return res;
+}
+
+static void
+finish_catch_block (IR_node_t catch_block, IR_node_t block,
+		    IR_node_t excepts, IR_node_t friend_list)
+{
+  IR_node_t first_exception = IR_next_exception (excepts);
+  
+  IR_set_block_stmts (current_scope,
+		      uncycle_stmt_list (merge_stmt_lists (catch_block, block)));
+  IR_set_friend_list (current_scope, friend_list);
+  IR_set_catch_block (first_exception, current_scope);
+  current_scope = IR_block_scope (current_scope);
+}
+
+/* We have try (<stmt>, <except>, ...).  Create and return
+   fun {try {<stmt>;return 1;} catch (<except>) {return 0;}} ().
+
+   TRY_BLOCK is already created block for the try-statement. LPAR_POS
+   and RPAR_POS are positions of correspondingly left and right
+   parenthesis in try-expr.  */
+static IR_node_t
+create_try_expr (IR_node_t try_block, IR_node_t stmt, IR_node_t excepts,
+		 position_t lpar_pos, position_t rpar_pos)
+{
+  IR_node_t fun, stmt_list, catch_block, fun_expr, call;
+  
+  fun = IR_fun_class (IR_block_scope (try_block));
+  
+  /* Create <executive_stmt>; return 1; */
+  if (stmt != NULL)
+    IR_set_next_stmt (stmt, stmt);
+  stmt_list = create_node_with_pos (IR_NM_return_with_result, rpar_pos);
+  IR_set_returned_expr (stmt_list, get_int_node (1, rpar_pos));
+  IR_set_next_stmt (stmt_list, stmt_list);
+  stmt_list = merge_stmt_lists (stmt, stmt_list);
+  
+  finish_block (); /* finish try-block */
+  
+  /* create try { <executive_stmt>; return 1; } ... */
+  IR_set_block_stmts (try_block, uncycle_stmt_list (stmt_list));
+  IR_set_friend_list (try_block, NULL);
+  current_scope = IR_block_scope (try_block);
+  
+  /* create catch (<except>) {...} */
+  catch_block = create_catch_block (rpar_pos);
+  IR_set_pos (current_scope, rpar_pos);
+  start_block (); /* start catch-block */
+  
+  /* create return 0; */
+  stmt_list = create_node_with_pos (IR_NM_return_with_result, rpar_pos);
+  IR_set_returned_expr (stmt_list, get_int_node (0, rpar_pos));
+  IR_set_next_stmt (stmt_list, stmt_list);
+  
+   /* finish catch_block: */
+  finish_block ();
+  finish_catch_block (catch_block, stmt_list, excepts, NULL);
+  IR_set_exceptions (try_block, uncycle_exception_list (excepts));
+  
+  IR_set_pos (current_scope, lpar_pos);
+  finish_block (); /* finish function block */
+  
+  /* Move (header, block) before the current statement: */
+  IR_set_next_stmt (try_block, try_block);
+  additional_stmts
+    = merge_stmt_lists (additional_stmts,
+			process_header_block (NULL, try_block, NO_HINT));
+  /* create function call  */
+  fun_expr = IR_ident (IR_next_stmt (additional_stmts));
+  call = create_node_with_pos (IR_NM_class_fun_thread_call, rpar_pos);
+  IR_set_fun_expr (call, fun_expr);
+  IR_set_actuals (call, NULL);
+  return call;
+}
+
 
+
 
 /* This page contains abstracr data for reading, storing and
    retrieving lines.  */
@@ -1800,34 +1963,58 @@ initiate_lines (void)
 
 /* Read next line from file, store it, and return it.  The non-empty
    read line will always have NL at its end.  The trailing `\r' is
-   removed.  The empty line means reaching EOF. */
-static const char *
+   removed.  The empty line means reaching EOF.  */
+static const ucode_t *
 read_line (FILE *f)
 {
   int c;
-  const char *ln;
+  ucode_t uc;
+  const ucode_t *ln;
 
-  while ((c = getc (f)) != EOF && c != '\n')
-    OS_TOP_ADD_BYTE (lines, c);
+  for (;;)
+    {
+      c = (curr_reverse_ucode_cd == NO_CONV_DESC ? dino_getc (f)
+	   : get_ucode_from_stream (read_byte, curr_reverse_ucode_cd,
+				    curr_encoding_type, f));
+      if (c == EOF || c == '\n')
+	break;
+      if (c == UCODE_BOUND)
+	{
+	  /* Skip to the end of line: */
+	  do
+	    {
+	      c = (curr_reverse_ucode_cd == NO_CONV_DESC ? dino_getc (f)
+		   : get_ucode_from_stream (read_byte, curr_reverse_ucode_cd,
+					    curr_encoding_type, f));
+	    }
+	  while (c != EOF && c != '\n');
+	  OS_TOP_NULLIFY (lines);
+	  d_error (TRUE, no_position, ERR_line_decoding, curr_encoding_name);
+	}
+      uc = c;
+      OS_TOP_ADD_MEMORY (lines, &uc, sizeof (ucode_t));
+    }
   if (c != EOF || OS_TOP_LENGTH (lines) > 0)
     {
-      if (OS_TOP_LENGTH (lines) > 0 && *((char *) OS_TOP_END (lines)) =='\r')
-	OS_TOP_SHORTEN (lines, 1);
-      OS_TOP_ADD_BYTE (lines, '\n');
+      if (OS_TOP_LENGTH (lines) > 0 && *((ucode_t *) OS_TOP_END (lines)) =='\r')
+	OS_TOP_SHORTEN (lines, sizeof (ucode_t));
+      uc = '\n';
+      OS_TOP_ADD_MEMORY (lines, &uc, sizeof (ucode_t));
     }
-  OS_TOP_ADD_BYTE (lines, '\0');
+  uc = '\0';
+  OS_TOP_ADD_MEMORY (lines, &uc, sizeof (ucode_t));
   ln = OS_TOP_BEGIN (lines);
   OS_TOP_FINISH (lines);
-  VLO_ADD_MEMORY (lines_vec, &ln, sizeof (char  *));
+  VLO_ADD_MEMORY (lines_vec, &ln, sizeof (ucode_t *));
   return ln;
 }
 
 /* Return N-th read line.  */
-const char *
+ucode_t *
 get_read_line (int n)
 {
-  d_assert (n >= 0 && VLO_LENGTH (lines_vec) > n * sizeof (char *));
-  return ((char **)VLO_BEGIN (lines_vec)) [n];
+  d_assert (n >= 0 && VLO_LENGTH (lines_vec) > n * sizeof (ucode_t *));
+  return ((ucode_t **)VLO_BEGIN (lines_vec)) [n];
 }
 
 /* Finish the abstract data.  */
@@ -1867,6 +2054,12 @@ struct istream_state
      `add_lexema_to_file' after immediately call of this
      function or -1 otherwise. */
   int uninput_lexema_code;
+  /* Name of file encoding.  */
+  const char *encoding_name;
+  /* Type of file encoding.  */
+  encoding_type_t encoding_type;
+  /* Conversion descriptor used for the file.  */
+  conv_desc_t cd;
 };
 
 /* The following structure contains all current input stream and
@@ -1878,28 +2071,35 @@ static struct istream_state curr_istream_state;
    See package `vl-object'. */
 static vlo_t istream_stack;
 
-/* The following variable is used for storing '\r'. */
+/* The following variable is used for storing ungotten code. */
 static int previous_char;
 
 /* The following function creates empty input stream stack and
-   initiates current input stream and scanner state as undefined. */
+   initiates current input stream and scanner state (including cd) as
+   undefined. */
 static void
 initiate_istream_stack (void)
 {
   VLO_CREATE (istream_stack, 0);
   curr_istream_state.file_name = NULL;
   curr_istream_state.file = NULL;
+  curr_istream_state.encoding_name = NULL;
+  curr_istream_state.cd = NO_CONV_DESC;
   curr_istream_state.uninput_lexema_code = (-1);
 }
 
 /* The following function deletes the input stream stack and closes
-   current input file if current input stream state is defined.  */
+   current input file and its cd if they are defined.  */
 static void
 finish_istream_stack (void)
 {
   VLO_DELETE (istream_stack);
   if (curr_istream_state.file != NULL)
     fclose (curr_istream_state.file);
+#ifdef HAVE_ICONV_H
+  if (curr_istream_state.cd != NO_CONV_DESC)
+    iconv_close (curr_istream_state.cd);
+#endif
 }
 
 /* The following function returns height of input stream stack,
@@ -1910,15 +2110,20 @@ istream_stack_height (void)
   return VLO_LENGTH (istream_stack) / sizeof (struct istream_state);
 }
 
+/* Ucode string containing only 0 element.  */
+static ucode_t empty_ucode_string[] = {0};
+
 /* The following function saves current input stream and scanner state
    (if it is defined) in the stack, closes file corresponding to
-   current input stream, opens file corresponding to new input stream,
-   and sets up new current input stream and scanner state.  The
-   function also checks up absence of loop of file inclusions.  The
-   function reports errors if the loop exists or new file is not
-   opened. */
+   current input stream and its cd, opens file corresponding to new
+   input stream, and sets up new current input stream and scanner
+   state including cd.  The function also checks up absence of loop of
+   file inclusions.  The function reports errors if the loop exists or
+   new file is not opened.  If ENCODING_NAME is not NULL, use the
+   corresponding encoding.  Otherwise use the current encoding.  */
 static void
-push_curr_istream (const char *new_file_name, position_t error_pos)
+push_curr_istream (const char *new_file_name, const char *encoding_name,
+		   position_t error_pos)
 {
   int i;
 
@@ -1932,6 +2137,11 @@ push_curr_istream (const char *new_file_name, position_t error_pos)
 	  curr_istream_state.file_pos = ftell (curr_istream_state.file);
 	  fclose (curr_istream_state.file);
 	  curr_istream_state.file = NULL;
+#ifdef HAVE_ICONV_H
+	  if (curr_istream_state.cd != NO_CONV_DESC)
+	    iconv_close (curr_istream_state.cd);
+	  curr_istream_state.cd = NO_CONV_DESC;
+#endif
 	}
       VLO_ADD_MEMORY (istream_stack, &curr_istream_state,
 		      sizeof (struct istream_state));
@@ -1944,6 +2154,7 @@ push_curr_istream (const char *new_file_name, position_t error_pos)
     }
   curr_istream_state.file_name = new_file_name;
   curr_istream_state.file = NULL;
+  curr_istream_state.cd = NO_CONV_DESC;
   if (*new_file_name != '\0')
     {
       /* The current stream is not commad line or REPL stdin. */
@@ -1951,19 +2162,37 @@ push_curr_istream (const char *new_file_name, position_t error_pos)
       if (curr_istream_state.file == NULL)
 	system_error (TRUE, error_pos, "fatal error -- `%s': ", 
 		      curr_istream_state.file_name);
+      curr_istream_state.encoding_name
+	= get_unique_string (encoding_name != NULL
+			     ? encoding_name : curr_encoding_name);
+      if (! set_conv_descs (curr_istream_state.encoding_name,
+			    NULL, NULL, &curr_istream_state.cd,
+			    &curr_istream_state.encoding_type))
+	d_error (TRUE, no_position, ERR_source_file_encoding,
+		 curr_istream_state.encoding_name, curr_istream_state.file_name);
+      else if (! check_encoding_on_ascii (curr_istream_state.encoding_name))
+	{
+#ifdef HAVE_ICONV_H
+	  if (curr_istream_state.cd != NO_CONV_DESC)
+	    iconv_close (curr_istream_state.cd);
+#endif
+	  d_error (TRUE, no_position, ERR_non_ascii_source_file_encoding,
+		   curr_istream_state.encoding_name, curr_istream_state.file_name);
+	}
     }
   else if (repl_flag)
-    command_line_program = ""; /* To read line when we need it. */
+    /* To read line when we need it. */
+    command_line_program = empty_ucode_string;
   previous_char = NOT_A_CHAR;
   start_file_position (curr_istream_state.file_name);
   curr_istream_state.uninput_lexema_code = (-1);
 }
 
 /* The following function closes file corresponding to current input
-   stream (it must be defined), reopens file corresponding to previous
-   input stream (if it is defined) and restores previous input stream
-   and scanner state.  The function can fix error if the file is not
-   reopened. */
+   stream (it must be defined) and its cdq, reopens file corresponding
+   to previous input stream (if it is defined) and restores previous
+   input stream and scanner state (including file cd).  The function
+   can fix error if the file is not reopened. */
 static void
 pop_istream_stack (void)
 {
@@ -1974,6 +2203,11 @@ pop_istream_stack (void)
 		|| curr_istream_state.file != stdin);
       fclose (curr_istream_state.file);
       curr_istream_state.file = NULL;
+#ifdef HAVE_ICONV_H
+      if (curr_istream_state.cd != NO_CONV_DESC)
+	iconv_close (curr_istream_state.cd);
+      curr_istream_state.cd = NO_CONV_DESC;
+#endif
     }
   if (istream_stack_height () != 0)
     {
@@ -1985,12 +2219,18 @@ pop_istream_stack (void)
 	{
 	  /* It is not command line stream or REPL stdin. */
 	  curr_istream_state.file = fopen (curr_istream_state.file_name, "rb");
+	  curr_istream_state.cd = NO_CONV_DESC;
 	  if (curr_istream_state.file == NULL
 	      || fseek (curr_istream_state.file,
 			curr_istream_state.file_pos, 0) != 0)
 	    system_error (TRUE, no_position,
 			  "fatal error -- repeated opening file `%s': ", 
 			  curr_istream_state.file_name);
+	  if (! set_conv_descs (curr_istream_state.encoding_name,
+				NULL, NULL, &curr_istream_state.cd,
+				&curr_istream_state.encoding_type))
+	    /* We already used the file encoding before.  */
+	    d_assert (FALSE);
 	}
       finish_file_position ();
     }
@@ -2090,6 +2330,88 @@ canonical_path_name (const char *name)
   return (const char *) result;
 }
 
+static int
+skip_spaces (const char *str, size_t from)
+{
+  for (; isspace_ascii (str[from]);from++)
+    ;
+  return from;
+}
+
+/* The function finds the first string described by a pattern
+
+   -\*-[ \t]*coding:[ \t]*[_-A-Za-z0-9/.:]+[ \t]*-\*- 
+
+  in LN and return the name after "coding:".  Return NULL if we did
+  not find encoding.  */
+static const char *
+find_encoding (char *ln)
+{
+  size_t i, len, start, bound;
+  static const char *prefix = "coding:";
+  
+  len = strlen (prefix);
+  for (i = 0; ln[i] != 0; i++)
+    if (ln[i] == '-' && ln[i + 1] == '*' && ln[i + 2] == '-')
+      {
+         start = i;
+         i = skip_spaces (ln, i + 3);
+	 if (strncmp (ln + i, prefix, len) != 0)
+	  {
+	    /* No "coding:" -- start scanning from second "-" in
+	       "-*-".  */
+            i = start + 1;
+            continue;
+	  }
+         start = i = skip_spaces (ln, i + len);
+         for (; ln[i] != 0; i++)
+	   if (! isalpha_ascii (ln[i]) && ! isdigit_ascii (ln[i])
+	       && ln[i] != '-' && ln[i] != '_'
+	       && ln[i] != '/' && ln[i] != '.' && ln[i] != ':')
+	     break;
+	 if (ln[i] == 0)
+	   return NULL;
+	 bound = i;
+	 if (start == bound)
+	   return NULL;
+	 i = skip_spaces (ln, i);
+	 if (ln[i] == '-' && ln[i + 1] == '*' && ln[i + 2] == '-')
+	   {
+	     ln[bound] = '\0';
+	     return get_unique_string (ln + start);
+	   }
+	 i--;
+      }
+    return NULL;
+}
+
+static char *
+read_str_line (FILE *f, vlo_t *container)
+{
+  int c;
+  
+  VLO_NULLIFY (*container);
+  while ((c = dino_getc (f)) != EOF && c != '\n')
+    VLO_ADD_BYTE (*container, c);
+  VLO_ADD_BYTE (*container, '\0');
+  return VLO_BEGIN (*container);
+}
+
+/* Find encoding on the first two lines of file F and return it.  If
+   it is not found, return NULL.  */
+static const char *
+read_file_encoding (FILE *f)
+{
+  char *ln;
+  const char *name;
+  
+  if (((ln = read_str_line (f, &temp_scanner_vlo)) != NULL
+       && (name = find_encoding (ln)) != NULL)
+      || ((ln = read_str_line (f, &temp_scanner_vlo)) != NULL
+	  && (name = find_encoding (ln)) != NULL))
+    return name;
+  return NULL;
+}
 
 /* The following function returns full file name.  To make this
    functions searches for files in
@@ -2101,19 +2423,65 @@ canonical_path_name (const char *name)
         DINO_PATH.
      3. Standard library directory.
    If the file is not found the function returns the extended
-   specification file name mentioned in 1. */
+   specification file name mentioned in 1.  The function also returns
+   file encoding through ENCODING if it can read encoing name in the
+   file, or NULL otherwise. */
 static const char *
-full_file_name (const char *fname)
+get_full_file_and_encoding_name (IR_node_t ir_fname, const char **encoding)
 {
+  const char *fname;
   const char *curr_directory_name;
   const char *real_file_name;
   const char *file_name;
   const char **path_directory_ptr;
+  size_t i, len;
   FILE *curr_file;
 
   curr_directory_name
     = (*curr_istream_state.file_name == '\0'
        ? "" : file_dir_name (curr_istream_state.file_name));
+  VLO_NULLIFY (temp_scanner_vlo);
+  VLO_NULLIFY (temp_scanner_vlo2);
+  if (IR_IS_OF_TYPE (ir_fname, IR_NM_string))
+    {
+      VLO_ADD_STRING (temp_scanner_vlo2,
+		      IR_string_value (IR_unique_string (ir_fname)));
+      fname = encode_byte_str_vlo (VLO_BEGIN (temp_scanner_vlo2),
+				   curr_byte_cd, curr_encoding_type,
+				   &temp_scanner_vlo, &len);
+      if (fname != NULL)
+	{
+	  /* Check NULL bytes:  */
+	  for (i = 0; i < len && fname[i] != 0; i++)
+	    ;
+	  if (i < len)
+	    fname = NULL;
+	}
+    }
+  else if (curr_ucode_cd != NO_CONV_DESC) /* ucodestr */
+    {
+      ucodestr_t ustr = IR_ucodestr_value (IR_unique_ucodestr (ir_fname));
+      
+      for (len = 0; ustr[len] != 0; len++)
+	;
+      VLO_ADD_MEMORY (temp_scanner_vlo2, ustr, sizeof (ucode_t) * (len + 1));
+      fname = encode_ucode_str_vlo (VLO_BEGIN (temp_scanner_vlo2),
+				    curr_ucode_cd, curr_encoding_type,
+				    &temp_scanner_vlo, &len);
+      if (fname != NULL)
+	{
+	  for (i = 0; i < len && fname[i] != 0; i++)
+	    ;
+	  if (i < len)
+	    fname = NULL;
+	}
+    }
+  else
+    fname = encode_ucode_str_to_raw_vlo (IR_ucodestr_value (IR_unique_ucodestr (ir_fname)),
+					 &temp_scanner_vlo);
+  if (fname == NULL)
+    error (TRUE, IR_pos (ir_fname),
+	   ERR_file_name_cannot_represented_in_current_encoding);
   real_file_name = file_path_name (curr_directory_name, fname,
                                    STANDARD_INPUT_FILE_SUFFIX);
   curr_file = fopen (real_file_name, "rb");
@@ -2131,9 +2499,31 @@ full_file_name (const char *fname)
             break;
           }
       }
+  if (encoding != NULL)
+    {
+      *encoding = NULL;
+      if (curr_file != NULL)
+	*encoding = read_file_encoding (curr_file);
+    }
   if (curr_file != NULL && fclose (curr_file) == EOF)
     system_error (TRUE, no_position, "fatal error -- `%s': ", real_file_name);
   return canonical_path_name (real_file_name);
+}
+
+/* Return file encoding found in FNAME.  If the file can not be read
+   or there is no encoding in the file, return NULL.  */
+const char *
+source_file_encoding (const char *fname)
+{
+  FILE *f;
+  const char *res;
+  
+  f = fopen (fname, "rb");
+  if (f == NULL)
+    return NULL;
+  res = read_file_encoding (f);
+  fclose (f);
+  return res;
 }
 
 
@@ -2163,7 +2553,7 @@ static const char *environment;
    parsing environment. */
 static position_t after_environment_position;
 
-/* The variable is used for implementation of getc when reading from
+/* The variable is used for implementation of d_getc when reading from
    the command line string. */
 static int curr_char_number;
 
@@ -2171,7 +2561,7 @@ static int curr_char_number;
    bunch of stmts.  */
 static int first_repl_empty_line_p;
 
-/* Getc for dino.  Replacing "\r\n" onto "\n". */
+/* Getc for dino.  Reading unicode and replacing "\r\n" onto "\n". */
 static int
 d_getc (void)
 {
@@ -2180,6 +2570,8 @@ d_getc (void)
   if (*environment != '\0')
     {
       result = *environment++;
+      /* Environment is always Latin-1 string.  */
+      d_assert (in_byte_range_p (result));
       if (*environment == 0)
 	{
 	  /* Restore the position. */
@@ -2191,8 +2583,18 @@ d_getc (void)
     }
   else if (curr_istream_state.file != NULL)
     {
-      if (previous_char != '\r')
-	result = getc (curr_istream_state.file);
+      if (previous_char == NOT_A_CHAR)
+	{
+	  result
+	    = (curr_reverse_ucode_cd == NO_CONV_DESC
+	       ? dino_getc (curr_istream_state.file)
+	       : get_ucode_from_stream (read_byte, curr_istream_state.cd,
+					curr_istream_state.encoding_type,
+					curr_istream_state.file));
+	  if (result == UCODE_BOUND)
+	    d_error (TRUE, current_position, ERR_file_decoding,
+		     curr_istream_state.encoding_name);
+	}
       else
 	{
 	  result = previous_char;
@@ -2200,10 +2602,18 @@ d_getc (void)
 	}
       if (result == '\r')
 	{
-	  result = getc (curr_istream_state.file);
+	  result
+	    = (curr_istream_state.cd == NO_CONV_DESC
+	       ? dino_getc (curr_istream_state.file)
+	       : get_ucode_from_stream (read_byte, curr_istream_state.cd,
+					curr_istream_state.encoding_type,
+					curr_istream_state.file));
+	  if (result == UCODE_BOUND)
+	    d_error (TRUE, current_position, ERR_file_decoding,
+		     curr_istream_state.encoding_name);
 	  if (result != '\n')
 	    {
-	      ungetc (result, curr_istream_state.file);
+	      previous_char = result;
 	      result = '\r';
 	    }
 	}
@@ -2247,10 +2657,8 @@ d_ungetc (int ch)
     environment--;
   else if (curr_istream_state.file != NULL)
      {
-       if (ch != '\r')
-	 ungetc (ch, curr_istream_state.file);
-       else
-	 previous_char = ch;
+       d_assert (previous_char == NOT_A_CHAR);
+       previous_char = ch;
      }
    else
      {
@@ -2271,7 +2679,7 @@ skip_line_rest (void)
       previous_char = NOT_A_CHAR;
       pop_istream_stack ();
     }
-  command_line_program = "";
+  command_line_program = empty_ucode_string;
   curr_char_number = 0;
   current_position.line_number++;
 }
@@ -2291,7 +2699,9 @@ static vlo_t symbol_text;
 int
 yylex (void)
 {
+  int wrong_escape_code;
   int input_char;
+  ucode_t uc;
   int number_of_successive_error_characters;
   int last_repl_process_flag = repl_process_flag;
 
@@ -2718,6 +3128,11 @@ yylex (void)
 	      current_position.column_number++;
 	      return FOLD_OR;
 	    }
+          else if (input_char == '@')
+	    {
+	      current_position.column_number++;
+	      return FOLD_CONCAT;
+	    }
 	  else
             {
               d_ungetc (input_char);
@@ -2744,7 +3159,8 @@ yylex (void)
         case '\'':
           {
             IR_node_t unique_char_node_ptr;
-            int correct_newln, character_code;
+            int correct_newln;
+	    int character_code;
             
 	    source_position = current_position;
 	    current_position.column_number++;
@@ -2758,12 +3174,19 @@ yylex (void)
 	      }
             else
               {
-                input_char = read_string_code (input_char, &correct_newln,
-					       d_getc, d_ungetc);
+                input_char = read_dino_string_code (input_char, &correct_newln,
+						    &wrong_escape_code,
+						    d_getc, d_ungetc);
                 if (input_char < 0 || correct_newln)
 		  {
 		    current_position.column_number--;
 		    error (FALSE, current_position, ERR_invalid_char_constant);
+		    current_position.column_number++;
+		  }
+		else if (wrong_escape_code)
+		  {
+		    current_position.column_number--;
+		    error (FALSE, current_position, ERR_invalid_escape_code);
 		    current_position.column_number++;
 		  }
               }
@@ -2789,50 +3212,135 @@ yylex (void)
             return CHARACTER;
           }
         case '\"':
+        case '`':
           {
-            int correct_newln;
+            int correct_newln, unicode_p;
             IR_node_t unique_string_node_ptr;
             char *string_value_in_code_memory;
+	    int no_escape_p = input_char == '`';
             
 	    source_position = current_position;
 	    current_position.column_number++;
+	    unicode_p = FALSE;
             for (;;)
               {
                 input_char = d_getc ();
 		current_position.column_number++;
-                if (input_char == '\"')
-                  break;
-                input_char = read_string_code (input_char, &correct_newln,
-					       d_getc, d_ungetc);
-                if (input_char < 0)
+		if (no_escape_p)
+		  {
+		    if (input_char == '`')
+		      {
+			input_char = d_getc ();
+			if (input_char == '`')
+			  current_position.column_number++;
+			else
+			  {
+			    d_ungetc (input_char);
+			    break;
+			  }
+		      }
+		    else if (input_char == '\n')
+		      {
+			d_ungetc (input_char);
+			error (FALSE, current_position, ERR_string_end_absence);
+			break;
+		      }
+		  }
+                else
+		  {
+		    if (input_char == '\"')
+		      break;
+		    input_char = read_dino_string_code (input_char, &correct_newln,
+							&wrong_escape_code,
+							d_getc, d_ungetc);
+		  }
+		if (input_char < 0)
                   {
                     error (FALSE, current_position, ERR_string_end_absence);
                     break;
                   }
-                if (!correct_newln)
-                  VLO_ADD_BYTE (symbol_text, input_char);
+                if (! no_escape_p && wrong_escape_code)
+                  {
+		    error (FALSE, current_position, ERR_invalid_escape_code);
+                    continue;
+                  }
+                if (no_escape_p || ! correct_newln)
+		  {
+		    if (! unicode_p && ! in_byte_range_p (input_char))
+		      {
+			/* Transform accumulated string into ucode
+			   string: */
+			unicode_p = TRUE;
+			copy_vlo (&temp_scanner_vlo, &symbol_text);
+			str_to_ucode_vlo (&symbol_text,
+					  VLO_BEGIN (temp_scanner_vlo),
+					  VLO_LENGTH (symbol_text));
+		      }
+		    if (unicode_p)
+		      {
+			uc = input_char;
+			VLO_ADD_MEMORY (symbol_text, &uc, sizeof (ucode_t));
+		      }
+		    else
+		      VLO_ADD_BYTE (symbol_text, input_char);
+		  }
               }
-            VLO_ADD_BYTE (symbol_text, '\0');
-            IR_set_string_value (temp_unique_string, VLO_BEGIN (symbol_text));
-            unique_string_node_ptr = *find_table_entry (temp_unique_string,
-							FALSE);
-            if (unique_string_node_ptr == NULL)
-              {
-                unique_string_node_ptr
-                  = create_unique_node_with_string
-                    (IR_NM_unique_string, VLO_BEGIN (symbol_text),
-                     &string_value_in_code_memory);
-                IR_set_string_value (unique_string_node_ptr,
-                                     string_value_in_code_memory);
-                include_to_table (unique_string_node_ptr);
-              }
-            yylval.pointer = create_node_with_pos (IR_NM_string,
-						   source_position);
-            IR_set_unique_string (yylval.pointer, unique_string_node_ptr);
+	    if (unicode_p)
+	      {
+		uc = '\0';
+		VLO_ADD_MEMORY (symbol_text, &uc, sizeof (ucode_t));
+		IR_set_ucodestr_value (temp_unique_ucodestr,
+				       VLO_BEGIN (symbol_text));
+		d_assert (VLO_LENGTH (symbol_text) > sizeof (ucode_t));
+		IR_set_ucodestr_size
+		  (temp_unique_ucodestr,
+		   VLO_LENGTH (symbol_text) - sizeof (ucode_t));
+		unique_string_node_ptr = *find_table_entry (temp_unique_ucodestr,
+							    FALSE);
+		if (unique_string_node_ptr == NULL)
+		  {
+		    unique_string_node_ptr
+		      = create_unique_node_with_string
+		        (IR_NM_unique_ucodestr, VLO_BEGIN (symbol_text),
+			 VLO_LENGTH (symbol_text),
+			 &string_value_in_code_memory);
+		    IR_set_ucodestr_value (unique_string_node_ptr,
+					     (ucodestr_t) string_value_in_code_memory);
+		    IR_set_ucodestr_size
+		      (unique_string_node_ptr,
+		       VLO_LENGTH (symbol_text) - sizeof (ucode_t));
+		    include_to_table (unique_string_node_ptr);
+		  }
+		yylval.pointer = create_node_with_pos (IR_NM_ucodestr,
+						       source_position);
+		IR_set_unique_ucodestr (yylval.pointer,
+					unique_string_node_ptr);
+	      }
+	    else
+	      {
+		VLO_ADD_BYTE (symbol_text, '\0');
+		IR_set_string_value (temp_unique_string, VLO_BEGIN (symbol_text));
+		unique_string_node_ptr = *find_table_entry (temp_unique_string,
+							    FALSE);
+		if (unique_string_node_ptr == NULL)
+		  {
+		    unique_string_node_ptr
+		      = create_unique_node_with_string
+		      (IR_NM_unique_string, VLO_BEGIN (symbol_text),
+		       VLO_LENGTH (symbol_text),
+		       &string_value_in_code_memory);
+		    IR_set_string_value (unique_string_node_ptr,
+					 string_value_in_code_memory);
+		    include_to_table (unique_string_node_ptr);
+		  }
+		yylval.pointer = create_node_with_pos (IR_NM_string,
+						       source_position);
+		IR_set_unique_string (yylval.pointer, unique_string_node_ptr);
+	      }
             return STRING;
           }
         default:
-          if (isalpha (input_char) || input_char == '_' )
+          if (isalpha_ascii (input_char) || input_char == '_' )
             {
               int keyword;
               
@@ -2844,7 +3352,7 @@ yylex (void)
                   VLO_ADD_BYTE (symbol_text, input_char);
                   input_char = d_getc ();
                 }
-              while (isalpha (input_char) || isdigit (input_char)
+              while (isalpha_ascii (input_char) || isdigit_ascii (input_char)
                      || input_char == '_');
               d_ungetc (input_char);
               VLO_ADD_BYTE (symbol_text, '\0');
@@ -2864,17 +3372,17 @@ yylex (void)
                   return IDENT;
                 }
             }
-          else if (isdigit (input_char))
+          else if (isdigit_ascii (input_char))
             {
               /* Recognition numbers. */
 	      enum read_number_code err_code;
 	      int read_ch_num, float_p, long_p, base;
-	      const char *result;
+	      const char *result; /* Number is always ASCII sequence.  */
 
 	      source_position = current_position;
 	      current_position.column_number++;
-	      err_code = read_number (input_char, d_getc, d_ungetc, &read_ch_num,
-				      &result, &base, &float_p, &long_p);
+	      err_code = read_dino_number (input_char, d_getc, d_ungetc, &read_ch_num,
+					   &result, &base, &float_p, &long_p);
 	      if (err_code == ABSENT_EXPONENT)
 		{
 		  error (FALSE, source_position, ERR_exponent_absence);
@@ -2966,6 +3474,8 @@ initiate_scanner (void)
   curr_char_number = 0;
   environment = ENVIRONMENT;
   VLO_CREATE (symbol_text, 500);
+  VLO_CREATE (temp_scanner_vlo, 500);
+  VLO_CREATE (temp_scanner_vlo2, 500);
 }
 
 /* The following function is called to tune the scanner on input
@@ -2975,9 +3485,10 @@ initiate_scanner (void)
    special code for correct diganostic during and after parsing
    environment is executed. */
 void
-start_scanner_file (const char *new_file_name, position_t error_pos)
+start_scanner_file (const char *new_file_name, const char *encoding_name,
+		    position_t error_pos)
 {
-  push_curr_istream (new_file_name, error_pos);
+  push_curr_istream (new_file_name, encoding_name, error_pos);
   if (*environment != 0)
     {
       /* Environment is not processed yet. Save the position. */
@@ -3009,6 +3520,9 @@ add_lexema_to_file (int lexema_code)
 void
 finish_scanner (void)
 {
+  VLO_DELETE (symbol_text);
+  VLO_DELETE (temp_scanner_vlo);
+  VLO_DELETE (temp_scanner_vlo2);
   if (repl_flag)
     finish_lines ();
   finish_istream_stack ();
@@ -3070,13 +3584,14 @@ finish_block (void)
    into the list yet.  Otherwise it returns FALSE.  NAME is string in
    the include-clase. */
 static int
-add_include_file (const char *name)
+add_include_file (IR_node_t fname)
 {
+  const char *name;
   char **names;
   int i;
 
   d_assert (block_level > 0);
-  name = full_file_name (name);
+  name = get_full_file_and_encoding_name (fname, NULL);
   names = (char **) ((char *) VLO_END (include_file_names) + 1
 		     - sizeof (char *) * curr_block_include_file_names_number);
   for (i = 0; i < curr_block_include_file_names_number; i++)

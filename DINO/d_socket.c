@@ -317,7 +317,7 @@ _sread (int_t npars, val_t *vals)
   sd = ER_i ((ER_node_t) vals);
   len = ER_i ((ER_node_t) (vals + 1));
   d_assert (len >= 0);
-  vect = create_pack_vector (len + 1, ER_NM_char);
+  vect = create_pack_vector (len + 1, ER_NM_byte);
   ER_set_els_number (vect, 0);
   len = recv (sd, ER_pack_els (vect), len, 0);
   if (len == 0)
@@ -391,7 +391,7 @@ _recvfrom (int_t npars, val_t *vals)
   sd = ER_i ((ER_node_t) vals);
   len = ER_i ((ER_node_t) (vals + 1));
   d_assert (len >= 0);
-  vect = create_pack_vector (len + 1, ER_NM_char);
+  vect = create_pack_vector (len + 1, ER_NM_byte);
   ER_set_els_number (vect, 0);
   instance = ER_stack ((ER_node_t) (vals + 2));
   from_len = sizeof (struct sockaddr_in);

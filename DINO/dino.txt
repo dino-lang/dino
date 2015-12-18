@@ -1,7 +1,7 @@
   The Programming Language DINO
   Vladimir Makarov, vmakarov@gcc.gnu.org.  Edited by Serhei
   Makarov.
-  June 2, 2015
+  Dec. 16, 2015
 
   This document describes the programming language DINO.
   ______________________________________________________________________
@@ -42,7 +42,7 @@
      7.5 If-statement
      7.6 For-statement
      7.7 Foreach-statement
-     7.8 Switch-statement
+     7.8 Match-statements
      7.9 Break- and continue-statement
      7.10 Return-statement
      7.11 Throw-statement
@@ -69,15 +69,16 @@
      9.3 Predeclared functions
         9.3.1 Mathematical functions
         9.3.2 Pattern matching functions
-        9.3.3 File functions
-           9.3.3.1 Functions for access to file/directory information
-           9.3.3.2 Functions for work with directories
-           9.3.3.3 Functions for work with files.
-           9.3.3.4 File output functions
-           9.3.3.5 File input functions
-        9.3.4 Time functions
-        9.3.5 Functions for access to process information
-        9.3.6 Miscellaneous functions
+        9.3.3 Encoding functions
+        9.3.4 File functions
+           9.3.4.1 Functions for access to file/directory information
+           9.3.4.2 Functions for work with directories
+           9.3.4.3 Functions for work with files.
+           9.3.4.4 File output functions
+           9.3.4.5 File input functions
+        9.3.5 Time functions
+        9.3.6 Functions for access to process information
+        9.3.7 Miscellaneous functions
 
   10. Appendix A. Syntax of Dino
   11. Appendix B. Implementation
@@ -210,11 +211,11 @@
 
 
 
-  3. A Dino character constant denotes an ASCII character. The following
-     sequences starting with the backslash have a special meaning inside
-     a Dino character constant:
+  3. A Dino character constant denotes an Unicode character. The
+     following sequences starting with the ASCII backslash have a
+     special meaning inside a Dino character constant:
 
-     o  \a - ASCII character alert
+     o  \a -  ASCII character alert
 
      o  \b - ASCII character backspace
 
@@ -228,9 +229,15 @@
 
      o  \v - ASCII character vertical tab
 
-     o  \code - ASCII character with given octal code
+     o  \code - Character with code given up to tree octal digits
 
-     o  \char - ASCII character char for all remaining characters
+     o  \xcode - Character with code given by two hexdecimal digits
+
+     o  \ucode - Character with code given by four hexdecimal digits
+
+     o  \Ucode - Character with code given by eight hexdecimal digits
+
+     o  \char - Character char for all remaining characters
 
      To denote a single quote mark use the sequence \'.  The double
      quote mark can be represented either by \" or simply by ". To rep-
@@ -240,7 +247,7 @@
 
                  Character = "'" Char "'"
 
-                 Char = <any ASCII character except for the single quote ',
+                 Char = <any character except for the single quote ',
                          backslash \, or line break>
                       | SimpleEscapeSeq
                       | OctalEscapeSeq
@@ -258,12 +265,12 @@
 
 
 
-  4. A string is sequence of ASCII characters enclosed in double quotes.
-     There are the same sequences of ASCII characters with special
-     meaning as in a character constant.  To denote a double quote mark
-     use sequence \". The single quote mark can be represented either by
-     \' or simply by '. To represent a backslash inside the character
-     constant, use two consecutive ASCII backslashes.
+  4. A string is sequence of characters enclosed in double quotes. There
+     are the same sequences of characters with special meaning as in a
+     character constant.  To denote a double quote mark use sequence \".
+     The single quote mark can be represented either by \' or simply by
+     '. To represent a backslash inside the character constant, use two
+     consecutive ASCII backslashes.
 
 
                  String = '"' {Char} '"'
@@ -274,6 +281,25 @@
 
 
                  "This is Dino"  "Don't worry\n"
+
+
+
+  Another variant of string representation uses back-quotes `. A charac-
+  ter inside the back-quotes are present in the string as it is, in
+  other words, the escape sequences do now work in such representation.
+  To denote back-quote in such string representation use double back-
+  qoutes.  The newline may not be in such string representation. It
+  means that string with back-quotes can reside only on one line.
+
+
+                 String = '`' {Char} '`'
+
+
+
+  Examples:
+
+
+                 `\p{Greek}+`  `back qoute `` is here`
 
 
 
@@ -300,10 +326,10 @@
                          | "continue" | "else" | "extern" | "final" | "float"
                          | "for" | "former" | "friend" | "fun" | "hide"
                          | "hideblock" | "if" | "in" | "int" | "later" | "long"
-                         | "new" | "nil" | "obj" | "priv" | "process" | "pub"
-                         | "return" | "swicth" | "tab" | "thread" | "this"
-                         | "throw" | "try" | "type" | "use" | "val" | "var"
-                         | "vec" | "wait"
+                         | "new" | "nil" | "obj" | "pmatch" | "priv"
+                         | "process" | "pub" | "return" | "rmatch" | "tab"
+                         | "thread" | "this" | "throw" | "try" | "type"
+                         | "use" | "val" | "var" | "vec" | "wait"
 
 
 
@@ -324,9 +350,9 @@
   A Dino program is block structured. Each block introduces a new
   identifier scope. A block consists of executive statements and
   declarations and may contain nested blocks. There are also implicit
-  blocks containing each case-part of switch statements (see below).
-  Each identifier used in a program should be declared in a declaration
-  in the program, unless it is a predeclared identifier.
+  blocks containing each case-part of match statements (see below). Each
+  identifier used in a program should be declared in a declaration in
+  the program, unless it is a predeclared identifier.
 
 
                  Block = "{"  StmtList "}"
@@ -455,19 +481,16 @@
          chumod         clock          close          closure
          cmpv           context        cos            curr_thread
          deadlock       del
-         eaccess        eagain         ebadf          ebrack
-         ebusy
-         echild         ectype         edeadlk        edom
-         eend           eescape        eexist         efault
-         efbig          eintr          einval         eio
-         eisdir         eltype         emfile         emlink
-         enametoolong   enfile         enodev         enoent
-         enoexec        enolck         enomem         enospc
-         enosys         enotdir        enotempty      enotty
-         env            enxio          eof            eparen
-         eperm          epipe          erange         erofs
-         error_anode    error          esize          espace
-         espipe         esrch          esubreg        exdev
+         eaccess        eagain         ebadf          ebusy
+         echild         edeadlk        edom           eexist
+         efault         efbig          eintr          einval
+         eio            eisdir         eltype         emfile
+         emlink         enametoolong   enfile         enodev
+         enoent         enoexec        enolck         enomem
+         enospc         enosys         enotdir        enotempty
+         enotty         env            enxio          eof
+         eperm          epipe          erofs          error_anode
+         error          espipe         esrch          exdev
          except         exit           exp
          fatime         fctime         fget           fgetf
          fgetln         fgmode         fgrpn          file
@@ -475,31 +498,31 @@
          fomode         fprint         fprintln       fput
          fputln         fscan          fscanln        fsize
          ftype          fuidn          fumode
-         gc             get            getcwd         getegn
-         geteun         getgn          getgroups      getf
-         getln          getpid         getun          gmatch
-         gsub
+         gc             get            get_encoding   get_file_encoding
+         getcwd         getegn         geteun         getgn
+         getgroups      getf           getln          getpid
+         getun          gmatch         gsub
          immutable      indexop        indextype      indexvalue
          ins            inside         insv           invaccess
-         invcall        invector       invenv         invenvar
-         invextern      invfmt         invgrammar     invindex
-         invinput       invkey         invop          invparser
-         invregexp      invresult      invslice       invtoken
-         isa            isatty
+         invcall        invector       invencoding    invenv
+         invenvar       invextern      invfmt         invgrammar
+         invindex       invinput       invkey         invop
+         invparser      invregex       invresult      invslice
+         invtoken       isa            isatty
          keyop          keys           keyvalue
          libclose       log            log10
          main_thread    match          matrixform     max
          min            mkdir
          nil_anode      noextern       noexternsupp   noshell
          open           optype         opvalue
-         parser         parnumber      partype        patternmatch
-         pclose         pmemory        popen          pow
-         print          println        put            putln
-         rand           readdir        remove         rename
-         rev            rmdir
-         scan           scanln         seek           signal
-         sigabrt        sigfpe         sigill         sigint
-         sigsegv        sigterm
+         parser         parnumber      partype        parvalue
+         patternmatch   pclose         pmemory        popen
+         pow            print          println        put
+         putln          rand           readdir        remove
+         rename         rev            rmdir
+         scan           scanln         seek           set_encoding
+         set_file_encoding signal      sigabrt        sigfpe
+         sigill         sigint         sigsegv        sigterm
          sin            sliceform      slicetype      sort
          split          split_regex    sprint         sprintln
          sput           sputln         sqrt           srand
@@ -980,7 +1003,7 @@
 
 
 
-  o  character which represents ASCII characters.  For the
+  o  character which represents unicode characters.  For the
      representation see Character in the section Vocabulary and
      Representation.
 
@@ -1839,7 +1862,9 @@
   Patterns have form of expressions. They are used to match an
   expression and decompose it. Pattern can have form a vector value, a
   table value, a function call, identifier, or special wildcard symbol
-  "_". Anything else is treated as an expression.
+  "_". Anything else is treated as an expression. The simplest way is to
+  treat a pattern, e.g. identfier, as an expression is to put it into
+  paretheses.
 
 
                   Pattern = Expr
@@ -1874,7 +1899,8 @@
   of vector patterns (a, b, and c are identifies of pattern variables):
 
 
-                  [a, b]
+                  [a, b] // a and b are pattern variables
+                  [(a), b] // value of earlier declared a is used
                   [a, ...]
                   [2, [a, b], 3 : c, 4 : _]
 
@@ -2166,17 +2192,40 @@
 
 
 
-  7.8.  Switch-statement
+  7.8.  Match-statements
 
-  This statement is used to try matching switch-expression value (it is
-  evaluated only once) and the patterns in given order and execute the
-  statements corresponding to the first matched pattern. Each case forms
-  an own scope. Pattern variables are declared in the corresponding case
-  scope. Execution of continue-statement in case-statements results in
-  continuing the process of matching switch-expression value with the
-  subsequent patterns. Execution of break-statement in case-statements
-  results in finishing the switch-statement execution. There is implicit
-  break at the end of each case statement list.
+  There are two kinds of match-statement. One is used for pattern
+  matching and another one is used for regular expression matching.
+  They have practically the same syntax. They differ in usage of
+  different start keywords pmatch and rmatch correspondingly for pattern
+  and regular expression matching.
+
+  The pattern or regular expression match statement is used to try
+  matching match-expression value (it is evaluated only once) and the
+  patterns or regular expressions in given order and execute the
+  statements corresponding to the first matched case.
+
+  Each case forms an own scope. Pattern variables in pattern match
+  statement are declared in the corresponding case scope. Each case
+  scope of regular expression match statement contains implicitly
+  declared variable m. If the case regular expression successfully
+  matches the match-expression, value of the corresponding variable m is
+  vector of indexes describing matched substring (see the result of
+  function match for details).
+
+  In case of regular expression matching the string conversion is
+  implicitly applied to the match-expression and the case expression
+  values. The exception optype occurs if the conversion results are not
+  strings. Case with wildcard _ also can occur in rmatch-statement.
+  Matching with such case is always successful but value of variable m
+  is undefined in this case.
+
+  Execution of continue-statement in case-statements results in
+  continuing the process of matching match-expression value with the
+  subsequent patterns or regular expressions. Execution of break-
+  statement in case-statements results in finishing the match-statement
+  execution. There is implicit break at the end of each case statement
+  list.
 
   If optional case condition is given, then it is evaluated after
   succesfull matching with the corresponding pattern and arithmetic
@@ -2186,27 +2235,42 @@
   successfull, otherwise the subsequent case patterns are tried.
 
 
-                 ExecutiveStmt = switch "(" Expr ")" "{" CaseList "}"
+                 ExecutiveStmt = (pmatch | rmatch) "(" Expr ")" "{" CaseList "}"
                  CaseList = { case Pattern [CaseCond] ":" StmtList }
                  CaseCond = if Expr
 
 
 
-  Examples: class c (a1, a2) {} switch (c (2, 3)) { case c (i, j): putln
-  (i, j); case _: putln ("default"); } switch (c (2, 3)) { case c (i, j)
-  if i == j: putln ("eq=", i, j); case c (i, j) if i != j: putln
-  ("neq=", i, j); case _: putln ("default"); }
+  Examples:
+
+
+                 class c (a1, a2) {}
+                 pmatch (c (2, 3)) {
+                   case c (i, j): putln (i, j);
+                   case _: putln ("default");
+                 }
+                 pmatch (c (2, 3)) {
+                   case c (i, j) if i == j: putln ("eq=", i, j);
+                   case c (i, j) if i != j: putln ("neq=", i, j);
+                   case _: putln ("default");
+                 }
+
+                 rmatch (str) {
+                   case "[a-zA-Z]+": putln ("word starting at ", m[0]);
+                   case "[0-9]+": putln ("number starting at ", m[0]);
+                   case _: putln ("anything else, m is undefined");
+                 }
 
 
 
   7.9.  Break- and continue-statement
 
   Statements break and continue are used correspondingly to finish
-  execution of the closest-containing for-, foreach-, or switch-
-  statement covering the statement and to finish one iteration of the
-  body of the for- or foreach-statement and to continue trying
-  subsequent cases for switch-statement. These statement can be used
-  only inside a for-, foreach-, or switch-statement.
+  execution of the closest-containing for-, foreach-, or match-statement
+  covering the statement and to finish one iteration of the body of the
+  for- or foreach-statement and to continue trying subsequent cases for
+  match-statement. These statement can be used only inside a for-,
+  foreach-, or match-statement.
 
 
                  ExecutiveStmt = break ";"
@@ -2225,7 +2289,7 @@
                  for (i in t)
                    if (t{i} == elval)
                      break;
-                 switch (tree) {
+                 match (tree) {
                    case leaf (n):
                      putln ("leaf");
                      if (n == 10) continue;
@@ -2548,6 +2612,8 @@
      corresponds to the standard error stream.
 
      All these variables are final, so you can not change their values.
+     Encoding of the files is DINO current encoding at the program start
+     (see function set_encoding).
 
   9.1.5.  Miscellaneous variables
 
@@ -2575,7 +2641,11 @@
   are made through objects of the class. All declarations inside of
   class are private. The objects of the class can be created only by
   predeclared functions open or popen. If you create an object of the
-  class by calling the class, exception callop will be generated.
+  class by calling the class, exception callop will be generated. File
+  encoding is defined by the current DINO encoding at the file creation
+  time (see functions set_encoding, set_file_encoding). If you want to
+  work with files on the byte level without any encoding decoding, you
+  can use encoding called "RAW".
 
   9.2.2.  Exception classes
 
@@ -2660,8 +2730,17 @@
      o  partype. This class describes that a parameter value of a
         predeclared function is not of required type.
 
+     o  parvalue. This class describes that a parameter value of a
+        predeclared function is not one of permitted values (see
+        functions set_encoding, set_file_encoding).
+
      o  invfmt. This class describes that a format of a format output
-        function is wrong (see function putf.
+        function is wrong (see function putf).
+
+     o  invencoding. This class describes different exceptions with used
+        encodings, e.g. file contains bytes not corresponding to the
+        expected encoding or in some cases the encoding should contain
+        ASCII characters.
 
      o  invresult. This class describes that the result value of
         function call is not of required type, e.g. comparison function
@@ -2794,40 +2873,9 @@
         o  pmemory. This class describes the exception that there is not
            enough memory for internal parser data.
 
-     o  invregexp. Classes inside this class describe exceptions
-        specific for calling predeclared functions implementing regular
-        expression pattern matching.
-
-        o  ebrack. This class describes the exception that a regular
-           expression has an unmatched bracket.
-
-        o  erange. This class describes the exception that there is an
-           invalid use of range in regular expression.
-
-        o  ectype. This class describes the exception that there is an
-           unknown character class name in regular expression.
-
-        o  eparen. This class describes the exception that a regular
-           expression has an unmatched parenthesis.
-
-        o  esubreg. This class describes the exception that there is an
-           invalid back reference to a subexpression in a regular
-           expression.
-
-        o  eend. This class describes the exception that there is a non
-           specific error in regular expression.
-
-        o  eescape. This class describes the exception that there is a
-           trailing backslash.
-
-        o  badpat. This class describes the exception that there is
-           invalid use of pattern operators in a regular expression.
-
-        o  esize. This class describes exception that the compiled
-           regular expression is too big.
-
-        o  espace. This class describes the exception that there is no
-           memory for a regular expression function to work.
+     o  invregex. This class describes exceptions specific for calling
+        predeclared functions implementing regular expression pattern
+        matching.
 
      o  invextern. Classes inside this class describe exceptions in
         calling external functions or in accessing an external variable.
@@ -3254,9 +3302,12 @@
   9.3.2.  Pattern matching functions
 
   Dino has the predeclared functions which are used for pattern
-  matching. The pattern is described by regular expressions (regex). The
-  pattern has syntax of extended POSIX (1003.2) regular expressions,
-  i.e. the pattern has the following syntax:
+  matching. The pattern is described by regular expressions (regex) and
+  actually a small program describing a string matching. The pattern has
+  default syntax of ONIGURUMA package for Unicode. It is hard to
+  describe formally the pattern syntax. Here is not a completely strict
+  description for full reference, please see OINGURUMA package
+  documentation. The regular expressions have the following syntax:
 
 
                  Regex = Branch {"|" Branch}
@@ -3275,135 +3326,414 @@
   the null string.
 
 
-                 Piece = Atom ["*" | "+" | "?" | Bound]
+                 Piece = Anchor | Unit
 
-                 Bound = "{" Min ["," [Max]] "}" | "{" "," Max "}"
+                 Unit = Atom
+                      | Unit Quantifier
 
-                 Min = <unsigned integer between 0 and 255 inclusive>
+                 Quantifier = Greedy
+                            | Reluctant
+                            | Possesive
 
-                 Max = <unsigned integer between 0 and 255 inclusive>
+                 Greedy = "?"                 // 0 or 1 times
+                        | "*"                 // 0 or more times
+                        | "+"                 // 1 or more times
+                        | Bound
+
+                 Bound = "{" Min "," Max "}" // from Min to Max times
+                       | "{" Min "," "}"     // at least Min times
+                       | "{" "," Max "}"     // equivalent to {0, Max}
+                       | "{" Min "}"         // given number times
+
+                 Reluctant = "??"
+                           | "*?"
+                           | "+?"
+                           | Bound "?"
+
+                 Possesive : "?+"
+                           | "*+"
+                           | "++"
+
+                 Min = <unsigned integer>
+
+                 Max = <unsigned integer>
 
 
 
-  An atom followed by * matches a sequence of 0 or more matches of the
-  atom. An atom followed by + matches a sequence of 1 or more matches of
-  the atom. An atom followed by ? matches a sequence of 0 or 1 matches
-  of the atom.
+  An unit followed by * matches a sequence of 0 or more matches of the
+  unit. An unit followed by + matches a sequence of 1 or more matches of
+  the unit. An unit followed by ? matches a sequence of 0 or 1 matches
+  of the unit.
 
   There is a more general construction (a bound) for describing
-  repetitions of an atom. An atom followed by a bound containing only
-  one integer min matches a sequence of exactly min matches of the atom.
-  An atom followed by a bound containing one integer min and a comma
-  matches a sequence of min or more matches of the atom. An atom
+  repetitions of an unit. An unit followed by a bound containing only
+  one integer Min matches a sequence of exactly Min matches of the unit.
+  An unit followed by a bound containing one integer Min and a comma
+  matches a sequence of Min or more matches of the unit. An unit
   followed by a bound containing a comma and one integer Max matches at
-  most Max repetitions of the atom. An atom followed by a bound
-  containing two integers min and max matches a sequence of min through
-  max (inclusive) matches of the atom.
+  most Max repetitions of the unit. An unit followed by a bound
+  containing two integers Min and Max matches a sequence of Min through
+  Max (inclusive) matches of the unit.
+
+  The described above qualifiers are greedy ones. A gready qualifier
+  first matches as much as possible and can back-track in case whole
+  regex matching failure to try shorter sequence. There are reluctant
+  qualifiers too. They have additional suffix ? and first matches as
+  little as possible. The last type of qualifiers is possesive. Such
+  qualifiers have additional suffix + and behave like the corresponding
+  greedy ones, but they do not back-track.
+
+  Examples:
 
 
-                 Atom = "(" Regex ")"
-                      | "(" ")"
-                      | "."
-                      | "^"
-                      | "$"
-                      | BracketedList
-                      | "\^"
-                      | "\["
-                      | "\$"
-                      | "\("
-                      | "\)"
-                      | "\*"
-                      | "\+"
-                      | "\?"
-                      | "\{"
-                      | "\."
-                      | <any pair the first character is \ and the second is any
-                         except for ^.[$()|*+? >
-                      | <any character except for ^.[$()|*+? >
-
-
-
-  A regular expression enclosed in () can be an atom. In this case it
-  matches a match for the regular expression in the parentheses). The
-  atom () matches the null string. The atom . matches any single charac-
-  ter. Atoms ^ and $ match correspondingly the null string at the begin-
-  ning of a line and the null string at the end of a line.
-
-  An atom which is \ followed by one of the characters ^.[$()|*+?{\
-  matches that character taken as an ordinary character. Atom which is \
-  followed by any other character matches the second character taken as
-  an ordinary character, as if the \ had not been present. So you should
-  use \\ for matching with a single \. An atom which is any other single
-  character matches that character. It is illegal to end a regular
-  expression with \. There is an exception which is not described by the
-  atom syntax. An { followed by a character other than a digit or comma
-  is an ordinary character, not the beginning of a bound and matches the
-  character {.
-
-
-                 BracketedList = "[" List "]"
-
-                 List = FirstChar ["-" Char] {Char ["-" Char]}
-
-                 FirstChar = <any character except for ^ - and ]>
-                           | CollatingElement
-
-                 Char = FirstChar
-                      | "^"
-
-                 CollatingElement = "[:" Class ":]"
-
-                 Class = "alnum"
-                       | "alpha"
-                       | "blank"
-                       | "ctrl"
-                       | "digit"
-                       | "graph"
-                       | "lower"
-                       | "print"
-                       | "punct"
-                       | "space"
-                       | "upper"
-                       | "xdigit"
+                 `.?foo` // matches first "xfoo" in "xfooxxxxfoo"
+                 `.*foo` // matches all "xfooxxxxfoo"
+                 `.+foo` // matches all "xfooxxxxfoo"
+                 `.{1,8}foo` // matches all "xfooxxxxfoo"
+                 `.*?foo` // matches first "xfoo" in "xfooxxxxfoo"
+                 `.+?foo` // Ditto
+                 `.{1,8}?foo` // Ditto
+                 `.*+foo` // fail to match in "xfooxxxxfoo"
+                 `.++foo` // fail to match in "xfooxxxxfoo"
 
 
 
-  An atom can be a bracket expression which is a list of characters
-  enclosed in []. Usually it is used to match any single character from
-  the list. If the list begins with ^, it matches any single character
-  (but see below) not in the list. If two characters in the list are
-  separated by -, this is shorthand for the full range of characters
-  between those two (inclusive) in the collating sequence of ASCII
-  codes, e.g. [0-9] matches any decimal digit. It is illegal for two
-  ranges to share an endpoint, e.g. a-c-e.
+                Atom =  Anchors
+                      | Character
+                      | CharacterType
+                      | CharacterProperty
+                      | CharacterClass
+                      | Group
+                      | BackReference
+                      | SubexpCall
 
-  There are exceptions which are not described by the atom syntax which
-  is used to include a literal ] in the list by making it the first
-  character (following a possible ^). To include a literal -, make it
-  the first or the last character, or the second endpoint of a range. As
-  you can see from the syntax, all special characters (except for [)
-  described in an atom lose their special significance within a bracket
-  expression.
+                 Character = "\t"     // horizontal tab (0x09)
+                           | "\v"     // vertical tab (0x0B)
+                           | "\n"     // newline tab (0x0A)
+                           | "\r"     // return (0x0D)
+                           | "\f"     // form feed (0x0C)
+                           | "\a"     // bell (0x07)
+                           | "\e"     // escape (0x1B)
+                           | "\" OctalCode // char with given octal code
+                           | "\x" HexCode  // char with given hexadecimal code
+                           | <any but special character \ ? * + ^ $ [ ( ) >
+                           | "\" <special character>
 
-  A collating element is a name of a character class enclosed in [: and
-  :]. It denotes the list of all characters belonging to that class.
-  Standard character class names are:
+                 OctalCode = <3 octal digits>
+
+                 HexCode = <2 heaxadecimal digits>
+
+                 CharacterType = '.'  // any character but newline
+                               | "\w" // Unicode Letter, Mark, Number, or
+                                      //   Connector_Punctuation
+                               | "\W" // opposite to the above
+                               | "\s" // Unicode Line_Separator,
+                                      //   Paragraph_Separator, or
+                                      //   Space_Separator
+                               | "\S" // opposite to the above
+                               | "\d" // Unicode decimal number
+                               | "\D" // opposite to the above
+                               | "\h" // hexadecimal digit char [0-9a-fA-F]
+                               | "\H" // opposite to the above
+
+                 CharacterProperty = "\p{" PropertyName "}"
+                                   | "\p{^" PropertyName "}"
+                                   | "\P{" PropertyName "}"
+
+                PropertyName = "Alnum" | "Alpha" | "Blank" | "Cntrl"
+                             | "Digit" | "Graph" | "Lower" | "Print"
+                             | "Punct" | "Space" | "Upper" | "XDigit"
+                             | "Word" | "ASCII"
+                             | "Any" | "Assigned" | "C" | "Cc" | "Cf"
+                             | "Cn" | "Co" | "Cs" | "L" | "Ll" | "Lm"
+                             | "Lo" | "Lt" | "Lu" | "M" | "Mc" | "Me"
+                             | "Mn" | "N" | "Nd" | "Nl" | "No" | "P"
+                             | "Pc" | "Pd" | "Pe" | "Pf" | "Pi" | "Po"
+                             | "Ps" | "S" | "Sc" | "Sk" | "Sm" | "So"
+                             | "Z" | "Zl" | "Zp" | "Zs" | "Arabic"
+                             | "Armenian" | "Bengali" | "Bopomofo"
+                             | "Braille" | "Buginese" |  "Buhid"
+                             | "Canadian_Aboriginal" | "Cherokee"
+                             | "Common" | "Coptic" | "Cypriot"
+                             | "Cyrillic" | "Deseret" | "Devanagari"
+                             | "Ethiopic" | "Georgian" |  "Glagolitic"
+                             | "Gothic" | "Greek" | "Gujarati"
+                             | "Gurmukhi" | "Han" | "Hangul" | "Hanunoo"
+                             | "Hebrew" | "Hiragana" | "Inherited"
+                             | "Kannada" | "Katakana" | "Kharoshthi"
+                             | "Khmer" | "Lao" | "Latin" | "Limbu"
+                             | "Linear_B" | "Malayalam" | "Mongolian"
+                             | "Myanmar" | "New_Tai_Lue" | "Ogham"
+                             | "Old_Italic" | "Old_Persian" | "Oriya"
+                             | "Osmanya" | "Runic" | "Shavian" | "Sinhala"
+                             | "Syloti_Nagri" | "Syriac" | "Tagalog"
+                             | "Tagbanwa" | "Tai_Le" | "Tamil" | "Telugu"
+                             | "Thaana" | "Thai" | "Tibetan" | "Tifinagh"
+                             | "Ugaritic" | "Yi"
+
+                 Anchors = "^"           // beginning of the line
+                         | "$"           // end of the line
+                         | "\b"          // word boundary
+                         | "\B"          // not word boundary
+                         | "\A"          // beginning of string
+                         | "\Z"          // end of string, or before newline
+                                         //   at the end
+                         | "\z"          // end of string
 
 
-              alnum       digit       punct
-              alpha       graph       space
-              blank       lower       upper
-              cntrl       print       xdigit
+
+  The atom can be an character. Some characters has a special meaning in
+  regex (see comments in the character syntax). The rest characters
+  match the same character in matching string. To match a special char-
+  acter, use \ before the character. Some characters can be represented
+  by a sequence starting with \ (see the syntax comments).
+
+  Examples:
+
+
+                 `\t`        // matches "\\t"
+                 `\x65`      // matches "e"
+                 `\p{Alpha}` // matches "a"
+                 `\w`        // matches "a"
+                 `b$`        // matches "b" in "b\na"
 
 
 
-  These names stand for the character classes defined in the ANSI C
-  include file ctype.h. There is an exception not described by the syn-
-  tax: a character class can not be used as an endpoint of a range.
+  The atom can be an anchor. Matching anchors succeed only their
+  positions correspond a specific place at the matching string (see
+  comments in the anchor syntax).
 
-  There is an extension of regular expressions used by DINO and of ones
-  defined in Posix 1003.2: no particular limit is imposed on the length
-  of the regular expression.
+  Examples:
+
+
+                 `b$`        // matches "b" in "b\na"
+                 `abc\Z`     // matches "abc" in "abc"
+                 `abc\Z`     // matches "abc" in "abc\n"
+
+
+
+  The atom which is a character type matches a specific class of
+  character (see comments in the character type syntax).
+
+  The atom which is a character property matches a specific class of
+  character. For meaning Alnum - ASCII, please see the corresponding
+  BracketClass. For meaning C - Zs, please see Unicode categories. For
+  meaning Armenian - Yi, please see Unicode scripts (alphabets). If the
+  property contains p with ^ or P, the match succeeds when the matching
+  character is not of the class.
+
+  Examples:
+
+
+                 `\p{Alpha}` // matches "a"
+                 `\p{ASCII}` // matches ";"
+
+
+
+                 CharacterClass = "[" Intersections "]"
+                                | "[^" Intersections "]"
+
+                 Intersections = Set
+                               | Intersections "&&" Set
+
+                 Set = SetElement
+                     | Set SetElement
+
+                 SetElement = ElementChar ["-" ElementChar]
+                            | "[:" BracketClass ":]"
+                            | "[:^" BracketClass ":]"
+                            | CharacterClass
+
+                 ElementChar = Character
+                             | "\b"       // backspace 0x08
+
+                 BracketClass = "alnum"   // Unicode letter, mark,
+                                          //   or decimal number
+                              | "alpha"   // Unicode letter or mark
+                              | "ascii"   // character in range 0 - 0x7f
+                              | "blank"   // Unicode space separator
+                                          //   or \t (0x09)
+                              | "ctrl"    // Unicode control, format,
+                                          //   unassigned, private use,
+                                          //   or surrogate
+                              | "digit"   // Unicode decimal number
+                              | "graph"   // not a space class and not an
+                                          //   Unicode control, unassigned,
+                                          //   or surrogate
+                              | "lower"   // Unicode lower case letter
+                              | "print"   // graph or space class
+                              | "punct"   // any Unicode punctuation
+                              | "space"   // any Unicode separator,
+                                          //   \t (0x09), \n (0x0A), \v (0x0B),
+                                          //   \f (0x0C), \r (0x0D),
+                                          //   or 0x85 (next line)
+                              | "upper"   // Unicode upper case letter
+                              | "xdigit"  // ascii 0-9, a-f, or a-f
+                              | "word"    // Unicode letter, mark, decimal
+                                          //   number or punctuation connector
+
+
+
+  An atom can be a bracket expression which is a list of intersections
+  of character sets separated by && and enclosed in []. If the character
+  class contains ^ right after [, it matches any character which does
+  match the corresponding character class without ^. A set is sequence
+  of set elements.
+
+  Element given by a character denotes the character itself. Element
+  given by two characters in the list separated by - is shorthand for
+  the full range of characters between those two (inclusive) in the
+  sequence of unicode codes, e.g. [0-9] matches any decimal digit.
+  Besides usual character representation you can use here also \b which
+  is a backspace representation.
+
+  Element given by a bracket class enclosed in [[::]] matches a
+  character from this class (see comments in BracketClass). If character
+  ^ is present right after [[:, the match succeeds if the character is
+  not in this class.
+
+  Element can be given by a character class, in other words the
+  character clases can be nested.
+
+  If you need to use [, -, or ] as a normal character in a character
+  class, you can use prefix \ for this.
+
+  Examples:
+
+
+                 `[[:alpha:]]`  // matches "a"
+                 `[[[:lower:]]&&[^a-x]]` // matches "y" or "z"
+
+
+
+  An atom can be a group, a regular expression enclosed in ().  There
+  are several types of groups:
+
+
+                 Group = CapturedGroup
+                       | NonCapturedGroup
+                       | "(?#" <any characters but )> ")" // comment
+                       | "(?" Options ")"
+                       | Context
+
+                 Options =
+                         | Options Option
+
+                 Option = "-" | "i" | "m" | "x"
+
+                 CapturedGroup = "(" [Regex] ")"
+                               | "(?<" Name ">" [Regex] ")"
+
+                 Name = <one or more word character>
+
+                 NonCapturedGroup = "(?" Options ":" [Regex] ")"
+                                  | "(?>" [Regex] ")" /* Atomic group */
+
+                 Context = "(?=" [Regex] ")" // look ahead
+                         | "(?!" [Regex] ")" // negative look ahead
+                         | "(?<=" [Regex] ")" // look behind
+                         | "(?<!" [Regex] ")" // negative look behind
+
+                 BackReference = "\" Number    // back ref. by group
+                                               //   number
+                               | "\k<" Number ">" // back ref. by group
+                                                  //   number
+                               | "\k<-" Number ">" // back ref. by relative
+                                                   //   group number
+                               | "\k<" Name ">" // back ref. by group name
+                               // back ref. by group name and nest level:
+                               | "\k<" Name "+" | "-" Number ">"
+
+                 Number = <any integer >= 0>
+
+
+
+  Some groups are captured groups. It means that you can refer the sub-
+  strings they match (see back references) or get start and end posi-
+  tions of the matched substrings by calling Dino regex match functions.
+  A captured group may have a name which can be used in the back refer-
+  ences or subexp calls.
+
+  You can place comments not containing ) in regex betweeen (?# and ).
+
+  Options without regex always matches. They just change how matching
+  works. Option i switches on igoring letter cases during matches.
+  Option m makes . to match newline too.  Option x switches on ignoring
+  white spaces as character atom and permits to add comments starting
+  with # and ending at the end of line. Character - after the
+  corresponding ? and before has an opposite effect, e.g. it makes a
+  letter case important in matching again etc.
+
+  You can define options in non captured groups. These options affect
+  only this group. Another form of non-captured group is an atomic
+  group. Once regex in an atomic group mathes something, the matching
+  stays the same during back-tracking.
+
+  Examples:
+
+
+                 `(?i:ab)`     // matches "Ab"
+                 `(?x: a a a)` // matches "aaa"
+                 `(?>.*)c`     // can not match "abc"
+
+
+
+  The atom can be a context. A context match does not advance the
+  current position in a matching string. A look ahead context succeeds
+  if the corresponding regex matches a sub-string starting from the
+  current positions. A look behind context succeeds if the corresponding
+  regex matches a sub-string finishing right before the current
+  positions. There are negative forms of context atom. They succeed when
+  the corresponding regex does not match.
+
+  Examples:
+
+
+                 `(?=bcd)bc`   // matches "bc" in "aabcd"
+                 `(?<=aa)bc`   // matches "bc" in "aabc"
+
+
+
+  The atom can be a back reference. It refers to the matched string of
+  the corresponding captured group. The captured groups are counted by
+  their left parantheses starting from one going from left to right.
+  The negative number denotes relative order number, in other words, the
+  order is taken starting from the back reference going from right to
+  left. If captured group has a name, its matched string can be
+  referenced by its name. If several group has the same name, name in
+  the back reference corresponds to the last such group. You can add
+  nest level to the name. If the nest level is zero it is the same as
+  named back reference without nested level. Back reference with non-
+  zero nest level never matches.
+
+  Examples:
+
+
+                 `(a)\k<1>`     // matches "aa"
+                 `(?<p>a)\k<p>` // Ditto
+
+
+
+  Atom can be a subexp call:
+
+
+                 SubexpCall = "\g<" Name ">"
+
+
+
+  Subexp call is actually another occurence of the group it refers to.
+  But if the call is in the group it refers, it is a recursive descrip-
+  tion. Only left recursion is not permitted as this results in never
+  ending recursion.
+
+  Examples:
+
+
+                 `(?<p>cd)\g<p>`   // matches "cdcd"
+                 `(?<p>a|b\g<p>c)` // matches "a", "bac", "bbacc" etc
+                 `(?<p>a|b\g<p>c)` // wrong left recursion.
+
+
 
   There are the following Dino pattern matching functions:
 
@@ -3438,14 +3768,14 @@
      Example: The program
 
 
-                 println (match ("()(a)((a)(a))", "baaab"));
+                 println (match (`\n()(a)((a)(a))`, "b\naaab"));
 
 
 
   outputs
 
 
-                 [1, 4, 1, 1, 1, 2, 2, 4, 2, 3, 3, 4]
+                 [1, 5, 2, 2, 2, 3, 3, 5, 3, 4, 4, 5]
 
 
 
@@ -3454,7 +3784,7 @@
      should be strings after their implicit string conversion. The third
      parameter is optional. If it is present, it should be integer after
      implicit integer conversion. If its value is nonzero, the
-     substrings matched by regexp can be overlapped. Otherwise, the
+     substrings matched by regex can be overlapped. Otherwise, the
      substrings are never overlapped. If the parameter is absent, the
      function behaves as its value were zero. The function returns a new
      mutable vector of integers. The length of the vector is 2 * N where
@@ -3468,8 +3798,8 @@
      Example: The program
 
 
-                 println (gmatch ("aa", "aaaaa"));
-                 println (gmatch ("aa", "aaaaa", 1));
+                 println (gmatch (`aa`, "aaaaa"));
+                 println (gmatch (`aa`, "aaaaa", 1));
 
 
 
@@ -3527,7 +3857,7 @@
   The program
 
 
-                 println (split ("abcdef", ""));
+                 println (split ("abcdef", ``));
 
 
 
@@ -3538,35 +3868,36 @@
 
 
 
-  If the regular expression is incorrect, the functions generate one of
-  the following predeclared exceptions (see predeclared classes):
+  If the regular expression is incorrect, the functions generate excep-
+  tion invregex with a message explaining the error.
 
-  o  ebrack. Regular expression has unmatched bracket.
+  9.3.3.  Encoding functions
 
-  o  invregexps.erange. Invalid use of range in regular expression.
+  Dino internally uses Unicode for characters. To provide communication
+  with the rest of world, it can use different encodings. The default
+  encoding is UTF-8. Dino has two functions to get and change the
+  current encoding:
 
-  o  ectype. Unknown character class name in regular expression.
+  o  get_encoding (). The function returns a new mutable string which is
+     a name of the current encoding.
 
-  o  eparen. Regular expression has unmatched parenthesis.
+  o  set_encoding (name). The function accepts string and changes the
+     current encoding. If the name represents unknown encoding name, the
+     function generates exceptions parvalue.
 
-  o  esubreg. Invalid back reference to a subexpression in regular
-     expression.
+  Examples:
 
-  o  eend. Non specific error in regular expression.
 
-  o  eescape. Invalid escape sequence in regular expression.
+                 putln (get_encoding ());
+                 set_encoding ("KOI8-R");
 
-  o  ebadpat. Invalid use of pattern operators in regular expression.
 
-  o  esize. Compiled regular expression is too big.
 
-  o  espace. No memory for the regular expression function to work.
-
-  9.3.3.  File functions
+  9.3.4.  File functions
 
   Dino has some predeclared functions to work on files and directories.
 
-  9.3.3.1.  Functions for access to file/directory information
+  9.3.4.1.  Functions for access to file/directory information
 
   The following predeclared functions can be used for accessing file or
   directory information. The functions may generate an exception
@@ -3672,7 +4003,7 @@
   o  chomod (path, mode). Analogous to the previous function except for
      the fact that it sets up rights for all other users.
 
-  9.3.3.2.  Functions for work with directories
+  9.3.4.2.  Functions for work with directories
 
   The following functions work with directories. The functions may
   generate an exception declared in class syserror (e.g. eaccess,
@@ -3701,7 +4032,7 @@
      (which should be a string after implicit string conversion) the
      current directory.
 
-  9.3.3.3.  Functions for work with files.
+  9.3.4.3.  Functions for work with files.
 
   The following functions (besides input/output functions) work with OS
   files. The functions may generate an exception declared in the class
@@ -3766,7 +4097,14 @@
      the start of the file, the current position indicator, or the end-
      of-file, respectively).
 
-  9.3.3.4.  File output functions
+  o  get_file_encoding (fileinstance). The function returns a new mutabe
+     string which is a name of the current file encoding.
+
+  o  set_file_encoding (fileinstance, name). The accepts file and string
+     and changes the current file encoding.  If the name represents
+     unknown encoding name, the function generates exceptions parvalue.
+
+  9.3.4.4.  File output functions
 
   The following functions are used to output something into opened
   files. All the function return values are undefined. The functions may
@@ -4069,7 +4407,7 @@
      fprint except for the fact that it additionally outputs a new line
      character after the output of all the parameters.
 
-  9.3.3.5.  File input functions
+  9.3.4.5.  File input functions
 
   The following functions are used to input something from opened files.
   The functions may generate an exception declared in the class syserror
@@ -4138,7 +4476,7 @@
      scanln except for that it reads from an opened file associated with
      a class file instance which is the parameter value.
 
-  9.3.4.  Time functions
+  9.3.5.  Time functions
 
   The following functions can be used to get information about real
   time.
@@ -4213,7 +4551,7 @@
 
      o  %% - a literal `%' character.
 
-  9.3.5.  Functions for access to process information
+  9.3.6.  Functions for access to process information
 
   There are Dino predeclared functions which are used to get information
   about the current OS process (the Dino interpreter which executes the
@@ -4243,7 +4581,7 @@
      (possibly the empty vector) representing supplementary group names
      for the current OS process.
 
-  9.3.6.  Miscellaneous functions
+  9.3.7.  Miscellaneous functions
 
   There are the following miscellaneous functions:
 
@@ -4272,9 +4610,9 @@
      implicit string conversion), what, and subst are strings.  The
      function returns the new string str in which its characters which
      are present in what are changed to the corresponding characters in
-     <\tt>subst<\tt>. The last two strings should have the same length.
-     The second string may contain more than one occurence of a
-     character. In this case the last correspondence is taken.
+     subst. The last two strings should have the same length. The second
+     string may contain more than one occurence of a character. In this
+     case the last correspondence is taken.
 
   o  eltype (vect). The function expects that the parameter value is a
      vector. The function returns nil if the vector is heterogenous,
@@ -4618,7 +4956,7 @@
                      | if  "(" Expr ")" Stmt [ else Stmt ]
                      | for  "(" Stmt ForGuardExpr ";"  Stmt ")" Stmt
                      | for  "(" Designator in Expr ")" Stmt
-                     | switch "(" Expr ")" "{" CaseList "}"
+                     | (pmatch | rmatch) "(" Expr ")" "{" CaseList "}"
                      | break ";"
                      | continue ";"
                      | return  [ Expr ] ";"
@@ -4721,6 +5059,12 @@
        DESCRIPTION
               dino interprets a program in the Dino programming language.   The  pro
               gram file (and include files) must have the suffix .d
+
+              The  program  encodings  are  defined by the current encoding.  You can
+              change  the  current  input  encoding  defining  environment   variable
+              DINO_ENCODING  or  calling  DINO function set_encoding in case of REPL.
+              Each program file can define own encoding putting  -*- coding:  <encod
+              ing-name> -*-  anywhere on the first two lines of the file.
 
               The  description  of  Dino language is in the report of the Programming
               Language Dino.
@@ -4847,6 +5191,11 @@
                      or  ";"  (on  Windows).  The value has less priority than values
                      given in -L options.
 
+              DINO_ENCODING
+                     If not null, it defines the current encoding  of  dino  program.
+                     By  defaull  the  current encoding is UTF-8 encoding.  Use iconv
+                     utility to get possible encoding names.
+
        DIAGNOSTICS
               DINO diagnostics are self-explanatory.
 
@@ -4858,7 +5207,7 @@
 
 
 
-       Dino                              25 May 2015                          Dino(1)
+       Dino                              10 Dec 2015                          Dino(1)
 
 
 

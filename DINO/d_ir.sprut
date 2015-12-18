@@ -82,8 +82,6 @@ typedef int type_mask_t;
 
 typedef int int_t;
 
-typedef const char *string_t;
-
 typedef struct BC_node *BC_hidden_node_t;
 
 enum access_val
@@ -199,7 +197,7 @@ extern IR_node_t find_unique_ident (char *string);
 extern IR_node_t create_node (IR_node_mode_t mode);
 extern IR_node_t create_node_with_pos (IR_node_mode_t mode, position_t pos);
 extern IR_node_t create_unique_node_with_string (IR_node_mode_t m,
-                                                 const char *str,
+                                                 const char *str, size_t len,
                                                  char **string_in_pool_ptr);
 extern IR_node_t create_unique_ident_node (const char *str);
 extern IR_node_t create_empty_block (IR_node_t scope);
@@ -220,17 +218,24 @@ extern IR_node_t get_float_node (rfloat_t number_value, position_t pos);
 /* Variable name for the rest parameter values (...). */
 #define ARGS_NAME "args"
 
-/* This is name of varibale which will contains catdhed exception in
-   corresponding catch block. */
+/* Variable name for class except.  */
+#define EXCEPT_NAME "except"
 
+/* This is name of varibale which will contains catched exception in
+   corresponding catch block. */
 #define CATCH_EXCEPTION_NAME "e"
 
+/* This is name of varibale which will contains result of matching
+   with regexp in the corresponding case block (array of indexes).  */
+#define RMATCH_RESULT_NAME "m"
+ 
 extern IR_node_t temp_unique_ident;
 extern IR_node_t temp_unique_int;
 extern IR_node_t temp_unique_long;
 extern IR_node_t temp_unique_float;
 extern IR_node_t temp_unique_char;
 extern IR_node_t temp_unique_string;
+extern IR_node_t temp_unique_ucodestr;
 extern IR_node_t temp_ident;
 extern IR_node_t temp_decl;
 extern IR_node_t destroy_unique_ident;
@@ -283,9 +288,11 @@ extern IR_node_t destroy_unique_ident;
   "   class abstrcall (msg = nil) {use invcall former msg;}\n"\
   "   class callop (msg = nil) {use invcall former msg;}\n"\
   "   class partype (msg = nil) {use invcall former msg;}\n"\
+  "   class parvalue (msg = nil) {use invcall former msg;}\n"\
   "   class invresult (msg = nil) {use invcall former msg;}\n"\
   "   class invinput (msg = nil) {use invcall former msg;}\n"\
   "   class invfmt (msg = nil) {use invcall former msg;}\n"\
+  "   class invencoding (msg = nil) {use invcall former msg;}\n"\
   "   class eof (msg = nil) {use invcall former msg;}\n"\
   "   class parnumber (msg = nil) {use invcall former msg;}\n"\
   "   class syncthreadcall (msg = nil) {use invcall former msg;}\n"\
@@ -329,17 +336,7 @@ extern IR_node_t destroy_unique_ident;
   "   class systemcall (msg = nil) {use invcall former msg;}\n"\
   "    class noshell (msg = nil) {use systemcall former msg;}\n"\
   "    class systemfail (msg = nil) {use systemcall former msg;}\n"\
-  "   class invregexp (msg = nil) {use invcall former msg;}\n"\
-  "    class ebrack (msg = nil) {use invregexp former msg;}\n"\
-  "    class erange (msg = nil) {use invregexp former msg;}\n"\
-  "    class ectype (msg = nil) {use invregexp former msg;}\n"\
-  "    class eparen (msg = nil) {use invregexp former msg;}\n"\
-  "    class esubreg (msg = nil) {use invregexp former msg;}\n"\
-  "    class eend (msg = nil) {use invregexp former msg;}\n"\
-  "    class eescape (msg = nil) {use invregexp former msg;}\n"\
-  "    class badpat (msg = nil) {use invregexp former msg;}\n"\
-  "    class esize (msg = nil) {use invregexp former msg;}\n"\
-  "    class espace (msg = nil) {use invregexp former msg;}\n"\
+  "   class invregex (msg = nil) {use invcall former msg;}\n"\
   "   class invparser (msg = nil) {use invcall former msg;}\n"\
   "    class invgrammar (msg = nil) {use invparser former msg;}\n"\
   "    class invtoken (msg = nil) {use invparser former msg;}\n"\
@@ -407,7 +404,8 @@ extern IR_node_t destroy_unique_ident;
   "}\n"\
   "// Do not place any code inside file (it is only for internal purposes)\n"\
   "final class file {\n"\
-  "  priv var file_ptr;\n"\
+  "  priv var file_ptr, unget_char, file_icd, file_byte_ocd;\n"\
+  "  priv var file_ucode_ocd, file_encoding, file_encoding_type;\n"\
   "  throw callop\n"\
   "    (\"File can be created only by functions open or popen\");}\n"\
   "val stdin;\n"\
@@ -455,6 +453,8 @@ extern IR_node_t destroy_unique_ident;
   "fun exit {}\n"\
   "fun fold {} fun filter {} fun map {}\n"\
   "fun transpose {}\n"\
+  "fun set_encoding {} fun get_encoding {}\n"\
+  "fun set_file_encoding {} fun get_file_encoding {}\n"\
   "fun __init__ {} __init__();\n"
 }
 
@@ -472,14 +472,15 @@ IR_node_t temp_unique_long;
 IR_node_t temp_unique_float;
 IR_node_t temp_unique_char;
 IR_node_t temp_unique_string;
+IR_node_t temp_unique_ucodestr;
 IR_node_t temp_ident;
 IR_node_t temp_decl;
 IR_node_t destroy_unique_ident;
 
 }
 
-%type char_t rint_t gmp_t rfloat_t string_t int_t bool_t position_t
-      type_mask_t ticker_t BC_hidden_node_t access_val_t hint_val_t
+%type ucode_t size_t rint_t gmp_t rfloat_t string_t ucodestr_t int_t bool_t
+      position_t type_mask_t ticker_t BC_hidden_node_t access_val_t hint_val_t
 
 %%
 
@@ -502,7 +503,7 @@ generic_pos :: ir_node
 /* Only char_node can refer to this node. */
 unique_char :: ir_node
 %other
-        char_value : char_t
+        char_value : ucode_t
 ;
 
 /* Only number_node can refer to this node. */
@@ -525,6 +526,13 @@ unique_float :: ir_node
 unique_string :: ir_node
 %other
         string_value : string_t
+;
+
+unique_ucodestr :: ir_node
+%other
+        ucodestr_value : ucodestr_t
+        /* Byte size of the ucodestr without trailing zero ucode.  */
+        ucodestr_size : size_t
 ;
 
 /* Only ident can refer to this node. */
@@ -576,6 +584,11 @@ string :: expr
         unique_string : unique_string /* always defined */
 ;
 
+ucodestr :: expr
+%other
+        unique_ucodestr : unique_ucodestr /* always defined */
+;
+
 %abstract
 operation :: expr
 ;
@@ -624,10 +637,13 @@ cond :: expr
 ;
 
 const, new, not, unary_plus, unary_minus, bitwise_not, length,
-  fold_plus, fold_mult, fold_and, fold_xor, fold_or,
+  fold_plus, fold_mult, fold_and, fold_xor, fold_or, fold_concat,
   typeof, charof, intof, longof, floatof, vecof, tabof,
   funof, threadof, classof :: unary_operation
 ;
+
+/* It is surrounding an expression by parentheses  */
+paren :: unary_operation;
 
 format_vecof :: binary_operation
 ;
@@ -790,10 +806,15 @@ foreach_stmt :: stmt
         foreach_stmts : stmt
 ;
 
-switch_stmt :: stmt
+
+%abstract
+match_stmt :: stmt
 %other
-        switch_expr : expr
-        switch_cases : stmt
+        match_expr : expr
+        cases : stmt
+;
+
+pmatch_stmt, rmatch_stmt :: match_stmt
 ;
 
 %abstract
@@ -843,11 +864,13 @@ block :: stmt
         /* Flag of the hint presence */
         hint : hint_val_t {$ = NO_HINT;}
         /* The three fields following are non-null if the block corresponds a
-	   switch case.  */
-        switch_stmt : switch_stmt { $ = NULL; }
+	   match case.  */
+        match_stmt : match_stmt { $ = NULL; }
         implicit_case_break_stmt : break_stmt { $ = NULL; }
         case_pattern : expr { $ = NULL; }
         case_cond : expr { $ = NULL; }
+        /* This is non-null for rmatch case only.  */
+        rmatch_result_var : decl { $ = NULL; }
 ;
 
 exception :: generic_pos
@@ -1009,10 +1032,11 @@ foreach_stmt
         foreach_search_start_place : int_t
 ;
 
-switch_stmt
+match_stmt
 %other
-        /* holder for calculated switch expression */
-        switch_expr_var : var
+        /* holder for calculated match (pmatch/rmatch)
+	   expression */
+        match_expr_var : var
 ;
 
 block
@@ -1249,7 +1273,7 @@ hash_func (hash_table_entry_t el_ptr)
     {
       if (mode == IR_NM_unique_char)
 	{
-	  size = sizeof (char_t);
+	  size = sizeof (ucode_t);
           ch = IR_char_value (node_ref);
 	  chp = &ch;
 	}
@@ -1270,6 +1294,11 @@ hash_func (hash_table_entry_t el_ptr)
 	  chp = IR_string_value (node_ref);
 	  size = strlen (chp);
 	}
+      else if (mode == IR_NM_unique_ucodestr)
+	{
+	  chp = (char *) IR_ucodestr_value (node_ref);
+	  size = IR_ucodestr_size (node_ref);
+	}
       else if (mode == IR_NM_unique_ident)
 	{
 	  chp = IR_ident_string (node_ref);
@@ -1278,7 +1307,7 @@ hash_func (hash_table_entry_t el_ptr)
       else
 	d_unreachable ();
       for (hash_value = 0, i = 0; i < size; i++, chp++)
-	hash_value += (*chp) << (i & 0xf);
+	hash_value += (*chp) << (i & 0x7);
     }
   return hash_value;
 }
@@ -1333,6 +1362,12 @@ compare_func (hash_table_entry_t el1_ptr, hash_table_entry_t el2_ptr)
 	    elements_are_equal
 	      = strcmp (IR_string_value (node_ref1),
                         IR_string_value (node_ref2)) == 0;
+	  else if (mode1 == IR_NM_unique_ucodestr)
+	    elements_are_equal
+	      = (IR_ucodestr_size (node_ref1) == IR_ucodestr_size (node_ref2)
+		 && memcmp (IR_ucodestr_value (node_ref1),
+			    IR_ucodestr_value (node_ref2),
+			    IR_ucodestr_size (node_ref1)) == 0);
 	  else
 	    d_unreachable ();
 	}
@@ -1414,22 +1449,24 @@ create_node_with_pos (IR_node_mode_t mode, position_t pos)
   return ref;
 }
 
-/* Allocate memory for node with given mode and string attribute and
-   initiate its common member mode.  Return pointer to the string
-   attribute STR through parameter string_in_pool_ptr.  Nodes with string
-   attribute are unique string, unique ident. */
+/* Allocate memory for node with given mode and string STR of length
+   LEN and initiate its common member mode.  Return pointer to the
+   string in the allocated memory through parameter
+   string_in_pool_ptr.  Nodes with string attribute are unique string,
+   unique ident, and unique ucode string.  */
 
 IR_node_t
 create_unique_node_with_string (IR_node_mode_t m,
-				const char *str, char **string_in_pool_ptr)
+				const char *str, size_t len,
+				char **string_in_pool_ptr)
 {
   IR_node_t ref;
 
   ref = IR_create_node (m);
-  IR_TOP_EXPAND (strlen (str) + 1);
+  IR_TOP_EXPAND (len);
   *string_in_pool_ptr = IR_TOP_BEGIN ();
   IR_TOP_FINISH ();
-  strcpy (*string_in_pool_ptr, str);
+  memcpy (*string_in_pool_ptr, str, len);
   return ref;
 }
 
@@ -1450,6 +1487,7 @@ create_unique_ident_node (const char *str)
   if (ref == NULL)
     {
       ref = create_unique_node_with_string (IR_NM_unique_ident, str,
+					    strlen (str) + 1,
                                             &string_in_pool);
       IR_set_ident_string (ref, string_in_pool);
       /* The following means that the ident is not used for access to 
@@ -1522,6 +1560,7 @@ initiate_icode (void)
   temp_unique_float = IR_create_node (IR_NM_unique_float);
   temp_unique_char = IR_create_node (IR_NM_unique_char);
   temp_unique_string = IR_create_node (IR_NM_unique_string);
+  temp_unique_ucodestr = IR_create_node (IR_NM_unique_ucodestr);
   temp_ident = IR_create_node (IR_NM_ident);
   temp_decl = IR_create_node (IR_NM_var);
   destroy_unique_ident = create_unique_ident_node ("destroy");

@@ -80,7 +80,9 @@ class <CODE>file</CODE> which corresponds to the standard error
 stream.</LI>
 </UL>
 
-All these variables are final, so you can not change their values.</P>
+All these variables are final, so you can not change their values.
+Encoding of the files is DINO current encoding at the program start
+(see function <CODE>set_encoding</CODE>).</P>
 
 <H3>Miscellaneous variables</H3>
 
@@ -112,7 +114,11 @@ Dino program are made through objects of the class.  All declarations
 inside of class are private.  The objects of the class can be created
 only by predeclared functions <CODE>open</CODE> or <CODE>popen</CODE>.  If you
 create an object of the class by calling the class, exception
-<CODE>callop</CODE> will be generated.</P>
+<CODE>callop</CODE> will be generated.  File encoding is defined by the
+current DINO encoding at the file creation time (see
+functions <CODE>set_encoding</CODE>, <CODE>set_file_encoding</CODE>).  If you
+want to work with files on the byte level without any encoding
+decoding, you can use encoding called <CODE>"RAW"</CODE>.</P>
 
 <H3>Exception classes</H3>
 
@@ -198,9 +204,17 @@ class.</LI>
 <LI><CODE>partype</CODE>.  This class describes that a
 parameter value of a predeclared function is not of
 required type.</LI>
+<LI><CODE>parvalue</CODE>.  This class describes that a
+parameter value of a predeclared function is not one of
+permitted values (see functions <CODE>set_encoding</CODE>,
+<CODE>set_file_encoding</CODE>).</LI>
 <LI><CODE>invfmt</CODE>.  This class describes that a format of
 a format output function is wrong (see function
-<CODE>putf</CODE>.</LI>
+<CODE>putf</CODE>).</LI>
+<LI><CODE>invencoding</CODE>.  This class describes different
+exceptions with used encodings, e.g. file contains bytes
+not corresponding to the expected encoding or in some cases
+the encoding should contain ASCII characters.</LI>
 <LI><CODE>invresult</CODE>.  This class describes that the
 result value of function call is not of required type,
 e.g. comparison function used in a call to function
@@ -322,37 +336,9 @@ that there is not enough memory for internal parser
 data.</LI>
 </UL>
 </LI>
-<LI><CODE>invregexp</CODE>.  Classes inside this class describe
-exceptions specific for calling predeclared functions
-implementing regular expression pattern matching.
-<UL>
-<LI><CODE>ebrack</CODE>.  This class describes the exception
-that a regular expression has an unmatched bracket.</LI>
-<LI><CODE>erange</CODE>.  This class describes the exception
-that there is an invalid use of range in regular
-expression.</LI>
-<LI><CODE>ectype</CODE>.  This class describes the exception
-that there is an unknown character class name in regular
-expression.</LI>
-<LI><CODE>eparen</CODE>.  This class describes the exception
-that a regular expression has an unmatched parenthesis.</LI>
-<LI><CODE>esubreg</CODE>.  This class describes the exception
-that there is an invalid back reference to a
-subexpression in a regular expression.</LI>
-<LI><CODE>eend</CODE>.  This class describes the exception
-that there is a non specific error in regular expression.</LI>
-<LI><CODE>eescape</CODE>.  This class describes the exception
-that there is a trailing backslash.</LI>
-<LI><CODE>badpat</CODE>.  This class describes the exception
-that there is invalid use of pattern operators in a
-regular expression.</LI>
-<LI><CODE>esize</CODE>.  This class describes exception that
-the compiled regular expression is too big.</LI>
-<LI><CODE>espace</CODE>.  This class describes the exception
-that there is no memory for a regular expression function
-to work.</LI>
-</UL>
-</LI>
+<LI><CODE>invregex</CODE>.  This class describes exceptions
+specific for calling predeclared functions implementing
+regular expression pattern matching.</LI>
 <LI><CODE>invextern</CODE>.  Classes inside this class describe
 exceptions in calling external functions or in accessing
 an external variable.
@@ -804,9 +790,12 @@ the quadrant of the result.</LI>
 
 <P>Dino has the predeclared functions which are used for <EM>pattern
 matching</EM>.  The pattern is described by <EM>regular
-expressions</EM> (<EM>regex</EM>).  The pattern has syntax of
-<EM>extended</EM> POSIX (1003.2) regular expressions, i.e. the pattern
-has the following syntax:
+expressions</EM> (<EM>regex</EM>) and actually a small program
+describing a string matching.  The pattern has <EM>default</EM> syntax
+of ONIGURUMA package for Unicode.  It is hard to describe formally the
+pattern syntax.  Here is not a completely strict description for full
+reference, please see OINGURUMA package documentation.  The regular
+expressions have the following syntax:
 <BLOCKQUOTE><CODE>
 <PRE>
           Regex = Branch {"|" Branch}
@@ -825,136 +814,411 @@ match for the second piece, etc.  If the pieces are omitted, the
 branch matches the null string.
 <BLOCKQUOTE><CODE>
 <PRE>
-          Piece = Atom ["*" | "+" | "?" | Bound]
+          Piece = Anchor | Unit
 
-          Bound = "{" Min ["," [Max]] "}" | "{" "," Max "}"
+          Unit = Atom
+               | Unit Quantifier
 
-          Min = &lt;unsigned integer between 0 and 255 inclusive>
+          Quantifier = Greedy
+                     | Reluctant
+                     | Possesive
 
-          Max = &lt;unsigned integer between 0 and 255 inclusive>
+          Greedy = "?"                 // 0 or 1 times
+                 | "*"                 // 0 or more times
+                 | "+"                 // 1 or more times
+                 | Bound
+
+          Bound = "{" Min "," Max "}" // from Min to Max times
+                | "{" Min "," "}"     // at least Min times
+                | "{" "," Max "}"     // equivalent to {0, Max}
+                | "{" Min "}"         // given number times
+
+          Reluctant = "??"
+                    | "*?"
+                    | "+?"
+                    | Bound "?"
+
+          Possesive : "?+"
+                    | "*+"
+                    | "++"
+
+          Min = &lt;unsigned integer>
+
+          Max = &lt;unsigned integer>
 </PRE>
 </CODE></BLOCKQUOTE>
 
-An <EM>atom</EM> followed by <CODE>*</CODE> matches a sequence of 0 or
-more matches of the atom.  An atom followed by <CODE>+</CODE> matches a
-sequence of 1 or more matches of the atom.  An atom followed by
-<CODE>?</CODE> matches a sequence of 0 or 1 matches of the atom.</P>
+An <EM>unit</EM> followed by <CODE>*</CODE> matches a sequence of 0 or
+more matches of the unit.  An unit followed by <CODE>+</CODE> matches a
+sequence of 1 or more matches of the unit.  An unit followed by
+<CODE>?</CODE> matches a sequence of 0 or 1 matches of the unit.</P>
 <P>There is a more general construction (a <EM>bound</EM>) for describing
-repetitions of an atom.  An atom followed by a bound containing only
-one integer <CODE>min</CODE> matches a sequence of exactly <CODE>min</CODE>
-matches of the atom.  An atom followed by a bound containing one
-integer <CODE>min</CODE> and a comma matches a sequence of <CODE>min</CODE> or
-more matches of the atom.  An atom followed by a bound containing a
+repetitions of an unit.  An unit followed by a bound containing only
+one integer <CODE>Min</CODE> matches a sequence of exactly <CODE>Min</CODE>
+matches of the unit.  An unit followed by a bound containing one
+integer <CODE>Min</CODE> and a comma matches a sequence of <CODE>Min</CODE> or
+more matches of the unit.  An unit followed by a bound containing a
 comma and one integer <CODE>Max</CODE> matches at most <CODE>Max</CODE>
-repetitions of the atom.  An atom followed by a bound containing two
-integers <CODE>min</CODE> and <CODE>max</CODE> matches a sequence of
-<CODE>min</CODE> through <CODE>max</CODE> (inclusive) matches of the atom.
+repetitions of the unit.  An unit followed by a bound containing two
+integers <CODE>Min</CODE> and <CODE>Max</CODE> matches a sequence of
+<CODE>Min</CODE> through <CODE>Max</CODE> (inclusive) matches of the unit.</P>
+<P>The described above qualifiers are <EM>greedy</EM> ones.  A gready
+qualifier first matches as much as possible and can back-track in case
+whole regex matching failure to try shorter sequence.  There
+are <EM>reluctant</EM> qualifiers too.  They have additional
+suffix <CODE>?</CODE> and first matches as little as possible.  The last
+type of qualifiers is possesive.  Such qualifiers have additional
+suffix <CODE>+</CODE> and behave like the corresponding greedy ones, but
+they do not back-track.</P>
+<P>Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
-          Atom = "(" Regex ")"
-               | "(" ")"
-               | "."
-               | "^"
-               | "$"
-               | BracketedList
-               | "\^"
-               | "\["
-               | "\$"
-               | "\("
-               | "\)"
-               | "\*"
-               | "\+"
-               | "\?"
-               | "\{"
-               | "\."
-               | &lt;any pair the first character is \ and the second is any
-                  except for ^.[$()|*+? >
-               | &lt;any character except for ^.[$()|*+? >
+          `.?foo` // matches first "xfoo" in "xfooxxxxfoo"
+          `.*foo` // matches all "xfooxxxxfoo"
+          `.+foo` // matches all "xfooxxxxfoo"
+          `.{1,8}foo` // matches all "xfooxxxxfoo"
+          `.*?foo` // matches first "xfoo" in "xfooxxxxfoo"
+          `.+?foo` // Ditto
+          `.{1,8}?foo` // Ditto
+          `.*+foo` // fail to match in "xfooxxxxfoo"
+          `.++foo` // fail to match in "xfooxxxxfoo"
 </PRE>
 </CODE></BLOCKQUOTE>
 
-A regular expression enclosed in <CODE>()</CODE> can be an atom.  In this
-case it matches a match for the regular expression in the
-parentheses).  The atom <CODE>()</CODE> matches the null string.  The atom
-<CODE>.</CODE> matches any single character.  Atoms <CODE>^</CODE> and
-<CODE>$</CODE> match correspondingly the null string at the beginning of a
-line and the null string at the end of a line.</P>
-<P>An atom which is <CODE>\</CODE> followed by one of the characters
-<CODE>^.[$()|*+?{\</CODE> matches that character taken as an ordinary
-character.  Atom which is <CODE>\</CODE> followed by any other character
-matches the second character taken as an ordinary character, as if the
-<CODE>\</CODE> had not been present.  So you should use <CODE>\\</CODE> for
-matching with a single <CODE>\</CODE>.  An atom which is any other single
-character matches that character.  It is illegal to end a regular
-expression with <CODE>\</CODE>.  There is an exception which is not
-described by the atom syntax.  An <CODE>{</CODE> followed by a character
-other than a digit or comma is an ordinary character, not the
-beginning of a bound and matches the character <CODE>{</CODE>.
 <BLOCKQUOTE><CODE>
 <PRE>
-          BracketedList = "[" List "]"
+         Atom =  Anchors
+               | Character
+               | CharacterType
+               | CharacterProperty
+               | CharacterClass
+               | Group
+               | BackReference
+               | SubexpCall
+         
+          Character = "\t"     // horizontal tab (0x09)
+                    | "\v"     // vertical tab (0x0B)
+                    | "\n"     // newline tab (0x0A)
+                    | "\r"     // return (0x0D)
+                    | "\f"     // form feed (0x0C)
+                    | "\a"     // bell (0x07)
+                    | "\e"     // escape (0x1B)
+                    | "\" OctalCode // char with given octal code
+                    | "\x" HexCode  // char with given hexadecimal code
+                    | &lt;any but special character \ ? * + ^ $ [ ( ) >
+                    | "\" &lt;special character>
+      
+          OctalCode = &lt;3 octal digits>
+        
+          HexCode = &lt;2 heaxadecimal digits>
+          
+          CharacterType = '.'  // any character but newline
+                        | "\w" // Unicode Letter, Mark, Number, or
+                               //   Connector_Punctuation
+                        | "\W" // opposite to the above 
+                        | "\s" // Unicode Line_Separator, 
+                               //   Paragraph_Separator, or
+                               //   Space_Separator
+                        | "\S" // opposite to the above 
+                        | "\d" // Unicode decimal number 
+                        | "\D" // opposite to the above 
+                        | "\h" // hexadecimal digit char [0-9a-fA-F] 
+                        | "\H" // opposite to the above 
 
-          List = FirstChar ["-" Char] {Char ["-" Char]}
+          CharacterProperty = "\p{" PropertyName "}"
+                            | "\p{^" PropertyName "}"
+                            | "\P{" PropertyName "}"
 
-          FirstChar = &lt;any character except for ^ - and ]>
-                    | CollatingElement
+         PropertyName = "Alnum" | "Alpha" | "Blank" | "Cntrl"
+                      | "Digit" | "Graph" | "Lower" | "Print"
+                      | "Punct" | "Space" | "Upper" | "XDigit"
+                      | "Word" | "ASCII"
+                      | "Any" | "Assigned" | "C" | "Cc" | "Cf"
+                      | "Cn" | "Co" | "Cs" | "L" | "Ll" | "Lm"
+                      | "Lo" | "Lt" | "Lu" | "M" | "Mc" | "Me"
+                      | "Mn" | "N" | "Nd" | "Nl" | "No" | "P"
+                      | "Pc" | "Pd" | "Pe" | "Pf" | "Pi" | "Po"
+                      | "Ps" | "S" | "Sc" | "Sk" | "Sm" | "So"
+                      | "Z" | "Zl" | "Zp" | "Zs" | "Arabic"
+                      | "Armenian" | "Bengali" | "Bopomofo"
+                      | "Braille" | "Buginese" |  "Buhid"
+                      | "Canadian_Aboriginal" | "Cherokee"
+                      | "Common" | "Coptic" | "Cypriot"
+                      | "Cyrillic" | "Deseret" | "Devanagari"
+                      | "Ethiopic" | "Georgian" |  "Glagolitic"
+                      | "Gothic" | "Greek" | "Gujarati"
+                      | "Gurmukhi" | "Han" | "Hangul" | "Hanunoo"
+                      | "Hebrew" | "Hiragana" | "Inherited"
+                      | "Kannada" | "Katakana" | "Kharoshthi"
+                      | "Khmer" | "Lao" | "Latin" | "Limbu"
+                      | "Linear_B" | "Malayalam" | "Mongolian"
+                      | "Myanmar" | "New_Tai_Lue" | "Ogham"
+                      | "Old_Italic" | "Old_Persian" | "Oriya"
+                      | "Osmanya" | "Runic" | "Shavian" | "Sinhala"
+                      | "Syloti_Nagri" | "Syriac" | "Tagalog"
+                      | "Tagbanwa" | "Tai_Le" | "Tamil" | "Telugu"
+                      | "Thaana" | "Thai" | "Tibetan" | "Tifinagh"
+                      | "Ugaritic" | "Yi"
 
-          Char = FirstChar
-               | "^"
+          Anchors = "^"           // beginning of the line
+                  | "$"           // end of the line
+                  | "\b"          // word boundary
+                  | "\B"          // not word boundary
+                  | "\A"          // beginning of string
+                  | "\Z"          // end of string, or before newline
+                                  //   at the end
+                  | "\z"          // end of string
+</PRE>
+</CODE></BLOCKQUOTE>
 
-          CollatingElement = "[:" Class ":]"
+The atom can be an character.  Some characters has a special meaning
+in regex (see comments in the character syntax).  The rest characters
+match the same character in matching string.  To match a special
+character, use <CODE>\</CODE> before the character.  Some characters can
+be represented by a sequence starting with <CODE>\</CODE> (see the syntax
+comments).</P>
+<P>Examples:
+<BLOCKQUOTE><CODE>
+<PRE>
+          `\t`        // matches "\\t"
+          `\x65`      // matches "e"
+          `\p{Alpha}` // matches "a"
+          `\w`        // matches "a"
+          `b$`        // matches "b" in "b\na"
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>The atom can be an anchor.  Matching anchors succeed only their
+positions correspond a specific place at the matching string (see
+comments in the anchor syntax).</P>
+<P>Examples:
+<BLOCKQUOTE><CODE>
+<PRE>
+          `b$`        // matches "b" in "b\na"
+          `abc\Z`     // matches "abc" in "abc"
+          `abc\Z`     // matches "abc" in "abc\n"
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>The atom which is a character type matches a specific class of
+character (see comments in the character type syntax).</P>
+<P>The atom which is a character property matches a specific class of
+character.  For meaning <CODE>Alnum</CODE> - <CODE>ASCII</CODE>, please see
+the corresponding <CODE>BracketClass</CODE>.  For meaning <CODE>C</CODE>
+- <CODE>Zs</CODE>, please see Unicode categories.  For
+meaning <CODE>Armenian</CODE> - <CODE>Yi</CODE>, please see Unicode scripts
+(alphabets). If the property contains <CODE>p</CODE> with <CODE>^</CODE>
+or <CODE>P</CODE>, the match succeeds when the matching character is not
+of the class.</P>
+<P>Examples:
+<BLOCKQUOTE><CODE>
+<PRE>
+          `\p{Alpha}` // matches "a"
+          `\p{ASCII}` // matches ";"
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          CharacterClass = "[" Intersections "]"
+                         | "[^" Intersections "]"
 
-          Class = "alnum"
-                | "alpha"
-                | "blank"
-                | "ctrl"
-                | "digit"
-                | "graph"
-                | "lower"
-                | "print"
-                | "punct"
-                | "space"
-                | "upper"
-                | "xdigit"
+          Intersections = Set
+                        | Intersections "&amp;&amp;" Set
+
+          Set = SetElement
+              | Set SetElement
+          
+          SetElement = ElementChar ["-" ElementChar]
+                     | "[:" BracketClass ":]"
+                     | "[:^" BracketClass ":]"
+                     | CharacterClass
+
+          ElementChar = Character
+                      | "\b"       // backspace 0x08
+
+          BracketClass = "alnum"   // Unicode letter, mark,
+                                   //   or decimal number
+                       | "alpha"   // Unicode letter or mark
+                       | "ascii"   // character in range 0 - 0x7f
+                       | "blank"   // Unicode space separator
+                                   //   or \t (0x09)
+                       | "ctrl"    // Unicode control, format,
+                                   //   unassigned, private use,
+                                   //   or surrogate
+                       | "digit"   // Unicode decimal number 
+                       | "graph"   // not a space class and not an
+                                   //   Unicode control, unassigned,
+                                   //   or surrogate
+                       | "lower"   // Unicode lower case letter
+                       | "print"   // graph or space class
+                       | "punct"   // any Unicode punctuation
+                       | "space"   // any Unicode separator,
+                                   //   \t (0x09), \n (0x0A), \v (0x0B),
+                                   //   \f (0x0C), \r (0x0D),
+                                   //   or 0x85 (next line)
+                       | "upper"   // Unicode upper case letter
+                       | "xdigit"  // ascii 0-9, a-f, or a-f
+                       | "word"    // Unicode letter, mark, decimal
+                                   //   number or punctuation connector
 </PRE>
 </CODE></BLOCKQUOTE>
 
 An atom can be a bracket expression which is a <EM>list</EM> of
-characters enclosed in <CODE>[]</CODE>.  Usually it is used to match any
-single character from the list.  If the list begins with <CODE>^</CODE>,
-it matches any single character (but see below) not in the list.  If
-two characters in the list are separated by <CODE>-</CODE>, this is
+intersections of character sets separated by <CODE>&amp;&amp;</CODE> and enclosed
+in <CODE>[]</CODE>.  If the character class contains <CODE>^</CODE> right
+after <CODE>[</CODE>, it matches any character which does match the
+corresponding character class without <CODE>^</CODE>.  A set is sequence
+of set elements.</P>
+<P>Element given by a character denotes the character itself.  Element
+given by two characters in the list separated by <CODE>-</CODE> is
 shorthand for the full <EM>range</EM> of characters between those two
-(inclusive) in the collating sequence of ASCII codes,
-e.g. <CODE>[0-9]</CODE> matches any decimal digit.  It is illegal for two
-ranges to share an <EM>endpoint</EM>, e.g. <CODE>a-c-e</CODE>.</P>
-
-<P>There are exceptions which are not described by the atom syntax which
-is used to include a literal <CODE>]</CODE> in the list by making it the first
-character (following a possible <CODE>^</CODE>).  To include a literal
-<CODE>-</CODE>, make it the first or the last character, or the second
-endpoint of a range.  As you can see from the syntax, all special
-characters (except for <CODE>[</CODE>) described in an atom lose their
-special significance within a bracket expression.</P>
-<P>A collating element is a name of a character class enclosed in
-<CODE>[:</CODE> and <CODE>:]</CODE>.  It denotes the list of all characters
-belonging to that class.  Standard character class names are:
+(inclusive) in the sequence of unicode codes, e.g. <CODE>[0-9]</CODE>
+matches any decimal digit.  Besides usual character representation you
+can use here also <CODE>\b</CODE> which is a backspace representation.</P>
+<P>Element given by a bracket class enclosed in <CODE>[[::]]</CODE> matches a
+character from this class (see comments in BracketClass).  If
+character <CODE>^</CODE> is present right after <CODE>[[:</CODE>, the match
+succeeds if the character is not in this class.</P>
+<P>Element can be given by a character class, in other words the
+character clases can be nested.</P>
+<P>If you need to use <CODE>[</CODE>, <CODE>-</CODE>, or <CODE>]</CODE> as a normal
+character in a character class, you can use prefix <CODE>\</CODE> for
+this.</P>
+<P>Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
-       alnum       digit       punct
-       alpha       graph       space
-       blank       lower       upper
-       cntrl       print       xdigit
+          `[[:alpha:]]`  // matches "a"
+          `[[[:lower:]]&amp;&amp;[^a-x]]` // matches "y" or "z"
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>An atom can be a group, a regular expression enclosed in <CODE>()</CODE>.
+There are several types of groups:
+<BLOCKQUOTE><CODE>
+<PRE>
+          Group = CapturedGroup
+                | NonCapturedGroup
+                | "(?#" &lt;any characters but )> ")" // comment
+                | "(?" Options ")"
+                | Context
+          
+          Options =
+                  | Options Option
+
+          Option = "-" | "i" | "m" | "x"
+
+          CapturedGroup = "(" [Regex] ")"
+                        | "(?&lt;" Name ">" [Regex] ")"
+ 
+          Name = &lt;one or more word character>
+
+          NonCapturedGroup = "(?" Options ":" [Regex] ")"
+                           | "(?>" [Regex] ")" /* Atomic group */
+                           
+          Context = "(?=" [Regex] ")" // look ahead
+                  | "(?!" [Regex] ")" // negative look ahead
+                  | "(?&lt;=" [Regex] ")" // look behind
+                  | "(?&lt;!" [Regex] ")" // negative look behind
+
+          BackReference = "\" Number    // back ref. by group
+                                        //   number
+                        | "\k&lt;" Number ">" // back ref. by group
+                                           //   number
+                        | "\k&lt;-" Number ">" // back ref. by relative
+                                            //   group number
+                        | "\k&lt;" Name ">" // back ref. by group name
+                        // back ref. by group name and nest level:
+                        | "\k&lt;" Name "+" | "-" Number ">"
+
+          Number = &lt;any integer >= 0>
+                                    
 </PRE>
 </CODE></BLOCKQUOTE>
 
-These names stand for the character classes defined in the ANSI C
-include file <CODE>ctype.h</CODE>.  There is an exception not described by
-the syntax: a character class can not be used as an endpoint of a
-range.</P>
-<P>There is an extension of regular expressions used by DINO and of ones
-defined in Posix 1003.2: no particular limit is imposed on the length
-of the regular expression.</P>
+Some groups are captured groups.  It means that you can refer the
+substrings they match (see back references) or get start and end
+positions of the matched substrings by calling Dino regex match
+functions.  A captured group may have a name which can be used in the
+back references or subexp calls.</P>
+<P>You can place comments not containing <CODE>)</CODE> in regex
+betweeen <CODE>(?#</CODE> and <CODE>)</CODE>.</P>
+<P>Options without regex always matches.  They just change how matching
+works.  Option <CODE>i</CODE> switches on igoring letter cases during
+matches.  Option <CODE>m</CODE> makes <CODE>.</CODE> to match newline too.
+Option <CODE>x</CODE> switches on ignoring white spaces as character atom
+and permits to add comments starting with <CODE>#</CODE> and ending at the
+end of line.  Character <CODE>-</CODE> after the corresponding <CODE>?</CODE> and
+before has an opposite effect, e.g. it makes a letter case important
+in matching again etc.</P>
+<P>You can define options in non captured groups.  These options affect
+only this group.  Another form of non-captured group is an atomic
+group.  Once regex in an atomic group mathes something, the matching
+stays the same during back-tracking.</P>
+<P>Examples:
+<BLOCKQUOTE><CODE>
+<PRE>
+          `(?i:ab)`     // matches "Ab"
+          `(?x: a a a)` // matches "aaa"
+          `(?>.*)c`     // can not match "abc"
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>The atom can be a context.  A context match does not advance the
+current position in a matching string.  A look ahead context succeeds
+if the corresponding regex matches a sub-string starting from the
+current positions.  A look behind context succeeds if the
+corresponding regex matches a sub-string finishing right before the
+current positions.  There are negative forms of context atom.  They
+succeed when the corresponding regex does not match.</P>
+<P>Examples:
+<BLOCKQUOTE><CODE>
+<PRE>
+          `(?=bcd)bc`   // matches "bc" in "aabcd"
+          `(?&lt;=aa)bc`   // matches "bc" in "aabc"
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>The atom can be a back reference.  It refers to the matched string of
+the corresponding captured group.  The captured groups are counted by
+their left parantheses starting from one going from left to right.
+The negative number denotes relative order number, in other words, the
+order is taken starting from the back reference going from right to
+left.  If captured group has a name, its matched string can be
+referenced by its name.  If several group has the same name, name in
+the back reference corresponds to the last such group.  You can add
+nest level to the name.  If the nest level is zero it is the same as
+named back reference without nested level.  Back reference with
+non-zero nest level never matches.</P>
+<P>Examples:
+<BLOCKQUOTE><CODE>
+<PRE>
+          `(a)\k&lt;1>`     // matches "aa"
+          `(?&lt;p>a)\k&lt;p>` // Ditto
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>Atom can be a subexp call:
+<BLOCKQUOTE><CODE>
+<PRE>
+          SubexpCall = "\g&lt;" Name ">"
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Subexp call is actually another occurence of the group
+it refers to.  But if the call is in the group it refers, it is a
+recursive description.  Only left recursion is not permitted as this
+results in never ending recursion.</P>
+<P>Examples:
+<BLOCKQUOTE><CODE>
+<PRE>
+          `(?&lt;p>cd)\g&lt;p>`   // matches "cdcd"
+          `(?&lt;p>a|b\g&lt;p>c)` // matches "a", "bac", "bbacc" etc
+          `(?&lt;p>a|b\g&lt;p>c)` // wrong left recursion.
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
 <P>There are the following Dino pattern matching functions:
 <UL>
 <LI><CODE>match (regex, string)</CODE>.  The function searches for
@@ -989,14 +1253,14 @@ corresponding vector elements will have negative values.
 <P>Example: The program
 <BLOCKQUOTE><CODE>
 <PRE>
-          println (match ("()(a)((a)(a))", "baaab"));
+          println (match (`\n()(a)((a)(a))`, "b\naaab"));
 </PRE>
 </CODE></BLOCKQUOTE>
 
 outputs
 <BLOCKQUOTE><CODE>
 <PRE>
-          [1, 4, 1, 1, 1, 2, 2, 4, 2, 3, 3, 4]
+          [1, 5, 2, 2, 2, 3, 3, 5, 3, 4, 4, 5]
 </PRE>
 </CODE></BLOCKQUOTE>
 </P>
@@ -1007,7 +1271,7 @@ searches for different occurrences of regular expression
 be strings after their implicit string conversion.  The third
 parameter is optional.  If it is present, it should be integer
 after implicit integer conversion.  If its value is nonzero,
-the substrings matched by regexp can be overlapped.  Otherwise,
+the substrings matched by regex can be overlapped.  Otherwise,
 the substrings are never overlapped.  If the parameter is
 absent, the function behaves as its value were zero.  The
 function returns a new mutable vector of integers.  The length
@@ -1021,8 +1285,8 @@ no one occurrence, the function returns <CODE>nil</CODE>.
 <P>Example: The program
 <BLOCKQUOTE><CODE>
 <PRE>
-          println (gmatch ("aa", "aaaaa"));
-          println (gmatch ("aa", "aaaaa", 1));
+          println (gmatch (`aa`, "aaaaa"));
+          println (gmatch (`aa`, "aaaaa", 1));
 </PRE>
 </CODE></BLOCKQUOTE>
 
@@ -1084,7 +1348,7 @@ outputs
 The program
 <BLOCKQUOTE><CODE>
 <PRE>
-          println (split ("abcdef", ""));
+          println (split ("abcdef", ``));
 </PRE>
 </CODE></BLOCKQUOTE>
 
@@ -1098,27 +1362,31 @@ outputs
 </LI>
 </UL>
 
-If the regular expression is incorrect, the functions generate one of
-the following predeclared exceptions (see predeclared classes):
+If the regular expression is incorrect, the functions generate
+exception <CODE>invregex</CODE> with a message explaining the error.</P>
+
+<H3>Encoding functions</H3>
+
+<P>Dino internally uses Unicode for characters.  To provide communication
+with the rest of world, it can use different encodings.  The default
+encoding is UTF-8.  Dino has two functions to get and change the
+current encoding:
 <UL>
-<LI><CODE>ebrack</CODE>.  Regular expression has unmatched bracket.</LI>
-<LI><CODE>invregexps.erange</CODE>.  Invalid use of range in regular
-expression.</LI>
-<LI><CODE>ectype</CODE>.  Unknown character class name in regular
-expression.</LI>
-<LI><CODE>eparen</CODE>.  Regular expression has unmatched
-parenthesis.</LI>
-<LI><CODE>esubreg</CODE>.  Invalid back reference to a
-subexpression in regular expression.</LI>
-<LI><CODE>eend</CODE>.  Non specific error in regular expression.</LI>
-<LI><CODE>eescape</CODE>.  Invalid escape sequence in regular
-expression.</LI>
-<LI><CODE>ebadpat</CODE>.  Invalid use of pattern operators in
-regular expression.</LI>
-<LI><CODE>esize</CODE>.  Compiled regular expression is too big.</LI>
-<LI><CODE>espace</CODE>.  No memory for the regular expression
-function to work.</LI>
+<LI><CODE>get_encoding ()</CODE>.  The function returns a new
+mutable string which is a name of the current encoding.</LI>
+<LI><CODE>set_encoding (name)</CODE>.  The function accepts string
+and changes the current encoding.  If the name represents
+unknown encoding name, the function generates
+exceptions <CODE>parvalue</CODE>.</LI>
 </UL>
+</P>
+<P>Examples:
+<BLOCKQUOTE><CODE>
+<PRE>
+          putln (get_encoding ());
+          set_encoding ("KOI8-R");
+</PRE>
+</CODE></BLOCKQUOTE>
 </P>
 
 <H3>File functions</H3>
@@ -1321,6 +1589,13 @@ of the string should be <CODE>'s'</CODE>, <CODE>'c'</CODE>, or
 <CODE>'e'</CODE> (these characters mean that the offset is relative
 to the start of the file, the current position indicator, or
 the end-of-file, respectively).</LI>
+<LI><CODE>get_file_encoding (fileinstance)</CODE>.  The function
+returns a new mutabe string which is a name of the current file
+encoding.</LI>
+<LI><CODE>set_file_encoding (fileinstance, name)</CODE>.  The
+accepts file and string and changes the current file encoding.
+If the name represents unknown encoding name, the function
+generates exceptions <CODE>parvalue</CODE>.</LI>
 </UL>
 </P>
 
@@ -1851,7 +2126,7 @@ that the parameters <CODE>str</CODE> (after implicit string
 conversion), <CODE>what</CODE>, and <CODE>subst</CODE> are strings.
 The function returns the new string <CODE>str</CODE> in which its
 characters which are present in <CODE>what</CODE> are changed to
-the corresponding characters in &lt;\tt>subst&lt;\tt>.  The last two
+the corresponding characters in <CODE>subst</CODE>.  The last two
 strings should have the same length.  The second string may
 contain more than one occurence of a character.  In this case
 the last correspondence is taken.</LI>

@@ -6,7 +6,7 @@
 <title>The Programming Language DINO
 <author>Vladimir Makarov, <tt>vmakarov@gcc.gnu.org</tt>.
 Edited by Serhei Makarov.
-<date>June 2, 2015
+<date>Dec. 16, 2015
 <abstract>
 This document describes the programming language DINO.
 </abstract>
@@ -130,20 +130,28 @@ letters are considered to be distinct.
           1e2
           100.0E+0
 </verb></tscreen>
-     <item>A Dino <em>character constant</em> denotes an ASCII
-        character.  The following sequences starting with the
+     <item>A Dino <em>character constant</em> denotes an Unicode
+        character.  The following sequences starting with the ASCII
         backslash have a special meaning inside a Dino character
         constant:
           <itemize>
-          <item><tt><bf>\a</bf>    -</tt> ASCII character alert
-          <item><tt><bf>\b</bf>    -</tt> ASCII character backspace
-          <item><tt><bf>\f</bf>    -</tt> ASCII character form feed
-          <item><tt><bf>\n</bf>    -</tt> ASCII character new line
-          <item><tt><bf>\r</bf>    -</tt> ASCII character carriage return
-          <item><tt><bf>\t</bf>    -</tt> ASCII character horizontal tab
-          <item><tt><bf>\v</bf>    -</tt> ASCII character vertical tab
-          <item><tt><bf>\code</bf> -</tt> ASCII character with given octal code
-          <item><tt><bf>\char</bf> -</tt> ASCII character char for all remaining characters
+          <item><tt><bf>\a</bf>    - </tt> ASCII character alert
+          <item><tt><bf>\b</bf>     -</tt> ASCII character backspace
+          <item><tt><bf>\f</bf>     -</tt> ASCII character form feed
+          <item><tt><bf>\n</bf>     -</tt> ASCII character new line
+          <item><tt><bf>\r</bf>     -</tt> ASCII character carriage return
+          <item><tt><bf>\t</bf>     -</tt> ASCII character horizontal tab
+          <item><tt><bf>\v</bf>     -</tt> ASCII character vertical tab
+          <item><tt><bf>\code</bf>  -</tt> Character with code given
+          up to tree octal digits
+          <item><tt><bf>\xcode</bf> -</tt> Character with code given
+          by two hexdecimal digits
+          <item><tt><bf>\ucode</bf> -</tt> Character with code given
+          by four hexdecimal digits
+          <item><tt><bf>\Ucode</bf> -</tt> Character with code given
+          by eight hexdecimal digits
+          <item><tt><bf>\char</bf>  -</tt> Character char for all
+          remaining characters
           </itemize>
         To denote a single quote mark use the sequence <tt>\'</tt>.
         The double quote mark can be represented either by <tt>\"</tt>
@@ -152,7 +160,7 @@ letters are considered to be distinct.
 <tscreen><verb>
           Character = "'" Char "'"
 
-          Char = <any ASCII character except for the single quote ',
+          Char = <any character except for the single quote ',
                   backslash \, or line break>
                | SimpleEscapeSeq
                | OctalEscapeSeq
@@ -165,8 +173,8 @@ letters are considered to be distinct.
 <tscreen><verb>
           'a'  '\''  '\\'  '\12'  '"'
 </verb></tscreen>
-     <item>A <em>string</em> is sequence of ASCII characters enclosed
-        in double quotes. There are the same sequences of ASCII
+     <item>A <em>string</em> is sequence of characters enclosed
+        in double quotes. There are the same sequences of
         characters with special meaning as in a character constant.
         To denote a double quote mark use sequence <tt>\"</tt>.  The
         single quote mark can be represented either by <tt>\'</tt> or
@@ -178,6 +186,20 @@ letters are considered to be distinct.
         Examples:
 <tscreen><verb>
           "This is Dino"  "Don't worry\n"
+</verb></tscreen>
+        Another variant of string representation uses
+        back-quotes <tt>`</tt>.  A character inside the back-quotes are
+        present in the string as it is, in other words, the escape
+        sequences do now work in such representation.  To denote
+        back-quote in such string representation use double back-qoutes.
+        The newline may not be in such string representation.  It
+        means that string with back-quotes can reside only on one line.
+<tscreen><verb>
+          String = '`' {Char} '`'
+</verb></tscreen>
+        Examples:
+<tscreen><verb>
+          `\p{Greek}+`  `back qoute `` is here`
 </verb></tscreen>
      <item>The remaining essential symbols are called
         <em>operators</em> and <em>delimiters</em>.  Operators are
@@ -202,10 +224,10 @@ letters are considered to be distinct.
                   | "continue" | "else" | "extern" | "final" | "float"
                   | "for" | "former" | "friend" | "fun" | "hide"
                   | "hideblock" | "if" | "in" | "int" | "later" | "long"
-                  | "new" | "nil" | "obj" | "priv" | "process" | "pub"
-                  | "return" | "swicth" | "tab" | "thread" | "this"
-                  | "throw" | "try" | "type" | "use" | "val" | "var"
-                  | "vec" | "wait"
+                  | "new" | "nil" | "obj" | "pmatch" | "priv"
+                  | "process" | "pub" | "return" | "rmatch" | "tab"
+                  | "thread" | "this" | "throw" | "try" | "type"
+                  | "use" | "val" | "var" | "vec" | "wait"
 </verb></tscreen>
 
      <item><em>Comments</em> are considered analogous to blanks on the
@@ -226,7 +248,7 @@ letters are considered to be distinct.
 A Dino program is block structured.  Each block introduces a new
 identifier scope.  A block consists of executive statements and
 declarations and may contain nested blocks.  There are also implicit
-blocks containing each case-part of switch statements (see
+blocks containing each case-part of match statements (see
 below). Each identifier used in a program should be declared in a
 declaration in the program, unless it is a predeclared identifier.
 <tscreen><verb>
@@ -342,19 +364,16 @@ more detail later in the report.
   chumod         clock          close          closure
   cmpv           context        cos            curr_thread
   deadlock       del
-  eaccess        eagain         ebadf          ebrack
-  ebusy
-  echild         ectype         edeadlk        edom
-  eend           eescape        eexist         efault
-  efbig          eintr          einval         eio
-  eisdir         eltype         emfile         emlink
-  enametoolong   enfile         enodev         enoent
-  enoexec        enolck         enomem         enospc
-  enosys         enotdir        enotempty      enotty
-  env            enxio          eof            eparen
-  eperm          epipe          erange         erofs
-  error_anode    error          esize          espace
-  espipe         esrch          esubreg        exdev
+  eaccess        eagain         ebadf          ebusy
+  echild         edeadlk        edom           eexist
+  efault         efbig          eintr          einval
+  eio            eisdir         eltype         emfile
+  emlink         enametoolong   enfile         enodev
+  enoent         enoexec        enolck         enomem
+  enospc         enosys         enotdir        enotempty
+  enotty         env            enxio          eof
+  eperm          epipe          erofs          error_anode
+  error          espipe         esrch          exdev
   except         exit           exp
   fatime         fctime         fget           fgetf
   fgetln         fgmode         fgrpn          file
@@ -362,31 +381,31 @@ more detail later in the report.
   fomode         fprint         fprintln       fput
   fputln         fscan          fscanln        fsize
   ftype          fuidn          fumode
-  gc             get            getcwd         getegn
-  geteun         getgn          getgroups      getf
-  getln          getpid         getun          gmatch
-  gsub
+  gc             get            get_encoding   get_file_encoding
+  getcwd         getegn         geteun         getgn
+  getgroups      getf           getln          getpid
+  getun          gmatch         gsub
   immutable      indexop        indextype      indexvalue     
   ins            inside         insv           invaccess
-  invcall        invector       invenv         invenvar
-  invextern      invfmt         invgrammar     invindex
-  invinput       invkey         invop          invparser
-  invregexp      invresult      invslice       invtoken
-  isa            isatty
+  invcall        invector       invencoding    invenv
+  invenvar       invextern      invfmt         invgrammar
+  invindex       invinput       invkey         invop
+  invparser      invregex       invresult      invslice
+  invtoken       isa            isatty
   keyop          keys           keyvalue
   libclose       log            log10
   main_thread    match          matrixform     max
   min            mkdir
   nil_anode      noextern       noexternsupp   noshell
   open           optype         opvalue
-  parser         parnumber      partype        patternmatch
-  pclose         pmemory        popen          pow
-  print          println        put            putln
-  rand           readdir        remove         rename
-  rev            rmdir
-  scan           scanln         seek           signal
-  sigabrt        sigfpe         sigill         sigint
-  sigsegv        sigterm
+  parser         parnumber      partype        parvalue
+  patternmatch   pclose         pmemory        popen
+  pow            print          println        put
+  putln          rand           readdir        remove
+  rename         rev            rmdir
+  scan           scanln         seek           set_encoding
+  set_file_encoding signal      sigabrt        sigfpe
+  sigill         sigint         sigsegv        sigterm
   sin            sliceform      slicetype      sort
   split          split_regex    sprint         sprintln
   sput           sputln         sqrt           srand
@@ -828,7 +847,7 @@ Dino has the following types of values:
 <tscreen><verb>
                  Expr = nil
 </verb></tscreen>
-          <item><em>character</em> which represents ASCII characters.
+          <item><em>character</em> which represents unicode characters.
             For the representation see <tt>Character</tt> in the
             section <em>Vocabulary and Representation</em>.
 <tscreen><verb>
@@ -1601,7 +1620,9 @@ difference is an absence of function/class identifier:
 Patterns have form of expressions.  They are used to match an
 expression and decompose it.  Pattern can have form a vector value, a
 table value, a function call, identifier, or special <em>wildcard</em>
-symbol <tt>"_"</tt>.  Anything else is treated as an expression.
+symbol <tt>"_"</tt>.  Anything else is treated as an expression.  The
+simplest way is to treat a pattern, e.g. identfier, as an expression
+is to put it into paretheses.
 <tscreen><verb>
            Pattern = Expr
            Expr = "_" | "..."
@@ -1635,7 +1656,8 @@ matches the rest elements in the matched vector value.  The following
 are examples of vector patterns (a, b, and c are identifies of pattern
 variables):
 <tscreen><verb>
-           [a, b]
+           [a, b] // a and b are pattern variables
+           [(a), b] // value of earlier declared a is used
 	   [a, ...]
 	   [2, [a, b], 3 : c, 4 : _]
 </verb></tscreen>
@@ -1892,18 +1914,40 @@ foreach-statement can be finished by execution of statement
           }
 </verb></tscreen>
 
-<sect1>Switch-statement
+<sect1>Match-statements
 <p>
-This statement is used to try matching switch-expression value (it is
-evaluated only once) and the patterns in given order and execute the
-statements corresponding to the first matched pattern.  Each case
-forms an own scope.  Pattern variables are declared in the
-corresponding case scope.  Execution of continue-statement in
-case-statements results in continuing the process of matching
-switch-expression value with the subsequent patterns.  Execution of
+There are two kinds of match-statement.  One is used for pattern
+matching and another one is used for regular expression matching.
+They have practically the same syntax.  They differ in usage of
+different start keywords <tt>pmatch</tt> and <tt>rmatch</tt>
+correspondingly for pattern and regular expression matching.
+<p>
+The pattern or regular expression match statement is used to try
+matching match-expression value (it is evaluated only once) and the
+patterns or regular expressions in given order and execute the
+statements corresponding to the first matched case.
+<p>
+Each case forms an own scope.  Pattern variables in pattern match
+statement are declared in the corresponding case scope.  Each case
+scope of regular expression match statement contains implicitly
+declared variable <tt>m</tt>.  If the case regular expression
+successfully matches the match-expression, value of the corresponding
+variable <tt>m</tt> is vector of indexes describing matched substring
+(see the result of function <tt>match</tt> for details).
+<p>
+In case of regular expression matching the string conversion is
+implicitly applied to the match-expression and the case expression
+values.  The exception <tt>optype</tt> occurs if the conversion
+results are not strings.  Case with wildcard <tt>_</tt> also can occur
+in rmatch-statement.  Matching with such case is always successful but
+value of variable <tt>m</tt> is undefined in this case.
+<p>
+Execution of continue-statement in case-statements results in
+continuing the process of matching match-expression value with the
+subsequent patterns or regular expressions.  Execution of
 break-statement in case-statements results in finishing the
-switch-statement execution.  There is implicit break at the end of
-each case statement list.
+match-statement execution.  There is implicit break at the end of each
+case statement list.
 <p>
 If optional case condition is given, then it is evaluated after
 succesfull matching with the corresponding pattern and arithmetic
@@ -1913,32 +1957,38 @@ exception <tt>optype</tt> is generated.  If the value is nonzero the
 all match is considered successfull, otherwise the subsequent case
 patterns are tried.
 <tscreen><verb>
-          ExecutiveStmt = switch "(" Expr ")" "{" CaseList "}"
+          ExecutiveStmt = (pmatch | rmatch) "(" Expr ")" "{" CaseList "}"
           CaseList = { case Pattern [CaseCond] ":" StmtList }
 	  CaseCond = if Expr
 </verb></tscreen>
         Examples:
+<tscreen><verb>
           class c (a1, a2) {}
-          switch (c (2, 3)) {
+          pmatch (c (2, 3)) {
             case c (i, j): putln (i, j);
             case _: putln ("default");
           }
-          switch (c (2, 3)) {
+          pmatch (c (2, 3)) {
             case c (i, j) if i == j: putln ("eq=", i, j);
             case c (i, j) if i != j: putln ("neq=", i, j);
             case _: putln ("default");
           }
-<tscreen><verb>
+
+          rmatch (str) {
+	    case "[a-zA-Z]+": putln ("word starting at ", m[0]);
+	    case "[0-9]+": putln ("number starting at ", m[0]);
+            case _: putln ("anything else, m is undefined");
+          }
 </verb></tscreen>
 
 <sect1>Break- and continue-statement
 <p>
 Statements <tt>break</tt> and <tt>continue</tt> are used
 correspondingly to finish execution of the closest-containing for-,
-foreach-, or switch-statement covering the statement and to finish one iteration
+foreach-, or match-statement covering the statement and to finish one iteration
 of the body of the for- or foreach-statement and to continue trying
-subsequent cases for switch-statement.  These statement can be
-used only inside a for-, foreach-, or switch-statement.
+subsequent cases for match-statement.  These statement can be
+used only inside a for-, foreach-, or match-statement.
 <tscreen><verb>
           ExecutiveStmt = break ";"
                         | continue ";"
@@ -1953,7 +2003,7 @@ used only inside a for-, foreach-, or switch-statement.
           for (i in t)
             if (t{i} == elval)
               break;
-          switch (tree) {
+          match (tree) {
 	    case leaf (n):
               putln ("leaf");
               if (n == 10) continue;
@@ -2250,6 +2300,8 @@ the standard input stream, the following variables can be used:
        stream.
      </itemize>
 All these variables are final, so you can not change their values.
+Encoding of the files is DINO current encoding at the program start
+(see function <tt>set_encoding</tt>).
 
 <sect2>Miscellaneous variables
 <p>
@@ -2279,7 +2331,11 @@ Dino program are made through objects of the class.  All declarations
 inside of class are private.  The objects of the class can be created
 only by predeclared functions <tt>open</tt> or <tt>popen</tt>.  If you
 create an object of the class by calling the class, exception
-<tt>callop</tt> will be generated.
+<tt>callop</tt> will be generated.  File encoding is defined by the
+current DINO encoding at the file creation time (see
+functions <tt>set_encoding</tt>, <tt>set_file_encoding</tt>).  If you
+want to work with files on the byte level without any encoding
+decoding, you can use encoding called <tt>"RAW"</tt>.
 
 <sect2>Exception classes
 <p>
@@ -2361,9 +2417,17 @@ The following classes are declared in the class <tt>error</tt>:
          <item><tt>partype</tt>.  This class describes that a
            parameter value of a predeclared function is not of
            required type.
+         <item><tt>parvalue</tt>.  This class describes that a
+           parameter value of a predeclared function is not one of
+           permitted values (see functions <tt>set_encoding</tt>,
+           <tt>set_file_encoding</tt>).
          <item><tt>invfmt</tt>.  This class describes that a format of
            a format output function is wrong (see function
-           <tt>putf</tt>.
+           <tt>putf</tt>).
+         <item><tt>invencoding</tt>.  This class describes different
+           exceptions with used encodings, e.g. file contains bytes
+           not corresponding to the expected encoding or in some cases
+           the encoding should contain ASCII characters.
          <item><tt>invresult</tt>.  This class describes that the
            result value of function call is not of required type,
            e.g. comparison function used in a call to function
@@ -2482,36 +2546,9 @@ The following classes are declared in the class <tt>error</tt>:
              that there is not enough memory for internal parser
              data.
            </itemize>
-         <item><tt>invregexp</tt>.  Classes inside this class describe
-           exceptions specific for calling predeclared functions
-           implementing regular expression pattern matching.
-           <itemize>
-           <item><tt>ebrack</tt>.  This class describes the exception
-             that a regular expression has an unmatched bracket.
-           <item><tt>erange</tt>.  This class describes the exception
-             that there is an invalid use of range in regular
-             expression.
-           <item><tt>ectype</tt>.  This class describes the exception
-             that there is an unknown character class name in regular
-             expression.
-           <item><tt>eparen</tt>.  This class describes the exception
-             that a regular expression has an unmatched parenthesis.
-           <item><tt>esubreg</tt>.  This class describes the exception
-             that there is an invalid back reference to a
-             subexpression in a regular expression.
-           <item><tt>eend</tt>.  This class describes the exception
-             that there is a non specific error in regular expression.
-           <item><tt>eescape</tt>.  This class describes the exception
-             that there is a trailing backslash.
-           <item><tt>badpat</tt>.  This class describes the exception
-             that there is invalid use of pattern operators in a
-             regular expression.
-           <item><tt>esize</tt>.  This class describes exception that
-             the compiled regular expression is too big.
-           <item><tt>espace</tt>.  This class describes the exception
-             that there is no memory for a regular expression function
-	     to work.
-           </itemize>
+         <item><tt>invregex</tt>.  This class describes exceptions
+           specific for calling predeclared functions implementing
+           regular expression pattern matching.
          <item><tt>invextern</tt>.  Classes inside this class describe
            exceptions in calling external functions or in accessing
            an external variable.
@@ -2947,9 +2984,12 @@ always a floating point number.
 <p>
 Dino has the predeclared functions which are used for <em>pattern
 matching</em>.  The pattern is described by <em>regular
-expressions</em> (<em>regex</em>).  The pattern has syntax of
-<em>extended</em> POSIX (1003.2) regular expressions, i.e. the pattern
-has the following syntax:
+expressions</em> (<em>regex</em>) and actually a small program
+describing a string matching.  The pattern has <em>default</em> syntax
+of ONIGURUMA package for Unicode.  It is hard to describe formally the
+pattern syntax.  Here is not a completely strict description for full
+reference, please see OINGURUMA package documentation.  The regular
+expressions have the following syntax:
 <tscreen><verb>
           Regex = Branch {"|" Branch}
 </verb></tscreen>
@@ -2961,130 +3001,395 @@ A branch matches a match for the first <em>piece</em>, followed by a
 match for the second piece, etc.  If the pieces are omitted, the
 branch matches the null string.
 <tscreen><verb>
-          Piece = Atom ["*" | "+" | "?" | Bound]
+          Piece = Anchor | Unit
 
-          Bound = "{" Min ["," [Max]] "}" | "{" "," Max "}"
+          Unit = Atom
+               | Unit Quantifier
 
-          Min = <unsigned integer between 0 and 255 inclusive>
+          Quantifier = Greedy
+                     | Reluctant
+                     | Possesive
 
-          Max = <unsigned integer between 0 and 255 inclusive>
+          Greedy = "?"                 // 0 or 1 times
+                 | "*"                 // 0 or more times
+                 | "+"                 // 1 or more times
+                 | Bound
+
+          Bound = "{" Min "," Max "}" // from Min to Max times
+                | "{" Min "," "}"     // at least Min times
+                | "{" "," Max "}"     // equivalent to {0, Max}
+                | "{" Min "}"         // given number times
+
+          Reluctant = "??"
+                    | "*?"
+                    | "+?"
+                    | Bound "?"
+
+          Possesive : "?+"
+                    | "*+"
+                    | "++"
+
+          Min = <unsigned integer>
+
+          Max = <unsigned integer>
 </verb></tscreen>
-An <em>atom</em> followed by <tt>*</tt> matches a sequence of 0 or
-more matches of the atom.  An atom followed by <tt>+</tt> matches a
-sequence of 1 or more matches of the atom.  An atom followed by
-<tt>?</tt> matches a sequence of 0 or 1 matches of the atom.
+An <em>unit</em> followed by <tt>*</tt> matches a sequence of 0 or
+more matches of the unit.  An unit followed by <tt>+</tt> matches a
+sequence of 1 or more matches of the unit.  An unit followed by
+<tt>?</tt> matches a sequence of 0 or 1 matches of the unit.
 <p>
 There is a more general construction (a <em>bound</em>) for describing
-repetitions of an atom.  An atom followed by a bound containing only
-one integer <tt>min</tt> matches a sequence of exactly <tt>min</tt>
-matches of the atom.  An atom followed by a bound containing one
-integer <tt>min</tt> and a comma matches a sequence of <tt>min</tt> or
-more matches of the atom.  An atom followed by a bound containing a
+repetitions of an unit.  An unit followed by a bound containing only
+one integer <tt>Min</tt> matches a sequence of exactly <tt>Min</tt>
+matches of the unit.  An unit followed by a bound containing one
+integer <tt>Min</tt> and a comma matches a sequence of <tt>Min</tt> or
+more matches of the unit.  An unit followed by a bound containing a
 comma and one integer <tt>Max</tt> matches at most <tt>Max</tt>
-repetitions of the atom.  An atom followed by a bound containing two
-integers <tt>min</tt> and <tt>max</tt> matches a sequence of
-<tt>min</tt> through <tt>max</tt> (inclusive) matches of the atom.
-<tscreen><verb>
-          Atom = "(" Regex ")"
-               | "(" ")"
-               | "."
-               | "^"
-               | "$"
-               | BracketedList
-               | "\^"
-               | "\["
-               | "\$"
-               | "\("
-               | "\)"
-               | "\*"
-               | "\+"
-               | "\?"
-               | "\{"
-               | "\."
-               | <any pair the first character is \ and the second is any
-                  except for ^.[$()|*+? >
-               | <any character except for ^.[$()|*+? >
-</verb></tscreen>
-A regular expression enclosed in <tt>()</tt> can be an atom.  In this
-case it matches a match for the regular expression in the
-parentheses).  The atom <tt>()</tt> matches the null string.  The atom
-<tt>.</tt> matches any single character.  Atoms <tt>^</tt> and
-<tt>$</tt> match correspondingly the null string at the beginning of a
-line and the null string at the end of a line.
+repetitions of the unit.  An unit followed by a bound containing two
+integers <tt>Min</tt> and <tt>Max</tt> matches a sequence of
+<tt>Min</tt> through <tt>Max</tt> (inclusive) matches of the unit.
 <p>
-An atom which is <tt>\</tt> followed by one of the characters
-<tt>^.[$()|*+?{\</tt> matches that character taken as an ordinary
-character.  Atom which is <tt>\</tt> followed by any other character
-matches the second character taken as an ordinary character, as if the
-<tt>\</tt> had not been present.  So you should use <tt>\\</tt> for
-matching with a single <tt>\</tt>.  An atom which is any other single
-character matches that character.  It is illegal to end a regular
-expression with <tt>\</tt>.  There is an exception which is not
-described by the atom syntax.  An <tt>{</tt> followed by a character
-other than a digit or comma is an ordinary character, not the
-beginning of a bound and matches the character <tt>{</tt>.
+The described above qualifiers are <em>greedy</em> ones.  A gready
+qualifier first matches as much as possible and can back-track in case
+whole regex matching failure to try shorter sequence.  There
+are <em>reluctant</em> qualifiers too.  They have additional
+suffix <tt>?</tt> and first matches as little as possible.  The last
+type of qualifiers is possesive.  Such qualifiers have additional
+suffix <tt>+</tt> and behave like the corresponding greedy ones, but
+they do not back-track.
+<p>
+       Examples:
 <tscreen><verb>
-          BracketedList = "[" List "]"
+          `.?foo` // matches first "xfoo" in "xfooxxxxfoo"
+          `.*foo` // matches all "xfooxxxxfoo"
+          `.+foo` // matches all "xfooxxxxfoo"
+          `.{1,8}foo` // matches all "xfooxxxxfoo"
+          `.*?foo` // matches first "xfoo" in "xfooxxxxfoo"
+          `.+?foo` // Ditto
+          `.{1,8}?foo` // Ditto
+	  `.*+foo` // fail to match in "xfooxxxxfoo"
+	  `.++foo` // fail to match in "xfooxxxxfoo"
+</verb></tscreen>
+<tscreen><verb>
+         Atom =  Anchors
+	       | Character
+               | CharacterType
+               | CharacterProperty
+               | CharacterClass
+               | Group
+               | BackReference
+	       | SubexpCall
+	 
+	  Character = "\t"     // horizontal tab (0x09)
+	            | "\v"     // vertical tab (0x0B)
+	            | "\n"     // newline tab (0x0A)
+	            | "\r"     // return (0x0D)
+	            | "\f"     // form feed (0x0C)
+	            | "\a"     // bell (0x07)
+	            | "\e"     // escape (0x1B)
+	            | "\" OctalCode // char with given octal code
+	            | "\x" HexCode  // char with given hexadecimal code
+                    | <any but special character \ ? * + ^ $ [ ( ) >
+                    | "\" <special character>
+      
+          OctalCode = <3 octal digits>
+	
+	  HexCode = <2 heaxadecimal digits>
+	  
+          CharacterType = '.'  // any character but newline
+                        | "\w" // Unicode Letter, Mark, Number, or
+                               //   Connector_Punctuation
+                        | "\W" // opposite to the above 
+                        | "\s" // Unicode Line_Separator, 
+                               //   Paragraph_Separator, or
+                               //   Space_Separator
+                        | "\S" // opposite to the above 
+                        | "\d" // Unicode decimal number 
+                        | "\D" // opposite to the above 
+                        | "\h" // hexadecimal digit char [0-9a-fA-F] 
+                        | "\H" // opposite to the above 
 
-          List = FirstChar ["-" Char] {Char ["-" Char]}
+          CharacterProperty = "\p{" PropertyName "}"
+                            | "\p{^" PropertyName "}"
+                            | "\P{" PropertyName "}"
 
-          FirstChar = <any character except for ^ - and ]>
-                    | CollatingElement
+         PropertyName = "Alnum" | "Alpha" | "Blank" | "Cntrl"
+                      | "Digit" | "Graph" | "Lower" | "Print"
+                      | "Punct" | "Space" | "Upper" | "XDigit"
+                      | "Word" | "ASCII"
+                      | "Any" | "Assigned" | "C" | "Cc" | "Cf"
+                      | "Cn" | "Co" | "Cs" | "L" | "Ll" | "Lm"
+                      | "Lo" | "Lt" | "Lu" | "M" | "Mc" | "Me"
+                      | "Mn" | "N" | "Nd" | "Nl" | "No" | "P"
+                      | "Pc" | "Pd" | "Pe" | "Pf" | "Pi" | "Po"
+                      | "Ps" | "S" | "Sc" | "Sk" | "Sm" | "So"
+                      | "Z" | "Zl" | "Zp" | "Zs" | "Arabic"
+                      | "Armenian" | "Bengali" | "Bopomofo"
+                      | "Braille" | "Buginese" |  "Buhid"
+                      | "Canadian_Aboriginal" | "Cherokee"
+                      | "Common" | "Coptic" | "Cypriot"
+                      | "Cyrillic" | "Deseret" | "Devanagari"
+                      | "Ethiopic" | "Georgian" |  "Glagolitic"
+                      | "Gothic" | "Greek" | "Gujarati"
+                      | "Gurmukhi" | "Han" | "Hangul" | "Hanunoo"
+                      | "Hebrew" | "Hiragana" | "Inherited"
+                      | "Kannada" | "Katakana" | "Kharoshthi"
+                      | "Khmer" | "Lao" | "Latin" | "Limbu"
+                      | "Linear_B" | "Malayalam" | "Mongolian"
+                      | "Myanmar" | "New_Tai_Lue" | "Ogham"
+                      | "Old_Italic" | "Old_Persian" | "Oriya"
+                      | "Osmanya" | "Runic" | "Shavian" | "Sinhala"
+                      | "Syloti_Nagri" | "Syriac" | "Tagalog"
+                      | "Tagbanwa" | "Tai_Le" | "Tamil" | "Telugu"
+                      | "Thaana" | "Thai" | "Tibetan" | "Tifinagh"
+                      | "Ugaritic" | "Yi"
 
-          Char = FirstChar
-               | "^"
+          Anchors = "^"           // beginning of the line
+                  | "$"           // end of the line
+                  | "\b"          // word boundary
+                  | "\B"          // not word boundary
+                  | "\A"          // beginning of string
+                  | "\Z"          // end of string, or before newline
+                                  //   at the end
+                  | "\z"          // end of string
+</verb></tscreen>
+The atom can be an character.  Some characters has a special meaning
+in regex (see comments in the character syntax).  The rest characters
+match the same character in matching string.  To match a special
+character, use <tt>\</tt> before the character.  Some characters can
+be represented by a sequence starting with <tt>\</tt> (see the syntax
+comments).
+<p>
+       Examples:
+<tscreen><verb>
+          `\t`        // matches "\\t"
+          `\x65`      // matches "e"
+	  `\p{Alpha}` // matches "a"
+	  `\w`        // matches "a"
+	  `b$`        // matches "b" in "b\na"
+</verb></tscreen>
+<p>
+The atom can be an anchor.  Matching anchors succeed only their
+positions correspond a specific place at the matching string (see
+comments in the anchor syntax).
+<p>
+       Examples:
+<tscreen><verb>
+	  `b$`        // matches "b" in "b\na"
+          `abc\Z`     // matches "abc" in "abc"
+          `abc\Z`     // matches "abc" in "abc\n"
+</verb></tscreen>
+<p>
+The atom which is a character type matches a specific class of
+character (see comments in the character type syntax).
+<p>
+The atom which is a character property matches a specific class of
+character.  For meaning <tt>Alnum</tt> - <tt>ASCII</tt>, please see
+the corresponding <tt>BracketClass</tt>.  For meaning <tt>C</tt>
+- <tt>Zs</tt>, please see Unicode categories.  For
+meaning <tt>Armenian</tt> - <tt>Yi</tt>, please see Unicode scripts
+(alphabets). If the property contains <tt>p</tt> with <tt>^</tt>
+or <tt>P</tt>, the match succeeds when the matching character is not
+of the class.
+<p>
+       Examples:
+<tscreen><verb>
+          `\p{Alpha}` // matches "a"
+          `\p{ASCII}` // matches ";"
+</verb></tscreen>
+<p>
+<tscreen><verb>
+          CharacterClass = "[" Intersections "]"
+                         | "[^" Intersections "]"
 
-          CollatingElement = "[:" Class ":]"
+	  Intersections = Set
+                        | Intersections "&&" Set
 
-          Class = "alnum"
-                | "alpha"
-                | "blank"
-                | "ctrl"
-                | "digit"
-                | "graph"
-                | "lower"
-                | "print"
-                | "punct"
-                | "space"
-                | "upper"
-                | "xdigit"
+	  Set = SetElement
+              | Set SetElement
+	  
+          SetElement = ElementChar ["-" ElementChar]
+                     | "[:" BracketClass ":]"
+                     | "[:^" BracketClass ":]"
+                     | CharacterClass
+
+	  ElementChar = Character
+                      | "\b"       // backspace 0x08
+
+          BracketClass = "alnum"   // Unicode letter, mark,
+		                   //   or decimal number
+                       | "alpha"   // Unicode letter or mark
+                       | "ascii"   // character in range 0 - 0x7f
+                       | "blank"   // Unicode space separator
+       		                   //   or \t (0x09)
+                       | "ctrl"    // Unicode control, format,
+	                           //   unassigned, private use,
+	                           //   or surrogate
+                       | "digit"   // Unicode decimal number 
+                       | "graph"   // not a space class and not an
+	                           //   Unicode control, unassigned,
+                                   //   or surrogate
+                       | "lower"   // Unicode lower case letter
+                       | "print"   // graph or space class
+                       | "punct"   // any Unicode punctuation
+                       | "space"   // any Unicode separator,
+        		           //   \t (0x09), \n (0x0A), \v (0x0B),
+                                   //   \f (0x0C), \r (0x0D),
+	                           //   or 0x85 (next line)
+                       | "upper"   // Unicode upper case letter
+                       | "xdigit"  // ascii 0-9, a-f, or a-f
+                       | "word"    // Unicode letter, mark, decimal
+	                           //   number or punctuation connector
 </verb></tscreen>
 An atom can be a bracket expression which is a <em>list</em> of
-characters enclosed in <tt>[]</tt>.  Usually it is used to match any
-single character from the list.  If the list begins with <tt>^</tt>,
-it matches any single character (but see below) not in the list.  If
-two characters in the list are separated by <tt>-</tt>, this is
+intersections of character sets separated by <tt>&&</tt> and enclosed
+in <tt>[]</tt>.  If the character class contains <tt>^</tt> right
+after <tt>[</tt>, it matches any character which does match the
+corresponding character class without <tt>^</tt>.  A set is sequence
+of set elements.
+<p>
+Element given by a character denotes the character itself.  Element
+given by two characters in the list separated by <tt>-</tt> is
 shorthand for the full <em>range</em> of characters between those two
-(inclusive) in the collating sequence of ASCII codes,
-e.g. <tt>[0-9]</tt> matches any decimal digit.  It is illegal for two
-ranges to share an <em>endpoint</em>, e.g. <tt>a-c-e</tt>.
+(inclusive) in the sequence of unicode codes, e.g. <tt>[0-9]</tt>
+matches any decimal digit.  Besides usual character representation you
+can use here also <tt>\b</tt> which is a backspace representation.
 <p>
-
-There are exceptions which are not described by the atom syntax which
-is used to include a literal <tt>]</tt> in the list by making it the first
-character (following a possible <tt>^</tt>).  To include a literal
-<tt>-</tt>, make it the first or the last character, or the second
-endpoint of a range.  As you can see from the syntax, all special
-characters (except for <tt>[</tt>) described in an atom lose their
-special significance within a bracket expression.
+Element given by a bracket class enclosed in <tt>[[::]]</tt> matches a
+character from this class (see comments in BracketClass).  If
+character <tt>^</tt> is present right after <tt>[[:</tt>, the match
+succeeds if the character is not in this class.
 <p>
-A collating element is a name of a character class enclosed in
-<tt>[:</tt> and <tt>:]</tt>.  It denotes the list of all characters
-belonging to that class.  Standard character class names are:
+Element can be given by a character class, in other words the
+character clases can be nested.
+<p>
+If you need to use <tt>[</tt>, <tt>-</tt>, or <tt>]</tt> as a normal
+character in a character class, you can use prefix <tt>\</tt> for
+this.
+<p>
+       Examples:
 <tscreen><verb>
-       alnum       digit       punct
-       alpha       graph       space
-       blank       lower       upper
-       cntrl       print       xdigit
+          `[[:alpha:]]`  // matches "a"
+          `[[[:lower:]]&&[^a-x]]` // matches "y" or "z"
 </verb></tscreen>
-These names stand for the character classes defined in the ANSI C
-include file <tt>ctype.h</tt>.  There is an exception not described by
-the syntax: a character class can not be used as an endpoint of a
-range.
 <p>
-There is an extension of regular expressions used by DINO and of ones
-defined in Posix 1003.2: no particular limit is imposed on the length
-of the regular expression.
+An atom can be a group, a regular expression enclosed in <tt>()</tt>.
+There are several types of groups:
+<tscreen><verb>
+          Group = CapturedGroup
+                | NonCapturedGroup
+                | "(?#" <any characters but )> ")" // comment
+                | "(?" Options ")"
+                | Context
+          
+          Options =
+                  | Options Option
+
+          Option = "-" | "i" | "m" | "x"
+
+          CapturedGroup = "(" [Regex] ")"
+                        | "(?<" Name ">" [Regex] ")"
+ 
+          Name = <one or more word character>
+
+          NonCapturedGroup = "(?" Options ":" [Regex] ")"
+                           | "(?>" [Regex] ")" /* Atomic group */
+                           
+          Context = "(?=" [Regex] ")" // look ahead
+                  | "(?!" [Regex] ")" // negative look ahead
+                  | "(?<=" [Regex] ")" // look behind
+                  | "(?<!" [Regex] ")" // negative look behind
+
+          BackReference = "\" Number    // back ref. by group
+                                        //   number
+                        | "\k<" Number ">" // back ref. by group
+                                           //   number
+                        | "\k<-" Number ">" // back ref. by relative
+                                            //   group number
+                        | "\k<" Name ">" // back ref. by group name
+	                // back ref. by group name and nest level:
+                        | "\k<" Name "+" | "-" Number ">"
+
+          Number = <any integer >= 0>
+				    
+</verb></tscreen>
+Some groups are captured groups.  It means that you can refer the
+substrings they match (see back references) or get start and end
+positions of the matched substrings by calling Dino regex match
+functions.  A captured group may have a name which can be used in the
+back references or subexp calls.
+<p>
+You can place comments not containing <tt>)</tt> in regex
+betweeen <tt>(?#</tt> and <tt>)</tt>.
+<p>
+Options without regex always matches.  They just change how matching
+works.  Option <tt>i</tt> switches on igoring letter cases during
+matches.  Option <tt>m</tt> makes <tt>.</tt> to match newline too.
+Option <tt>x</tt> switches on ignoring white spaces as character atom
+and permits to add comments starting with <tt>#</tt> and ending at the
+end of line.  Character <tt>-</tt> after the corresponding <tt>?</tt> and
+before has an opposite effect, e.g. it makes a letter case important
+in matching again etc.
+<p>
+You can define options in non captured groups.  These options affect
+only this group.  Another form of non-captured group is an atomic
+group.  Once regex in an atomic group mathes something, the matching
+stays the same during back-tracking.
+<p>
+       Examples:
+<tscreen><verb>
+          `(?i:ab)`     // matches "Ab"
+          `(?x: a a a)` // matches "aaa"
+          `(?>.*)c`     // can not match "abc"
+</verb></tscreen>
+<p>
+The atom can be a context.  A context match does not advance the
+current position in a matching string.  A look ahead context succeeds
+if the corresponding regex matches a sub-string starting from the
+current positions.  A look behind context succeeds if the
+corresponding regex matches a sub-string finishing right before the
+current positions.  There are negative forms of context atom.  They
+succeed when the corresponding regex does not match.
+<p>
+       Examples:
+<tscreen><verb>
+          `(?=bcd)bc`   // matches "bc" in "aabcd"
+          `(?<=aa)bc`   // matches "bc" in "aabc"
+</verb></tscreen>
+<p>
+The atom can be a back reference.  It refers to the matched string of
+the corresponding captured group.  The captured groups are counted by
+their left parantheses starting from one going from left to right.
+The negative number denotes relative order number, in other words, the
+order is taken starting from the back reference going from right to
+left.  If captured group has a name, its matched string can be
+referenced by its name.  If several group has the same name, name in
+the back reference corresponds to the last such group.  You can add
+nest level to the name.  If the nest level is zero it is the same as
+named back reference without nested level.  Back reference with
+non-zero nest level never matches.
+<p>
+       Examples:
+<tscreen><verb>
+          `(a)\k<1>`     // matches "aa"
+          `(?<p>a)\k<p>` // Ditto
+</verb></tscreen>
+<p>
+Atom can be a subexp call:
+<tscreen><verb>
+          SubexpCall = "\g<" Name ">"
+</verb></tscreen>
+Subexp call is actually another occurence of the group
+it refers to.  But if the call is in the group it refers, it is a
+recursive description.  Only left recursion is not permitted as this
+results in never ending recursion.
+<p>
+       Examples:
+<tscreen><verb>
+          `(?<p>cd)\g<p>`   // matches "cdcd"
+          `(?<p>a|b\g<p>c)` // matches "a", "bac", "bbacc" etc
+          `(?<p>a|b\g<p>c)` // wrong left recursion.
+</verb></tscreen>
 <p>
 There are the following Dino pattern matching functions:
      <itemize>
@@ -3120,11 +3425,11 @@ There are the following Dino pattern matching functions:
        <p>
        Example: The program
 <tscreen><verb>
-          println (match ("()(a)((a)(a))", "baaab"));
+          println (match (`\n()(a)((a)(a))`, "b\naaab"));
 </verb></tscreen>
        outputs
 <tscreen><verb>
-          [1, 4, 1, 1, 1, 2, 2, 4, 2, 3, 3, 4]
+          [1, 5, 2, 2, 2, 3, 3, 5, 3, 4, 4, 5]
 </verb></tscreen>
      <item><tt>gmatch (regex, string[, flag])</tt>.  The function
        searches for different occurrences of regular expression
@@ -3132,7 +3437,7 @@ There are the following Dino pattern matching functions:
        be strings after their implicit string conversion.  The third
        parameter is optional.  If it is present, it should be integer
        after implicit integer conversion.  If its value is nonzero,
-       the substrings matched by regexp can be overlapped.  Otherwise,
+       the substrings matched by regex can be overlapped.  Otherwise,
        the substrings are never overlapped.  If the parameter is
        absent, the function behaves as its value were zero.  The
        function returns a new mutable vector of integers.  The length
@@ -3146,8 +3451,8 @@ There are the following Dino pattern matching functions:
        <p>
        Example: The program
 <tscreen><verb>
-          println (gmatch ("aa", "aaaaa"));
-          println (gmatch ("aa", "aaaaa", 1));
+          println (gmatch (`aa`, "aaaaa"));
+          println (gmatch (`aa`, "aaaaa", 1));
 </verb></tscreen>
        outputs
 <tscreen><verb>
@@ -3197,34 +3502,36 @@ There are the following Dino pattern matching functions:
 </verb></tscreen>
        The program
 <tscreen><verb>
-          println (split ("abcdef", ""));
+          println (split ("abcdef", ``));
 </verb></tscreen>
        outputs
 <tscreen><verb>
           ["a", "b", "c", "d", "e", "f"]
 </verb></tscreen>
      </itemize>
-If the regular expression is incorrect, the functions generate one of
-the following predeclared exceptions (see predeclared classes):
+If the regular expression is incorrect, the functions generate
+exception <tt>invregex</tt> with a message explaining the error.
+
+<sect2>Encoding functions
+<p>
+Dino internally uses Unicode for characters.  To provide communication
+with the rest of world, it can use different encodings.  The default
+encoding is UTF-8.  Dino has two functions to get and change the
+current encoding:
      <itemize>
-     <item><tt>ebrack</tt>.  Regular expression has unmatched bracket.
-     <item><tt>invregexps.erange</tt>.  Invalid use of range in regular
-       expression.
-     <item><tt>ectype</tt>.  Unknown character class name in regular
-       expression.
-     <item><tt>eparen</tt>.  Regular expression has unmatched
-       parenthesis.
-     <item><tt>esubreg</tt>.  Invalid back reference to a
-       subexpression in regular expression.
-     <item><tt>eend</tt>.  Non specific error in regular expression.
-     <item><tt>eescape</tt>.  Invalid escape sequence in regular
-       expression.
-     <item><tt>ebadpat</tt>.  Invalid use of pattern operators in
-       regular expression.
-     <item><tt>esize</tt>.  Compiled regular expression is too big.
-     <item><tt>espace</tt>.  No memory for the regular expression
-       function to work.
+     <item><tt>get_encoding ()</tt>.  The function returns a new
+       mutable string which is a name of the current encoding.
+     <item><tt>set_encoding (name)</tt>.  The function accepts string
+       and changes the current encoding.  If the name represents
+       unknown encoding name, the function generates
+       exceptions <tt>parvalue</tt>.
      </itemize>
+       <p>
+       Examples:
+<tscreen><verb>
+          putln (get_encoding ());
+          set_encoding ("KOI8-R");
+</verb></tscreen>
 
 <sect2>File functions
 <p>
@@ -3421,6 +3728,13 @@ renaming a directory, not only a file.
        <tt>'e'</tt> (these characters mean that the offset is relative
        to the start of the file, the current position indicator, or
        the end-of-file, respectively).
+     <item><tt>get_file_encoding (fileinstance)</tt>.  The function
+       returns a new mutabe string which is a name of the current file
+       encoding.
+     <item><tt>set_file_encoding (fileinstance, name)</tt>.  The
+       accepts file and string and changes the current file encoding.
+       If the name represents unknown encoding name, the function
+       generates exceptions <tt>parvalue</tt>.
      </itemize>
 
 <sect3>File output functions
@@ -3893,7 +4207,7 @@ There are the following miscellaneous functions:
        conversion), <tt>what</tt>, and <tt>subst</tt> are strings.
        The function returns the new string <tt>str</tt> in which its
        characters which are present in <tt>what</tt> are changed to
-       the corresponding characters in <\tt>subst<\tt>.  The last two
+       the corresponding characters in <tt>subst</tt>.  The last two
        strings should have the same length.  The second string may
        contain more than one occurence of a character.  In this case
        the last correspondence is taken.
@@ -4231,7 +4545,7 @@ ExecutiveStmt = ";"
               | if  "(" Expr ")" Stmt [ else Stmt ]
               | for  "(" Stmt ForGuardExpr ";"  Stmt ")" Stmt
               | for  "(" Designator in Expr ")" Stmt
-	      | switch "(" Expr ")" "{" CaseList "}"
+	      | (pmatch | rmatch) "(" Expr ")" "{" CaseList "}"
 	      | break ";"
               | continue ";"
               | return  [ Expr ] ";"

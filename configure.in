@@ -4,6 +4,8 @@ AC_CONFIG_HEADER(AMMUNITION/cocom-config.h)
 
 dnl AC_CONFIG_SUBDIRS(REGEX)
 
+AC_CONFIG_SUBDIRS(ONIGURUMA)
+
 dnl Checks for programs.
 AC_PROG_AWK
 dnl Try C++ before C because configure reports cros-compiler for CXX sometimes.
@@ -40,7 +42,7 @@ AC_CHECK_LIB(m, log)
 AC_CHECK_LIB(dl, dlopen)
 
 dnl Checks for header files.
-AC_CHECK_HEADERS(assert.h limits.h errno.h float.h time.h dlfcn.h unistd.h sys/time.h sys/socket.h gmp.h)
+AC_CHECK_HEADERS(assert.h limits.h errno.h float.h time.h dlfcn.h unistd.h sys/time.h sys/socket.h gmp.h iconv.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_BIGENDIAN
@@ -67,7 +69,8 @@ fi
 dnl Checks for library functions.
 AC_TYPE_SIGNAL
 AC_CHECK_FUNCS(strerror memcpy memset memcmp memmove vsprintf dlopen getgroups\
-               strtol strtoll strtoull strtod setitimer sigaction sigemptyset)
+               strtol strtoll strtoull strtod setitimer sigaction sigemptyset\
+	       getc_unlocked)
 
 AC_SUBST(YAEPLIB)
 AC_SUBST(YAEPDIR)
@@ -338,7 +341,7 @@ output_files="DINO/Makefile DINO/dino.tst\
           AMMUNITION/yaep++.tst AMMUNITION/compare_parsers.tst\
           MSTA/msta.tst MSTA/quality.tst\
 	  SHILKA/shilka.tst SHILKA/compare.tst\
-          Makefile REGEX/Makefile REGEX/doc/Makefile REGEX/test/Makefile"
+          Makefile"
 
 # COCOM only start
 output_files="$output_files OKA/Makefile\

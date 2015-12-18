@@ -75,12 +75,14 @@ ch_op2
 ch_op3
 ch_op4
 ch_op5
+rm_str
 cfblock
 next_except
 bi
 f
 mpz
 str
+ustr
 fldid
 ov_decl
 mid

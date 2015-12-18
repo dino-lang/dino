@@ -17,7 +17,9 @@
 <P>Patterns have form of expressions.  They are used to match an
 expression and decompose it.  Pattern can have form a vector value, a
 table value, a function call, identifier, or special <EM>wildcard</EM>
-symbol <CODE>"_"</CODE>.  Anything else is treated as an expression.
+symbol <CODE>"_"</CODE>.  Anything else is treated as an expression.  The
+simplest way is to treat a pattern, e.g. identfier, as an expression
+is to put it into paretheses.
 <BLOCKQUOTE><CODE>
 <PRE>
            Pattern = Expr
@@ -51,7 +53,8 @@ are examples of vector patterns (a, b, and c are identifies of pattern
 variables):
 <BLOCKQUOTE><CODE>
 <PRE>
-           [a, b]
+           [a, b] // a and b are pattern variables
+           [(a), b] // value of earlier declared a is used
            [a, ...]
            [2, [a, b], 3 : c, 4 : _]
 </PRE>
