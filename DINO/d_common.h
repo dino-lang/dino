@@ -293,6 +293,7 @@ extern char *encode_ucode_str_vlo (ucode_t *str, conv_desc_t cd,
 extern const char *encode_ucode_str_to_raw_vlo (const ucode_t *str, vlo_t *vlo);
 extern ucode_t get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd,
 				      encoding_type_t tp, void *data);
+extern int check_encoding_on_ascii (const char *encoding);
 
 extern void dino_finish (int code);
 
@@ -366,7 +367,7 @@ in_ucode_range_p (int uc)
 }
 
 /* length of ucode string STR.  */
-static inline
+static inline int
 ucodestrlen (const ucode_t *s)
 {
   size_t i;

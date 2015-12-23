@@ -1,3 +1,8 @@
+2015-12-23  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_common.h (check_encoding_on_ascii): New.
+	(ucodestrlen): Add return type.
+
 2015-12-16  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_dino.c (get_ucode_from_stream): Fix assert.
