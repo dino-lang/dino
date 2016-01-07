@@ -1,5 +1,9 @@
 2016-01-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* ONIGURUMA/test-drive: Add.
+
+2016-01-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* ONIGURUMA/compile: Add.
 
 2016-01-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
