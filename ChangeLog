@@ -1,5 +1,41 @@
 2016-01-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* missing: New.
+	* AMMUNITION/{install-sh, ltmain.sh, missing, ylwrap}: New.
+	* DINO/{install-sh, ltmain.sh, missing}: New.
+	* MSTA/{install-sh, ltmain.sh, missing}: New.
+	* NONA/{install-sh, ltmain.sh, missing}: New.
+	* OKA/{install-sh, ltmain.sh, missing}: New.
+	* SHILKA/{install-sh, ltmain.sh, missing}: New.
+	* SPRUT/{install-sh, ltmain.sh, missing}: New.
+	* AMMUNITION/m4/{libtool, ltoptions, ltsugar, ltversion,
+	lt-obsolete}.m4: New.
+	* DINO/m4/{libtool, ltoptions, ltsugar, ltversion,
+	lt-obsolete}.m4: New.
+	* MSTA/m4/{libtool, ltoptions, ltsugar, ltversion,
+	lt-obsolete}.m4: New.
+	* NONA/m4/{libtool, ltoptions, ltsugar, ltversion,
+	lt-obsolete}.m4: New.
+	* OKA/m4/{libtool, ltoptions, ltsugar, ltversion,
+	lt-obsolete}.m4: New.
+	* SHILKA/m4/{libtool, ltoptions, ltsugar, ltversion,
+	lt-obsolete}.m4: New.
+	* SPRUT/m4/{libtool, ltoptions, ltsugar, ltversion,
+	lt-obsolete}.m4: New.
+
+2016-01-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* compile, config.guess, config.sub, depcomp: New.
+	* AMMUNITION/{compile, config.guess, config.sub, depcomp}: New.
+	* SPRUT/{compile, config.guess, config.sub, depcomp}: New.
+	* SHILKA/{compile, config.guess, config.sub, depcomp}: New.
+	* MSTA/{compile, config.guess, config.sub, depcomp}: New.
+	* NONA/{compile, config.guess, config.sub, depcomp}: New.
+	* OKA/{compile, config.guess, config.sub, depcomp}: New.
+	* DINO/{compile, config.guess, config.sub, depcomp}: New.
+
+2016-01-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* AMMUNITION/allocate++.tst.in: Add return type to main functions.
 	Use .C instead of .cpp.  Use allocatecpp.C instead of
 	allocate.cpp.
