@@ -1,5 +1,12 @@
 2016-01-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/Makefile.am (all): Move dependecies to BUILT_SOURCES.
+	(d_genheader.i): Add @DEFS@ and -I for current and source
+	directory.  Generate target only if the generation is successful.
+	* DINO/Makefile.in: Update.
+
+2016-01-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* ONIGURUMA/test-drive: Add.
 
 2016-01-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>

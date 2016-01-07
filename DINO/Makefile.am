@@ -19,6 +19,7 @@ CLEANFILES = sgramm.c d_yacc.c d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_kw.
 dino_DEPENDENCIES = libdino.la
 dino_CFLAGS = $(libdino_la_CFLAGS)
 dino_LDFLAGS = -lgmp -lm -export-dynamic -static libdino.la ../ONIGURUMA/libonig.la ../AMMUNITION/libcocom.la
+BUILT_SOURCES = d_ir.h d_bc.h d_run.h d_extern.h d_kw.c d_enc.c d_bcn.c d_bcf.c
 d_mpi_la_SOURCES = d_mpi.c
 d_mpi_la_CFLAGS = -I. -I$(srcdir) -I$(srcdir)/../AMMUNITION
 d_mpi_la_LDFLAGS = -shared -module ../AMMUNITION/libcocom.la
@@ -81,9 +82,6 @@ uninstall-local:
 distclean-local:
 	rm -f dino.sgml dino.tmp dino.tex dino.log dino.aux dino.toc quality.tst dino.tst dino.out
 
-# It is too complicated to provide dependencies on file-level.  So we use brute-force approach.
-all: d_ir.h d_bc.h d_run.h d_extern.h d_kw.c d_enc.c d_bcn.c d_bcf.c
-
 d_gen.i : dino d_genheader.i $(srcdir)/d_minimize.d
 	@if test d_gen.i -ot d_genheader.i;then\
            echo C code Generation Header Minimization.  It can take a while ...;\
@@ -97,7 +95,7 @@ d_genheader.i: $(srcdir)/d_gen.c $(srcdir)/d_common.h $(srcdir)/d_types.h $(srcd
 	       $(srcdir)/../AMMUNITION/position.h $(srcdir)/../AMMUNITION/hashtab.h \
 	       $(srcdir)/../AMMUNITION/ticker.h $(srcdir)/../AMMUNITION/bits.h \
 	       $(srcdir)/../AMMUNITION/errors.h $(srcdir)/../AMMUNITION/objstack.h
-	$(CC) $(libdino_la_CFLAGS) @C_DEBUG_DEFINE@  -E > $@ $(srcdir)/d_gen.c
+	$(CC) @DEFS@ -I$(srcdir) -I. $(libdino_la_CFLAGS) @C_DEBUG_DEFINE@  -E > d_gen.tmp $(srcdir)/d_gen.c && mv d_gen.tmp $@
 
 sgramm.c: $(srcdir)/../AMMUNITION/sgramm.y
 	$(YACC) $(srcdir)/../AMMUNITION/sgramm.y
