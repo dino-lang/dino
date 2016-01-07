@@ -36,11 +36,8 @@
 */
 
 #ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
+#include "config.h"
 #else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_ASSERT_H
-#define HAVE_ASSERT_H
-#endif
 #endif /* #ifdef HAVE_CONFIG_H */
 
 #include <ctype.h>
@@ -51,13 +48,7 @@
 #include "tab.h"
 #include "anal.h"
 
-#ifdef HAVE_ASSERT_H
 #include <assert.h>
-#else
-#ifndef assert
-#define assert(code) do { if (code == 0) abort ();} while (0)
-#endif
-#endif
 
 /* The following function processes keyword definitions in order to
    fix errors of repeated declared keywords and actions

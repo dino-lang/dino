@@ -46,45 +46,22 @@
        `sys_errlist'.  */
 
 #ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
+#include "config.h"
 #else /* In this case we are oriented to ANSI C */
 #ifndef HAVE_STRERROR
 #define HAVE_STRERROR
 #endif
-#ifndef HAVE_ERRNO_H
-#define HAVE_ERRNO_H
-#endif
-#ifndef HAVE_VSPRINTF
-#define HAVE_VSPRINTF
-#endif
-#ifndef HAVE_ASSERT_H
-#define HAVE_ASSERT_H
-#endif
 #endif /* #ifdef HAVE_CONFIG_H */
-
-#ifndef HAVE_VSPRINTF
-#error COCOM can not work with vsprintf
-#endif
-
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <errno.h>
 
 #include "errors.h"
 
-#ifdef HAVE_ASSERT_H
 #include <assert.h>
-#else
-#ifndef assert
-#define assert(code) do { if (code == 0) abort ();} while (0)
-#endif
-#endif
-
-#ifdef HAVE_ERRNO_H
-#include <errno.h>
-#endif
 
 /* The value of macro is suggested to be maximum length of generated
    error message.  The length should be less than this value. */

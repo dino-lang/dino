@@ -35,7 +35,7 @@
 */
 
 #ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
+#include "config.h"
 #endif
 
 #include "ird.h"

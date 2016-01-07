@@ -71,7 +71,7 @@ if test $result = ok -a $start_test_number -le 1; then
 #include <stdlib.h>
 #include "bits.h"
 static char str [] = {0,0,0,0, 0,0,0,0};
-main ()
+int main ()
 {
   int i, j;
   
@@ -114,7 +114,7 @@ if test $result = ok -a $start_test_number -le 2; then
 #include <stdlib.h>
 #include "bits.h"
 static char str [] = {0,0,0,0, 0,0,0,0};
-main ()
+int main ()
 {
   int i;
   
@@ -155,7 +155,7 @@ if test $result = ok -a $start_test_number -le 3; then
 #include <stdlib.h>
 #include "bits.h"
 static char str [] = {0,0,0,0, 0,0,0,0};
-main ()
+int main ()
 {
   int i;
   
@@ -196,7 +196,7 @@ if test $result = ok -a $start_test_number -le 4; then
 #include "bits.h"
 static char str [] = {0,0,0,0, 0,0,0,0};
 static char str1 [] = {0,0,0,0, 0,0,0,0};
-main ()
+int main ()
 {
   int i;
   
@@ -238,7 +238,7 @@ if test $result = ok -a $start_test_number -le 5; then
 #include "bits.h"
 static char str [] = {0,0,0,0, 0,0,0,0};
 static char str1 [] = {0,0,0,0, 0,0,0,0};
-main ()
+int main ()
 {
   int i;
   
@@ -275,7 +275,7 @@ if test $result = ok -a $start_test_number -le 6; then
 #include "bits.h"
 static char str [] = {0,0,0,0, 0,0,0,0};
 static char str1 [] = {0,0,0,0, 0,0,0,0};
-main ()
+int main ()
 {
   int i;
   
@@ -315,7 +315,7 @@ if test $result = ok -a $start_test_number -le 7; then
 #include "bits.h"
 static char str [] = {0,0,0,0, 0,0,0,0};
 static char str1 [] = {0,0,0,0, 0,0,0,0};
-main ()
+int main ()
 {
   int i;
   

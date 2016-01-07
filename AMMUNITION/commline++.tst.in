@@ -3,7 +3,7 @@
 
 #
 # Script to test of allocation package (files `commline.h',
-#                                             `commline.cpp').
+#                                             `commlinecpp.C').
 #
 #
 #   Copyright (C) 1997-2015 Vladimir Makarov.
@@ -26,7 +26,7 @@
 #   MA 02111-1307, USA.
 #
 #
-# Usage: commline++.tst [start_test_number]
+# Usage: commlinecpp.tst [start_test_number]
 #
 # The script outputs self-explanatory messages and returns zero exit code if 
 # it is all ok.
@@ -36,9 +36,9 @@ script_file=$0
 prefix=`basename $script_file .tst`
 CXX='@CXX@'
 CXX_options='@CXXFLAGS@ @DEFS@ -I. -I@srcdir@/'
-source_addfiles='@srcdir@/allocate.cpp @srcdir@/vlobject.cpp @srcdir@/objstack.cpp @srcdir@/commline.cpp'
-addfiles="${prefix}_allocate.o ${prefix}_vlobject.o ${prefix}_objstack.o ${prefix}_commline.o"
-test_file=${prefix}_tcommline.cpp
+source_addfiles='@srcdir@/allocatecpp.C @srcdir@/vlobjectcpp.C @srcdir@/objstackcpp.C @srcdir@/commlinecpp.C'
+addfiles="${prefix}_allocatecpp.o ${prefix}_vlobjectcpp.o ${prefix}_objstackcpp.o ${prefix}_commlinecpp.o"
+test_file=${prefix}_tcommline.C
 outfile=./${prefix}_a.out
 
 if test x$1 = x
@@ -57,8 +57,8 @@ fi
 # Compilation of addfiles
 
 for i in $source_addfiles; do
-  echo '      ' $CXX $CXX_options -c $i -o ${prefix}_`basename $i .cpp`.o
-  if $CXX $CXX_options -c $i -o ${prefix}_`basename $i .cpp`.o; then
+  echo '      ' $CXX $CXX_options -c $i -o ${prefix}_`basename $i .C`.o
+  if $CXX $CXX_options -c $i -o ${prefix}_`basename $i .C`.o; then
         result=ok
   else
         echo '***' $script_file: test is failed see file $test_file
@@ -90,7 +90,7 @@ command line:  pc [options] file ... \n\
                Star * marks defaults\
 "
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   command_line *cml;
   int suCXXess;
@@ -142,7 +142,7 @@ command line:  pc [options] file ... \n\
                Star `*' marks defaults\
 "
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   command_line *cml;
   int suCXXess;
@@ -178,7 +178,7 @@ if test $result = ok -a $start_test_number -le 3; then
 
 #define DESCRIPTION "dir file %% `-o file' `-c' `-Ldir'"
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   command_line *cml;
   int suCXXess;
@@ -228,7 +228,7 @@ command line:  pc [options] file ... \n\
                Star * marks defaults\
 "
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   command_line *cml;
   int suCXXess;
@@ -280,7 +280,7 @@ command line:  pc [options] file ... \n\
                Star * marks defaults\
 "
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   command_line *cml;
   int suCXXess;
@@ -332,7 +332,7 @@ command line:  pc [options] file ... \n\
                Star * marks defaults\
 "
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   command_line *cml;
   int suCXXess;
@@ -388,7 +388,7 @@ command line:  pc [options] file ... \n\
                Star * marks defaults\
 "
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   command_line *cml;
   int suCXXess;
@@ -448,7 +448,7 @@ command line:  pc [options] file ... \n\
                Star * marks defaults\
 "
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   int i, option_has_argument;
   char *option;
@@ -508,7 +508,7 @@ command line:  pc [options] file ... \n\
                Star * marks defaults\
 "
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   int i, option_has_argument;
   char *option;
@@ -568,7 +568,7 @@ command line:  pc [options] file ... \n\
                Star * marks defaults\
 "
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   int i, option_has_argument;
   char *option;

@@ -28,14 +28,7 @@
    <=0???? */
 
 #ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_MEMCMP
-#define HAVE_MEMCMP
-#endif
-#ifndef HAVE_ASSERT_H
-#define HAVE_ASSERT_H
-#endif
+#include "config.h"
 #endif /* #ifdef HAVE_CONFIG_H */
 
 
@@ -54,34 +47,7 @@
 #include "lr-sets.h"
 #include "regular.h"
 
-#ifdef HAVE_ASSERT_H
 #include <assert.h>
-#else
-#ifndef assert
-#define assert(code) do { if (code == 0) abort ();} while (0)
-#endif
-#endif
-
-#ifndef HAVE_MEMCMP
-
-static int
-memcmp (const void *mem1, const void *mem2, size_t size)
-{
-  const unsigned char *m1 = mem1;
-  const unsigned char *m2 = mem2;
-
-  while (size > 0)
-    {
-      if (m1 != m2)
-        return (m1 < m2 ? -1 : 1);
-      m1++;
-      m2++;
-      size--;
-    }
-  return 0;
-}
-
-#endif /* #ifndef HAVE_MEMCMP */
 
 
 

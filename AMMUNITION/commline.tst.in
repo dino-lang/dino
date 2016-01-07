@@ -38,7 +38,7 @@ CC='@CC@'
 CC_options='@CFLAGS@ @DEFS@ -I. -I@srcdir@/'
 source_addfiles='@srcdir@/allocate.c @srcdir@/vlobject.c @srcdir@/commline.c'
 addfiles="${prefix}_allocate.o ${prefix}_vlobject.o ${prefix}_commline.o"
-test_file=${prefix}_tcommline.c
+test_file=${prefix}_t.ommline.c
 outfile=./${prefix}_a.out
 
 if test x$1 = x
@@ -90,7 +90,7 @@ command line:  pc [options] file ... \n\
                Star * marks defaults\
 "
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   if (!start_command_line_processing (argc, argv, DESCRIPTION))
     exit (1);
@@ -138,7 +138,7 @@ command line:  pc [options] file ... \n\
                Star `*' marks defaults\
 "
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   if (start_command_line_processing (argc, argv, DESCRIPTION))
     exit (1);
@@ -170,7 +170,7 @@ if test $result = ok -a $start_test_number -le 3; then
 
 #define DESCRIPTION "dir file %% `-o file' `-c' `-Ldir'"
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   start_command_line_processing (argc, argv, DESCRIPTION);
   output_command_line_description ();
@@ -217,7 +217,7 @@ command line:  pc [options] file ... \n\
                Star * marks defaults\
 "
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   start_command_line_processing (argc, argv, DESCRIPTION);
   if (number_of_operands () != 6)
@@ -266,7 +266,7 @@ command line:  pc [options] file ... \n\
                Star * marks defaults\
 "
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   start_command_line_processing (argc, argv, DESCRIPTION);
   if (last_option_place ("-L") != 8)
@@ -315,7 +315,7 @@ command line:  pc [options] file ... \n\
                Star * marks defaults\
 "
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   start_command_line_processing (argc, argv, DESCRIPTION);
   if (strcmp (argument_vector [next_operand (1)], "file3") != 0
@@ -368,7 +368,7 @@ command line:  pc [options] file ... \n\
                Star * marks defaults\
 "
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   start_command_line_processing (argc, argv, DESCRIPTION);
   if (strcmp (argument_vector [next_option (1)], "-c") != 0
@@ -425,7 +425,7 @@ command line:  pc [options] file ... \n\
                Star * marks defaults\
 "
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   int i, option_has_argument;
   char *option;
@@ -483,7 +483,7 @@ command line:  pc [options] file ... \n\
                Star * marks defaults\
 "
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   int i, option_has_argument;
   char *option;
@@ -541,7 +541,7 @@ command line:  pc [options] file ... \n\
                Star * marks defaults\
 "
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   int i, option_has_argument;
   char *option;

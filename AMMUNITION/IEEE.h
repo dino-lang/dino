@@ -39,10 +39,6 @@
 #ifndef __IEEE_float__
 #define __IEEE_float__
 
-#ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#endif
-
 /* The following macro value is size in bytes of an IEEE single precision
    floating point number.  The size of type `IEEE_float_t' must be equal
    the macro value. */

@@ -27,13 +27,6 @@
 
 #ifdef HAVE_CONFIG_H
 #include "d_config.h"
-#else /* In this case we are oriented to ANSI C and dfcn.h */
-#ifndef HAVE_FLOAT_H
-#define HAVE_FLOAT_H
-#endif
-#ifndef HAVE_LIMITS_H
-#define HAVE_LIMITS_H
-#endif
 #endif /* #ifdef HAVE_CONFIG_H */
 
 #include <gmp.h>
@@ -46,25 +39,9 @@
    SPRUT.  Therefore we use a wrap up type.  */
 typedef struct { mpz_t mpz;} gmp_t;
 
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#else
-#error We need limits.h
-#endif
-
 #include <math.h>
-
-#ifdef HAVE_FLOAT_H
 #include <float.h>
-#else
-#define FLT_MAX  3.40282347e+38F         /* IEEE float */
-#define DBL_MAX  1.7976931348623157e+308 /* IEEE double */
-#define FLT_MANT_DIG  24
-#define FLT_MAX_EXP  128
-#define DBL_MANT_DIG  53
-#define DBL_MAX_EXP 1024
-#define DBL_DIG 16
-#endif
 
 #ifdef DBL_DECIMAL_DIG
 #define FORMAT_DOUBLE_DIGS (DBL_DECIMAL_DIG)

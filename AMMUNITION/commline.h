@@ -32,10 +32,6 @@
 #ifndef __COMMAND_LINE__
 #define __COMMAND_LINE__
 
-#ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#endif
-
 #ifndef __cplusplus
 
 

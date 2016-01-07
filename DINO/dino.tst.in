@@ -18173,8 +18173,8 @@ OUTPUT258
                 result=fail
 	    fi
 	else
-            echo '      ' $DINO -L./d_mpi.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file "2>$stderr"
-	    if $DINO -L./d_mpi.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file 2>$stderr >$stdout; then
+            echo '      ' $DINO -L.libs/d_mpi.so -I@srcdir@ $test_file "2>$stderr"
+	    if $DINO -L.libs/d_mpi.so -I@srcdir@ $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT258' && $CMP $stdout $ftemp2; then
 15
@@ -26207,8 +26207,8 @@ OUTPUT453
                 result=fail
 	    fi
 	else
-            echo '      ' $DINO -L./d_ieee.@EXTERN_LIB_SUFFIX@ -L./d_mpi.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file "2>$stderr"
-	    if $DINO -L./d_ieee.@EXTERN_LIB_SUFFIX@ -L./d_mpi.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file 2>$stderr >$stdout; then
+            echo '      ' $DINO -L.libs/d_ieee.so -L.libs/d_mpi.so -I@srcdir@ $test_file "2>$stderr"
+	    if $DINO -L.libs/d_ieee.so -L.libs/d_mpi.so -I@srcdir@ $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT453' && $CMP $stdout $ftemp2; then
 *******IEEE singles:**********
@@ -27492,8 +27492,8 @@ TEST493
                 result=fail
             fi
         else
-            echo '      ' "$DINO -L./d_ipcerr.@EXTERN_LIB_SUFFIX@ -L./d_socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@  $test_file 127.0.0.1 >$stdout"
-            if $DINO -L./d_ipcerr.@EXTERN_LIB_SUFFIX@ -L./d_socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file 127.0.0.1 >$stdout; then
+            echo '      ' "$DINO -L.libs/d_ipcerr.so -L.libs/d_socket.so -I@srcdir@  $test_file 127.0.0.1 >$stdout"
+            if $DINO -L.libs/d_ipcerr.so -L.libs/d_socket.so -I@srcdir@ $test_file 127.0.0.1 >$stdout; then
                 echo '      ' egrep '^".+"\[.*\]\[".+"\]$' $stdout
                 if egrep '^".+"\[.*\]\[".+"\]$' $stdout; then
                         result=ok
@@ -27530,8 +27530,8 @@ TEST494
                 result=fail
         fi
      else
-        echo '      ' "$DINO -L./d_ipcerr.@EXTERN_LIB_SUFFIX@ -L./d_socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@  $test_file time >$stdout"
-        if $DINO -L./d_ipcerr.@EXTERN_LIB_SUFFIX@ -L./d_socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file time >$stdout; then
+        echo '      ' "$DINO -L.libs/d_ipcerr.so -L.libs/d_socket.so -I@srcdir@  $test_file time >$stdout"
+        if $DINO -L.libs/d_ipcerr.so -L.libs/d_socket.so -I@srcdir@ $test_file time >$stdout; then
                 echo '      ' egrep '^".+"\[".+"\]37"tcp"$' $stdout
                 if egrep '^".+"\[".+"\]37"tcp"$' $stdout; then
                         result=ok
@@ -27571,8 +27571,8 @@ TEST495
                 result=fail
         fi
      else
-        echo '      ' "$DINO -L./d_ipcerr.@EXTERN_LIB_SUFFIX@ -L./d_socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@  $test_file time >$stdout"
-        if $DINO -L./d_ipcerr.@EXTERN_LIB_SUFFIX@ -L./d_socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file time >$stdout; then
+        echo '      ' "$DINO -L.libs/d_ipcerr.so -L.libs/d_socket.so -I@srcdir@  $test_file time >$stdout"
+        if $DINO -L.libs/d_ipcerr.so -L.libs/d_socket.so -I@srcdir@ $test_file time >$stdout; then
                 echo '      ' egrep '^[A-Za-z]+ [A-Za-z]+ [0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [A-Za-z]+ [0-9][0-9][0-9][0-9]' $stdout
                 if egrep '^[A-Za-z]+ [A-Za-z]+ [0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [A-Za-z]+ [0-9][0-9][0-9][0-9]' $stdout; then
                         result=ok
@@ -27616,8 +27616,8 @@ TEST496
                 result=fail
         fi
      else
-        echo '      ' "$DINO -L./d_ipcerr.@EXTERN_LIB_SUFFIX@ -L./d_socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@  $test_file time >$stdout"
-        if $DINO -L./d_ipcerr.@EXTERN_LIB_SUFFIX@ -L./d_socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file time >$stdout; then
+        echo '      ' "$DINO -L.libs/d_ipcerr.so -L.libs/d_socket.so -I@srcdir@  $test_file time >$stdout"
+        if $DINO -L.libs/d_ipcerr.so -L.libs/d_socket.so -I@srcdir@ $test_file time >$stdout; then
                 echo '      ' egrep '(^[A-Za-z]+ [A-Za-z]+[ ]+[0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9])|(^[0-9][0-9] [A-Za-z]+ [0-9][0-9][0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [A-Za-z0-9]+)' $stdout
                 if egrep '(^[A-Za-z]+ [A-Za-z]+[ ]+[0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9])|(^[0-9][0-9] [A-Za-z]+ [0-9][0-9][0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [A-Za-z0-9]+)' $stdout; then
                         result=ok
@@ -27667,8 +27667,8 @@ OUTPUT497-3
                 fi
         fi
      else
-        echo '      ' "$DINO -L./d_ipcerr.@EXTERN_LIB_SUFFIX@ -L./d_socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file 2>$stderr"
-        if $DINO -L./d_ipcerr.@EXTERN_LIB_SUFFIX@ -L./d_socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file 2>$stderr >$stdout; then
+        echo '      ' "$DINO -L.libs/d_ipcerr.so -L.libs/d_socket.so -I@srcdir@ $test_file 2>$stderr"
+        if $DINO -L.libs/d_ipcerr.so -L.libs/d_socket.so -I@srcdir@ $test_file 2>$stderr >$stdout; then
                 result=fail
         else
 		sed 's,\\,/,g' $stderr|sed 's%^.*socket.d%@srcdir@/socket.d%' >$ftemp
@@ -27753,8 +27753,8 @@ TEST499
                 result=fail
         fi
      else
-        echo '      ' "$DINO -L./d_ipcerr.@EXTERN_LIB_SUFFIX@ -L./d_socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@  $test_file 37 >$stdout"
-        if $DINO -L./d_ipcerr.@EXTERN_LIB_SUFFIX@ -L./d_socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file 37 >$stdout; then
+        echo '      ' "$DINO -L.libs/d_ipcerr.so -L.libs/d_socket.so -I@srcdir@  $test_file 37 >$stdout"
+        if $DINO -L.libs/d_ipcerr.so -L.libs/d_socket.so -I@srcdir@ $test_file 37 >$stdout; then
                 echo '      ' test -z "\`cat $stdout\`" '|| egrep ^".+"\[".+"\]37"tcp"$' $stdout
                 if test -z "`cat $stdout`" || egrep '^".+"\[".+"\]37"tcp"$' $stdout; then
                         result=ok
@@ -27792,8 +27792,8 @@ OUTPUT500
                 result=fail
         fi
      else
-        echo '      ' "$DINO -L./d_ipcerr.@EXTERN_LIB_SUFFIX@ -L./d_socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@  $test_file abracadabra >$stdout"
-        if $DINO -L./d_ipcerr.@EXTERN_LIB_SUFFIX@ -L./d_socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file abracadabra >$stdout; then
+        echo '      ' "$DINO -L.libs/d_ipcerr.so -L.libs/d_socket.so -I@srcdir@  $test_file abracadabra >$stdout"
+        if $DINO -L.libs/d_ipcerr.so -L.libs/d_socket.so -I@srcdir@ $test_file abracadabra >$stdout; then
                 echo '      ' $CMP - $stdout
                 if cat >$ftemp2 <<'OUTPUT500a' && $CMP $stdout $ftemp2; then
 OUTPUT500a
@@ -27832,8 +27832,8 @@ OUTPUT501
                 result=fail
         fi
      else
-        echo '      ' "$DINO -L./d_ipcerr.@EXTERN_LIB_SUFFIX@ -L./d_socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@  $test_file 313131 >$stdout"
-        if $DINO -L./d_ipcerr.@EXTERN_LIB_SUFFIX@ -L./d_socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file 313131 >$stdout; then
+        echo '      ' "$DINO -L.libs/d_ipcerr.so -L.libs/d_socket.so -I@srcdir@  $test_file 313131 >$stdout"
+        if $DINO -L.libs/d_ipcerr.so -L.libs/d_socket.so -I@srcdir@ $test_file 313131 >$stdout; then
                 echo '      ' $CMP - $stdout
                 if cat >$ftemp2 <<'OUTPUT501a' && $CMP $stdout $ftemp2; then
 OUTPUT501a

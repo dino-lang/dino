@@ -33,17 +33,11 @@
    Vladimir Makarov (vmakarov@gcc.gnu.org), 2001. */
 
 #ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
+#include "config.h"
 #else /* In this case we are oriented to ANSI C */
 #endif /* #ifdef HAVE_CONFIG_H */
 
-#ifdef HAVE_ASSERT_H
 #include <assert.h>
-#else
-#ifndef assert
-#define assert(code) do { if (code == 0) abort ();} while (0)
-#endif
-#endif
 
 #ifndef NDEBUG
 #define NDEBUG 1

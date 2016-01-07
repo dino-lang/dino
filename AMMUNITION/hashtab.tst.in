@@ -89,7 +89,7 @@ eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
   return strcmp (el1, el2) == 0;
 }
 
-main ()
+int main ()
 {
   hash_table_t htab;
 
@@ -138,7 +138,7 @@ eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
   return strcmp (el1, el2) == 0;
 }
 
-main ()
+int main ()
 {
   hash_table_t htab;
 
@@ -195,7 +195,7 @@ eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
   return strcmp (el1, el2) == 0;
 }
 
-main ()
+int main ()
 {
   hash_table_t htab;
 
@@ -252,7 +252,7 @@ eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
   return strcmp (el1, el2) == 0;
 }
 
-main ()
+int main ()
 {
   hash_table_t htab;
 
@@ -313,7 +313,7 @@ eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
   return strcmp (el1, el2) == 0;
 }
 
-main ()
+int main ()
 {
   hash_table_t htab;
 
@@ -374,7 +374,7 @@ eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
   return strcmp (el1, el2) == 0;
 }
 
-main ()
+int main ()
 {
   hash_table_t htab;
 
@@ -441,7 +441,7 @@ eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
   return strcmp (el1, el2) == 0;
 }
 
-main ()
+int main ()
 {
   hash_table_t htab;
   int c, ac;

@@ -37,7 +37,7 @@ CC='@CC@'
 CC_options='@CFLAGS@ @DEFS@ -I. -I@srcdir@/'
 source_addfiles='@srcdir@/allocate.c @srcdir@/vlobject.c @srcdir@/objstack.c @srcdir@/position.c @srcdir@/errors.c'
 addfiles="${prefix}_allocate.o ${prefix}_vlobject.o ${prefix}_objstack.o ${prefix}_position.o ${prefix}_errors.o"
-test_file=${prefix}_terrors.c
+test_file=${prefix}_ter.ors.c
 temp_file=_${prefix}_temp.out
 temp2_file=_${prefix}_temp2.out
 temp3_file=_${prefix}_temp3.out
@@ -76,7 +76,7 @@ if test $result = ok -a $start_test_number -le 1; then
 #include "allocate.h"
 #include "position.h"
 #include "errors.h"
-main ()
+int main ()
 {
   initiate_positions ();
   initiate_errors (1 /*TRUE*/);
@@ -116,7 +116,7 @@ if test $result = ok -a $start_test_number -le 2; then
 #include "position.h"
 #include "allocate.h"
 #include "errors.h"
-main ()
+int main ()
 {
   initiate_positions ();
   initiate_errors (1 /*TRUE*/);
@@ -160,7 +160,7 @@ if test $result = ok -a $start_test_number -le 3; then
 #include "allocate.h"
 #include "position.h"
 #include "errors.h"
-main ()
+int main ()
 {
   initiate_positions ();
   initiate_errors (1 /*TRUE*/);
@@ -285,7 +285,7 @@ if test $result = ok -a $start_test_number -le 4; then
 #include "allocate.h"
 #include "position.h"
 #include "errors.h"
-main ()
+int main ()
 {
   initiate_positions ();
   initiate_errors (1 /*TRUE*/);
@@ -327,7 +327,7 @@ if test $result = ok -a $start_test_number -le 5; then
 #include "allocate.h"
 #include "position.h"
 #include "errors.h"
-main ()
+int main ()
 {
   initiate_positions ();
   initiate_errors (0);
@@ -366,7 +366,7 @@ if test $result = ok -a $start_test_number -le 6; then
 #include "allocate.h"
 #include "position.h"
 #include "errors.h"
-main ()
+int main ()
 {
   initiate_positions ();
   initiate_errors (0);
@@ -407,7 +407,7 @@ if test $result = ok -a $start_test_number -le 7; then
 #include "allocate.h"
 #include "position.h"
 #include "errors.h"
-main ()
+int main ()
 {
   initiate_positions ();
   initiate_errors (0);
@@ -541,7 +541,7 @@ if test $result = ok -a $start_test_number -le 8; then
 #include "allocate.h"
 #include "position.h"
 #include "errors.h"
-main ()
+int main ()
 {
   initiate_positions ();
   initiate_errors (0);
@@ -675,7 +675,7 @@ if test $result = ok -a $start_test_number -le 9; then
 #include "allocate.h"
 #include "position.h"
 #include "errors.h"
-main ()
+int main ()
 {
   position_t appended_message_position;
 

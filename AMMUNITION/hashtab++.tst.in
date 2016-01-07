@@ -2,7 +2,7 @@
 # @configure_input@
 
 #
-# Script to test of allocation package (files `hashtab.h', `hashtab.cpp').
+# Script to test of allocation package (files `hashtab.h', `hashtabcpp.C').
 #
 #   Copyright (C) 1997-2015 Vladimir Makarov.
 #
@@ -35,9 +35,9 @@ script_file=$0
 prefix=`basename $script_file .tst`
 CXX='@CXX@'
 CXX_options='@CXXFLAGS@ @DEFS@ -I. -I@srcdir@/'
-source_addfiles='@srcdir@/allocate.cpp @srcdir@/hashtab.cpp'
-addfiles="${prefix}_allocate.o ${prefix}_hashtab.o"
-test_file=${prefix}_thashtab.cpp
+source_addfiles='@srcdir@/allocatecpp.C @srcdir@/hashtabcpp.C'
+addfiles="${prefix}_allocatecpp.o ${prefix}_hashtabcpp.o"
+test_file=${prefix}_thashtab.C
 outfile=./${prefix}_a.out
 
 if test x$1 = x
@@ -56,8 +56,8 @@ fi
 # Compilation of addfiles
 
 for i in $source_addfiles; do
-  echo '      ' $CXX $CXX_options -c $i -o ${prefix}_`basename $i .cpp`.o
-  if $CXX $CXX_options -c $i -o ${prefix}_`basename $i .cpp`.o; then
+  echo '      ' $CXX $CXX_options -c $i -o ${prefix}_`basename $i .C`.o
+  if $CXX $CXX_options -c $i -o ${prefix}_`basename $i .C`.o; then
         result=ok
   else
         echo '***' $script_file: test is failed see file $test_file
@@ -90,7 +90,7 @@ eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
   return strcmp ((char *) el1, (char *) el2) == 0;
 }
 
-main ()
+int main ()
 {
   hash_table_t htab;
 
@@ -139,7 +139,7 @@ eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
   return strcmp ((char *) el1, (char *) el2) == 0;
 }
 
-main ()
+int main ()
 {
   hash_table_t htab;
 
@@ -196,7 +196,7 @@ eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
   return strcmp ((char *) el1, (char *) el2) == 0;
 }
 
-main ()
+int main ()
 {
   hash_table_t htab;
 
@@ -253,7 +253,7 @@ eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
   return strcmp ((char *) el1, (char *) el2) == 0;
 }
 
-main ()
+int main ()
 {
   hash_table_t htab;
 
@@ -314,7 +314,7 @@ eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
   return strcmp ((char *) el1, (char *) el2) == 0;
 }
 
-main ()
+int main ()
 {
   hash_table_t htab;
 
@@ -375,7 +375,7 @@ eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
   return strcmp ((char *) el1, (char *) el2) == 0;
 }
 
-main ()
+int main ()
 {
   hash_table_t htab;
 
@@ -442,7 +442,7 @@ eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
   return strcmp ((char *) el1, (char *) el2) == 0;
 }
 
-main ()
+int main ()
 {
   hash_table_t htab;
   int c, ac;

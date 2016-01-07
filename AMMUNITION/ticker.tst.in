@@ -70,7 +70,7 @@ if test $result = ok -a $start_test_number -le 1; then
 #include <stdlib.h>
 #include <stdio.h>
 #include "ticker.h"
-main ()
+int main ()
 {
   register int i, j;
   ticker_t first_ticker;
@@ -112,7 +112,7 @@ if test $result = ok -a $start_test_number -le 2; then
 #include <stdlib.h>
 #include <stdio.h>
 #include "ticker.h"
-main ()
+int main ()
 {
   register int i, j;
   ticker_t first_ticker;
@@ -162,7 +162,7 @@ if test $result = ok -a $start_test_number -le 3; then
 #include <stdlib.h>
 #include <stdio.h>
 #include "ticker.h"
-main ()
+int main ()
 {
   register int i, j;
   ticker_t first_ticker;

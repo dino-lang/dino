@@ -60,6 +60,6 @@ var :: ident, value
 expr :: , value
 ;
 %%
-main ()
+int main ()
 {
 }

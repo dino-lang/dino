@@ -69,7 +69,7 @@ TEST1
            cat >$test_file <<'TEST1'
 #include <stdlib.h>
 #include "temp.c"
-main ()
+int main ()
 {
   KR_reset ();
   if (KR_find_keyword ("sum", 3) != KR_sum)
@@ -120,7 +120,7 @@ TEST2
            cat >$test_file <<'TEST2'
 #include <stdlib.h>
 #include "temp.c"
-main ()
+int main ()
 {
   KR_reset ();
   if (KR_find_keyword ("sum", 3) != KR_sum)
@@ -176,7 +176,7 @@ TEST3
            cat >$test_file <<'TEST3'
 #include <stdlib.h>
 #include "temp.c"
-main ()
+int main ()
 {
   KR_reset ();
   if (KR_find_keyword ("Then", 4) != THEN)

@@ -2929,7 +2929,7 @@ activate_given_process (ER_node_t process)
 #if ! defined (NO_PROFILE) && !HAVE_SETITIMER
   if (cprocess != process && profile_flag)
     {
-      BC_node_t block, block;
+      BC_node_t block;
 
       for (block = ER_block_node (ER_saved_cstack (cprocess));
 	   BC_ident (block) == NULL;

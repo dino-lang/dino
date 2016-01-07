@@ -7700,8 +7700,8 @@ EOF
 
 
 title=
-$DINO -I$srcdir -L./d_ipcerr.so -L./d_socket.so $ftest $rep > /dev/null &
-  ($TIME $DINO -I$srcdir -L./d_ipcerr.so -L./d_socket.so $ftest $rep client) 2>&1|print_dino
+$DINO -I$srcdir -L.libs/d_ipcerr.so -L.libs/d_socket.so $ftest $rep > /dev/null &
+  ($TIME $DINO -I$srcdir -L.libs/d_ipcerr.so -L.libs/d_socket.so $ftest $rep client) 2>&1|print_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest

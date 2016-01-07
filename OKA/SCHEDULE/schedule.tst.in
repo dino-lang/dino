@@ -5,7 +5,7 @@
 #
 # Copyright (C) 1997-2007 Vladimir Makarov.
 # 
-# Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
+# Written by Vladimir Makarov <vmakarov@gcc.gnu.org>
 # 
 # This file is part of the tool OKA.
 # 
@@ -31,13 +31,13 @@
 # it is all ok.
 #
 
-CC='@CC@ @CFLAGS@ @DEFS@ -I. -I../../AMMUNITION -I@top_srcdir@/AMMUNITION'
+CC='@CC@ @CFLAGS@ @DEFS@ -I. -I../../AMMUNITION -I@srcdir@/../../AMMUNITION'
 result=fail
 echo +++++++++++ Testing Scheduler for C ++++++++++++++++++++++++++++++++
 echo ++++++++++Now building pipeline hazards recognizer
 if ../oka -export @srcdir@/test.oka; then
         echo ++++++++++Now compilation of all scheduler files
-        if $CC test.c @srcdir@/schedule.c @srcdir@/schedtst.c @top_srcdir@/AMMUNITION/allocate.c -o ./a.out; then
+        if $CC test.c @srcdir@/schedule.c @srcdir@/schedtst.c @srcdir@/../../AMMUNITION/allocate.c -o ./a.out; then
                 echo ++++++++++Now scheduling
                 if ./a.out >_test.res; then
                         if cat >_test1.res <<'EOF' && cmp _test.res _test1.res; then

@@ -2,7 +2,7 @@
 # @configure_input@
 
 #
-# Script to test sparse set package (files `spset.h', `spset.cpp').
+# Script to test sparse set package (files `spset.h', `spsetcpp.C').
 #
 #   Copyright (C) 2014 Vladimir Makarov.
 #
@@ -35,9 +35,9 @@ script_file=$0
 prefix=`basename $script_file .tst`
 CXX='@CXX@'
 CXX_options='@CXXFLAGS@ @DEFS@ -I. -I@srcdir@/'
-source_addfiles='@srcdir@/allocate.cpp @srcdir@/ticker.cpp @srcdir@/spset.cpp'
-addfiles="${prefix}_allocate.o ${prefix}_ticker.o ${prefix}_spset.o"
-test_file=${prefix}_tspset.cpp
+source_addfiles='@srcdir@/allocatecpp.C @srcdir@/tickercpp.C @srcdir@/spsetcpp.C'
+addfiles="${prefix}_allocatecpp.o ${prefix}_tickercpp.o ${prefix}_spsetcpp.o"
+test_file=${prefix}_tspset.C
 outfile=./${prefix}_a.out
 include_file=${prefix}_temp.h
 
@@ -57,8 +57,8 @@ fi
 # Compilation of addfiles
 
 for i in $source_addfiles; do
-  echo '      ' $CXX $CXX_options -c $i -o ${prefix}_`basename $i .cpp`.o
-  if $CXX $CXX_options -c $i -o ${prefix}_`basename $i .cpp`.o; then
+  echo '      ' $CXX $CXX_options -c $i -o ${prefix}_`basename $i .C`.o
+  if $CXX $CXX_options -c $i -o ${prefix}_`basename $i .C`.o; then
         result=ok
   else
         echo '***' $script_file: test is failed see file $test_file
@@ -107,7 +107,7 @@ EOF
 if test $result = ok -a $start_test_number -le 1; then
         cat >$test_file <<'TEST1'
 #include "spset++_temp.h"
-main ()
+int main ()
 {
   spset s;
   spset_elem_t v[] = {1, 2, 3, 4};
@@ -142,7 +142,7 @@ fi
 if test $result = ok -a $start_test_number -le 2; then
         cat >$test_file <<'TEST2'
 #include "spset++_temp.h"
-main ()
+int main ()
 {
   spset s;
   spset_elem_t v[] = {1, 2, 3, 4};
@@ -185,7 +185,7 @@ fi
 if test $result = ok -a $start_test_number -le 3; then
         cat >$test_file <<'TEST3'
 #include "spset++_temp.h"
-main ()
+int main ()
 {
   spset s1 (0), s2 (0);
   spset_elem_t v[] = {1, 2, 3, 4};
@@ -220,7 +220,7 @@ fi
 if test $result = ok -a $start_test_number -le 4; then
         cat >$test_file <<'TEST4'
 #include "spset++_temp.h"
-main ()
+int main ()
 {
   spset s1 (0), s2 (0);
   spset_elem_t v1[] = {1, 2, 3, 4};
@@ -260,7 +260,7 @@ fi
 if test $result = ok -a $start_test_number -le 5; then
         cat >$test_file <<'TEST5'
 #include "spset++_temp.h"
-main ()
+int main ()
 {
   spset s;
   spset_elem_t v[] = {1, 2, 3, 4};
@@ -293,7 +293,7 @@ fi
 if test $result = ok -a $start_test_number -le 6; then
         cat >$test_file <<'TEST6'
 #include "spset++_temp.h"
-main ()
+int main ()
 {
   spset s;
   spset_elem_t v[] = {1, 2, 3, 4};
@@ -329,7 +329,7 @@ fi
 if test $result = ok -a $start_test_number -le 7; then
         cat >$test_file <<'TEST7'
 #include "spset++_temp.h"
-main ()
+int main ()
 {
   spset s;
   spset_elem_t v[] = {1, 2, 3, 4};
@@ -365,7 +365,7 @@ fi
 if test $result = ok -a $start_test_number -le 8; then
         cat >$test_file <<'TEST8'
 #include "spset++_temp.h"
-main ()
+int main ()
 {
   spset s1 (0), s2 (0);
   spset_elem_t v1[] = {1, 2, 3, 4};
@@ -403,7 +403,7 @@ fi
 if test $result = ok -a $start_test_number -le 9; then
         cat >$test_file <<'TEST9'
 #include "spset++_temp.h"
-main ()
+int main ()
 {
   spset s1 (0), s2 (0);
   spset_elem_t v1[] = {1, 2, 3, 4};
@@ -450,7 +450,7 @@ fi
 if test $result = ok -a $start_test_number -le 10; then
         cat >$test_file <<'TEST10'
 #include "spset++_temp.h"
-main ()
+int main ()
 {
   spset s1 (0), s2 (0);
   spset_elem_t v1[] = {1, 2, 3, 4};
@@ -504,7 +504,7 @@ fi
 if test $result = ok -a $start_test_number -le 11; then
         cat >$test_file <<'TEST11'
 #include "spset++_temp.h"
-main ()
+int main ()
 {
   spset s1(0), s2(0);
   spset_elem_t v1[] = {1, 2, 3, 4};
@@ -567,7 +567,7 @@ if test $result = ok -a $start_test_number -le 12; then
 #endif
 
 int n;
-main ()
+int main ()
 {
   spset s1(0), s2(0), s3(0), s4(0);
   int i, iter;

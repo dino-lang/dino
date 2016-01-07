@@ -40,11 +40,8 @@
 */
 
 #ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
+#include "config.h"
 #else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_MEMCPY
-#define HAVE_MEMCPY
-#endif
 #ifndef HAVE_MEMSET
 #define HAVE_MEMSET
 #endif
@@ -53,24 +50,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ird.h"
-
-#ifndef HAVE_MEMCPY
-
-static void *
-memcpy (void *to, const void *from, size_t size)
-{
-  char *cto = (char *) to;
-  const char *cfrom = (const char *) from;
-
-  while (size > 0)
-    {
-      *cto++ = *cfrom;
-      size--;
-    }
-  return to;
-}
-
-#endif /* #ifndef HAVE_MEMCPY */
 
 #ifndef HAVE_MEMSET
 

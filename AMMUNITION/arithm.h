@@ -39,12 +39,6 @@
 #ifndef __ARITHMETIC__
 #define __ARITHMETIC__
 
-#ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#else /* In this case we are oriented to ANSI C */
-#endif /* #ifdef HAVE_CONFIG_H */
-
-
 #ifndef __cplusplus
 
 extern int overflow_bit;
