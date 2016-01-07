@@ -1,5 +1,9 @@
 2016-01-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* AMMUNITION/errorcpp.C: Add.
+
+2016-01-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* missing: New.
 	* AMMUNITION/{install-sh, ltmain.sh, missing, ylwrap}: New.
 	* DINO/{install-sh, ltmain.sh, missing}: New.
