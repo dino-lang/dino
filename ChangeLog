@@ -1,3 +1,227 @@
+2016-01-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/allocate++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use allocatecpp.C instead of
+	allocate.cpp.
+	* AMMUNITION/allocate.tst.in: Add return type to main functions.
+	* AMMUNITION/allocate.c: Change config code.
+	* AMMUNITION/allocate.cpp: Ditto.  Rename to allocatecpp.C.
+	* AMMUNITION/allocate.h: Remove config code.
+	* AMMUNITION/IEEE++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use IEEEcpp.C instead of IEEE.cpp.
+	* AMMUNITION/IEEE.tst.in: Add return type to main functions.
+	* AMMUNITION/IEEE.c: Remove config code relative to assert, memcpy,
+	memcmp, limits.
+	* AMMUNITION/IEEE.cpp: Ditto.  Rename to IEEEcpp.C.
+	* AMMUNITION/IEEE.h: Remove config code.
+	* AMMUNITION/airthm++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use airthmcpp.C instead of airthm.cpp.
+	Remove config code relative to limits.
+	* AMMUNITION/airthm.tst.in: Add return type to main functions.
+	Remove config code relative to limits.
+	* AMMUNITION/airthm.c: Remove config code relative to assert, memcpy,
+	memcmp, limits.
+	* AMMUNITION/airthm.cpp: Ditto.  Rename to airthmcpp.C.
+	* AMMUNITION/airthm.h: Remove config code.
+	* AMMUNITION/bits++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use bitscpp.C instead of bits.cpp.
+	* AMMUNITION/bits.tst.in: Add return type to main functions.
+	* AMMUNITION/bits.c: Change config code.
+	* AMMUNITION/bits.cpp: Ditto.  Rename to bitscpp.C.
+	* AMMUNITION/bits.h: Remove config code.
+	* AMMUNITION/commline++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use commlinecpp.C instead of commline.cpp.
+	* AMMUNITION/commline.tst.in: Add return type to main functions.
+	* AMMUNITION/commline.c: Change config code.
+	* AMMUNITION/commline.cpp: Ditto.  Rename to commlinecpp.C.
+	* AMMUNITION/commline.h: Remove config code.
+	* AMMUNITION/cocom-config.h.in: Remove.
+	* AMMUNITION/compare_parsers.tst.in: Forward declaration of yylex
+	and yyerror.  Add return type to main functions.
+	* AMMUNITION/cspset++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use cspsetcpp.C instead of cspset.cpp.
+	* AMMUNITION/cspset.tst.in: Add return type to main functions.
+	* AMMUNITION/cspset.c: Change config code.
+	* AMMUNITION/cspset.cpp: Ditto.  Rename to cspsetcpp.C.
+	* AMMUNITION/cspset.h: Remove config code.
+	* AMMUNITION/errors++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use errorscpp.C instead of errors.cpp.
+	* AMMUNITION/errors.tst.in: Add return type to main functions.
+	* AMMUNITION/errors.c: Change config code.
+	* AMMUNITION/errors.cpp: Ditto.  Rename to errorscpp.C.
+	* AMMUNITION/errors.h: Remove config code.
+	* AMMUNITION/hashtab++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use hashtabcpp.C instead of hashtab.cpp.
+	* AMMUNITION/hashtab.tst.in: Add return type to main functions.
+	* AMMUNITION/hashtab.c: Change config code.
+	* AMMUNITION/hashtab.cpp: Ditto.  Rename to hashtabcpp.C.
+	* AMMUNITION/hashtab.h: Remove config code.
+	* AMMUNITION/objstack++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use objstackcpp.C instead of
+	objstack.cpp.  Change congig code.
+	* AMMUNITION/objstack.tst.in: Add return type to main functions.
+	Change congig code.
+	* AMMUNITION/objstack.c: Change config code.
+	* AMMUNITION/objstack.cpp: Ditto.  Rename to objstackcpp.C.
+	* AMMUNITION/objstack.h: Remove config code.
+	* AMMUNITION/position++.tst.in: Add return type to main function.
+	Use .C instead of .cpp.  Use positioncpp.C instead of position.cpp.
+	* AMMUNITION/position.tst.in: Add return type to main function.
+	* AMMUNITION/position.c: Change config code.
+	* AMMUNITION/position.cpp: Ditto.  Rename to positioncpp.C.
+	* AMMUNITION/position.h: Remove config code.
+	* AMMUNITION/sgramm.y: Remove config code.
+	* AMMUNITION/spset++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use spsetcpp.C instead of spset.cpp.
+	* AMMUNITION/spset.tst.in: Add return type to main functions.
+	* AMMUNITION/spset.c: Change config code.
+	* AMMUNITION/spset.cpp: Ditto.  Rename to spsetcpp.C.
+	* AMMUNITION/spset.h: Remove config code.
+	* AMMUNITION/ticker++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use tickercpp.C instead of ticker.cpp.
+	* AMMUNITION/ticker.tst.in: Add return type to main functions.
+	* AMMUNITION/ticker.c: Change config code.
+	* AMMUNITION/ticker.cpp: Ditto.  Rename to tickercpp.C.
+	* AMMUNITION/ticker.h: Remove config code.
+	* AMMUNITION/vlobject++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use vlobjectcpp.C instead of
+	vlobject.cpp.  Change congig code.
+	* AMMUNITION/vlobject.tst.in: Add return type to main functions.
+	Change congig code.
+	* AMMUNITION/vlobject.c: Change config code.
+	* AMMUNITION/vlobject.cpp: Ditto.  Rename to vlobjectcpp.C.
+	* AMMUNITION/vlobject.h: Remove config code.
+	* AMMUNITION/yaep++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use yaepcpp.C instead of yaep.cpp.
+	* AMMUNITION/yaep.tst.in: Add return type to main functions.
+	* AMMUNITION/yaep.c: Change config code.
+	* AMMUNITION/yaep.cpp: Ditto.  Rename to yaepcpp.C.
+	* AMMUNITION/yaep.h: Remove config code.
+	* AMMUNITION/configure.ac: New.
+	* AMMUNITION/Makefile.am: New.
+	* AMMUNITION/config.h.in: New.
+	* AMMUNITION/Makefile.in: Update.
+	* AMMUITION/configure: Update.
+	* AMMUITION/aclocal.m4: New.
+	* AMMUNITION/ammunition[++].{dvi, pdf, ps}: Update.
+	* DINO/configure.ac: New.
+	* DINO/Makefile.am: New.
+	* DINO/d_config.h.in: New.
+	* DINO/Makefile.in: Update.
+	* DINO/configure: Update.
+	* DINO/aclocal.m4: New.
+	* DINO/compare.tst: Use libraries from .libs.
+	* DINO/d_common.h: Remove config code relative to assert, memcpy,
+	memcmp, limits, floats, errno.
+	* DINO/d_dino.c: Remove config code for memcpy, memcmp.  Remove
+	HAVE_STRTOLL.
+	* DINO/d_heap.c (activate_given_porocess): Remove double declared
+	block.
+	* DINO/d_main.c: Remove code fro AIX_DLOPEN.
+	(main): Remove code for ! NO_DINO_SHLIB.
+	* DINO/d_types.h: Remove config code for floats, limits.
+	* DINO/dino.{dvi, pdf, ps}: Update.
+	* DINO/dino.tst.in: Use libraries from .libs.
+	* MSTA/anal.c: Remove config code for limits and assert.
+	* MSTA/contexts.c: Ditto.
+	* MSTA/common.h: Use config.h.
+	* MSTA/descript.c: Remove config code for assert.
+	* MSTA/fcalc.y: Add forward decls for yyerror and yylex.  Add
+	return type for main.
+	* MSTA/gen-comm.c: Remove config code for assert, memcpy.
+	* MSTA/gen.c: Remove config code for assert.
+	* MSTA/ird.sprut: Ditto.
+	* MSTA/la-trie.c: Ditto.
+	* MSTA/lr-sets.c: Ditto.
+	* MSTA/lr.c: Ditto.
+	* MSTA/main.c: Ditto.
+	* MSTA/output.c: Ditto.
+	* MSTA/parser.c: Remove config code for assert, limits.
+	* MSTA/regular.c: Remove config code for assert, memcmp.
+	* MSTA/relation.c: Remove config code for assert.
+	* MSTA/tab.c: Remove config code for assert, limits.
+	* MSTA/yacc.y: Ditto.
+	* MSTA/msta.{dvi, pdf, ps}: Update.
+	* MSTA/msta.tst.in: Add return types to yylex and yyerror.
+	* MSTA/configure.ac: New.
+	* MSTA/Makefile.am: New.
+	* MSTA/config.h.in: New.
+	* MSTA/Makefile.in: Update.
+	* MSTA/configure: Update.
+	* MSTA/aclocal.m4: New.
+	* NONA/configure.ac: New.
+	* NONA/Makefile.am: New.
+	* NONA/config.h.in: New.
+	* NONA/Makefile.in: Update.
+	* NONA/configure: Update.
+	* NONA/aclocal.m4: New.
+	* NONA/anal.c: Remove config code for assert.
+	* NONA/gen.c: Ditto.
+	* NONA/main.c: Ditto.
+	* NONA/yacc.y: Ditto.
+	* NONA/tab.c: Remove config code for assert and limits.
+	* NONA/common.h: Modify config code.
+	* NONA/nona.{dvi, pdf, ps}: Update.
+	* OKA/configure.ac: New.
+	* OKA/Makefile.am: New.
+	* OKA/config.h.in: New.
+	* OKA/Makefile.in: Update.
+	* OKA/configure: Update.
+	* OKA/aclocal.m4: New.
+	* OKA/anal.c: Remove config code for assert.
+	* OKA/main.c: Ditto.
+	* OKA/yacc.y: Ditto.
+	* OKA/gen.c: Remove config code for assert, floats, limits.
+	* OKA/tab.c: Remove config code for assert and limits.
+	* OKA/common.h: Modify config code.
+	* OKA/oka.{dvi, pdf, ps}: Update.
+	* OKA/SCHEDULE/schedtst.c (scheduler_execution_duration): Make int
+	as return type.
+	* OKA/SCHEDULE/schedule++.tst.in: Use srcdir instead of top_srcdir.
+	* OKA/SCHEDULE/schedule.tst.in: Ditto.
+	* ONIGURUMA/Makefile.in: Update.
+	* ONIGURUMA/aclocal.m4: Ditto.
+	* ONIGURUMA/configure: Ditto.
+	* ONIGURUMA/sample/Makefile.in: Ditto.
+	* ONIGURUMA/configure.in (AM_INIT_AUTOMAKE): Add foreign.
+	* SHILKA/configure.ac: New.
+	* SHILKA/Makefile.am: New.
+	* SHILKA/config.h.in: New.
+	* SHILKA/Makefile.in: Update.
+	* SHILKA/configure: Update.
+	* SHILKA/aclocal.m4: New.
+	* SHILKA/anal.c: Remove config code for assert.
+	* SHILKA/main.c: Ditto.
+	* SHILKA/yacc.y: Ditto.
+	* SHILKA/gen.c: Remove config code for assert, limits.
+	* SHILKA/tab.c: Ditto.
+	* SHILKA/common.[ch]: Modify config code.
+	* SHILKA/shilka.{dvi, pdf, ps}: Update.
+	* SHILKA/compare.tst.in: Use .libs.
+	* SHILKA/shilka.tst.in: Add return types to main functions.
+	* SPRUT/configure.ac: New.
+	* SPRUT/Makefile.am: New.
+	* SPRUT/config.h.in: New.
+	* SPRUT/Makefile.in: Update.
+	* SPRUT/configure: Update.
+	* SPRUT/aclocal.m4: New.
+	* SPRUT/anal.c: Remove config code for assert.
+	* SPRUT/main.c: Ditto.
+	* SPRUT/yacc.y: Ditto.
+	* SPRUT/gen.c: Remove config code for assert, limits.
+	* SPRUT/tab.c: Ditto.
+	* SPRUT/common.h: Modify config code.
+	* SPRUT/sprut-ird.c: Remove config code for memcpy.
+	* SPRUT/sprut.{dvi, pdf, ps}: Update.
+	* SPRUT/A_test.sprut: Add return types to main functions.
+	* configure.in: Delete.
+	* configure.ac: New.
+	* Makefile.am: New.
+	* config.h.in: New.
+	* Makefile.in: Update.
+	* configure: Update.
+	* aclocal.m4: New.
+
 2015-12-23  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_common.h (check_encoding_on_ascii): New.
