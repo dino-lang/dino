@@ -263,7 +263,7 @@ bend		{return BC_NM_bend;}
 fbend		{return BC_NM_fbend;}
 ret		{return BC_NM_ret;}
 throw		{return BC_NM_throw;}
-wait		{return BC_NM_wait;}
+waitcond	{return BC_NM_waitcond;}
 waitend		{return BC_NM_waitend;}
 except		{return BC_NM_except;}
 chvec		{return BC_NM_chvec;}

@@ -2949,7 +2949,7 @@ ret (ER_node_t res)
 }
 
 static void do_always_inline
-wait (ER_node_t op1)
+waitcond (ER_node_t op1)
 {
   int true_p;
   

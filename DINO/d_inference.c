@@ -601,7 +601,7 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
       else
 	return NO_MORE_OPERAND;
       break;
-    case BC_NM_throw: case BC_NM_wait:
+    case BC_NM_throw: case BC_NM_waitcond:
       if (result_p)
 	return NO_MORE_OPERAND;
       else if (nop == 0)
@@ -1936,7 +1936,7 @@ type_transf (node_t node)
       res_tp = cmp_type (insn->types[1], TP_int);
       break;
     case BC_NM_out: case BC_NM_stpop: case BC_NM_bend:
-    case BC_NM_throw: case BC_NM_wait: case BC_NM_waitend: case BC_NM_except:
+    case BC_NM_throw: case BC_NM_waitcond: case BC_NM_waitend: case BC_NM_except:
       return FALSE; /* No output */
     case BC_NM_leave:
       res_tp = TP_undef;
@@ -2353,7 +2353,7 @@ specialize_insn (df_insn_t insn)
 	nm = BC_NM_ibtgti;
       break;
     case BC_NM_out: case BC_NM_stpop: case BC_NM_bend:
-    case BC_NM_throw: case BC_NM_wait: case BC_NM_waitend: case BC_NM_except:
+    case BC_NM_throw: case BC_NM_waitcond: case BC_NM_waitend: case BC_NM_except:
     case BC_NM_leave:
     case BC_NM_fbend:
     case BC_NM_block:

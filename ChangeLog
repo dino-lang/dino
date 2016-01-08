@@ -1,3 +1,19 @@
+2016-01-08  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* Makefile.am: Add EXTRA_DIST and doc.
+	* Makefile.in: Update.
+	* {AMMUNITION, SPRUT, SHILKA, MSTA, NONA, OKA, DINO}/Makefile.am
+	(all-local, dist-local): Remove doc.
+	* {AMMUNITION, SPRUT, SHILKA, MSTA, NONA, OKA, DINO}/Makefile.in: Updat.
+	* DINO/d_bc.sprut (wait): Rename to waitcond.
+	* DINO/d_bcn.shilka (wait): Ditto.
+	* DINO/d_bcio.c (dump_code): Rename BC_NM_wait to BC_NM_waitcond.
+	* DINO/d_eval.c (evaluate_code): Ditto.
+	* DINO/d_gen.c (wait): Rename to waitcode.
+	* DINO/d_inference.c (get_insn_op_place, type_transf): Rename
+	BC_NM_wait to BC_NM_waitcond
+	(specialize_insn): Ditto.
+
 2016-01-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/Makefile.am (all): Move dependecies to BUILT_SOURCES.

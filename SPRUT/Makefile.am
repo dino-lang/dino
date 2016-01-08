@@ -14,8 +14,8 @@ ACLOCAL_AMFLAGS = -I m4
 
 check : test
 
-all-local: doc
-dist-local: doc
+all-local:
+dist-local:
 
 install-data-local:
 	-mkdir -p $(libdir)

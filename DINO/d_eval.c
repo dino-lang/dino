@@ -3586,7 +3586,7 @@ evaluate_code (void)
       goto_table [BC_NM_leave] = &&l_BC_NM_leave;
       goto_table [BC_NM_fbend] = &&l_BC_NM_fbend;
       goto_table [BC_NM_ret] = &&l_BC_NM_ret;
-      goto_table [BC_NM_wait] = &&l_BC_NM_wait;
+      goto_table [BC_NM_waitcond] = &&l_BC_NM_waitcond;
       goto_table [BC_NM_waitend] = &&l_BC_NM_waitend;
       goto_table [BC_NM_stinc] = &&l_BC_NM_stinc;
       goto_table [BC_NM_stdecm] = &&l_BC_NM_stdecm;
@@ -4671,8 +4671,8 @@ evaluate_code (void)
 	  if (ret (get_op (BC_op1 (cpc))))
 	    return;
 	  BREAK;
-	CASE (BC_NM_wait):
-	  wait (get_op (BC_op1 (cpc)));
+	CASE (BC_NM_waitcond):
+	  waitcond (get_op (BC_op1 (cpc)));
 	  BREAK;
 	CASE (BC_NM_waitend):
 	  waitend ();

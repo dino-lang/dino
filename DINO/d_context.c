@@ -4395,7 +4395,7 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	      (stmt, second_expr_processing (IR_wait_guard_expr (stmt), FALSE,
 					     &result, &temp_vars_num, FALSE,
 					     NULL, NULL, FALSE));
-	    bc = new_bc_code_with_src (BC_NM_wait, stmt);
+	    bc = new_bc_code_with_src (BC_NM_waitcond, stmt);
 	    BC_set_op1 (bc, result);
 	    type_test (IR_wait_guard_expr (stmt), EVT_NUMBER_STRING_MASK,
 		       ERR_invalid_wait_guard_expr_type);

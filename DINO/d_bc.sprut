@@ -1127,7 +1127,7 @@ ret :: op1  /* return with result: ret value place */
         ret_decl : decl /* no-null if ident in the return. */
 ;
 throw :: op1;
-wait :: br;
+waitcond :: br;
 waitend :: bcode;
 
 except :: op2 /* except instance and class places */

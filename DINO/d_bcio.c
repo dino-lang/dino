@@ -551,7 +551,7 @@ dump_code (BC_node_t infos, int indent)
 	    printf (" ret_decl=%d // ident=%s", BC_decl_num (BC_ret_decl (bc)),
 		    BC_ident (BC_ret_decl (bc)));
 	  break;
-	case BC_NM_wait:
+	case BC_NM_waitcond:
 	  printf (" op1=%d pc=%d",
 		  BC_op1 (bc), BC_idn (BC_info (BC_pc (bc))));
 	  break;

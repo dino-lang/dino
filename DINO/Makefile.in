@@ -1227,8 +1227,8 @@ uninstall-man: uninstall-man1
 
 check : test
 
-all-local: d_gen.i doc
-dist-local: doc
+all-local: d_gen.i
+dist-local:
 
 install-data-local:
 	-mkdir -p $(docdir)
@@ -1313,55 +1313,6 @@ prepare-unicode: $(srcdir)/UnicodeDB.c
 
 $(srcdir)/UnicodeDB.c : $(srcdir)/UnicodeData.txt
 	./dino $(srcdir)/process_ucodedb.d $(srcdir)/UnicodeData.txt >UDB.c && mv UDB.c $@
-
-#allocate.h : $(srcdir)/../AMMUNITION/allocate.h
-#	   cp $< $@
-#vlobject.h: $(srcdir)/../AMMUNITION/vlobject.h
-#	    cp $< $@
-#position.h: $(srcdir)/../AMMUNITION/position.h
-#	    cp $< $@
-#hashtab.h: $(srcdir)/../AMMUNITION/hashtab.h
-#	   cp $< $@
-#spset.h: $(srcdir)/../AMMUNITION/spset.h
-#	 cp $< $@
-#cspset.h: $(srcdir)/../AMMUNITION/cspset.h
-#	  cp $< $@
-#objstack.h: $(srcdir)/../AMMUNITION/objstack.h
-#	    cp $< $@
-#errors.h: $(srcdir)/../AMMUNITION/errors.h
-#	  cp $< $@
-#commline.h: $(srcdir)/../AMMUNITION/commline.h
-#	    cp $< $@
-#ticker.h: $(srcdir)/../AMMUNITION/ticker.h
-#	  cp $< $@
-#bits.h: $(srcdir)/../AMMUNITION/bits.h
-#	cp $< $@
-#yaep.h: $(srcdir)/../AMMUNITION/yaep.h
-#	cp $< $@
-#allocate.c : $(srcdir)/../AMMUNITION/allocate.c
-#	   cp $< $@
-#vlobject.c: $(srcdir)/../AMMUNITION/vlobject.c
-#	    cp $< $@
-#position.c: $(srcdir)/../AMMUNITION/position.c
-#	    cp $< $@
-#hashtab.c: $(srcdir)/../AMMUNITION/hashtab.c
-#	   cp $< $@
-#spset.c: $(srcdir)/../AMMUNITION/spset.c
-#	 cp $< $@
-#cspset.c: $(srcdir)/../AMMUNITION/cspset.c
-#	  cp $< $@
-#objstack.c: $(srcdir)/../AMMUNITION/objstack.c
-#	    cp $< $@
-#errors.c: $(srcdir)/../AMMUNITION/errors.c
-#	  cp $< $@
-#commline.c: $(srcdir)/../AMMUNITION/commline.c
-#	    cp $< $@
-#ticker.c: $(srcdir)/../AMMUNITION/ticker.c
-#	  cp $< $@
-#bits.c: $(srcdir)/../AMMUNITION/bits.c
-#	cp $< $@
-#yaep.c: $(srcdir)/../AMMUNITION/yaep.c
-#	cp $< $@
 
 test : test-dino compare-only-dino
 

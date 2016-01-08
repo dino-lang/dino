@@ -13,8 +13,8 @@ SPRUT = ../SPRUT/sprut
 
 check : test
 
-all-local: doc
-dist-local: doc
+all-local:
+dist-local:
 
 install-data-local:
 	-mkdir -p $(docdir)
