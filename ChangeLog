@@ -1,3 +1,11 @@
+2016-01-09  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/configure.ac: Check libiconv.
+	* DINO/configure: Update.
+	* DINO/d_common.h (is_hex_digit): Put parentheses around &&.
+	* DINO/d_dino.c (initiate_cds, set_conv_descs): Use UTF-32{BE,LE}
+	instead if UTF32{BE,LE}.
+
 2016-01-08  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* Makefile.am: Add EXTRA_DIST and doc.

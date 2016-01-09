@@ -730,7 +730,7 @@ static void
 initiate_cds (void)
 {
 #ifdef HAVE_ICONV_H
-  const char *utf32 = big_endian_p ? "UTF32BE" : "UTF32LE";
+  const char *utf32 = big_endian_p ? "UTF-32BE" : "UTF-32LE";
 
   curr_encoding_name = UTF8_STRING;
   curr_encoding_type = UTF8_ENC;
@@ -756,7 +756,7 @@ set_conv_descs (const char *encoding_name,
 {
   conv_desc_t bcd, ucd, rucd;
 #ifdef HAVE_ICONV_H
-  const char *utf32 = big_endian_p ? "UTF32BE" : "UTF32LE";
+  const char *utf32 = big_endian_p ? "UTF-32BE" : "UTF-32LE";
   encoding_type_t type = get_encoding_type (encoding_name);
   
   if (type == RAW_ENC)

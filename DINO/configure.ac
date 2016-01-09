@@ -28,6 +28,11 @@ else
 fi
 AC_CHECK_LIB(dl, dlopen)
 
+AC_CHECK_LIB(iconv, iconv_open, found=yes,found=no)
+if test $found = yes; then
+  	  LDFLAGS="$LDLAGS -liconv"
+fi
+
 # Checks for header files.
 AC_CHECK_HEADERS([dlfcn.h gmp.h iconv.h arpa/inet.h netdb.h netinet/in.h sys/socket.h sys/time.h unistd.h])
 

@@ -127,8 +127,9 @@ static int inline isprint_ascii (int ch) { return ch < 128 && isprint (ch); }
 static int inline
 is_hex_digit (int ch)
 {
-  return ('0' <= ch && ch <= '9'
-	  || 'a' <= (ch) && (ch) <= 'f' || 'A' <= (ch) && (ch) <= 'F');
+  return (('0' <= ch && ch <= '9')
+	  || ('a' <= (ch) && (ch) <= 'f')
+	  || ('A' <= (ch) && (ch) <= 'F'));
 }
 
 /* Functions returning value of digit or hex digit CH. */
