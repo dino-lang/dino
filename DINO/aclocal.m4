@@ -30,7 +30,7 @@ To do so, use the procedure documented by the package, typically 'autoreconf'.])
 # ----------------------------
 # Automake X.Y traces this macro to ensure aclocal.m4 has been
 # generated from the m4 files accompanying Automake X.Y.
-# (This private macro should not be called outside this file.)
+#  (This private macro should not be called outside this file.)
 AC_DEFUN([AM_AUTOMAKE_VERSION],
 [am__api_version='1.14'
 dnl Some users find AM_AUTOMAKE_VERSION and mistake it for a way to
