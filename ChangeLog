@@ -1,5 +1,18 @@
 2016-01-11  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/Makefile.am (dino_LDFLAGS): Use DINO_LINK_OPTION.
+	(d_genheader.i): Add CFLAGS.
+	* DINO/configure: Update.
+	* DINO/Makefile.in: Update.
+	* DINO/aclocal.m4: Update.
+	* DINO/configure.ac: Append to CFLAGS.
+	(DINO_LINK_OPTION): New.
+	* DINO/d_bc.sprut: Add -w to linux options.
+	* DINO/dino.tst.in (831-833, 839, 840, 842-844): Use printf
+	instead of echo.
+
+2016-01-11  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* AMMUNITION/cspset.c (cspset_print): Remove additional arg to
 	fprintf.
 	* AMMUNITION/cspsetcpp.C (cspset::print): Ditto.
@@ -51,7 +64,7 @@
 	-Wimplicit-function-declaration.  Use try around remove call.
 	* DINO/dino.tst.in (140):  Add . for group name regexep.
 	(831-833, 839, 840, 842-844): Use $'' instead -e for echo.
-	
+
 2016-01-09  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/configure.ac: Check libiconv.

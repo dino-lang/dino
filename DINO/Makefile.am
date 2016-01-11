@@ -18,7 +18,8 @@ dino_SOURCES = d_main.c
 CLEANFILES = sgramm.c d_yacc.c d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_kw.c d_enc.c d_bcn.c d_bcf.c
 dino_DEPENDENCIES = libdino.la
 dino_CFLAGS = $(libdino_la_CFLAGS)
-dino_LDFLAGS = -lgmp -lm -export-dynamic -static libdino.la ../ONIGURUMA/libonig.la ../AMMUNITION/libcocom.la
+dino_LDFLAGS = -lgmp -lm -export-dynamic @DINO_LINK_OPTION@ \
+               libdino.la ../ONIGURUMA/libonig.la ../AMMUNITION/libcocom.la
 BUILT_SOURCES = d_ir.h d_bc.h d_run.h d_extern.h d_kw.c d_enc.c d_bcn.c d_bcf.c
 d_mpi_la_SOURCES = d_mpi.c
 d_mpi_la_CFLAGS = -I. -I$(srcdir) -I$(srcdir)/../AMMUNITION
@@ -95,7 +96,7 @@ d_genheader.i: $(srcdir)/d_gen.c $(srcdir)/d_common.h $(srcdir)/d_types.h $(srcd
 	       $(srcdir)/../AMMUNITION/position.h $(srcdir)/../AMMUNITION/hashtab.h \
 	       $(srcdir)/../AMMUNITION/ticker.h $(srcdir)/../AMMUNITION/bits.h \
 	       $(srcdir)/../AMMUNITION/errors.h $(srcdir)/../AMMUNITION/objstack.h
-	$(CC) @DEFS@ -I$(srcdir) -I. $(libdino_la_CFLAGS) @C_DEBUG_DEFINE@  -E > d_gen.tmp $(srcdir)/d_gen.c && mv d_gen.tmp $@
+	$(CC) @DEFS@ -I$(srcdir) -I. $(libdino_la_CFLAGS) $(CFLAGS) @C_DEBUG_DEFINE@  -E > d_gen.tmp $(srcdir)/d_gen.c && mv d_gen.tmp $@
 
 sgramm.c: $(srcdir)/../AMMUNITION/sgramm.y
 	$(YACC) $(srcdir)/../AMMUNITION/sgramm.y

@@ -68,15 +68,30 @@ else
   )
 
   if test "$g3" = yes; then
-    CFLAGS='-O0 -g3'
-    CXXFLAGS='-O0 -g3'
+    CFLAGS="`echo $CFLAGS|sed s/-O2//` -O0 -g3"
+    CXXFLAGS="`echo $CXXFLAGS|sed s/-O2//` -O0 -g3"
   else
-    CFLAGS='-O0 -g'
-    CXXFLAGS='-O0 -g'
+    CFLAGS="`echo $CFLAGS|sed s/-O2//` -O0 -g"
+    CXXFLAGS="`echo $CXXFLAGS|sed s/-O2//` -O0 -g"
   fi
   C_DEBUG_DEFINE=
   START_SPRUT_OPTIONS=-debug
 fi
+
+system=`uname`.`uname -r`
+case $system in
+	Linux*)
+          DINO_LINK_OPTION=-static
+          ;;
+	Darwin*)
+          DINO_LINK_OPTION=-shared
+          ;;
+	*)
+          DINO_LINK_OPTION=
+	  ;;
+esac
+
+AC_SUBST(DINO_LINK_OPTION)
 
 if test "$GCC" = yes && test x$cocom_debug = x -a x$dino_debug = x; then
   my_save_cflags="$CFLAGS"

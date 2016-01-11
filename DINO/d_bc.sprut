@@ -2251,8 +2251,8 @@ traverse_bcode (BC_node_t bc)
 #define GEN_DIR "/tmp/"
 #define GEN_FUN_PREFIX "dg_"
 #if defined(__gnu_linux__)
-#define CC_OPTIONS  " -O2 -fPIC -shared -fpreprocessed -pipe -g"
-#define CC_OPTIONS2 " -O2 -fPIC -shared -fpreprocessed -pipe -xc -"
+#define CC_OPTIONS  " -O2 -w -fPIC -shared -fpreprocessed -pipe -g"
+#define CC_OPTIONS2 " -O2 -w -fPIC -shared -fpreprocessed -pipe -xc -"
 #elif defined(__APPLE__)
 #define CC_OPTIONS  " -O2 -w -Wl,-undefined -Wl,dynamic_lookup -bundle -pipe -g"
 #define CC_OPTIONS2 " -O2 -w -Wl,-undefined -Wl,dynamic_lookup -bundle -pipe -xc -"
