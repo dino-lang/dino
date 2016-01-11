@@ -30,6 +30,7 @@
 
 */
 
+#include <stdio.h>
 #include "ird.h"
 #include "common.h"
 

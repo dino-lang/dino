@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 1997-2015 Vladimir Makarov.
 # 
@@ -42,7 +42,7 @@ patchf=__patch
 if test x`echo -n` != "x-n";then
   NECHO="echo -n"
 else
-  NECHO=
+  NECHO=printf
 fi
 
 cat <<EOF >$ftest
@@ -183,7 +183,7 @@ speed() {
 }
 
 s=`speed`
-if expr $s == 0 >/dev/null;then factor=100;
+if expr $s = 0 >/dev/null;then factor=100;
 elif expr $s '<=' 10 >/dev/null;then factor=10;
 else factor=1; fi
 
@@ -234,12 +234,12 @@ Announce_Test() {
     else
        s=`$NECHO "$*"|sed "s/:  +++++/:/"`
        $NECHO "$s"
-       l=`expr length "$s"`
+       l=${#s}
        while test $l -le 67; do $NECHO " "; l=`expr $l + 1`; done
     fi
 }
 
-TIME="/usr/bin/time -f user%U"
+TIME="time -p"
 
 int1000 () {
  echo `awk "BEGIN {printf \"%d\n\", int ($1 * 1000)}"`
@@ -256,13 +256,13 @@ print_time() {
 	echo "   " $s
     else
 	n=$1:
-	$NECHO $n
-	l=`expr length "$n"`
+	$NECHO "$n"
+	l=${#n}
 	while test $l -le 40; do $NECHO " "; l=`expr $l + 1`; done
-	$NECHO $s
-	l=`expr length "$s"`
+	$NECHO "$s"
+	l=${#s}
 	while test $l -le 10; do $NECHO " "; l=`expr $l + 1`; done
-        echo `perc $s $dtime`
+        echo " " `perc $s $dtime`
     fi
 }
 
@@ -277,16 +277,16 @@ print_dino() {
 	echo "   " $s
     else
 	n=DINO:$1
-	$NECHO $n
-	l=`expr length "$n"`
+	$NECHO "$n"
+	l=${#n}
 	while test $l -le 40; do $NECHO " "; l=`expr $l + 1`; done
-	$NECHO $s
-	l=`expr length "$s"`
+	$NECHO "$s"
+	l=${#s}
 	while test $l -le 10; do $NECHO " "; l=`expr $l + 1`; done
-	if test "x$1" = x;then echo base;
+	if test "x$1" = x;then echo " " base;
         elif expr `int1000 $s` '<' `int1000 $dtime` >/dev/null; then
-          dtime=$s; echo new base;
-        else echo `perc $s $dtime`; fi
+          dtime=$s; echo " " new base;
+        else echo " " `perc $s $dtime`; fi
     fi
 }
 
@@ -6593,7 +6593,7 @@ if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
 fi
 
 if test x$SCALA != x; then
-  $NECHO Scala:
+  $NECHO "Scala:"
   echo '  ' Scala can not take even 10000 lines file
 fi
 

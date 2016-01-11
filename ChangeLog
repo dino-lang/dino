@@ -1,5 +1,12 @@
 2016-01-11  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/compare.tst: Use printf when echo -n unavailable.  Use =
+	for equality in expr.  Use ${#v} instead of expr length.  Use time
+	-p.  Print additional spaces before scale.
+	* SPRUT/common.c: Include stdio.h
+
+2016-01-11  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/Makefile.am (dino_LDFLAGS): Use DINO_LINK_OPTION.
 	(d_genheader.i): Add CFLAGS.
 	* DINO/configure: Update.
