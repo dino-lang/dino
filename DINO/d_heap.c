@@ -2121,7 +2121,7 @@ ucodevect_to_bytevect_if_possible (ER_node_t vect)
     if (! in_byte_range_p (char_els[i]))
       return;
   el_size = type_size_table [ER_NM_byte];
-  els = ER_pack_els (vect) - ER_disp (vect);
+  els = (byte_t *) ER_pack_els (vect) - ER_disp (vect);
   for (i = 0; i < els_num; i++)
     els [i] = char_els [i];
   els [els_num] = '\0';

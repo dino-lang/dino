@@ -266,6 +266,21 @@ file 2:4:1: system error 1:No error
 1
 OUTPUT3-4
                                 result=ok
+                        elif cat <<'OUTPUT3-5' >$temp3_file && $cmp $temp_file $temp3_file >$temp2_file; then
+error 1
+file 1:6:1: error 2
+In file processed from file 1:6:1:
+file 2:1:1: error 3
+file 2:4:1: error 4
+In file processed from file 2:4:1:, from file 1:6:1:
+file 3:1:1: error 5
+file 3:1: warning 1
+In file processed from file 1:6:1:
+file 2:4:1: system error 1:Undefined error: 0
+6
+1
+OUTPUT3-5
+                                result=ok
 			else
 				cat $temp2_file
                                 result=fail
@@ -521,6 +536,22 @@ file 3:1:1: error 5
 1
 OUTPUT7-4
                                 result=ok
+                        elif cat <<'OUTPUT7-5' >$temp3_file && $cmp $temp_file $temp3_file >$temp2_file; then
+6
+1
+error 1
+file 1:6:1: error 2
+In file processed from file 1:6:1:
+file 2:1:1: error 3
+file 2:4:1: error 4
+file 2:4:1: system error 1:Undefined error: 0
+In file processed from file 2:4:1:, from file 1:6:1:
+file 3:1: warning 1
+file 3:1:1: error 5
+6
+1
+OUTPUT7-5
+                                result=ok
                         else
 				cat $temp2_file
                                 result=fail
@@ -656,6 +687,22 @@ In file processed from file 2:1:1:, from file 1:6:1:
 file 3:1: warning 1
 file 3:1:1: error 5
 OUTPUT8-4
+                                result=ok
+                        elif cat <<'OUTPUT8-5' >$temp3_file && $cmp $temp_file $temp3_file >$temp2_file; then
+4
+0
+error 1
+file 1:6:1: error 2
+In file processed from file 1:6:1:
+file 2:1:1: error 4
+file 2:1:4: error 3
+5
+1
+file 2:1:1: system error 1:Undefined error: 0
+In file processed from file 2:1:1:, from file 1:6:1:
+file 3:1: warning 1
+file 3:1:1: error 5
+OUTPUT8-5
                                 result=ok
                         else
 				cat $temp2_file
@@ -812,6 +859,25 @@ file 3:1: warning 1
 file 1:6:1: appended to warning 1
 file 3:1:1: error 5
 OUTPUT9-4
+                                result=ok
+                        elif cat <<'OUTPUT9-5' >$temp3_file && $cmp $temp_file $temp3_file >$temp2_file; then
+4
+0
+error 1
+file 1:6:1: error 2
+In file processed from file 1:6:1:
+file 2:1:1: error 4
+file 2:1:4: error 3
+file 1:6:1: appended 1 to error 3
+file 1:6:1: appended 2 to error 3
+5
+1
+file 2:1:1: system error 1:Undefined error: 0
+In file processed from file 2:1:1:, from file 1:6:1:
+file 3:1: warning 1
+file 1:6:1: appended to warning 1
+file 3:1:1: error 5
+OUTPUT9-5
                                 result=ok
                         else
 				cat $temp2_file

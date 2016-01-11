@@ -52,7 +52,7 @@ for (var end = start_invariant[0] - 1;;) {
     var test = open (tfname, "w");
     fput (test, code[0:pos[0]], code[pos[1]+1:]); // Put all but decls found above
     close (test);
-    if (system (CC @ " -S -Werror -Wfatal-errors -Wimplicit-function-declaration "
+    if (system (CC @ " -S -Werror=implicit-function-declaration -Werror=implicit-int -Wfatal-errors "
                 @ tfname @ " 2>/dev/null")) {
       if (n != 1) n /= factor; // Fail: decrease searched decls number
       else {
@@ -77,6 +77,6 @@ for (var end = start_invariant[0] - 1;;) {
 }
 
 remove (tfname);
-remove (tfnbase @ "s");
+try (remove (tfnbase @ "s"), except);
 fputln (stderr, "Removed ", removed, " decls out of ", all);
 putln (code); // Output the result

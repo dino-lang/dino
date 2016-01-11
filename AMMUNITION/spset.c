@@ -279,7 +279,7 @@ spset_print (FILE *f, spset_t *s)
       if (n >= 10)
 	n = 0;
     }
-  fprintf (f, "\n", el);
+  fprintf (f, "\n");
 }
 
 /* Print set S to stderr.  */

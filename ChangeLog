@@ -1,3 +1,57 @@
+2016-01-11  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/cspset.c (cspset_print): Remove additional arg to
+	fprintf.
+	* AMMUNITION/cspsetcpp.C (cspset::print): Ditto.
+	* AMMUNITION/cspset.h (class cspset): Remove empty blocks for
+	constructor and assignment.
+	* AMMUNITION/errors[++].tst.in (3, 7-9): Add output with undefined
+	error.
+	* AMMUNITION/hashtab.tst.in (1): Include string.h
+	* AMMUNITION/spset.c (spset_print): Remove additional arg to
+	fprintf.
+	* AMMUNITION/spsetcpp.C (spset::print): Ditto.
+	* AMMUNITION/spset.h (class spset): Remove empty blocks for
+	constructor and assignment.
+	* AMMUNITION/yaep.c (make_parse): Use %lu for printing top.
+	* DINO/d_bc.sprut (print_node): Use explicit cast for print arg.
+	(CC_OPTIONS, CC_OPTIONS2): Define for Apple.
+	(form_fname): Use %lu for getpid value.
+	(gen_cfblock): Return NULL if options is not defined.  Use pclose.
+	* DINO/d_bcio.c (dump_code): Exchange arg places for %.*g.
+	* DINO/d_context.c (set_field_ident_number): Make void return
+	type.
+	(create_pattern_vars): Add default for switch.
+	(make_designator_lvalue): Use BC_node_mode_t for return type.
+	* DINO/d_dino.c (i2a, i2mpz): Use explicit cast for print arg.
+	(encode_byte_str_vlo): Use explicit cast for strlen arg.
+	(encode_byte_str_vlo): Use explicit cast for is assignment.
+	(get_ucode_from_stream): Use parentheses around &&.
+	(check_encoding_on_ascii): Use size_t cast.
+	(dino_main): Use cast to byte_t * in encode_byte_str_vlo call.
+	* DINO/d_eval.c (load_packed_vector_element): Use cast to
+	type_val_t for ER_NM_type case.
+	(store_packed_vector_element): Use cast to ER_node_mode_t for
+	ER_NM_type case.
+	(find_catch_pc): Use cast to byte_t * in encode_byte_str_vlo call.
+	* DINO/d_extern.sprut (ER_mpz_ptr): Remove expr before comma.
+	* DINO/d_func.c (find_regex): Use cast to OnigUchar *.
+	(internal_match_call): Ditto.
+	(gmatch_call, generall_sub_call, split_call): Ditto.
+	(cmpv_call): Fix typo (== instead of =).
+	(print_val): Don't use %d.  Use explicit casts for sprintf args.
+	(readdir_call): Use cast to byte_t * in encode_byte_str_vlo call.
+	* DINO/d_gen.c (fbend): Return TRUE.
+	* DINO/d_heap.c (ucodevect_to_bytevect_if_possible): Use cast to
+	byte_t *.
+	* DINO/d_ir.sprut (hash_func): Use type ucode_t for ch.  Use cast
+	to char * for chp.
+	* DINO/d_minimize.d: Use -Werror=implicit-function-declaration
+	-Werror=implicit-int instead of -Werror
+	-Wimplicit-function-declaration.  Use try around remove call.
+	* DINO/dino.tst.in (140):  Add . for group name regexep.
+	(831-833, 839, 840, 842-844): Use $'' instead -e for echo.
+	
 2016-01-09  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/configure.ac: Check libiconv.

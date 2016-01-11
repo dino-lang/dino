@@ -327,8 +327,8 @@ class cspset
   cspset_elem_t *find (cspset_elem_t, int);
   void tune_size (void);
   /* Prevent copy constructor and assignment */
-  cspset (const cspset&) {}
-  cspset& operator=(const cspset&) {}
+  cspset (const cspset&);
+  cspset& operator=(const cspset&);
 };
 
 

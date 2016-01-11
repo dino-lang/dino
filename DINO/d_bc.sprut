@@ -2169,7 +2169,7 @@ print_node (FILE *f, BC_node_t bc)
   if (BC_IS_OF_TYPE (bc, BC_NM_check)
       && BC_NODE_MODE (bc) != BC_NM_rmatch
       && BC_NODE_MODE (bc) != BC_NM_rmatchs)
-    fprintf (f, ", (pc_t) 0x%lx", BC_fail_pc (bc));
+    fprintf (f, ", (pc_t) 0x%lx", (unsigned long) BC_fail_pc (bc));
   if (BC_IS_OF_TYPE (bc, BC_NM_br))
     fprintf (f, ")) goto l%d;\n", BC_label_num (BC_info (BC_pc (bc))));
   else if (BC_IS_OF_TYPE (bc, BC_NM_foreach))
@@ -2250,8 +2250,13 @@ traverse_bcode (BC_node_t bc)
 
 #define GEN_DIR "/tmp/"
 #define GEN_FUN_PREFIX "dg_"
+#if defined(__gnu_linux__)
 #define CC_OPTIONS  " -O2 -fPIC -shared -fpreprocessed -pipe -g"
 #define CC_OPTIONS2 " -O2 -fPIC -shared -fpreprocessed -pipe -xc -"
+#elif defined(__APPLE__)
+#define CC_OPTIONS  " -O2 -w -Wl,-undefined -Wl,dynamic_lookup -bundle -pipe -g"
+#define CC_OPTIONS2 " -O2 -w -Wl,-undefined -Wl,dynamic_lookup -bundle -pipe -xc -"
+#endif
 
 static void
 form_fun_name (vlo_t *fun_name, BC_node_t fdecl)
@@ -2272,7 +2277,7 @@ form_fname (vlo_t *fname, BC_node_t fdecl, const char *suffix)
   VLO_ADD_STRING (*fname, GEN_DIR);
   form_fun_name (fname, fdecl);
   VLO_ADD_STRING (*fname, "p");
-  sprintf (str, "%d", (unsigned long) getpid ());
+  sprintf (str, "%lu", (unsigned long) getpid ());
   VLO_ADD_STRING (*fname, str);
   VLO_ADD_STRING (*fname, suffix);
 }
@@ -2326,8 +2331,11 @@ gen_cfblock (BC_node_t fblock)
   FILE *f;
   vlo_t fname, objname, command, fun_name;
   void *addr;
-  int error_p, tcall_p;
+  int error_p, tcall_p, ret;
 
+#if !defined (CC_OPTIONS) || !defined (CC_OPTIONS2)
+  return NULL;
+#endif
   VLO_CREATE (fname, 0);
   form_fname (&fname, BC_fdecl (fblock), ".c");
   VLO_CREATE (objname, 0);
@@ -2408,7 +2416,8 @@ gen_cfblock (BC_node_t fblock)
 	}
       VLO_DELETE (fbcode);
       error_p = ferror (f) != 0;
-      if (fclose (f))
+      ret = (save_temps_flag ? fclose (f) : pclose (f));
+      if (ret)
 	{
 	  if (! save_temps_flag)
 	    remove (VLO_BEGIN (fname));

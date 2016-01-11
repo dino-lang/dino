@@ -69,6 +69,7 @@ done
 if test $result = ok -a $start_test_number -le 1; then
         cat >$test_file <<'TEST1'
 #include <stdlib.h>
+#include <string.h>
 #include "allocate.h"
 #include "hashtab.h"
 

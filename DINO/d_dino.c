@@ -222,7 +222,7 @@ i2a (rint_t number)
   else
     {
       d_assert (sizeof (rint_t) <= sizeof (long long int));
-      sprintf (result, "%lld", number);
+      sprintf (result, "%lld", (long long) number);
     }
   return result;
 }
@@ -290,7 +290,7 @@ i2mpz (mpz_t mpz, rint_t i)
   else
     {
       d_assert (sizeof (rint_t) == sizeof (long long int));
-      sprintf (str, "%lld", i);
+      sprintf (str, "%lld", (long long) i);
       mpz_set_str (mpz, str, 10);
     }
 }
@@ -1265,7 +1265,7 @@ encode_byte_str_vlo (byte_t *str, conv_desc_t cd, encoding_type_t tp,
 
   if (cd == NO_CONV_DESC)
     {
-      *len = strlen (str);
+      *len = strlen ((const char *) str);
       return (char *) str;
     }
 #ifndef HAVE_ICONV_H
@@ -1283,7 +1283,7 @@ encode_byte_str_vlo (byte_t *str, conv_desc_t cd, encoding_type_t tp,
       *len = i;
       return VLO_BEGIN (*vlo);
     }
-  is = str;
+  is = (char *) str;
   out = (i + 1) * 4; /* longest utf8 is 4 bytes.  */
   VLO_EXPAND (*vlo, out);
   os = VLO_BEGIN (*vlo);
@@ -1403,7 +1403,7 @@ get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd,
   
   d_assert (cd != NO_CONV_DESC);
   /* Fast track for slow iconv.  */
-  if (r < 0 || tp == UTF8_ENC && r < 128 || tp == LATIN1_ENC)
+  if (r < 0 || (tp == UTF8_ENC && r < 128) || tp == LATIN1_ENC)
     return r;
 #ifndef HAVE_ICONV_H
   d_assert (FALSE);
@@ -1499,7 +1499,7 @@ check_encoding_on_ascii (const char *encoding)
     os = out;
     r = iconv (cd, &is, &i, &os, &o);
     iconv_close (cd);
-    if (r >= 0 && i == 0
+    if (r != (size_t) (-1) && i == 0
 	&& sizeof (test) == os - out && strcmp (test, out) == 0)
       return TRUE;
   }
@@ -1688,7 +1688,7 @@ dino_main (int argc, char *argv[], char *envp[])
     }
   if (command_line_program != NULL)
     command_line_program
-      = (ucode_t *) encode_byte_str_vlo ((char *) command_line_program,
+      = (ucode_t *) encode_byte_str_vlo ((byte_t *) command_line_program,
 					 curr_reverse_ucode_cd,
 					 OTHER_ENC,
 					 &command_line_vlo, &len);

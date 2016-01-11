@@ -187,8 +187,8 @@ dump_code (BC_node_t infos, int indent)
 	  printf ("l");
 	  break;
 	case BC_NM_ldf:
-	  printf (" op1=%d f=%.*g // %d <- f%g", BC_op1 (bc), BC_f (bc),
-		  FORMAT_DOUBLE_DIGS,  BC_op1 (bc), BC_f (bc));
+	  printf (" op1=%d f=%.*g // %d <- f%g", BC_op1 (bc),
+		  FORMAT_DOUBLE_DIGS, BC_f (bc), BC_op1 (bc), BC_f (bc));
 	  break;
 	case BC_NM_ldtp:
 	  printf (" op1=%d op2=%d // %d <- %s", BC_op1 (bc), BC_op2 (bc),

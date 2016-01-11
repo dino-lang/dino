@@ -5461,8 +5461,9 @@ make_parse (int *ambiguous_p)
       if ((grammar->debug_level > 2 && state->pos == state->rule->rhs_len)
 	  || grammar->debug_level > 3)
 	{
-	  fprintf (stderr, "Processing top %d, set place = %d, sit = ",
-		   VLO_LENGTH (stack) / sizeof (struct parse_state *) - 1,
+	  fprintf (stderr, "Processing top %lu, set place = %d, sit = ",
+		   (unsigned long) (VLO_LENGTH (stack)
+				    / sizeof (struct parse_state *) - 1),
 		   state->pl_ind);
 	  rule_dot_print (stderr, state->rule, state->pos);
 	  fprintf (stderr, ", %d\n", state->orig);
@@ -5484,8 +5485,9 @@ make_parse (int *ambiguous_p)
 	  if ((grammar->debug_level > 2 && state->pos == state->rule->rhs_len)
 	      || grammar->debug_level > 3)
 	    {
-	      fprintf (stderr, "Poping top %d, set place = %d, sit = ",
-		       VLO_LENGTH (stack) / sizeof (struct parse_state *) - 1,
+	      fprintf (stderr, "Poping top %lu, set place = %d, sit = ",
+		       (unsigned long) (VLO_LENGTH (stack)
+					/ sizeof (struct parse_state *) - 1),
 		       state->pl_ind);
 	      rule_dot_print (stderr, state->rule, 0);
 	      fprintf (stderr, ", %d\n", state->orig);
@@ -5688,8 +5690,9 @@ make_parse (int *ambiguous_p)
 #if !defined (NDEBUG) && !defined (NO_YAEP_DEBUG_PRINT)
 		      if (grammar->debug_level > 3)
 			{
-			  fprintf (stderr, "  Adding top %d, set place = %d, modified sit = ",
-				   VLO_LENGTH (stack) / sizeof (struct parse_state *) - 1,
+			  fprintf (stderr, "  Adding top %lu, set place = %d, modified sit = ",
+				   (unsigned long) (VLO_LENGTH (stack)
+						    / sizeof (struct parse_state *) - 1),
 				   sit_orig);
 			  rule_dot_print (stderr, state->rule, state->pos);
 			  fprintf (stderr, ", %d\n", state->orig);
@@ -5753,8 +5756,9 @@ make_parse (int *ambiguous_p)
 #if !defined (NDEBUG) && !defined (NO_YAEP_DEBUG_PRINT)
 		      if (grammar->debug_level > 3)
 			{
-			  fprintf (stderr, "  Adding top %d, set place = %d, sit = ",
-				   VLO_LENGTH (stack) / sizeof (struct parse_state *) - 1,
+			  fprintf (stderr, "  Adding top %lu, set place = %d, sit = ",
+				   (unsigned long) (VLO_LENGTH (stack)
+						    / sizeof (struct parse_state *) - 1),
 				   pl_ind);
 			  sit_print (stderr, sit, grammar->debug_level > 5);
 			  fprintf (stderr, ", %d\n", sit_orig);
@@ -5805,8 +5809,9 @@ make_parse (int *ambiguous_p)
 #if !defined (NDEBUG) && !defined (NO_YAEP_DEBUG_PRINT)
 		  if (grammar->debug_level > 3)
 		    {
-		      fprintf (stderr, "  Adding top %d, set place = %d, sit = ",
-			       VLO_LENGTH (stack) / sizeof (struct parse_state *) - 1,
+		      fprintf (stderr, "  Adding top %lu, set place = %d, sit = ",
+			       (unsigned long) (VLO_LENGTH (stack)
+						/ sizeof (struct parse_state *) - 1),
 			       pl_ind);
 		      sit_print (stderr, sit, grammar->debug_level > 5);
 		      fprintf (stderr, ", %d\n", sit_orig);

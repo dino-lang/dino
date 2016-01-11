@@ -373,8 +373,8 @@ public:
 
  private:
   /* Prevent copy constructor and assignment */
-  spset (const spset&) {}
-  spset& operator=(const spset&) {}
+  spset (const spset&);
+  spset& operator=(const spset&);
 };
 
 /* The set iterator.  It is used in EXECUTE_FOR_EACH_SPSET_ELEM.

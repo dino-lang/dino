@@ -2921,6 +2921,7 @@ fbend (void)
 {
   /* We should never reach the node.  */
   assert (FALSE);
+  return TRUE;
 }
 
 static int do_always_inline

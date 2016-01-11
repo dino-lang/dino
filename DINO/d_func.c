@@ -921,7 +921,9 @@ find_regex (const void *pat, int pat_ucode_p, int str_ucode_p, regex_t **result,
   ci.option      = ONIG_OPTION_DEFAULT;
   ci.case_fold_flag  = ONIGENC_CASE_FOLD_DEFAULT;
   code = onig_new_deluxe (&r, pat,
-			  (char *) pat + get_str_size (pat, pat_ucode_p, FALSE),
+			  (OnigUChar *)
+			  ((char *) pat
+			   + get_str_size (pat, pat_ucode_p, FALSE)),
 			  &ci, einfo);
   if (code != ONIG_NORMAL)
     {
@@ -1020,7 +1022,9 @@ internal_match_call (ER_node_t result_op,
     process_onig_errors (code, &einfo);
   start = ER_pack_els (ER_vect (string_op));
   end = start + get_str_size (start, str_ucode_p, FALSE);
-  code = onig_search (reg, start, end, start, end, region, ONIG_OPTION_NONE);
+  code = onig_search (reg, (const OnigUChar *) start, (const OnigUChar *) end,
+		      (const OnigUChar *) start, (const OnigUChar *) end,
+		      region, ONIG_OPTION_NONE);
   if (code == ONIG_MISMATCH)
     result = NULL;
   else if (code >= 0)
@@ -1124,7 +1128,10 @@ gmatch_call (int pars_number)
   disp = 0;
   count = 0;
   ch_size = str_ucode_p ? sizeof (ucode_t) : sizeof (byte_t);
-  while (onig_search (reg, start + disp, end, start + disp, end,
+  while (onig_search (reg, (const OnigUChar *) (start + disp),
+		      (const OnigUChar *) end,
+		      (const OnigUChar *) (start + disp),
+		      (const OnigUChar *) end,
 		      region, ONIG_OPTION_NONE) >= 0)
     {
       el = (region->beg [0] + disp) / ch_size;
@@ -1229,7 +1236,10 @@ generall_sub_call (int pars_number, int global_flag)
       VLO_NULLIFY (temp_vlobj2);
       substitution = ER_pack_els (ER_vect (ctop));
       while ((disp < ER_els_number (vect) * ch_size || disp == 0)
-	     && onig_search (reg, str + disp, end, str + disp, end,
+	     && onig_search (reg, (const OnigUChar *) (str + disp),
+			     (const OnigUChar *) end,
+			     (const OnigUChar *) (str + disp),
+			     (const OnigUChar *) end,
 			     region, ONIG_OPTION_NONE) >= 0)
 	{
 	  VLO_EXPAND (temp_vlobj2, region->beg[0]);
@@ -1437,7 +1447,10 @@ split_call (int pars_number)
       disp = 0;
       for (;;)
 	{
-	  ok = onig_search (reg, str + disp, end, str + disp, end,
+	  ok = onig_search (reg, (const OnigUChar *) (str + disp),
+			    (const OnigUChar *) end,
+			    (const OnigUChar *) (str + disp),
+			    (const OnigUChar *) end,
 			    region, ONIG_OPTION_NONE) >= 0;
 	  if (ok)
 	    {
@@ -1684,13 +1697,13 @@ cmpv_call (int pars_number)
 	}
       if (el_type1 == ER_NM_byte && el_type2 == ER_NM_char)
 	{
-	  el_type1 == ER_NM_char;
+	  el_type1 = ER_NM_char;
 	  uc = *(byte_t *) addr1;
 	  addr1 = (char *) &uc;
 	}
       else if (el_type2 == ER_NM_byte && el_type1 == ER_NM_char)
 	{
-	  el_type2 == ER_NM_char;
+	  el_type2 = ER_NM_char;
 	  uc = *(byte_t *) addr2;
 	  addr2 = (char *) &uc;
 	}
@@ -2949,12 +2962,10 @@ print_val (ER_node_t val, int quote_flag, int full_p, int byte_p)
 	}
       break;
     case ER_NM_int:
-      if (sizeof (rint_t) == sizeof (int))
-	sprintf (str, "%d", ER_i (val));
-      else if (sizeof (rint_t) == sizeof (long))
-	sprintf (str, "%ld", ER_i (val));
+      if (sizeof (rint_t) <= sizeof (long))
+	sprintf (str, "%ld", (long) ER_i (val));
       else
-	sprintf (str, "%lld", ER_i (val));
+	sprintf (str, "%lld", (long long) ER_i (val));
       add_string_to_print (str, byte_p);
       break;
     case ER_NM_long:
@@ -4873,7 +4884,7 @@ readdir_call (int pars_number)
 	      if (dirent == NULL)
 		break;
 	      ucode_str
-		= (ucode_t *) encode_byte_str_vlo (dirent->d_name,
+		= (ucode_t *) encode_byte_str_vlo ((byte_t *) dirent->d_name,
 						   curr_reverse_ucode_cd,
 						   OTHER_ENC,
 						   &temp_vlobj, &len);
