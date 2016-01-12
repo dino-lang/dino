@@ -1,3 +1,13 @@
+2016-01-12  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* {AMMUNITION, MSTA, NONA, OKA, SHILKA, SPRUT}/configure.ac: Add
+	AM_MAINTAINER_MODE.
+	* configure.ac: Ditto.
+	* DINO/configure.ac: Ditto.  Check libiconv_open too.
+	* [{AMMUNITION, DINO, MSTA, NONA, OKA, SHILKA, SPRUT}/]{configure,
+	aclocal.m4, Makefile.in}: Update.
+	* ONIGURUMA/{configure, m4/libtool.m4}: Update.
+
 2016-01-11  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/compare.tst: Use printf when echo -n unavailable.  Use =

@@ -9,6 +9,7 @@ AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_HEADERS([d_config.h])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([d_main.c])
+AM_MAINTAINER_MODE
 
 # Checks for programs.
 AC_PROG_CC
@@ -29,6 +30,9 @@ fi
 AC_CHECK_LIB(dl, dlopen)
 
 AC_CHECK_LIB(iconv, iconv_open, found=yes,found=no)
+if test $found = no; then
+  AC_CHECK_LIB(iconv, libiconv_open, found=yes,found=no)
+fi
 if test $found = yes; then
   	  LDFLAGS="$LDLAGS -liconv"
 fi
