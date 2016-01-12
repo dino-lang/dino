@@ -90,6 +90,9 @@ case $system in
 	Darwin*)
           DINO_LINK_OPTION=-shared
           ;;
+	cygwin*)
+          DINO_LINK_OPTION=-shared
+          ;;
 	*)
           DINO_LINK_OPTION=
 	  ;;
