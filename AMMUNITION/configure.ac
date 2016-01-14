@@ -38,6 +38,21 @@ AC_SUBST(YAEPDIR)
 YAEPLIB=cocom
 YAEPDIR=../AMMUNITION/.libs
 
+system=`uname`.`uname -r`
+case $system in
+	CYGWIN*)
+	  LIB_CFLAGS=-shared
+          LIB_LDFLAGS=-shared -no-undefined
+          ;;
+	*)
+	  LIB_CFLAGS=
+          LIB_LDFLAGS=
+	  ;;
+esac
+
+AC_SUBST(LIB_CFLAGS)
+AC_SUBST(LIB_LDFLAGS)
+
 AC_SUBST(C_DEBUG_DEFINE)
 if test x$cocom_debug = x -a x$dino_debug = x; then
   C_DEBUG_DEFINE=-DNDEBUG

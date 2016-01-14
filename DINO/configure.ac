@@ -95,8 +95,8 @@ case $system in
           ;;
 	CYGWIN*)
 	  DINO_LIB_CFLAGS=-shared
-          DINO_LIB_LDFLAGS=-shared ../AMMUNITION/libcocom.la ../ONIGURUMA/libonig.la
-	  DINO_MOD_LDFLAGS=libdino.la
+          DINO_LIB_LDFLAGS=-shared ../AMMUNITION/libcocom.la ../ONIGURUMA/libonig.la -no-undefined
+	  DINO_MOD_LDFLAGS=libdino.la -no-undefined
           ;;
 	*)
 	  DINO_LIB_CFLAGS=-static

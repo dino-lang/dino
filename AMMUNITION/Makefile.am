@@ -2,13 +2,13 @@ lib_LTLIBRARIES = libcocom.la libcocomcpp.la
 libcocom_la_SOURCES = allocate.c vlobject.c objstack.c hashtab.c spset.c\
                       cspset.c commline.c position.c errors.c ticker.c\
 		      bits.c arithm.c IEEE.c yaep.c
-libcocom_la_CFLAGS = -DIEEE_QUAD
-libcocom_la_LDFLAGS =
+libcocom_la_CFLAGS = @LIB_CFLAGS@ -DIEEE_QUAD
+libcocom_la_LDFLAGS = @LIB_LDFLAGS@
 libcocomcpp_la_SOURCES = allocatecpp.C vlobjectcpp.C objstackcpp.C hashtabcpp.C spsetcpp.C\
                         cspsetcpp.C commlinecpp.C positioncpp.C errorscpp.C tickercpp.C\
 			bitscpp.C arithmcpp.C IEEEcpp.C yaepcpp.C 
-libcocomcpp_la_CXXFLAGS = -DIEEE_QUAD
-libcocomcpp_la_LDFLAGS =
+libcocomcpp_la_CXXFLAGS = @LIB_CFLAGS@ -DIEEE_QUAD
+libcocomcpp_la_LDFLAGS = @LIB_LDFLAGS@
 include_HEADERS = allocate.h vlobject.h objstack.h hashtab.h spset.h cspset.h \
                   commline.h position.h errors.h ticker.h bits.h arithm.h IEEE.h yaep.h 
 BUILT_SOURCES = sgramm.c

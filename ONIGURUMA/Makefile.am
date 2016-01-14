@@ -31,7 +31,8 @@ libonig_la_SOURCES = regint.h regparse.h regenc.h st.h \
 	$(encdir)/euc_tw.c $(encdir)/euc_kr.c $(encdir)/big5.c \
 	$(encdir)/gb18030.c $(encdir)/koi8_r.c $(encdir)/cp1251.c
 
-libonig_la_LDFLAGS = -version-info $(LTVERSION)
+libonig_la_CFLAGS = @LIB_CFLAGS@
+libonig_la_LDFLAGS = @LIB_LDFLAGS@ -version-info $(LTVERSION)
 
 EXTRA_DIST = oniguruma.pc.in HISTORY README.ja index.html index_ja.html \
 	doc/API doc/API.ja doc/RE doc/RE.ja doc/FAQ doc/FAQ.ja \

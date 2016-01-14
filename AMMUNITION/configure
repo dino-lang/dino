@@ -636,6 +636,8 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 C_DEBUG_DEFINE
+LIB_LDFLAGS
+LIB_CFLAGS
 YAEPDIR
 YAEPLIB
 LEXLIB
@@ -16307,6 +16309,21 @@ ac_config_files="$ac_config_files Makefile"
 
 YAEPLIB=cocom
 YAEPDIR=../AMMUNITION/.libs
+
+system=`uname`.`uname -r`
+case $system in
+	CYGWIN*)
+	  LIB_CFLAGS=-shared
+          LIB_LDFLAGS=-shared -no-undefined
+          ;;
+	*)
+	  LIB_CFLAGS=
+          LIB_LDFLAGS=
+	  ;;
+esac
+
+
+
 
 
 if test x$cocom_debug = x -a x$dino_debug = x; then

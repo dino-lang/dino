@@ -133,24 +133,34 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
 	"$(DESTDIR)$(pkgconfigdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libonig_la_LIBADD =
-am_libonig_la_OBJECTS = regerror.lo regparse.lo regext.lo regcomp.lo \
-	regexec.lo reggnu.lo regenc.lo regsyntax.lo regtrav.lo \
-	regversion.lo st.lo regposix.lo regposerr.lo unicode.lo \
-	ascii.lo utf8.lo utf16_be.lo utf16_le.lo utf32_be.lo \
-	utf32_le.lo euc_jp.lo sjis.lo iso8859_1.lo iso8859_2.lo \
-	iso8859_3.lo iso8859_4.lo iso8859_5.lo iso8859_6.lo \
-	iso8859_7.lo iso8859_8.lo iso8859_9.lo iso8859_10.lo \
-	iso8859_11.lo iso8859_13.lo iso8859_14.lo iso8859_15.lo \
-	iso8859_16.lo euc_tw.lo euc_kr.lo big5.lo gb18030.lo koi8_r.lo \
-	cp1251.lo
+am_libonig_la_OBJECTS = libonig_la-regerror.lo libonig_la-regparse.lo \
+	libonig_la-regext.lo libonig_la-regcomp.lo \
+	libonig_la-regexec.lo libonig_la-reggnu.lo \
+	libonig_la-regenc.lo libonig_la-regsyntax.lo \
+	libonig_la-regtrav.lo libonig_la-regversion.lo \
+	libonig_la-st.lo libonig_la-regposix.lo \
+	libonig_la-regposerr.lo libonig_la-unicode.lo \
+	libonig_la-ascii.lo libonig_la-utf8.lo libonig_la-utf16_be.lo \
+	libonig_la-utf16_le.lo libonig_la-utf32_be.lo \
+	libonig_la-utf32_le.lo libonig_la-euc_jp.lo libonig_la-sjis.lo \
+	libonig_la-iso8859_1.lo libonig_la-iso8859_2.lo \
+	libonig_la-iso8859_3.lo libonig_la-iso8859_4.lo \
+	libonig_la-iso8859_5.lo libonig_la-iso8859_6.lo \
+	libonig_la-iso8859_7.lo libonig_la-iso8859_8.lo \
+	libonig_la-iso8859_9.lo libonig_la-iso8859_10.lo \
+	libonig_la-iso8859_11.lo libonig_la-iso8859_13.lo \
+	libonig_la-iso8859_14.lo libonig_la-iso8859_15.lo \
+	libonig_la-iso8859_16.lo libonig_la-euc_tw.lo \
+	libonig_la-euc_kr.lo libonig_la-big5.lo libonig_la-gb18030.lo \
+	libonig_la-koi8_r.lo libonig_la-cp1251.lo
 libonig_la_OBJECTS = $(am_libonig_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
 libonig_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(libonig_la_LDFLAGS) $(LDFLAGS) -o $@
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libonig_la_CFLAGS) \
+	$(CFLAGS) $(libonig_la_LDFLAGS) $(LDFLAGS) -o $@
 am_testc_OBJECTS = testc.$(OBJEXT)
 testc_OBJECTS = $(am_testc_OBJECTS)
 testc_DEPENDENCIES = libonig.la
@@ -502,6 +512,8 @@ LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
+LIB_CFLAGS = @LIB_CFLAGS@
+LIB_LDFLAGS = @LIB_LDFLAGS@
 LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
@@ -611,7 +623,8 @@ libonig_la_SOURCES = regint.h regparse.h regenc.h st.h \
 	$(encdir)/euc_tw.c $(encdir)/euc_kr.c $(encdir)/big5.c \
 	$(encdir)/gb18030.c $(encdir)/koi8_r.c $(encdir)/cp1251.c
 
-libonig_la_LDFLAGS = -version-info $(LTVERSION)
+libonig_la_CFLAGS = @LIB_CFLAGS@
+libonig_la_LDFLAGS = @LIB_LDFLAGS@ -version-info $(LTVERSION)
 EXTRA_DIST = oniguruma.pc.in HISTORY README.ja index.html index_ja.html \
 	doc/API doc/API.ja doc/RE doc/RE.ja doc/FAQ doc/FAQ.ja \
 	win32/Makefile win32/config.h win32/testc.c \
@@ -796,52 +809,52 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ascii.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/big5.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cp1251.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/euc_jp.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/euc_kr.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/euc_tw.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gb18030.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iso8859_1.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iso8859_10.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iso8859_11.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iso8859_13.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iso8859_14.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iso8859_15.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iso8859_16.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iso8859_2.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iso8859_3.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iso8859_4.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iso8859_5.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iso8859_6.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iso8859_7.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iso8859_8.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iso8859_9.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/koi8_r.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/regcomp.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/regenc.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/regerror.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/regexec.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/regext.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/reggnu.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/regparse.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/regposerr.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/regposix.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/regsyntax.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/regtrav.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/regversion.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sjis.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/st.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-ascii.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-big5.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-cp1251.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-euc_jp.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-euc_kr.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-euc_tw.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-gb18030.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-iso8859_1.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-iso8859_10.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-iso8859_11.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-iso8859_13.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-iso8859_14.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-iso8859_15.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-iso8859_16.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-iso8859_2.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-iso8859_3.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-iso8859_4.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-iso8859_5.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-iso8859_6.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-iso8859_7.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-iso8859_8.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-iso8859_9.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-koi8_r.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-regcomp.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-regenc.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-regerror.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-regexec.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-regext.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-reggnu.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-regparse.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-regposerr.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-regposix.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-regsyntax.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-regtrav.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-regversion.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-sjis.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-st.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-unicode.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-utf16_be.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-utf16_le.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-utf32_be.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-utf32_le.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libonig_la-utf8.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/testc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/testp-testc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/testu.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unicode.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utf16_be.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utf16_le.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utf32_be.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utf32_le.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utf8.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -864,215 +877,306 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
-unicode.lo: $(encdir)/unicode.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT unicode.lo -MD -MP -MF $(DEPDIR)/unicode.Tpo -c -o unicode.lo `test -f '$(encdir)/unicode.c' || echo '$(srcdir)/'`$(encdir)/unicode.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/unicode.Tpo $(DEPDIR)/unicode.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/unicode.c' object='unicode.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-regerror.lo: regerror.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-regerror.lo -MD -MP -MF $(DEPDIR)/libonig_la-regerror.Tpo -c -o libonig_la-regerror.lo `test -f 'regerror.c' || echo '$(srcdir)/'`regerror.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-regerror.Tpo $(DEPDIR)/libonig_la-regerror.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='regerror.c' object='libonig_la-regerror.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o unicode.lo `test -f '$(encdir)/unicode.c' || echo '$(srcdir)/'`$(encdir)/unicode.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-regerror.lo `test -f 'regerror.c' || echo '$(srcdir)/'`regerror.c
 
-ascii.lo: $(encdir)/ascii.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ascii.lo -MD -MP -MF $(DEPDIR)/ascii.Tpo -c -o ascii.lo `test -f '$(encdir)/ascii.c' || echo '$(srcdir)/'`$(encdir)/ascii.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ascii.Tpo $(DEPDIR)/ascii.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/ascii.c' object='ascii.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-regparse.lo: regparse.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-regparse.lo -MD -MP -MF $(DEPDIR)/libonig_la-regparse.Tpo -c -o libonig_la-regparse.lo `test -f 'regparse.c' || echo '$(srcdir)/'`regparse.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-regparse.Tpo $(DEPDIR)/libonig_la-regparse.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='regparse.c' object='libonig_la-regparse.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ascii.lo `test -f '$(encdir)/ascii.c' || echo '$(srcdir)/'`$(encdir)/ascii.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-regparse.lo `test -f 'regparse.c' || echo '$(srcdir)/'`regparse.c
 
-utf8.lo: $(encdir)/utf8.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT utf8.lo -MD -MP -MF $(DEPDIR)/utf8.Tpo -c -o utf8.lo `test -f '$(encdir)/utf8.c' || echo '$(srcdir)/'`$(encdir)/utf8.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/utf8.Tpo $(DEPDIR)/utf8.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/utf8.c' object='utf8.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-regext.lo: regext.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-regext.lo -MD -MP -MF $(DEPDIR)/libonig_la-regext.Tpo -c -o libonig_la-regext.lo `test -f 'regext.c' || echo '$(srcdir)/'`regext.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-regext.Tpo $(DEPDIR)/libonig_la-regext.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='regext.c' object='libonig_la-regext.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o utf8.lo `test -f '$(encdir)/utf8.c' || echo '$(srcdir)/'`$(encdir)/utf8.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-regext.lo `test -f 'regext.c' || echo '$(srcdir)/'`regext.c
 
-utf16_be.lo: $(encdir)/utf16_be.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT utf16_be.lo -MD -MP -MF $(DEPDIR)/utf16_be.Tpo -c -o utf16_be.lo `test -f '$(encdir)/utf16_be.c' || echo '$(srcdir)/'`$(encdir)/utf16_be.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/utf16_be.Tpo $(DEPDIR)/utf16_be.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/utf16_be.c' object='utf16_be.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-regcomp.lo: regcomp.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-regcomp.lo -MD -MP -MF $(DEPDIR)/libonig_la-regcomp.Tpo -c -o libonig_la-regcomp.lo `test -f 'regcomp.c' || echo '$(srcdir)/'`regcomp.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-regcomp.Tpo $(DEPDIR)/libonig_la-regcomp.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='regcomp.c' object='libonig_la-regcomp.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o utf16_be.lo `test -f '$(encdir)/utf16_be.c' || echo '$(srcdir)/'`$(encdir)/utf16_be.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-regcomp.lo `test -f 'regcomp.c' || echo '$(srcdir)/'`regcomp.c
 
-utf16_le.lo: $(encdir)/utf16_le.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT utf16_le.lo -MD -MP -MF $(DEPDIR)/utf16_le.Tpo -c -o utf16_le.lo `test -f '$(encdir)/utf16_le.c' || echo '$(srcdir)/'`$(encdir)/utf16_le.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/utf16_le.Tpo $(DEPDIR)/utf16_le.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/utf16_le.c' object='utf16_le.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-regexec.lo: regexec.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-regexec.lo -MD -MP -MF $(DEPDIR)/libonig_la-regexec.Tpo -c -o libonig_la-regexec.lo `test -f 'regexec.c' || echo '$(srcdir)/'`regexec.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-regexec.Tpo $(DEPDIR)/libonig_la-regexec.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='regexec.c' object='libonig_la-regexec.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o utf16_le.lo `test -f '$(encdir)/utf16_le.c' || echo '$(srcdir)/'`$(encdir)/utf16_le.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-regexec.lo `test -f 'regexec.c' || echo '$(srcdir)/'`regexec.c
 
-utf32_be.lo: $(encdir)/utf32_be.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT utf32_be.lo -MD -MP -MF $(DEPDIR)/utf32_be.Tpo -c -o utf32_be.lo `test -f '$(encdir)/utf32_be.c' || echo '$(srcdir)/'`$(encdir)/utf32_be.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/utf32_be.Tpo $(DEPDIR)/utf32_be.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/utf32_be.c' object='utf32_be.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-reggnu.lo: reggnu.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-reggnu.lo -MD -MP -MF $(DEPDIR)/libonig_la-reggnu.Tpo -c -o libonig_la-reggnu.lo `test -f 'reggnu.c' || echo '$(srcdir)/'`reggnu.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-reggnu.Tpo $(DEPDIR)/libonig_la-reggnu.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='reggnu.c' object='libonig_la-reggnu.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o utf32_be.lo `test -f '$(encdir)/utf32_be.c' || echo '$(srcdir)/'`$(encdir)/utf32_be.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-reggnu.lo `test -f 'reggnu.c' || echo '$(srcdir)/'`reggnu.c
 
-utf32_le.lo: $(encdir)/utf32_le.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT utf32_le.lo -MD -MP -MF $(DEPDIR)/utf32_le.Tpo -c -o utf32_le.lo `test -f '$(encdir)/utf32_le.c' || echo '$(srcdir)/'`$(encdir)/utf32_le.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/utf32_le.Tpo $(DEPDIR)/utf32_le.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/utf32_le.c' object='utf32_le.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-regenc.lo: regenc.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-regenc.lo -MD -MP -MF $(DEPDIR)/libonig_la-regenc.Tpo -c -o libonig_la-regenc.lo `test -f 'regenc.c' || echo '$(srcdir)/'`regenc.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-regenc.Tpo $(DEPDIR)/libonig_la-regenc.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='regenc.c' object='libonig_la-regenc.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o utf32_le.lo `test -f '$(encdir)/utf32_le.c' || echo '$(srcdir)/'`$(encdir)/utf32_le.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-regenc.lo `test -f 'regenc.c' || echo '$(srcdir)/'`regenc.c
 
-euc_jp.lo: $(encdir)/euc_jp.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT euc_jp.lo -MD -MP -MF $(DEPDIR)/euc_jp.Tpo -c -o euc_jp.lo `test -f '$(encdir)/euc_jp.c' || echo '$(srcdir)/'`$(encdir)/euc_jp.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/euc_jp.Tpo $(DEPDIR)/euc_jp.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/euc_jp.c' object='euc_jp.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-regsyntax.lo: regsyntax.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-regsyntax.lo -MD -MP -MF $(DEPDIR)/libonig_la-regsyntax.Tpo -c -o libonig_la-regsyntax.lo `test -f 'regsyntax.c' || echo '$(srcdir)/'`regsyntax.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-regsyntax.Tpo $(DEPDIR)/libonig_la-regsyntax.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='regsyntax.c' object='libonig_la-regsyntax.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o euc_jp.lo `test -f '$(encdir)/euc_jp.c' || echo '$(srcdir)/'`$(encdir)/euc_jp.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-regsyntax.lo `test -f 'regsyntax.c' || echo '$(srcdir)/'`regsyntax.c
 
-sjis.lo: $(encdir)/sjis.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sjis.lo -MD -MP -MF $(DEPDIR)/sjis.Tpo -c -o sjis.lo `test -f '$(encdir)/sjis.c' || echo '$(srcdir)/'`$(encdir)/sjis.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sjis.Tpo $(DEPDIR)/sjis.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/sjis.c' object='sjis.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-regtrav.lo: regtrav.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-regtrav.lo -MD -MP -MF $(DEPDIR)/libonig_la-regtrav.Tpo -c -o libonig_la-regtrav.lo `test -f 'regtrav.c' || echo '$(srcdir)/'`regtrav.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-regtrav.Tpo $(DEPDIR)/libonig_la-regtrav.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='regtrav.c' object='libonig_la-regtrav.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sjis.lo `test -f '$(encdir)/sjis.c' || echo '$(srcdir)/'`$(encdir)/sjis.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-regtrav.lo `test -f 'regtrav.c' || echo '$(srcdir)/'`regtrav.c
 
-iso8859_1.lo: $(encdir)/iso8859_1.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT iso8859_1.lo -MD -MP -MF $(DEPDIR)/iso8859_1.Tpo -c -o iso8859_1.lo `test -f '$(encdir)/iso8859_1.c' || echo '$(srcdir)/'`$(encdir)/iso8859_1.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/iso8859_1.Tpo $(DEPDIR)/iso8859_1.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_1.c' object='iso8859_1.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-regversion.lo: regversion.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-regversion.lo -MD -MP -MF $(DEPDIR)/libonig_la-regversion.Tpo -c -o libonig_la-regversion.lo `test -f 'regversion.c' || echo '$(srcdir)/'`regversion.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-regversion.Tpo $(DEPDIR)/libonig_la-regversion.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='regversion.c' object='libonig_la-regversion.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o iso8859_1.lo `test -f '$(encdir)/iso8859_1.c' || echo '$(srcdir)/'`$(encdir)/iso8859_1.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-regversion.lo `test -f 'regversion.c' || echo '$(srcdir)/'`regversion.c
 
-iso8859_2.lo: $(encdir)/iso8859_2.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT iso8859_2.lo -MD -MP -MF $(DEPDIR)/iso8859_2.Tpo -c -o iso8859_2.lo `test -f '$(encdir)/iso8859_2.c' || echo '$(srcdir)/'`$(encdir)/iso8859_2.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/iso8859_2.Tpo $(DEPDIR)/iso8859_2.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_2.c' object='iso8859_2.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-st.lo: st.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-st.lo -MD -MP -MF $(DEPDIR)/libonig_la-st.Tpo -c -o libonig_la-st.lo `test -f 'st.c' || echo '$(srcdir)/'`st.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-st.Tpo $(DEPDIR)/libonig_la-st.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='st.c' object='libonig_la-st.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o iso8859_2.lo `test -f '$(encdir)/iso8859_2.c' || echo '$(srcdir)/'`$(encdir)/iso8859_2.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-st.lo `test -f 'st.c' || echo '$(srcdir)/'`st.c
 
-iso8859_3.lo: $(encdir)/iso8859_3.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT iso8859_3.lo -MD -MP -MF $(DEPDIR)/iso8859_3.Tpo -c -o iso8859_3.lo `test -f '$(encdir)/iso8859_3.c' || echo '$(srcdir)/'`$(encdir)/iso8859_3.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/iso8859_3.Tpo $(DEPDIR)/iso8859_3.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_3.c' object='iso8859_3.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-regposix.lo: regposix.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-regposix.lo -MD -MP -MF $(DEPDIR)/libonig_la-regposix.Tpo -c -o libonig_la-regposix.lo `test -f 'regposix.c' || echo '$(srcdir)/'`regposix.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-regposix.Tpo $(DEPDIR)/libonig_la-regposix.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='regposix.c' object='libonig_la-regposix.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o iso8859_3.lo `test -f '$(encdir)/iso8859_3.c' || echo '$(srcdir)/'`$(encdir)/iso8859_3.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-regposix.lo `test -f 'regposix.c' || echo '$(srcdir)/'`regposix.c
 
-iso8859_4.lo: $(encdir)/iso8859_4.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT iso8859_4.lo -MD -MP -MF $(DEPDIR)/iso8859_4.Tpo -c -o iso8859_4.lo `test -f '$(encdir)/iso8859_4.c' || echo '$(srcdir)/'`$(encdir)/iso8859_4.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/iso8859_4.Tpo $(DEPDIR)/iso8859_4.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_4.c' object='iso8859_4.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-regposerr.lo: regposerr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-regposerr.lo -MD -MP -MF $(DEPDIR)/libonig_la-regposerr.Tpo -c -o libonig_la-regposerr.lo `test -f 'regposerr.c' || echo '$(srcdir)/'`regposerr.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-regposerr.Tpo $(DEPDIR)/libonig_la-regposerr.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='regposerr.c' object='libonig_la-regposerr.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o iso8859_4.lo `test -f '$(encdir)/iso8859_4.c' || echo '$(srcdir)/'`$(encdir)/iso8859_4.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-regposerr.lo `test -f 'regposerr.c' || echo '$(srcdir)/'`regposerr.c
 
-iso8859_5.lo: $(encdir)/iso8859_5.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT iso8859_5.lo -MD -MP -MF $(DEPDIR)/iso8859_5.Tpo -c -o iso8859_5.lo `test -f '$(encdir)/iso8859_5.c' || echo '$(srcdir)/'`$(encdir)/iso8859_5.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/iso8859_5.Tpo $(DEPDIR)/iso8859_5.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_5.c' object='iso8859_5.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-unicode.lo: $(encdir)/unicode.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-unicode.lo -MD -MP -MF $(DEPDIR)/libonig_la-unicode.Tpo -c -o libonig_la-unicode.lo `test -f '$(encdir)/unicode.c' || echo '$(srcdir)/'`$(encdir)/unicode.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-unicode.Tpo $(DEPDIR)/libonig_la-unicode.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/unicode.c' object='libonig_la-unicode.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o iso8859_5.lo `test -f '$(encdir)/iso8859_5.c' || echo '$(srcdir)/'`$(encdir)/iso8859_5.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-unicode.lo `test -f '$(encdir)/unicode.c' || echo '$(srcdir)/'`$(encdir)/unicode.c
 
-iso8859_6.lo: $(encdir)/iso8859_6.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT iso8859_6.lo -MD -MP -MF $(DEPDIR)/iso8859_6.Tpo -c -o iso8859_6.lo `test -f '$(encdir)/iso8859_6.c' || echo '$(srcdir)/'`$(encdir)/iso8859_6.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/iso8859_6.Tpo $(DEPDIR)/iso8859_6.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_6.c' object='iso8859_6.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-ascii.lo: $(encdir)/ascii.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-ascii.lo -MD -MP -MF $(DEPDIR)/libonig_la-ascii.Tpo -c -o libonig_la-ascii.lo `test -f '$(encdir)/ascii.c' || echo '$(srcdir)/'`$(encdir)/ascii.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-ascii.Tpo $(DEPDIR)/libonig_la-ascii.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/ascii.c' object='libonig_la-ascii.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o iso8859_6.lo `test -f '$(encdir)/iso8859_6.c' || echo '$(srcdir)/'`$(encdir)/iso8859_6.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-ascii.lo `test -f '$(encdir)/ascii.c' || echo '$(srcdir)/'`$(encdir)/ascii.c
 
-iso8859_7.lo: $(encdir)/iso8859_7.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT iso8859_7.lo -MD -MP -MF $(DEPDIR)/iso8859_7.Tpo -c -o iso8859_7.lo `test -f '$(encdir)/iso8859_7.c' || echo '$(srcdir)/'`$(encdir)/iso8859_7.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/iso8859_7.Tpo $(DEPDIR)/iso8859_7.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_7.c' object='iso8859_7.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-utf8.lo: $(encdir)/utf8.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-utf8.lo -MD -MP -MF $(DEPDIR)/libonig_la-utf8.Tpo -c -o libonig_la-utf8.lo `test -f '$(encdir)/utf8.c' || echo '$(srcdir)/'`$(encdir)/utf8.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-utf8.Tpo $(DEPDIR)/libonig_la-utf8.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/utf8.c' object='libonig_la-utf8.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o iso8859_7.lo `test -f '$(encdir)/iso8859_7.c' || echo '$(srcdir)/'`$(encdir)/iso8859_7.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-utf8.lo `test -f '$(encdir)/utf8.c' || echo '$(srcdir)/'`$(encdir)/utf8.c
 
-iso8859_8.lo: $(encdir)/iso8859_8.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT iso8859_8.lo -MD -MP -MF $(DEPDIR)/iso8859_8.Tpo -c -o iso8859_8.lo `test -f '$(encdir)/iso8859_8.c' || echo '$(srcdir)/'`$(encdir)/iso8859_8.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/iso8859_8.Tpo $(DEPDIR)/iso8859_8.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_8.c' object='iso8859_8.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-utf16_be.lo: $(encdir)/utf16_be.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-utf16_be.lo -MD -MP -MF $(DEPDIR)/libonig_la-utf16_be.Tpo -c -o libonig_la-utf16_be.lo `test -f '$(encdir)/utf16_be.c' || echo '$(srcdir)/'`$(encdir)/utf16_be.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-utf16_be.Tpo $(DEPDIR)/libonig_la-utf16_be.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/utf16_be.c' object='libonig_la-utf16_be.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o iso8859_8.lo `test -f '$(encdir)/iso8859_8.c' || echo '$(srcdir)/'`$(encdir)/iso8859_8.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-utf16_be.lo `test -f '$(encdir)/utf16_be.c' || echo '$(srcdir)/'`$(encdir)/utf16_be.c
 
-iso8859_9.lo: $(encdir)/iso8859_9.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT iso8859_9.lo -MD -MP -MF $(DEPDIR)/iso8859_9.Tpo -c -o iso8859_9.lo `test -f '$(encdir)/iso8859_9.c' || echo '$(srcdir)/'`$(encdir)/iso8859_9.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/iso8859_9.Tpo $(DEPDIR)/iso8859_9.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_9.c' object='iso8859_9.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-utf16_le.lo: $(encdir)/utf16_le.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-utf16_le.lo -MD -MP -MF $(DEPDIR)/libonig_la-utf16_le.Tpo -c -o libonig_la-utf16_le.lo `test -f '$(encdir)/utf16_le.c' || echo '$(srcdir)/'`$(encdir)/utf16_le.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-utf16_le.Tpo $(DEPDIR)/libonig_la-utf16_le.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/utf16_le.c' object='libonig_la-utf16_le.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o iso8859_9.lo `test -f '$(encdir)/iso8859_9.c' || echo '$(srcdir)/'`$(encdir)/iso8859_9.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-utf16_le.lo `test -f '$(encdir)/utf16_le.c' || echo '$(srcdir)/'`$(encdir)/utf16_le.c
 
-iso8859_10.lo: $(encdir)/iso8859_10.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT iso8859_10.lo -MD -MP -MF $(DEPDIR)/iso8859_10.Tpo -c -o iso8859_10.lo `test -f '$(encdir)/iso8859_10.c' || echo '$(srcdir)/'`$(encdir)/iso8859_10.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/iso8859_10.Tpo $(DEPDIR)/iso8859_10.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_10.c' object='iso8859_10.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-utf32_be.lo: $(encdir)/utf32_be.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-utf32_be.lo -MD -MP -MF $(DEPDIR)/libonig_la-utf32_be.Tpo -c -o libonig_la-utf32_be.lo `test -f '$(encdir)/utf32_be.c' || echo '$(srcdir)/'`$(encdir)/utf32_be.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-utf32_be.Tpo $(DEPDIR)/libonig_la-utf32_be.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/utf32_be.c' object='libonig_la-utf32_be.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o iso8859_10.lo `test -f '$(encdir)/iso8859_10.c' || echo '$(srcdir)/'`$(encdir)/iso8859_10.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-utf32_be.lo `test -f '$(encdir)/utf32_be.c' || echo '$(srcdir)/'`$(encdir)/utf32_be.c
 
-iso8859_11.lo: $(encdir)/iso8859_11.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT iso8859_11.lo -MD -MP -MF $(DEPDIR)/iso8859_11.Tpo -c -o iso8859_11.lo `test -f '$(encdir)/iso8859_11.c' || echo '$(srcdir)/'`$(encdir)/iso8859_11.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/iso8859_11.Tpo $(DEPDIR)/iso8859_11.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_11.c' object='iso8859_11.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-utf32_le.lo: $(encdir)/utf32_le.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-utf32_le.lo -MD -MP -MF $(DEPDIR)/libonig_la-utf32_le.Tpo -c -o libonig_la-utf32_le.lo `test -f '$(encdir)/utf32_le.c' || echo '$(srcdir)/'`$(encdir)/utf32_le.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-utf32_le.Tpo $(DEPDIR)/libonig_la-utf32_le.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/utf32_le.c' object='libonig_la-utf32_le.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o iso8859_11.lo `test -f '$(encdir)/iso8859_11.c' || echo '$(srcdir)/'`$(encdir)/iso8859_11.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-utf32_le.lo `test -f '$(encdir)/utf32_le.c' || echo '$(srcdir)/'`$(encdir)/utf32_le.c
 
-iso8859_13.lo: $(encdir)/iso8859_13.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT iso8859_13.lo -MD -MP -MF $(DEPDIR)/iso8859_13.Tpo -c -o iso8859_13.lo `test -f '$(encdir)/iso8859_13.c' || echo '$(srcdir)/'`$(encdir)/iso8859_13.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/iso8859_13.Tpo $(DEPDIR)/iso8859_13.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_13.c' object='iso8859_13.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-euc_jp.lo: $(encdir)/euc_jp.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-euc_jp.lo -MD -MP -MF $(DEPDIR)/libonig_la-euc_jp.Tpo -c -o libonig_la-euc_jp.lo `test -f '$(encdir)/euc_jp.c' || echo '$(srcdir)/'`$(encdir)/euc_jp.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-euc_jp.Tpo $(DEPDIR)/libonig_la-euc_jp.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/euc_jp.c' object='libonig_la-euc_jp.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o iso8859_13.lo `test -f '$(encdir)/iso8859_13.c' || echo '$(srcdir)/'`$(encdir)/iso8859_13.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-euc_jp.lo `test -f '$(encdir)/euc_jp.c' || echo '$(srcdir)/'`$(encdir)/euc_jp.c
 
-iso8859_14.lo: $(encdir)/iso8859_14.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT iso8859_14.lo -MD -MP -MF $(DEPDIR)/iso8859_14.Tpo -c -o iso8859_14.lo `test -f '$(encdir)/iso8859_14.c' || echo '$(srcdir)/'`$(encdir)/iso8859_14.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/iso8859_14.Tpo $(DEPDIR)/iso8859_14.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_14.c' object='iso8859_14.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-sjis.lo: $(encdir)/sjis.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-sjis.lo -MD -MP -MF $(DEPDIR)/libonig_la-sjis.Tpo -c -o libonig_la-sjis.lo `test -f '$(encdir)/sjis.c' || echo '$(srcdir)/'`$(encdir)/sjis.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-sjis.Tpo $(DEPDIR)/libonig_la-sjis.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/sjis.c' object='libonig_la-sjis.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o iso8859_14.lo `test -f '$(encdir)/iso8859_14.c' || echo '$(srcdir)/'`$(encdir)/iso8859_14.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-sjis.lo `test -f '$(encdir)/sjis.c' || echo '$(srcdir)/'`$(encdir)/sjis.c
 
-iso8859_15.lo: $(encdir)/iso8859_15.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT iso8859_15.lo -MD -MP -MF $(DEPDIR)/iso8859_15.Tpo -c -o iso8859_15.lo `test -f '$(encdir)/iso8859_15.c' || echo '$(srcdir)/'`$(encdir)/iso8859_15.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/iso8859_15.Tpo $(DEPDIR)/iso8859_15.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_15.c' object='iso8859_15.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-iso8859_1.lo: $(encdir)/iso8859_1.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-iso8859_1.lo -MD -MP -MF $(DEPDIR)/libonig_la-iso8859_1.Tpo -c -o libonig_la-iso8859_1.lo `test -f '$(encdir)/iso8859_1.c' || echo '$(srcdir)/'`$(encdir)/iso8859_1.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-iso8859_1.Tpo $(DEPDIR)/libonig_la-iso8859_1.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_1.c' object='libonig_la-iso8859_1.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o iso8859_15.lo `test -f '$(encdir)/iso8859_15.c' || echo '$(srcdir)/'`$(encdir)/iso8859_15.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-iso8859_1.lo `test -f '$(encdir)/iso8859_1.c' || echo '$(srcdir)/'`$(encdir)/iso8859_1.c
 
-iso8859_16.lo: $(encdir)/iso8859_16.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT iso8859_16.lo -MD -MP -MF $(DEPDIR)/iso8859_16.Tpo -c -o iso8859_16.lo `test -f '$(encdir)/iso8859_16.c' || echo '$(srcdir)/'`$(encdir)/iso8859_16.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/iso8859_16.Tpo $(DEPDIR)/iso8859_16.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_16.c' object='iso8859_16.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-iso8859_2.lo: $(encdir)/iso8859_2.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-iso8859_2.lo -MD -MP -MF $(DEPDIR)/libonig_la-iso8859_2.Tpo -c -o libonig_la-iso8859_2.lo `test -f '$(encdir)/iso8859_2.c' || echo '$(srcdir)/'`$(encdir)/iso8859_2.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-iso8859_2.Tpo $(DEPDIR)/libonig_la-iso8859_2.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_2.c' object='libonig_la-iso8859_2.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o iso8859_16.lo `test -f '$(encdir)/iso8859_16.c' || echo '$(srcdir)/'`$(encdir)/iso8859_16.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-iso8859_2.lo `test -f '$(encdir)/iso8859_2.c' || echo '$(srcdir)/'`$(encdir)/iso8859_2.c
 
-euc_tw.lo: $(encdir)/euc_tw.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT euc_tw.lo -MD -MP -MF $(DEPDIR)/euc_tw.Tpo -c -o euc_tw.lo `test -f '$(encdir)/euc_tw.c' || echo '$(srcdir)/'`$(encdir)/euc_tw.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/euc_tw.Tpo $(DEPDIR)/euc_tw.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/euc_tw.c' object='euc_tw.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-iso8859_3.lo: $(encdir)/iso8859_3.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-iso8859_3.lo -MD -MP -MF $(DEPDIR)/libonig_la-iso8859_3.Tpo -c -o libonig_la-iso8859_3.lo `test -f '$(encdir)/iso8859_3.c' || echo '$(srcdir)/'`$(encdir)/iso8859_3.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-iso8859_3.Tpo $(DEPDIR)/libonig_la-iso8859_3.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_3.c' object='libonig_la-iso8859_3.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o euc_tw.lo `test -f '$(encdir)/euc_tw.c' || echo '$(srcdir)/'`$(encdir)/euc_tw.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-iso8859_3.lo `test -f '$(encdir)/iso8859_3.c' || echo '$(srcdir)/'`$(encdir)/iso8859_3.c
 
-euc_kr.lo: $(encdir)/euc_kr.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT euc_kr.lo -MD -MP -MF $(DEPDIR)/euc_kr.Tpo -c -o euc_kr.lo `test -f '$(encdir)/euc_kr.c' || echo '$(srcdir)/'`$(encdir)/euc_kr.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/euc_kr.Tpo $(DEPDIR)/euc_kr.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/euc_kr.c' object='euc_kr.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-iso8859_4.lo: $(encdir)/iso8859_4.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-iso8859_4.lo -MD -MP -MF $(DEPDIR)/libonig_la-iso8859_4.Tpo -c -o libonig_la-iso8859_4.lo `test -f '$(encdir)/iso8859_4.c' || echo '$(srcdir)/'`$(encdir)/iso8859_4.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-iso8859_4.Tpo $(DEPDIR)/libonig_la-iso8859_4.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_4.c' object='libonig_la-iso8859_4.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o euc_kr.lo `test -f '$(encdir)/euc_kr.c' || echo '$(srcdir)/'`$(encdir)/euc_kr.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-iso8859_4.lo `test -f '$(encdir)/iso8859_4.c' || echo '$(srcdir)/'`$(encdir)/iso8859_4.c
 
-big5.lo: $(encdir)/big5.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT big5.lo -MD -MP -MF $(DEPDIR)/big5.Tpo -c -o big5.lo `test -f '$(encdir)/big5.c' || echo '$(srcdir)/'`$(encdir)/big5.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/big5.Tpo $(DEPDIR)/big5.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/big5.c' object='big5.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-iso8859_5.lo: $(encdir)/iso8859_5.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-iso8859_5.lo -MD -MP -MF $(DEPDIR)/libonig_la-iso8859_5.Tpo -c -o libonig_la-iso8859_5.lo `test -f '$(encdir)/iso8859_5.c' || echo '$(srcdir)/'`$(encdir)/iso8859_5.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-iso8859_5.Tpo $(DEPDIR)/libonig_la-iso8859_5.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_5.c' object='libonig_la-iso8859_5.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o big5.lo `test -f '$(encdir)/big5.c' || echo '$(srcdir)/'`$(encdir)/big5.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-iso8859_5.lo `test -f '$(encdir)/iso8859_5.c' || echo '$(srcdir)/'`$(encdir)/iso8859_5.c
 
-gb18030.lo: $(encdir)/gb18030.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT gb18030.lo -MD -MP -MF $(DEPDIR)/gb18030.Tpo -c -o gb18030.lo `test -f '$(encdir)/gb18030.c' || echo '$(srcdir)/'`$(encdir)/gb18030.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/gb18030.Tpo $(DEPDIR)/gb18030.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/gb18030.c' object='gb18030.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-iso8859_6.lo: $(encdir)/iso8859_6.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-iso8859_6.lo -MD -MP -MF $(DEPDIR)/libonig_la-iso8859_6.Tpo -c -o libonig_la-iso8859_6.lo `test -f '$(encdir)/iso8859_6.c' || echo '$(srcdir)/'`$(encdir)/iso8859_6.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-iso8859_6.Tpo $(DEPDIR)/libonig_la-iso8859_6.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_6.c' object='libonig_la-iso8859_6.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o gb18030.lo `test -f '$(encdir)/gb18030.c' || echo '$(srcdir)/'`$(encdir)/gb18030.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-iso8859_6.lo `test -f '$(encdir)/iso8859_6.c' || echo '$(srcdir)/'`$(encdir)/iso8859_6.c
 
-koi8_r.lo: $(encdir)/koi8_r.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT koi8_r.lo -MD -MP -MF $(DEPDIR)/koi8_r.Tpo -c -o koi8_r.lo `test -f '$(encdir)/koi8_r.c' || echo '$(srcdir)/'`$(encdir)/koi8_r.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/koi8_r.Tpo $(DEPDIR)/koi8_r.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/koi8_r.c' object='koi8_r.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-iso8859_7.lo: $(encdir)/iso8859_7.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-iso8859_7.lo -MD -MP -MF $(DEPDIR)/libonig_la-iso8859_7.Tpo -c -o libonig_la-iso8859_7.lo `test -f '$(encdir)/iso8859_7.c' || echo '$(srcdir)/'`$(encdir)/iso8859_7.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-iso8859_7.Tpo $(DEPDIR)/libonig_la-iso8859_7.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_7.c' object='libonig_la-iso8859_7.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o koi8_r.lo `test -f '$(encdir)/koi8_r.c' || echo '$(srcdir)/'`$(encdir)/koi8_r.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-iso8859_7.lo `test -f '$(encdir)/iso8859_7.c' || echo '$(srcdir)/'`$(encdir)/iso8859_7.c
 
-cp1251.lo: $(encdir)/cp1251.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT cp1251.lo -MD -MP -MF $(DEPDIR)/cp1251.Tpo -c -o cp1251.lo `test -f '$(encdir)/cp1251.c' || echo '$(srcdir)/'`$(encdir)/cp1251.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/cp1251.Tpo $(DEPDIR)/cp1251.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/cp1251.c' object='cp1251.lo' libtool=yes @AMDEPBACKSLASH@
+libonig_la-iso8859_8.lo: $(encdir)/iso8859_8.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-iso8859_8.lo -MD -MP -MF $(DEPDIR)/libonig_la-iso8859_8.Tpo -c -o libonig_la-iso8859_8.lo `test -f '$(encdir)/iso8859_8.c' || echo '$(srcdir)/'`$(encdir)/iso8859_8.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-iso8859_8.Tpo $(DEPDIR)/libonig_la-iso8859_8.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_8.c' object='libonig_la-iso8859_8.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o cp1251.lo `test -f '$(encdir)/cp1251.c' || echo '$(srcdir)/'`$(encdir)/cp1251.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-iso8859_8.lo `test -f '$(encdir)/iso8859_8.c' || echo '$(srcdir)/'`$(encdir)/iso8859_8.c
+
+libonig_la-iso8859_9.lo: $(encdir)/iso8859_9.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-iso8859_9.lo -MD -MP -MF $(DEPDIR)/libonig_la-iso8859_9.Tpo -c -o libonig_la-iso8859_9.lo `test -f '$(encdir)/iso8859_9.c' || echo '$(srcdir)/'`$(encdir)/iso8859_9.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-iso8859_9.Tpo $(DEPDIR)/libonig_la-iso8859_9.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_9.c' object='libonig_la-iso8859_9.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-iso8859_9.lo `test -f '$(encdir)/iso8859_9.c' || echo '$(srcdir)/'`$(encdir)/iso8859_9.c
+
+libonig_la-iso8859_10.lo: $(encdir)/iso8859_10.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-iso8859_10.lo -MD -MP -MF $(DEPDIR)/libonig_la-iso8859_10.Tpo -c -o libonig_la-iso8859_10.lo `test -f '$(encdir)/iso8859_10.c' || echo '$(srcdir)/'`$(encdir)/iso8859_10.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-iso8859_10.Tpo $(DEPDIR)/libonig_la-iso8859_10.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_10.c' object='libonig_la-iso8859_10.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-iso8859_10.lo `test -f '$(encdir)/iso8859_10.c' || echo '$(srcdir)/'`$(encdir)/iso8859_10.c
+
+libonig_la-iso8859_11.lo: $(encdir)/iso8859_11.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-iso8859_11.lo -MD -MP -MF $(DEPDIR)/libonig_la-iso8859_11.Tpo -c -o libonig_la-iso8859_11.lo `test -f '$(encdir)/iso8859_11.c' || echo '$(srcdir)/'`$(encdir)/iso8859_11.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-iso8859_11.Tpo $(DEPDIR)/libonig_la-iso8859_11.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_11.c' object='libonig_la-iso8859_11.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-iso8859_11.lo `test -f '$(encdir)/iso8859_11.c' || echo '$(srcdir)/'`$(encdir)/iso8859_11.c
+
+libonig_la-iso8859_13.lo: $(encdir)/iso8859_13.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-iso8859_13.lo -MD -MP -MF $(DEPDIR)/libonig_la-iso8859_13.Tpo -c -o libonig_la-iso8859_13.lo `test -f '$(encdir)/iso8859_13.c' || echo '$(srcdir)/'`$(encdir)/iso8859_13.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-iso8859_13.Tpo $(DEPDIR)/libonig_la-iso8859_13.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_13.c' object='libonig_la-iso8859_13.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-iso8859_13.lo `test -f '$(encdir)/iso8859_13.c' || echo '$(srcdir)/'`$(encdir)/iso8859_13.c
+
+libonig_la-iso8859_14.lo: $(encdir)/iso8859_14.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-iso8859_14.lo -MD -MP -MF $(DEPDIR)/libonig_la-iso8859_14.Tpo -c -o libonig_la-iso8859_14.lo `test -f '$(encdir)/iso8859_14.c' || echo '$(srcdir)/'`$(encdir)/iso8859_14.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-iso8859_14.Tpo $(DEPDIR)/libonig_la-iso8859_14.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_14.c' object='libonig_la-iso8859_14.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-iso8859_14.lo `test -f '$(encdir)/iso8859_14.c' || echo '$(srcdir)/'`$(encdir)/iso8859_14.c
+
+libonig_la-iso8859_15.lo: $(encdir)/iso8859_15.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-iso8859_15.lo -MD -MP -MF $(DEPDIR)/libonig_la-iso8859_15.Tpo -c -o libonig_la-iso8859_15.lo `test -f '$(encdir)/iso8859_15.c' || echo '$(srcdir)/'`$(encdir)/iso8859_15.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-iso8859_15.Tpo $(DEPDIR)/libonig_la-iso8859_15.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_15.c' object='libonig_la-iso8859_15.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-iso8859_15.lo `test -f '$(encdir)/iso8859_15.c' || echo '$(srcdir)/'`$(encdir)/iso8859_15.c
+
+libonig_la-iso8859_16.lo: $(encdir)/iso8859_16.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-iso8859_16.lo -MD -MP -MF $(DEPDIR)/libonig_la-iso8859_16.Tpo -c -o libonig_la-iso8859_16.lo `test -f '$(encdir)/iso8859_16.c' || echo '$(srcdir)/'`$(encdir)/iso8859_16.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-iso8859_16.Tpo $(DEPDIR)/libonig_la-iso8859_16.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/iso8859_16.c' object='libonig_la-iso8859_16.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-iso8859_16.lo `test -f '$(encdir)/iso8859_16.c' || echo '$(srcdir)/'`$(encdir)/iso8859_16.c
+
+libonig_la-euc_tw.lo: $(encdir)/euc_tw.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-euc_tw.lo -MD -MP -MF $(DEPDIR)/libonig_la-euc_tw.Tpo -c -o libonig_la-euc_tw.lo `test -f '$(encdir)/euc_tw.c' || echo '$(srcdir)/'`$(encdir)/euc_tw.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-euc_tw.Tpo $(DEPDIR)/libonig_la-euc_tw.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/euc_tw.c' object='libonig_la-euc_tw.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-euc_tw.lo `test -f '$(encdir)/euc_tw.c' || echo '$(srcdir)/'`$(encdir)/euc_tw.c
+
+libonig_la-euc_kr.lo: $(encdir)/euc_kr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-euc_kr.lo -MD -MP -MF $(DEPDIR)/libonig_la-euc_kr.Tpo -c -o libonig_la-euc_kr.lo `test -f '$(encdir)/euc_kr.c' || echo '$(srcdir)/'`$(encdir)/euc_kr.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-euc_kr.Tpo $(DEPDIR)/libonig_la-euc_kr.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/euc_kr.c' object='libonig_la-euc_kr.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-euc_kr.lo `test -f '$(encdir)/euc_kr.c' || echo '$(srcdir)/'`$(encdir)/euc_kr.c
+
+libonig_la-big5.lo: $(encdir)/big5.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-big5.lo -MD -MP -MF $(DEPDIR)/libonig_la-big5.Tpo -c -o libonig_la-big5.lo `test -f '$(encdir)/big5.c' || echo '$(srcdir)/'`$(encdir)/big5.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-big5.Tpo $(DEPDIR)/libonig_la-big5.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/big5.c' object='libonig_la-big5.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-big5.lo `test -f '$(encdir)/big5.c' || echo '$(srcdir)/'`$(encdir)/big5.c
+
+libonig_la-gb18030.lo: $(encdir)/gb18030.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-gb18030.lo -MD -MP -MF $(DEPDIR)/libonig_la-gb18030.Tpo -c -o libonig_la-gb18030.lo `test -f '$(encdir)/gb18030.c' || echo '$(srcdir)/'`$(encdir)/gb18030.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-gb18030.Tpo $(DEPDIR)/libonig_la-gb18030.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/gb18030.c' object='libonig_la-gb18030.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-gb18030.lo `test -f '$(encdir)/gb18030.c' || echo '$(srcdir)/'`$(encdir)/gb18030.c
+
+libonig_la-koi8_r.lo: $(encdir)/koi8_r.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-koi8_r.lo -MD -MP -MF $(DEPDIR)/libonig_la-koi8_r.Tpo -c -o libonig_la-koi8_r.lo `test -f '$(encdir)/koi8_r.c' || echo '$(srcdir)/'`$(encdir)/koi8_r.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-koi8_r.Tpo $(DEPDIR)/libonig_la-koi8_r.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/koi8_r.c' object='libonig_la-koi8_r.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-koi8_r.lo `test -f '$(encdir)/koi8_r.c' || echo '$(srcdir)/'`$(encdir)/koi8_r.c
+
+libonig_la-cp1251.lo: $(encdir)/cp1251.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -MT libonig_la-cp1251.lo -MD -MP -MF $(DEPDIR)/libonig_la-cp1251.Tpo -c -o libonig_la-cp1251.lo `test -f '$(encdir)/cp1251.c' || echo '$(srcdir)/'`$(encdir)/cp1251.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libonig_la-cp1251.Tpo $(DEPDIR)/libonig_la-cp1251.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(encdir)/cp1251.c' object='libonig_la-cp1251.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libonig_la_CFLAGS) $(CFLAGS) -c -o libonig_la-cp1251.lo `test -f '$(encdir)/cp1251.c' || echo '$(srcdir)/'`$(encdir)/cp1251.c
 
 testp-testc.o: testc.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(testp_CFLAGS) $(CFLAGS) -MT testp-testc.o -MD -MP -MF $(DEPDIR)/testp-testc.Tpo -c -o testp-testc.o `test -f 'testc.c' || echo '$(srcdir)/'`testc.c

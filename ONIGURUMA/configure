@@ -631,6 +631,8 @@ ac_includes_default="\
 ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
+LIB_LDFLAGS
+LIB_CFLAGS
 LIBOBJS
 ALLOCA
 LTVERSION
@@ -12439,6 +12441,21 @@ if test "$_cv_stdarg" = yes; then
 $as_echo "#define HAVE_STDARG_PROTOTYPES 1" >>confdefs.h
 
 fi
+
+system=`uname`.`uname -r`
+case $system in
+	CYGWIN*)
+	  LIB_CFLAGS=-shared
+          LIB_LDFLAGS=-shared -no-undefined
+          ;;
+	*)
+	  LIB_CFLAGS=
+          LIB_LDFLAGS=
+	  ;;
+esac
+
+
+
 
 if test "$GCC" = yes; then
   my_save_cflags="$CFLAGS"

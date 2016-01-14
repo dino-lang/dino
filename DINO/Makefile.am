@@ -40,7 +40,7 @@ nodist_d_socket_la_SOURCES = extern.h
 EXTRA_DIST =  d_yacc.y d_ir.sprut d_bc.sprut d_extern.sprut d_run.sprut\
 	      d_kw.shilka d_enc.shilka d_bcn.shilka d_bcf.shilka dino.tst.in compare.tst\
 	      README INSTALL d_minimize.d mpi.d ieee.d ipcerr.d socket.d\
-	      UnicodeData.txt process_ucodedb.d\
+	      UnicodeOriginalData.txt process_ucodedb.d\
 	      dino.sgml.in dino.txt dino.info dino.html dino-1.html dino-2.html\
 	      dino-3.html dino-4.html dino-5.html dino-6.html dino-7.html\
 	      dino-8.html dino-9.html dino-10.html dino-11.html\
@@ -137,8 +137,8 @@ d_yacc.c: $(srcdir)/d_yacc.y
 
 prepare-unicode: $(srcdir)/UnicodeDB.c
 
-$(srcdir)/UnicodeDB.c : $(srcdir)/UnicodeData.txt
-	./dino $(srcdir)/process_ucodedb.d $(srcdir)/UnicodeData.txt >UDB.c && mv UDB.c $@
+$(srcdir)/UnicodeDB.c : $(srcdir)/UnicodeOriginalData.txt
+	./dino $(srcdir)/process_ucodedb.d $(srcdir)/UnicodeOriginalData.txt >UDB.c && mv UDB.c $@
 
 test : test-dino compare-only-dino
 
