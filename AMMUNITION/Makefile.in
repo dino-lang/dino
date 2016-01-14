@@ -142,7 +142,7 @@ am__v_lt_0 = --silent
 am__v_lt_1 = 
 libcocom_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libcocom_la_CFLAGS) \
-	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+	$(CFLAGS) $(libcocom_la_LDFLAGS) $(LDFLAGS) -o $@
 libcocomcpp_la_LIBADD =
 am_libcocomcpp_la_OBJECTS = libcocomcpp_la-allocatecpp.lo \
 	libcocomcpp_la-vlobjectcpp.lo libcocomcpp_la-objstackcpp.lo \
@@ -155,8 +155,8 @@ am_libcocomcpp_la_OBJECTS = libcocomcpp_la-allocatecpp.lo \
 libcocomcpp_la_OBJECTS = $(am_libcocomcpp_la_OBJECTS)
 libcocomcpp_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
-	$(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
+	$(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) \
+	$(libcocomcpp_la_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -390,11 +390,13 @@ libcocom_la_SOURCES = allocate.c vlobject.c objstack.c hashtab.c spset.c\
 		      bits.c arithm.c IEEE.c yaep.c
 
 libcocom_la_CFLAGS = -DIEEE_QUAD
+libcocom_la_LDFLAGS = 
 libcocomcpp_la_SOURCES = allocatecpp.C vlobjectcpp.C objstackcpp.C hashtabcpp.C spsetcpp.C\
                         cspsetcpp.C commlinecpp.C positioncpp.C errorscpp.C tickercpp.C\
 			bitscpp.C arithmcpp.C IEEEcpp.C yaepcpp.C 
 
 libcocomcpp_la_CXXFLAGS = -DIEEE_QUAD
+libcocomcpp_la_LDFLAGS = 
 include_HEADERS = allocate.h vlobject.h objstack.h hashtab.h spset.h cspset.h \
                   commline.h position.h errors.h ticker.h bits.h arithm.h IEEE.h yaep.h 
 

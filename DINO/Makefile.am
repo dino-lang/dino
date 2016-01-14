@@ -6,36 +6,36 @@ libdino_la_SOURCES = d_dino.h d_errors.h d_common.h d_built.h d_yacc.h d_runtab.
 		     d_eval.c d_dino.c
 nodist_libdino_la_SOURCES = d_yacc.c d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_extern.h
 CC = @CC@
-libdino_la_CFLAGS = -I$(srcdir)/../ONIGURUMA -I$(srcdir)/../AMMUNITION\
+libdino_la_CFLAGS = @DINO_LIB_CFLAGS@ -I$(srcdir)/../ONIGURUMA -I$(srcdir)/../AMMUNITION\
         	    -DDINO_VERSION=$(VERSION) -DCC='"$(CC)"'\
 		    -DSTANDARD_DINO_INCLUDE_DIRECTORY='"$(includedir)"'\
 		    -DSTANDARD_DINO_EXTERN_LIBS='"$(DINO_EXTERN_LIBS_PATH)"'\
 		    -DSTANDARD_DINO_LIB_DIRECTORY='"$(libdir)"'\
 		    -DSTANDARD_DINO_LIB_NAME='"$(DINO_LIB_NAME)"'
-libdino_la_LDFLAGS = -release $(VERSION) 
+libdino_la_LDFLAGS = @DINO_LIB_LDFLAGS@ -release $(VERSION)
 bin_PROGRAMS = dino
 dino_SOURCES = d_main.c
 CLEANFILES = sgramm.c d_yacc.c d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_kw.c d_enc.c d_bcn.c d_bcf.c
 dino_DEPENDENCIES = libdino.la
 dino_CFLAGS = $(libdino_la_CFLAGS)
-dino_LDFLAGS = -lgmp -lm -export-dynamic @DINO_LINK_OPTION@ \
+dino_LDFLAGS = -lgmp -lm -export-dynamic @DINO_LIB_LDFLAGS@ \
                libdino.la ../ONIGURUMA/libonig.la ../AMMUNITION/libcocom.la
 BUILT_SOURCES = d_ir.h d_bc.h d_run.h d_extern.h d_kw.c d_enc.c d_bcn.c d_bcf.c
 d_mpi_la_SOURCES = d_mpi.c
-d_mpi_la_CFLAGS = -I. -I$(srcdir) -I$(srcdir)/../AMMUNITION
-d_mpi_la_LDFLAGS = -shared -module ../AMMUNITION/libcocom.la
+d_mpi_la_CFLAGS = -shared -I. -I$(srcdir) -I$(srcdir)/../AMMUNITION
+d_mpi_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ ../AMMUNITION/libcocom.la
 nodist_d_mpi_la_SOURCES = extern.h
 d_ieee_la_SOURCES = d_ieee.c
-d_ieee_la_CFLAGS = -DIEEE_QUAD -I. -I$(srcdir) -I$(srcdir)/../AMMUNITION
-d_ieee_la_LDFLAGS = -shared -module ../AMMUNITION/libcocom.la
+d_ieee_la_CFLAGS = -shared -DIEEE_QUAD -I. -I$(srcdir) -I$(srcdir)/../AMMUNITION
+d_ieee_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ ../AMMUNITION/libcocom.la
 nodist_d_ieee_la_SOURCES = extern.h
 d_ipcerr_la_SOURCES = d_ipcerr.c
-d_ipcerr_la_CFLAGS = -I. -I$(srcdir)
-d_ipcerr_la_LDFLAGS = -shared -module
+d_ipcerr_la_CFLAGS = -shared -I. -I$(srcdir)
+d_ipcerr_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@
 nodist_d_ipcerr_la_SOURCES = extern.h
 d_socket_la_SOURCES = d_socket.c
-d_socket_la_CFLAGS = -I. -I$(srcdir)
-d_socket_la_LDFLAGS = -shared -module
+d_socket_la_CFLAGS = -shared -I. -I$(srcdir)
+d_socket_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@
 nodist_d_socket_la_SOURCES = extern.h
 EXTRA_DIST =  d_yacc.y d_ir.sprut d_bc.sprut d_extern.sprut d_run.sprut\
 	      d_kw.shilka d_enc.shilka d_bcn.shilka d_bcf.shilka dino.tst.in compare.tst\

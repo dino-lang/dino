@@ -82,23 +82,31 @@ else
   START_SPRUT_OPTIONS=-debug
 fi
 
+DINO_MOD_LDFLAGS=
 system=`uname`.`uname -r`
 case $system in
 	Linux*)
-          DINO_LINK_OPTION=-static
+	  DINO_LIB_CFLAGS=-static
+          DINO_LIB_LDFLAGS=-static 
           ;;
 	Darwin*)
-          DINO_LINK_OPTION=-shared
+	  DINO_LIB_CFLAGS=-shared
+          DINO_LIB_LDFLAGS=-shared ../AMMUNITION/libcocom.la ../ONIGURUMA/libonig.la
           ;;
-	cygwin*)
-          DINO_LINK_OPTION=-shared
+	CYGWIN*)
+	  DINO_LIB_CFLAGS=-shared
+          DINO_LIB_LDFLAGS=-shared ../AMMUNITION/libcocom.la ../ONIGURUMA/libonig.la
+	  DINO_MOD_LDFLAGS=libdino.la
           ;;
 	*)
-          DINO_LINK_OPTION=
+	  DINO_LIB_CFLAGS=-static
+          DINO_LIB_LDFLAGS=-static 
 	  ;;
 esac
 
-AC_SUBST(DINO_LINK_OPTION)
+AC_SUBST(DINO_LIB_CFLAGS)
+AC_SUBST(DINO_LIB_LDFLAGS)
+AC_SUBST(DINO_MOD_LDFLAGS)
 
 if test "$GCC" = yes && test x$cocom_debug = x -a x$dino_debug = x; then
   my_save_cflags="$CFLAGS"
