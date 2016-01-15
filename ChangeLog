@@ -1,5 +1,11 @@
 2016-01-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/dino.tst.in: Use version in dll and .libs.
+	* DINO/Makefile.am: Add -release for modules.
+	* DINO/Makefile.in: Update.
+
+2016-01-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/d_minimize.d: Add progress bar and print compilations # and
 	time.
 	* DINO/d_bc.sprut (CC_OPTIONS, CC_OPTIONS2): Define for CYGWIN.
