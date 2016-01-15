@@ -1,5 +1,11 @@
 2016-01-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/dino.tst.in: Use version in dll and .libs.
+	* DINO/Makefile.am: Add -release for modules.
+	* DINO/Makefile.in: Update.
+
+2016-01-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* AMMUNITION/configure.ac (LIB_{C,LD{FLAGS}): Use quotes for
 	values.
 	* AMMUNITION/configure: Update.
