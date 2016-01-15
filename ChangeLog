@@ -1,3 +1,36 @@
+2016-01-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+    	* AMMUNITION/configure.ac (LIB_{C, LD}FLAGS): New.
+    	* AMMUNITION/Makefile.am (libcocom[cpp]_la_{C, LD}FLAGS): Use
+    	them.
+    	* AMMUNITION/{Makefile.in, configure}: Update.
+    	* DINO/Makefile.am (UnicodeData.txt): Rename to
+    	UnicodeOriginalData.txt.
+    	* DINO/configure.ac (DINO_LIB_LDFLAGS, DINO_MOD_LDFLAGS): Add
+    	-no-undefined for CYGWIN..
+    	* DINO/configure: Update.
+    	* ONIGURUMA/configure.in (LIB_{C, LD}FLAGS): New.
+    	* ONIGURUMA/Makefile.am (libonig_la_{C, LD}FLAGS): Use them.
+    	* ONIGURUMA/{Makefile.in, configure}: Update.
+    	* ONIGURUMA/sample/Makefile.in: Update.
+
+2016-01-13  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+    	* AMMUNITION/Makefile.am (libcocom[cpp]_la_LDFLAGS): New.
+    	* AMMUNITION/Makefile.in: Update.
+    	* DINO/configure.ac (DINO_LIB_CFLAGS, DINO_LIB_LDFLAGS): Define.
+    	(DINO_MOD_LDFLAGS): Ditto.
+    	* DINO/Makefile.am (libdino_la_CFLAGS): Use them.
+    	(libdino_la_LDFLAGS): Ditto.
+    	(d_{mpi, ieee, ipcerr, socket}_la_{C,LD}FLAGS): Ditto.
+    	* DINO/{Makefile.in, configure}: Update.
+
+2016-01-12  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+    	* DINO/configure.ac (DINO_LINK_OPTION): Set for cygwin.
+    	* DINO/configure: Update.
+    	* Makefile.in (DIST_COMMON): Remove TODO.
+
 2016-01-12  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* {AMMUNITION, MSTA, NONA, OKA, SHILKA, SPRUT}/configure.ac: Add
