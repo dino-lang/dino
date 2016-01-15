@@ -31,6 +31,7 @@ fun get_decl (end, n, def = nil) {
 if (#argv != 1) {fputln (stderr, "Usage: <c-compiler> < in > out"); exit (0);}
 val CC = argv[0];
 code = new getf ();
+val start_time = time ();
 
 // Find start of the code we should not change:
 var start_invariant = get_decl (#code - 1, 1, "find_context_by_scope");
@@ -40,6 +41,8 @@ var pos, removed = 0, all = 0;
 var tfnbase = "_dino_minimization_file.";
 var tfname = tfnbase @ "c"; // file we use for the compilation
 val factor = 2; // Factor to increase/decrease number of simultaneously processed decls
+val dot_factor = 50; // How many processed decls for a dot in a progress line
+var ncomps = 0;
 for (var end = start_invariant[0] - 1;;) {
   for (var n = factor;;) { // We try to remove N decls at once to speed up the process
     pos = get_decl (end, n);
@@ -52,6 +55,7 @@ for (var end = start_invariant[0] - 1;;) {
     var test = open (tfname, "w");
     fput (test, code[0:pos[0]], code[pos[1]+1:]); // Put all but decls found above
     close (test);
+    var before = all / dot_factor;
     if (system (CC @ " -S -Werror=implicit-function-declaration -Werror=implicit-int -Wfatal-errors "
                 @ tfname @ " 2>/dev/null")) {
       if (n != 1) n /= factor; // Fail: decrease searched decls number
@@ -71,12 +75,16 @@ for (var end = start_invariant[0] - 1;;) {
       del (code, pos[0], pos[1] - pos[0] + 1); end = pos[0] - 1;
       all += n; removed += n; n *= factor;  // Success: increase searched decls number
     }
+    ncomps++;
+    if (all / dot_factor > before)
+      fput (stderr, ".");
   }
   if (pos[0] < 0)
     break; // We processed all
 }
-
+fputln (stderr);
 remove (tfname);
 try (remove (tfnbase @ "s"), except);
-fputln (stderr, "Removed ", removed, " decls out of ", all);
+fputln (stderr, ncomps, " compilations for ", time () - start_time,
+	" sec: Removed ", removed, " decls out of ", all);
 putln (code); // Output the result

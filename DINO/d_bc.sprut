@@ -2256,6 +2256,9 @@ traverse_bcode (BC_node_t bc)
 #elif defined(__APPLE__)
 #define CC_OPTIONS  " -O2 -w -Wl,-undefined -Wl,dynamic_lookup -bundle -pipe -g"
 #define CC_OPTIONS2 " -O2 -w -Wl,-undefined -Wl,dynamic_lookup -bundle -pipe -xc -"
+#elif defined(__CYGWIN__)
+#define CC_OPTIONS  " -O2 -w -shared -pipe -g"
+#define CC_OPTIONS2 " -O2 -w -shared -pipe -xc -"
 #endif
 
 static void
@@ -2324,7 +2327,7 @@ copy_gen_file (FILE *f)
 void *
 gen_cfblock (BC_node_t fblock)
 {
-#if !defined(HAVE_DLOPEN)
+#if !defined(HAVE_DLOPEN) || !defined (CC_OPTIONS) || !defined (CC_OPTIONS2)
   return NULL;
 #else
   BC_node_t *bc_ptr, info;
@@ -2333,9 +2336,6 @@ gen_cfblock (BC_node_t fblock)
   void *addr;
   int error_p, tcall_p, ret;
 
-#if !defined (CC_OPTIONS) || !defined (CC_OPTIONS2)
-  return NULL;
-#endif
   VLO_CREATE (fname, 0);
   form_fname (&fname, BC_fdecl (fblock), ".c");
   VLO_CREATE (objname, 0);
