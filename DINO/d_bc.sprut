@@ -2257,8 +2257,8 @@ traverse_bcode (BC_node_t bc)
 #define CC_OPTIONS  " -O2 -w -Wl,-undefined -Wl,dynamic_lookup -bundle -pipe -g"
 #define CC_OPTIONS2 " -O2 -w -Wl,-undefined -Wl,dynamic_lookup -bundle -pipe -xc -"
 #elif defined(__CYGWIN__)
-#define CC_OPTIONS  " -O2 -w -shared -pipe -g"
-#define CC_OPTIONS2 " -O2 -w -shared -pipe -xc -"
+#define CC_OPTIONS  " -O2 -w -shared -pipe -g .libs/cygdino-0-97.dll"
+#define CC_OPTIONS2 " -O2 -w -shared -pipe .libs/cygdino-0-97.dll -xc -"
 #endif
 
 static void

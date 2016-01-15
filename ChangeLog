@@ -1,5 +1,16 @@
 2016-01-15  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/d_bc.sprut (CC_OPTIONS, CC_OPTIONS2): Add dino dll for
+	cygwin.
+	* DINO/dino.tst.in: Use non cygwin CMP and SCMP for cygwin too.
+	(140): Add space in expected group name.
+	(258, 453, 493-497, 499-501, 501a): Add version for dll and so.
+	(826): Use KOREAN instead of GREEK7.
+	* DINO/comapre.tst:  Use time -p.
+	(18): Find dl and so libraries for test.
+
+2016-01-15  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* yacc.exe: Remove.
 
 2016-01-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
