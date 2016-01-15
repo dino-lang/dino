@@ -12474,6 +12474,10 @@ fi
 
 system=`uname`.`uname -r`
 case $system in
+	Linux*)
+	  LIB_CFLAGS=-static
+          LIB_LDFLAGS=-static
+	  ;;
 	CYGWIN*)
 	  LIB_CFLAGS='-shared'
           LIB_LDFLAGS='-shared -no-undefined'

@@ -1,5 +1,14 @@
 2016-01-15  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/compare.tst (17): Make divide factor 6 and minimal rep 2.
+	(18): Add - when searching .so and .dll.
+	* DINO/dino.tst.in: Ignore output from fgrep CYGWIN.
+	(826): Make a special variant for Cygwin using KOREAN.
+	* ONIGURUMA/configure.in (LIB_{C,LD}FLAGS): Use -static.
+	* ONIGURUMA/configure: Update.
+
+2016-01-15  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/d_bc.sprut (CC_OPTIONS, CC_OPTIONS2): Add dino dll for
 	cygwin.
 	* DINO/dino.tst.in: Use non cygwin CMP and SCMP for cygwin too.

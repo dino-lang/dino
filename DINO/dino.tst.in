@@ -41,7 +41,10 @@ ftemp=_temp.out
 ftemp2=_temp2.out
 tempdir=__tempdir
 result=ok
-version=`echo @VERSION@|sed 's/\./-/'`
+version="@VERSION@"
+if uname | fgrep CYGWIN >/dev/null; then
+    version=`echo $version|sed 's/\./-/'`
+fi
 
 CMP=cmp
 SCMP=cmp
@@ -13152,7 +13155,7 @@ fi
 # Test 79.
 if test $result = ok -a $start_test_number -le 79; then
 	echo test 79
-        if uname | fgrep CYGWIN; then
+        if uname | fgrep CYGWIN >/dev/null; then
 	    echo skip the test
 	    result=ok
         else
@@ -13218,7 +13221,7 @@ fi
 # Test 81.
 if test $result = ok -a $start_test_number -le 81; then
 	echo test 81
-        if uname | fgrep CYGWIN; then
+        if uname | fgrep CYGWIN >/dev/null; then
 	    echo skip the test
 	    result=ok
         else
@@ -14548,7 +14551,7 @@ if test $result = ok -a $start_test_number -le 129; then
 putln (getpid (), " ", getun (), " ", geteun (), " ", getgn (), " ", getegn ());
 TEST129
         echo '      ' $DINO $test_file "2>$stderr"
-        if uname | fgrep CYGWIN; then
+        if uname | fgrep CYGWIN >/dev/null; then
 	    if $DINO $test_file 2>$stderr >$stdout; then
                 echo '      ' egrep '^-?[0-9][0-9]* [a-zA-Z0-9][a-zA-Z0-9]* [a-zA-Z0-9][a-zA-Z0-9]* [a-zA-Z0-9][a-zA-Z0-9]* [a-zA-Z0-9][a-zA-Z0-9]*$' $stdout
                 if egrep '^-?[0-9][0-9]* [a-zA-Z0-9][a-zA-Z0-9]* [a-zA-Z0-9][a-zA-Z0-9]* [a-zA-Z0-9][a-zA-Z0-9]* [a-zA-Z0-9][a-zA-Z0-9]*$' $stdout; then
@@ -17167,7 +17170,7 @@ TEST228
         if $DINO $test_file 2>$stderr >$stdout; then
 		sed 's/^[A-Za-z]://' $stdout|sed 's,\\,/,g' >$ftemp
                 echo '      ' egrep "$ftemp2" $ftemp
-                if uname | fgrep CYGWIN && test x$msvc != x;then
+                if uname | fgrep CYGWIN >/dev/null && test x$msvc != x;then
                    echo `pwd`| sed 's%/cygdrive/[a-z]%%' >$ftemp2
                 else
                    echo `pwd` >$ftemp2
@@ -17217,7 +17220,7 @@ TEST230
         mkdir $tempdir
         if $DINO $test_file 2>$stderr >$stdout; then
 		sed 's/^[A-Za-z]://' $stdout|sed 's,\\,/,g' >$ftemp
-                if uname | fgrep CYGWIN && test x$msvc != x;then
+                if uname | fgrep CYGWIN >/dev/null && test x$msvc != x;then
                    echo `pwd`/$tempdir| sed 's%/cygdrive/[a-z]%%' >$ftemp2
                 else
                    echo `pwd`/$tempdir >$ftemp2
@@ -17409,7 +17412,7 @@ if test $result = ok -a $start_test_number -le 239; then
 chumod ("test.d", "rwx");
 putln (fumode ("test.d"));
 TEST239
-        if uname | fgrep CYGWIN; then
+        if uname | fgrep CYGWIN >/dev/null; then
 	    if $DINO $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if  cat >$ftemp2 <<'OUTPUT239' && $CMP $stdout $ftemp2; then
@@ -17512,7 +17515,7 @@ if test $result = ok -a $start_test_number -le 243; then
 chgmod ("test.d", "rwx");
 putln (fgmode ("test.d"));
 TEST243
-        if uname | fgrep CYGWIN; then
+        if uname | fgrep CYGWIN >/dev/null; then
 	    if $DINO $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if  cat >$ftemp2 <<'OUTPUT243' && $CMP $stdout $ftemp2; then
@@ -17623,7 +17626,7 @@ if test $result = ok -a $start_test_number -le 247; then
 chomod ("test.d", "rwx");
 putln (fomode ("test.d"));
 TEST247
-        if uname | fgrep CYGWIN; then
+        if uname | fgrep CYGWIN >/dev/null; then
 	    if $DINO $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if  cat >$ftemp2 <<'OUTPUT247' && $CMP $stdout $ftemp2; then
@@ -18079,7 +18082,7 @@ putln (mpis.unsigned_to_string (mpis.unsigned_change_size (mpi2, 2)));
 putln ("ovfw=", mpis.mpi_overflow);
 mpis.mpi_ignore_overflow = 0;
 TEST258
-        if uname | fgrep CYGWIN; then
+        if uname | fgrep CYGWIN >/dev/null; then
             echo '      ' $DINO -L.libs/d_mpi-$version.dll -I@srcdir@ $test_file "2>$stderr"
 	    if $DINO -L.libs/d_mpi-$version.dll -I@srcdir@ $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
@@ -25988,7 +25991,7 @@ putln ("quad ", q1.to_string (), " -> single ", s1.to_string ());
 d1 = q1.to_double ();
 putln ("quad ", q1.to_string (), " -> double ", d1.to_string ());
 TEST453
-        if uname | fgrep CYGWIN; then
+        if uname | fgrep CYGWIN >/dev/null; then
             echo '      ' $DINO -L.libs/d_ieee-$version.dll -L.libs/d_mpi-$version.dll -I@srcdir@ $test_file "2>$stderr"
 	    if $DINO -L.libs/d_ieee-$version.dll -L.libs/d_mpi-$version.dll -I@srcdir@ $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
@@ -27475,7 +27478,7 @@ var hi = sockets.gethostinfo (argv [0]);
 println (hi.name, hi.aliases, hi.ipaddrs);
 exit (0);
 TEST493
-        if uname | fgrep CYGWIN; then
+        if uname | fgrep CYGWIN >/dev/null; then
             echo '      ' "$DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@  $test_file 127.0.0.1 >$stdout"
             if $DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@ $test_file 127.0.0.1 >$stdout; then
                 echo '      ' egrep '^".+"\[.*\]\[".+"\]$' $stdout
@@ -27513,7 +27516,7 @@ if (s != nil)
   println (s.name, s.aliases, s.port, s.proto);
 exit (0);
 TEST494
-     if uname | fgrep CYGWIN; then
+     if uname | fgrep CYGWIN >/dev/null; then
         echo '      ' "$DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@  $test_file time >$stdout"
         if $DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@ $test_file time >$stdout; then
                 echo '      ' egrep '^".+"\[".+"\]37"tcp"$' $stdout
@@ -27554,7 +27557,7 @@ var d = s.recvfrom (300);
 putln (d.str);
 exit (0);
 TEST495
-     if uname | fgrep CYGWIN; then
+     if uname | fgrep CYGWIN >/dev/null; then
         echo '      ' "$DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@  $test_file time >$stdout"
         if $DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@ $test_file time >$stdout; then
                 echo '      ' egrep '^[A-Za-z]+ [A-Za-z]+ [0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [A-Za-z]+ [0-9][0-9][0-9][0-9]' $stdout
@@ -27598,7 +27601,7 @@ try {
 putln (str);
 exit (0);
 TEST496
-     if uname | fgrep CYGWIN; then
+     if uname | fgrep CYGWIN >/dev/null; then
         echo '      ' "$DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@  $test_file time >$stdout"
         if $DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@ $test_file time >$stdout; then
                 echo '      ' egrep '(^[A-Za-z]+ [A-Za-z]+[ ]+[0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9])|(^[0-9][0-9] [A-Za-z]+ [0-9][0-9][0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [A-Za-z0-9]+)' $stdout
@@ -27636,7 +27639,7 @@ var cl, send, rec, i;
 cl = sockets.stream_client ("abracadabra", 10003);
 exit (0);
 TEST497
-     if uname | fgrep CYGWIN; then
+     if uname | fgrep CYGWIN >/dev/null; then
         echo '      ' "$DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@ $test_file 2>$stderr"
         if $DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@ $test_file 2>$stderr >$stdout; then
                 result=fail
@@ -27736,7 +27739,7 @@ if (s != nil)
   println (s.name, s.aliases, s.port, s.proto);
 exit (0);
 TEST499
-     if uname | fgrep CYGWIN; then
+     if uname | fgrep CYGWIN >/dev/null; then
         echo '      ' "$DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@  $test_file 37 >$stdout"
         if $DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@ $test_file 37 >$stdout; then
                 echo '      ' test -z "\`cat $stdout\`" '|| egrep ^".+"\[".+"\]37"tcp"$' $stdout
@@ -27774,7 +27777,7 @@ if (s != nil)
   println (s.name, s.aliases, s.port, s.proto);
 exit (0);
 TEST500
-     if uname | fgrep CYGWIN; then
+     if uname | fgrep CYGWIN >/dev/null; then
         echo '      ' "$DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@  $test_file abracadabra >$stdout"
         if $DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@ $test_file abracadabra >$stdout; then
                 echo '      ' $CMP - $stdout
@@ -27814,7 +27817,7 @@ if (s != nil)
   println (s.name, s.aliases, s.port, s.proto);
 exit (0);
 TEST501
-     if uname | fgrep CYGWIN; then
+     if uname | fgrep CYGWIN >/dev/null; then
         echo '      ' "$DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@  $test_file 313131 >$stdout"
         if $DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@ $test_file 313131 >$stdout; then
                 echo '      ' $CMP - $stdout
@@ -34761,7 +34764,7 @@ putln (gmp2 <= gmp1);
 putf ("%o\n", gmp1);
 putf ("%o\n", gmp2);
 TEST579
-        if uname | fgrep CYGWIN; then
+        if uname | fgrep CYGWIN >/dev/null; then
             echo '      ' $DINO $test_file "2>$stderr"
 	    if $DINO $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
@@ -48892,13 +48895,14 @@ fi
 # Test 826.
 if test $result = ok -a $start_test_number -le 826; then
 	echo test 826: Non-ascii encoding
-        cat >$test_file <<'TEST826'
+        if uname | fgrep CYGWIN >/dev/null; then
+            cat >$test_file <<'TEST826'
 set_encoding ("KOREAN");
 TEST826
-        echo '      ' $DINO '-O' $test_file ">$stdout"
-        if $DINO -O $test_file 2>$stderr >$stdout; then
+            echo '      ' $DINO '-O' $test_file ">$stdout"
+            if $DINO -O $test_file 2>$stderr >$stdout; then
                 result=fail
-        else
+            else
                 echo '      ' $CMP $ftemp2 $stderr
                 if cat >$ftemp2 <<'OUTPUT826' && $CMP $stderr $ftemp2; then
 test.d:1:14: encoding KOREAN given for `set_encoding' does not contain ascii byte codes
@@ -48907,7 +48911,25 @@ OUTPUT826
                 else
                         result=fail
                 fi
-        fi
+            fi
+	else
+            cat >$test_file <<'TEST826'
+set_encoding ("GREEK7");
+TEST826
+            echo '      ' $DINO '-O' $test_file ">$stdout"
+            if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+            else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT826' && $CMP $stderr $ftemp2; then
+test.d:1:14: encoding GREEK7 given for `set_encoding' does not contain ascii byte codes
+OUTPUT826
+			result=ok
+                else
+                        result=fail
+                fi
+            fi
+	fi
 fi
 
 # Test 827.

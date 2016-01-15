@@ -7303,7 +7303,10 @@ fi
 if test $start_test_number -le 17; then
 
 ######################################################
-rep=`expr $factor '/' 5`
+rep=`expr $factor '/' 6`
+if expr $rep '<=' 1; then
+    rep=2
+fi
 Announce_Test "+++++ Test #17: Count lines/words/chars (N=$rep):  +++++"
 
 cat <<'EOF' >$temp
@@ -7699,11 +7702,11 @@ EOF
 
 title=
 if uname | fgrep CYGWIN >/dev/null; then
-ipcerr=`ls .libs/d_ipcerr*.dll`
-socket=`ls .libs/d_socket*.dll`
+ipcerr=`ls .libs/d_ipcerr-*.dll`
+socket=`ls .libs/d_socket-*.dll`
 else
-ipcerr=`ls .libs/d_ipcerr*.so`
-socket=`ls .libs/d_socket*.so`
+ipcerr=`ls .libs/d_ipcerr-*.so`
+socket=`ls .libs/d_socket-*.so`
 fi
 
 $DINO -I$srcdir -L$ipcerr -L$socket $ftest $rep > /dev/null &
