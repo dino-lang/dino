@@ -86,7 +86,7 @@ distclean-local:
 d_gen.i : dino d_genheader.i $(srcdir)/d_minimize.d
 	@if test d_gen.i -ot d_genheader.i;then\
            echo C code Generation Header Minimization.  It can take a while ...;\
-           $(EGREP) -v '^#|^$$' d_genheader.i | time ./dino $(srcdir)/d_minimize.d "$(CC)" > d_gen.tmp && mv d_gen.tmp $@;\
+           $(EGREP) -v '^#|^$$' d_genheader.i | ./dino $(srcdir)/d_minimize.d "$(CC)" > d_gen.tmp && mv d_gen.tmp $@;\
         fi
 
 d_genheader.i: $(srcdir)/d_gen.c $(srcdir)/d_common.h $(srcdir)/d_types.h $(srcdir)/d_conv.h\

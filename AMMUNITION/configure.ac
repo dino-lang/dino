@@ -41,8 +41,8 @@ YAEPDIR=../AMMUNITION/.libs
 system=`uname`.`uname -r`
 case $system in
 	CYGWIN*)
-	  LIB_CFLAGS=-shared
-          LIB_LDFLAGS=-shared -no-undefined
+	  LIB_CFLAGS='-shared'
+          LIB_LDFLAGS='-shared -no-undefined'
           ;;
 	*)
 	  LIB_CFLAGS=

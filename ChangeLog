@@ -1,5 +1,21 @@
 2016-01-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* AMMUNITION/configure.ac (LIB_{C,LD{FLAGS}): Use quotes for
+	values.
+	* AMMUNITION/configure: Update.
+	* DINO/configure.ac (DINO_LIB_{C,LD{FLAGS}, DINO_MOD_LDFLAGS): Use
+	quotes for values.
+	* DINO/Makefile.am: Remove time in d_gen.i generation.
+	* DINO/{Makefile.in, configure}: Update.
+	* DINO/UnicodeData.txt: Rename to UnicodeOriginalData.txt.
+	* ONIGURUMA/configure.in (LIB_{C,LD{FLAGS}): Use quotes for
+	values.
+	* ONIGURUMA/Makefile.in: Update.
+	* ONIGURUMA/{aclocal.m4, configure}: Update.
+	* ONIGURUMA/sample/Makefile.in: Update.
+
+2016-01-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
     	* AMMUNITION/configure.ac (LIB_{C, LD}FLAGS): New.
     	* AMMUNITION/Makefile.am (libcocom[cpp]_la_{C, LD}FLAGS): Use
     	them.
