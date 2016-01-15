@@ -1,3 +1,7 @@
+2016-01-15  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* yacc.exe: Remove.
+
 2016-01-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/dino.tst.in: Use version in dll and .libs.
