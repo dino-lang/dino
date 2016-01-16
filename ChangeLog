@@ -1,3 +1,11 @@
+2016-01-16  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Makaefile.am: Don't use shell for compare.tst.  Use EXEEXT
+	for dino.
+	* DINO/Makefile.in: Update.
+	* DINO/compare.tst (17): Use 6 as a divide factor.  Make 2 as
+	minimal rep.
+
 2016-01-15  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/compare.tst (17): Make divide factor 6 and minimal rep 2.

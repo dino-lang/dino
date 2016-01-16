@@ -1263,7 +1263,7 @@ uninstall-local:
 distclean-local:
 	rm -f dino.sgml dino.tmp dino.tex dino.log dino.aux dino.toc quality.tst dino.tst dino.out
 
-d_gen.i : dino d_genheader.i $(srcdir)/d_minimize.d
+d_gen.i : dino$(EXEEXT) d_genheader.i $(srcdir)/d_minimize.d
 	@if test d_gen.i -ot d_genheader.i;then\
            echo C code Generation Header Minimization.  It can take a while ...;\
            $(EGREP) -v '^#|^$$' d_genheader.i | ./dino $(srcdir)/d_minimize.d "$(CC)" > d_gen.tmp && mv d_gen.tmp $@;\
@@ -1322,16 +1322,16 @@ $(srcdir)/UnicodeDB.c : $(srcdir)/UnicodeOriginalData.txt
 
 test : test-dino compare-only-dino
 
-test-dino : dino
+test-dino : dino$(EXEEXT)
 	@echo ++++ Test dino interpriter ++++
 	$(SHELL) dino.tst
 
-compare-only-dino : dino
-	DINO_ONLY=y $(SHELL) $(srcdir)/compare.tst
+compare-only-dino : dino$(EXEEXT)
+	DINO_ONLY=y $(srcdir)/compare.tst
 
-compare-dino : dino
+compare-dino : dino$(EXEEXT)
 	@echo ++++ Comparison of different script language implementations ++++
-	$(SHELL) $(srcdir)/compare.tst
+	$(srcdir)/compare.tst
 
 # Creation of documentation
 
