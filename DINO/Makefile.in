@@ -433,18 +433,22 @@ d_mpi_la_SOURCES = d_mpi.c
 d_mpi_la_CFLAGS = -shared -I. -I$(srcdir) -I$(srcdir)/../AMMUNITION
 d_mpi_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ ../AMMUNITION/libcocom.la -release $(VERSION)
 nodist_d_mpi_la_SOURCES = extern.h
+EXTRA_d_mpi_la_DEPENDENCIES = libdino.la
 d_ieee_la_SOURCES = d_ieee.c
 d_ieee_la_CFLAGS = -shared -DIEEE_QUAD -I. -I$(srcdir) -I$(srcdir)/../AMMUNITION
 d_ieee_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ ../AMMUNITION/libcocom.la -release $(VERSION)
 nodist_d_ieee_la_SOURCES = extern.h
+EXTRA_d_ieee_la_DEPENDENCIES = libdino.la
 d_ipcerr_la_SOURCES = d_ipcerr.c
 d_ipcerr_la_CFLAGS = -shared -I. -I$(srcdir)
 d_ipcerr_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ -release $(VERSION)
 nodist_d_ipcerr_la_SOURCES = extern.h
+EXTRA_d_ipcerr_la_DEPENDENCIES = libdino.la
 d_socket_la_SOURCES = d_socket.c
 d_socket_la_CFLAGS = -shared -I. -I$(srcdir)
 d_socket_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ -release $(VERSION)
 nodist_d_socket_la_SOURCES = extern.h
+EXTRA_d_socket_la_DEPENDENCIES = libdino.la
 EXTRA_DIST = d_yacc.y d_ir.sprut d_bc.sprut d_extern.sprut d_run.sprut\
 	      d_kw.shilka d_enc.shilka d_bcn.shilka d_bcf.shilka dino.tst.in compare.tst\
 	      README INSTALL d_minimize.d mpi.d ieee.d ipcerr.d socket.d\
