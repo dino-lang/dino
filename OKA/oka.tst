@@ -54,13 +54,8 @@ fi
 
 result=ok
 
-if uname | fgrep CYGWIN; then
-   CMP="eval sh -c 'tr -d \\\\r <\$0 >__tmp && mv __tmp \$0 && tr -d \\\\r <\$1 >__tmp && mv __tmp \$1 && cmp \$0 \$1'"
-   SCMP="eval sh -c 'tr -d \\\\r <\$0 >__tmp && mv __tmp \$0 && cmp \$0 \$1'"
-else
-   CMP=cmp
-   SCMP=cmp
-fi
+CMP=cmp
+SCMP=cmp
 
 # Test 1.
 if test $result = ok -a $start_test_number -le 1; then
@@ -201,6 +196,27 @@ Automaton `float'
     21 locked states number
 
 OUTPUT2
+                        result=ok
+                elif cat >$ftemp <<'OUTPUT2b' && $CMP $stderr $ftemp; then
+
+Automaton `integer'
+      1176 NDFA states,            3544 NDFA arcs
+      1176 DFA states,             3632 DFA arcs
+       146 minimal DFA states,      611 minimal DFA arcs
+       129 all instructions           9 instruction equivalence classes
+
+Automaton `float'
+       167 NDFA states,             420 NDFA arcs
+       167 DFA states,              420 DFA arcs
+       167 minimal DFA states,      420 minimal DFA arcs
+       129 all instructions           5 instruction equivalence classes
+
+  1659 all allocated states,       4062 all allocated arcs
+  1777 all allocated alternative states
+  1066 all comb vector elements,   2149 all transition table elements
+    21 locked states number
+
+OUTPUT2b
                         result=ok
                 elif cat >$ftemp <<'OUTPUT2a' && $CMP $stderr $ftemp; then
 
@@ -458,6 +474,27 @@ Automaton `float'
      0 locked states number
 
 OUTPUT3
+                        result=ok
+                elif cat >$ftemp <<'OUTPUT3b' && $CMP $stderr $ftemp; then
+
+Automaton `integer'
+      3048 NDFA states,           12732 NDFA arcs
+      2651 DFA states,            11527 DFA arcs
+      1619 minimal DFA states,     8720 minimal DFA arcs
+       146 all instructions          16 instruction equivalence classes
+
+Automaton `float'
+       180 NDFA states,             720 NDFA arcs
+       209 DFA states,              867 DFA arcs
+       149 minimal DFA states,      687 minimal DFA arcs
+       146 all instructions           8 instruction equivalence classes
+
+  4520 all allocated states,      15219 all allocated arcs
+  3640 all allocated alternative states
+ 11713 all comb vector elements,  27096 all transition table elements
+     0 locked states number
+
+OUTPUT3b
                         result=ok
                 elif cat >$ftemp <<'OUTPUT3a' && $CMP $stderr $ftemp; then
 

@@ -1,5 +1,12 @@
 2016-01-16  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/compare.tst (17): Make 10 as minimal rep.
+	* OKA/oka.tst: Remove CMP and SCMP for Cygwin.
+	(2, 3): Make another variant with ab bit different # of combe
+	vector elements.
+
+2016-01-16  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/Makefile.am
 	(EXTRA_d_{mpi,ieee,ipcerr,socket}_la_DEPENDENCIES): New.
 	* DINO/Makefile.in: Update.

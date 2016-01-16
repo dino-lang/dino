@@ -7304,8 +7304,8 @@ if test $start_test_number -le 17; then
 
 ######################################################
 rep=`expr $factor '/' 6`
-if expr $rep '<=' 1 >/dev/null; then
-    rep=2
+if expr $rep '<=' 9 >/dev/null; then
+    rep=10
 fi
 Announce_Test "+++++ Test #17: Count lines/words/chars (N=$rep):  +++++"
 
