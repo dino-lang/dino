@@ -49359,6 +49359,10 @@ OUTPUT844
 test.d:2:16: Illegal byte sequence
 OUTPUT844a
 			result=ok
+                elif cat >$ftemp2 <<'OUTPUT844b' && $CMP $stderr $ftemp2; then
+test.d:2:16: Invalid or incomplete multibyte or wide character
+OUTPUT844b
+			result=ok
                 else
                         result=fail
                 fi

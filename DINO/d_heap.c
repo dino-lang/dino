@@ -3077,40 +3077,6 @@ interrupt (pc_t first_resume_pc)
 
 
 
-#if ! defined(HAVE_DLOPEN) || defined(NO_EXTERN_SHLIB)
-static const char *
-lib_name (const char *path_name)
-{
-  const char *name_start;
-  const char *last_period;
-  const char *curr_char_ptr;
-  size_t len;
-#define MAX_LIB_NAME_LENGTH 200
-  static char result [MAX_LIB_NAME_LENGTH];
-
-  d_assert (path_name != NULL);
-  for (curr_char_ptr = path_name, name_start = path_name;
-       *curr_char_ptr != '\0';
-       curr_char_ptr++)
-    if (*curr_char_ptr == '/')
-      name_start = curr_char_ptr + 1;
-  for (curr_char_ptr = name_start, last_period = NULL;
-       *curr_char_ptr != '\0';
-       curr_char_ptr++)
-    if (*curr_char_ptr == '.')
-      last_period = curr_char_ptr;
-  
-  if (last_period == NULL)
-    len = strlen (name_start);
-  else
-    len = last_period - name_start;
-  len = (len < MAX_LIB_NAME_LENGTH ? len : MAX_LIB_NAME_LENGTH - 1);
-  strncpy (result, name_start, len);
-  result [len] = '\0';
-  return result;
-}
-#endif
-
 void *
 external_address (BC_node_t decl)
 {
@@ -3124,7 +3090,6 @@ external_address (BC_node_t decl)
     address = (external_fun_t *) BC_address (decl);
   else
     {
-#if defined(HAVE_DLOPEN) && !defined(NO_EXTERN_SHLIB)
       (void) dlopen (NULL, RTLD_NOW);
       for (curr_libname_ptr = libraries;
 	   *curr_libname_ptr != NULL;
@@ -3145,22 +3110,6 @@ external_address (BC_node_t decl)
 	  if (dlerror () == NULL)
 	    break;
 	}
-#else
-      for (curr_libname_ptr = libraries;
-	   *curr_libname_ptr != NULL;
-	   curr_libname_ptr++)
-	{
-	  typedef void * (*address_function_t) (const char *);
-	  void *handle;
-
-	  handle = get_library_search_function (lib_name (*curr_libname_ptr));
-	  if (handle == NULL)
-	    continue;
-	  address = (*(address_function_t) handle) (name);
-	  if (address != NULL)
-	    break;
-	}
-#endif
       if (*curr_libname_ptr == NULL)
 	eval_error (noextern_bc_decl, get_cpos (), DERR_no_such_external, name);
     }

@@ -608,6 +608,11 @@ Ocaml   |8.2    |1.1    |11.7   |165    |0.4   |0.8   |1.9   |3.7  |2.1    |4.8 
 ---
 
 # Dino availability
+* Dino has been implemented for
+  * Linux
+  * Windows through CYGWIN
+  * MacOSX
+    * X code and GMP package is necessary to build Dino
 * DINO and COCOM repository:
       <https://github.com/dino-lang/dino.git>
 * License -- GPL 2 and LGPL 2:
@@ -634,7 +639,7 @@ Ocaml   |8.2    |1.1    |11.7   |165    |0.4   |0.8   |1.9   |3.7  |2.1    |4.8 
 ```
   make test
 ```
-* Testing only DINO (about 800 tests and benchmarking comparison with available implementations of other languages which can take a lot of time):
+* Testing only DINO (about 900 tests and benchmarking comparison with available implementations of other languages which can take a lot of time):
 ```
   cd DINO; make test
 ```
@@ -643,11 +648,7 @@ Ocaml   |8.2    |1.1    |11.7   |165    |0.4   |0.8   |1.9   |3.7  |2.1    |4.8 
     * Tests are in file <build-directory>/DINO/dino.tst generated from DINO/dino.tst.in
     * Benchmarks are in file DINO/compare.tst
 
-* Installing all COCOM and DINO:
+* Installing COCOM and DINO:
 ```
   make install
-```
-* Installing only DINO:
-```
-  cd DINO; make install
 ```
