@@ -635,9 +635,6 @@ ac_unique_file="d_main.c"
 ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
-DINO_MOD_LDFLAGS
-DINO_LIB_LDFLAGS
-DINO_LIB_CFLAGS
 C_DEBUG_DEFINE
 START_SPRUT_OPTIONS
 POW_LIB
@@ -654,6 +651,9 @@ CXXCPP
 ac_ct_CXX
 CXXFLAGS
 CXX
+DINO_MOD_LDFLAGS
+DINO_LIB_LDFLAGS
+DINO_LIB_CFLAGS
 MAINT
 MAINTAINER_MODE_FALSE
 MAINTAINER_MODE_TRUE
@@ -11895,6 +11895,34 @@ fi
 
 
 
+DINO_MOD_LDFLAGS=
+system=`uname`.`uname -r`
+case $system in
+	Linux*)
+	  DINO_LIB_CFLAGS='-static'
+          DINO_LIB_LDFLAGS='-static'
+          ;;
+	Darwin*)
+	  DINO_LIB_CFLAGS='-shared'
+          DINO_LIB_LDFLAGS='-shared ../AMMUNITION/libcocom.la ../ONIGURUMA/libonig.la'
+	  CFLAGS="`echo $CFLAGS` -I/usr/include -I/usr/local/include -L/usr/lib -L/usr/local/lib"
+          ;;
+	CYGWIN*)
+	  DINO_LIB_CFLAGS='-shared'
+          DINO_LIB_LDFLAGS='-shared ../AMMUNITION/libcocom.la ../ONIGURUMA/libonig.la -no-undefined'
+	  DINO_MOD_LDFLAGS='libdino.la -no-undefined'
+	  CFLAGS="`echo $CFLAGS` -I/usr/include -I/usr/local/include -L/usr/lib -L/usr/local/lib"
+          ;;
+	*)
+	  DINO_LIB_CFLAGS=-static
+          DINO_LIB_LDFLAGS=-static
+	  ;;
+esac
+
+
+
+
+
 # Checks for programs.
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
@@ -17242,7 +17270,7 @@ fi
 
 for ac_func in atexit getcwd gethostbyaddr gethostbyname gethostname inet_ntoa memmove memset\
                 mkdir pow rmdir socket sqrt strerror strtoull strtod setitimer dlopen\
-		sigaction sigemptyset getc_unlocked
+		sigaction sigemptyset getc_unlocked random
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -17296,32 +17324,6 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
   C_DEBUG_DEFINE=
   START_SPRUT_OPTIONS=-debug
 fi
-
-DINO_MOD_LDFLAGS=
-system=`uname`.`uname -r`
-case $system in
-	Linux*)
-	  DINO_LIB_CFLAGS='-static'
-          DINO_LIB_LDFLAGS='-static'
-          ;;
-	Darwin*)
-	  DINO_LIB_CFLAGS='-shared'
-          DINO_LIB_LDFLAGS='-shared ../AMMUNITION/libcocom.la ../ONIGURUMA/libonig.la'
-          ;;
-	CYGWIN*)
-	  DINO_LIB_CFLAGS='-shared'
-          DINO_LIB_LDFLAGS='-shared ../AMMUNITION/libcocom.la ../ONIGURUMA/libonig.la -no-undefined'
-	  DINO_MOD_LDFLAGS='libdino.la -no-undefined'
-          ;;
-	*)
-	  DINO_LIB_CFLAGS=-static
-          DINO_LIB_LDFLAGS=-static
-	  ;;
-esac
-
-
-
-
 
 if test "$GCC" = yes && test x$cocom_debug = x -a x$dino_debug = x; then
   my_save_cflags="$CFLAGS"

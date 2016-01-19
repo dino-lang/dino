@@ -1,3 +1,7 @@
+2016-01-18  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* DINO/{Makefile.in, configure, DINO/d_config.h.in}: Update.
+
 2016-01-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* AMMUNITION/objstackcpp.C (os::os): Rename parameter to
