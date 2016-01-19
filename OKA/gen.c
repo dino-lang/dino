@@ -3906,6 +3906,7 @@ output_transition_table (IR_node_t automaton)
   VLO_CREATE (check_vector, 50000);
   VLO_CREATE (base_vector, 5000);
   VLO_EXPAND (base_vector, VLO_LENGTH (output_states_vector));
+  memset (VLO_BEGIN (base_vector), 0, VLO_LENGTH (output_states_vector));
   VLO_CREATE (transition_vector, 2000);
   max_transition_vector_element_value
     = IR_achieved_states_number (automaton) + 1;
@@ -4006,6 +4007,7 @@ output_is_dead_locked_vector (IR_node_t automaton)
   /* Create base, transition, and check vectors. */
   VLO_CREATE (is_dead_locked_vector, 5000);
   VLO_EXPAND (is_dead_locked_vector, VLO_LENGTH (output_states_vector));
+  memset (VLO_BEGIN (is_dead_locked_vector), 0, VLO_LENGTH (output_states_vector));
   for (current_state_ptr = VLO_BEGIN (output_states_vector);
        (char *) current_state_ptr <= (char *) VLO_END (output_states_vector);
        current_state_ptr++)

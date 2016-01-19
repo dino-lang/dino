@@ -96,7 +96,6 @@ form_format_string (ER_node_t fmt, ER_node_t pars, int n_pars,
   const char *str;
   char *ch_ptr;
 
-  errno = 0;
   VLO_NULLIFY (temp_vlobj);
   curr_par_num = 0;
   d_assert (ER_NODE_MODE (fmt) == ER_NM_heap_pack_vect
@@ -481,11 +480,9 @@ form_format_string (ER_node_t fmt, ER_node_t pars, int n_pars,
   if (curr_par_num != n_pars)
     eval_error (parnumber_bc_decl, get_fmt_op_pos (vec_p), DERR_parameters_number, name);
   add_char (&temp_vlobj, '\0', res_byte_p);
-  if (errno != 0)
-    {
-      ifun_call_pc = cpc;
-      process_system_errors (name);
-    }
+  /* Different alloc function might change errno even in case of
+     success.  */
+  errno = 0;
   return res_byte_p;
 }
 
@@ -613,7 +610,10 @@ implicit_arithmetic_conversion (ER_node_t var, ER_node_t tvar)
 			  ER_node_t gmp = create_gmp ();
 			  
 			  mpz_set_str (*ER_mpz_ptr (gmp), repr, base);
-			  d_assert (errno == 0);
+			  /* errno migh be changed even in success
+			     case as the mpz function might use
+			     malloc/realloc.  */
+			  errno = 0;
 			  ER_SET_MODE (tvar, ER_NM_long);
 			  ER_set_l (tvar, gmp);
 			}

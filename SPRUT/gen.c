@@ -3926,10 +3926,6 @@ output_node_type_macros_functions (void)
   if (cpp_flag)
     {
       output_string (output_interface_file, "\n    {\n");
-      output_ifdef (output_interface_file, DEBUG_PARAMETER_NAME);
-      output_string (output_interface_file,
-                     "      if (this == NULL)\n        abort ();\n");
-      output_endif (output_interface_file, DEBUG_PARAMETER_NAME);
       output_string (output_interface_file, "      return ");
     }
   output_node_level_array_name (output_interface_file);
@@ -4007,10 +4003,6 @@ output_node_type_macros_functions (void)
   if (cpp_flag)
     {
       output_string (output_interface_file, "\n    {\n");
-      output_ifdef (output_interface_file, DEBUG_PARAMETER_NAME);
-      output_string (output_interface_file,
-                     "      if (this == NULL)\n        abort ();\n");
-      output_endif (output_interface_file, DEBUG_PARAMETER_NAME);
       output_string (output_interface_file, "      return ");
     }
   output_is_type_name (output_interface_file);
@@ -4889,16 +4881,14 @@ output_rest_double_link_functions_definitions (void)
         output_string (output_file, "\n    {\n");
       else
         output_string (output_file, "\n{\n");
-      output_ifdef (output_file, DEBUG_PARAMETER_NAME);
-      if (cpp_flag)
-	output_string (output_file, "    ");
-      output_string (output_file, "  if (");
-      output_string (output_file, NEXT_DOUBLE_LINK_FUNCTION_PARAMETER_NAME);
-      if (cpp_flag)
-	output_string (output_file, " == NULL)\n        abort ();\n");
-      else
-	output_string (output_file, " == NULL)\n    abort ();\n");
-      output_endif (output_file, DEBUG_PARAMETER_NAME);
+      if (! cpp_flag)
+	{
+	  output_ifdef (output_file, DEBUG_PARAMETER_NAME);
+	  output_string (output_file, "  if (");
+	  output_string (output_file, NEXT_DOUBLE_LINK_FUNCTION_PARAMETER_NAME);
+	  output_string (output_file, " == NULL)\n    abort ();\n");
+	  output_endif (output_file, DEBUG_PARAMETER_NAME);
+	}
       if (cpp_flag)
             output_string (output_file, "    ");
       output_string (output_file, "  return ");
@@ -4923,17 +4913,15 @@ output_rest_double_link_functions_definitions (void)
 	output_string (output_file, "\n    {\n");
       else
 	output_string (output_file, "\n{\n");
-      output_ifdef (output_file, DEBUG_PARAMETER_NAME);
-      if (cpp_flag)
-	output_string (output_file, "    ");
-      output_string (output_file, "  if (");
-      output_string (output_file,
-		     PREVIOUS_DOUBLE_LINK_FUNCTION_PARAMETER_NAME);
-      if (cpp_flag)
-	output_string (output_file, " == NULL)\n        abort ();\n");
-      else
-	output_string (output_file, " == NULL)\n    abort ();\n");
-      output_endif (output_file, DEBUG_PARAMETER_NAME);
+      if (! cpp_flag)
+	{
+	  output_ifdef (output_file, DEBUG_PARAMETER_NAME);
+	  output_string (output_file, "  if (");
+	  output_string (output_file,
+			 PREVIOUS_DOUBLE_LINK_FUNCTION_PARAMETER_NAME);
+	  output_string (output_file, " == NULL)\n    abort ();\n");
+	  output_endif (output_file, DEBUG_PARAMETER_NAME);
+	}
       if (cpp_flag)
 	output_string (output_file, "    ");
       output_string (output_file, "  return ");
@@ -4958,16 +4946,14 @@ output_rest_double_link_functions_definitions (void)
         output_string (output_file, "\n    {\n");
       else
         output_string (output_file, "\n{\n");
-      output_ifdef (output_file, DEBUG_PARAMETER_NAME);
-      if (cpp_flag)
-	output_string (output_file, "    ");
-      output_string (output_file, "  if (");
-      output_string (output_file, OWNER_FUNCTION_PARAMETER_NAME);
-      if (cpp_flag)
-	output_string (output_file, " == NULL)\n        abort ();\n");
-      else
-	output_string (output_file, " == NULL)\n    abort ();\n");
-      output_endif (output_file, DEBUG_PARAMETER_NAME);
+      if (! cpp_flag)
+	{
+	  output_ifdef (output_file, DEBUG_PARAMETER_NAME);
+	  output_string (output_file, "  if (");
+	  output_string (output_file, OWNER_FUNCTION_PARAMETER_NAME);
+	  output_string (output_file, " == NULL)\n    abort ();\n");
+	  output_endif (output_file, DEBUG_PARAMETER_NAME);
+	}
       if (cpp_flag)
 	output_string (output_file, "    ");
       output_string (output_file, "  return ");
@@ -5094,9 +5080,14 @@ output_field_access_function_definition (IR_node_t field)
           output_string (f, cpp_flag ? "\n    {\n" : "\n{\n");
           /* Test node */
           output_ifdef (f, DEBUG_PARAMETER_NAME);
-          output_string (f, cpp_flag ? "      if (" : "  if (");
-          output_string (f, ACCESS_FUNCTION_PARAMETER_NAME);
-          output_string (f, " == NULL || !");
+	  if (cpp_flag)
+	    output_string (f, "      if (!");
+	  else
+	    {
+	      output_string (f, "  if (");
+	      output_string (f, ACCESS_FUNCTION_PARAMETER_NAME);
+	      output_string (f, " == NULL || !");
+	    }
           if (field == IR_previous_synonym_field (field)
               && !IR_secondary_super_type_flag (IR_node_type (field)))
             {
@@ -5246,13 +5237,15 @@ output_set_double_link_function_definition (void)
   output_string (output_file, cpp_flag ? "\n    {\n" : "\n{\n");
   /*if (double_node_types_existence_flag)*/
     {
-      output_ifdef (output_file, DEBUG_PARAMETER_NAME);
-      output_string (output_file, cpp_flag ? "      if (" : "  if (");
-      output_string (output_file,
-		     SET_DOUBLE_LINK_FUNCTION_LINK_PARAMETER_NAME);
-      output_string (output_file, (cpp_flag ? " == NULL)\n        abort ();\n"
-                                   : " == NULL)\n    abort ();\n"));
-      output_endif (output_file, DEBUG_PARAMETER_NAME);
+      if (! cpp_flag)
+	{
+	  output_ifdef (output_file, DEBUG_PARAMETER_NAME);
+	  output_string (output_file, "  if (");
+	  output_string (output_file,
+			 SET_DOUBLE_LINK_FUNCTION_LINK_PARAMETER_NAME);
+	  output_string (output_file, " == NULL)\n    abort ();\n");
+	  output_endif (output_file, DEBUG_PARAMETER_NAME);
+	}
       if (cpp_flag)
         {
           output_string (output_file, "      (this->");
@@ -5443,12 +5436,17 @@ output_field_modification_function_definition (IR_node_t field)
           output_string (f, cpp_flag ? "\n    {\n" : "\n{\n");
           /* Test node and value */
           output_ifdef (f, DEBUG_PARAMETER_NAME);
-          output_string (f, cpp_flag ? "      if (" : "  if (");
-          output_string (f, MODIFICATION_FUNCTION_NODE_PARAMETER_NAME);
-          output_string (f, " == NULL");
+	  if (cpp_flag)
+	    output_string (f, "      if (");
+	  else
+	    {
+	      output_string (f, "  if (");
+	      output_string (f, MODIFICATION_FUNCTION_NODE_PARAMETER_NAME);
+	      output_string (f, " == NULL\n      || ");
+	    }
           if (IR_NODE_MODE (IR_field_type (field)) == IR_NM_node_type)
             {
-              output_string (f, cpp_flag ? "\n          || (" : "\n      || (");
+              output_string (f, "(");
               output_string (f, MODIFICATION_FUNCTION_VALUE_PARAMETER_NAME);
               output_string (f, " != NULL && !");
               if (!fast_flag)
@@ -5508,8 +5506,9 @@ output_field_modification_function_definition (IR_node_t field)
               output_string (f, ") != ");
               output_node_mode_type_value (f, ERROR_NAME);
               output_string (f, ")");
+	      output_string (f, cpp_flag ? "\n          || " : "\n      || ");
             }
-          output_string (f, cpp_flag ? "\n          || !" : "\n      || !");
+          output_string (f, "!");
           if (field == IR_previous_synonym_field (field)
               && !IR_secondary_super_type_flag (IR_node_type (field)))
             {
@@ -6505,10 +6504,13 @@ output_internal_graph_deletion_function (void)
   output_string (output_implementation_file, "\n{\n");
   /* Test graph cycle */
   output_string (output_implementation_file, "  if (");
-  output_string (output_implementation_file,
-                 INTERNAL_GRAPH_DELETION_PARAMETER_NAME);
-  output_string (output_implementation_file,
-                 " == NULL\n      || ");
+  if (! cpp_flag)
+    {
+      output_string (output_implementation_file,
+		     INTERNAL_GRAPH_DELETION_PARAMETER_NAME);
+      output_string (output_implementation_file,
+		     " == NULL\n      || ");
+    }
   output_string (output_implementation_file,
                  INTERNAL_GRAPH_DELETION_PARAMETER_NAME);
   output_string (output_implementation_file, "->");
@@ -6930,9 +6932,12 @@ output_node_copy_function (void)
   output_char (' ', output_implementation_file);
   output_string (output_implementation_file, NODE_COPY_RESULT_NAME);
   output_string (output_implementation_file, ";\n\n");
-  output_string (output_implementation_file, "  if (");
-  output_string (output_implementation_file, NODE_COPY_PARAMETER_NAME);
-  output_string (output_implementation_file, " == NULL)\n    return NULL;\n");
+  if (! cpp_flag)
+    {
+      output_string (output_implementation_file, "  if (");
+      output_string (output_implementation_file, NODE_COPY_PARAMETER_NAME);
+      output_string (output_implementation_file, " == NULL)\n    return NULL;\n");
+    }
   /* Memory allocation */
   output_string (output_implementation_file, "  ");
   output_alloc_macro_name (output_implementation_file);
@@ -7144,11 +7149,15 @@ output_internal_graph_copy_function (void)
   output_string (output_implementation_file, GRAPH_COPY_RESULT_NAME);
   output_string (output_implementation_file, ";\n\n");
   /* Test graph cycle */
+  if (! cpp_flag)
+    {
+      output_string (output_implementation_file, "  if (");
+      output_string (output_implementation_file,
+		     INTERNAL_GRAPH_COPY_PARAMETER_NAME);
+      output_string (output_implementation_file,
+		     " == NULL)\n    return NULL;\n");
+    }
   output_string (output_implementation_file, "  if (");
-  output_string (output_implementation_file,
-                 INTERNAL_GRAPH_COPY_PARAMETER_NAME);
-  output_string (output_implementation_file,
-                 " == NULL)\n    return NULL;\n  else if (");
   output_string (output_implementation_file,
                  INTERNAL_GRAPH_COPY_PARAMETER_NAME);
   output_string (output_implementation_file, "->");
@@ -7588,8 +7597,11 @@ output_node_equality_function (void)
   output_string (output_implementation_file, NODE_EQUALITY_PARAMETER_NAME_2);
   output_string (output_implementation_file, ")\n    return 1;\n");
   output_string (output_implementation_file, "  else if (");
-  output_string (output_implementation_file, NODE_EQUALITY_PARAMETER_NAME_1);
-  output_string (output_implementation_file, " == NULL || ");
+  if (! cpp_flag)
+    {
+      output_string (output_implementation_file, NODE_EQUALITY_PARAMETER_NAME_1);
+      output_string (output_implementation_file, " == NULL || ");
+    }
   output_string (output_implementation_file, NODE_EQUALITY_PARAMETER_NAME_2);
   output_string (output_implementation_file, " == NULL\n           || ");
   if (cpp_flag)
@@ -7784,9 +7796,12 @@ output_internal_graph_equality_function (void)
   output_string (output_implementation_file, GRAPH_EQUALITY_PARAMETER_NAME_2);
   output_string (output_implementation_file, ")\n    return 1;\n");
   output_string (output_implementation_file, "  else if (");
-  output_string (output_implementation_file,
-                 INTERNAL_GRAPH_EQUALITY_PARAMETER_NAME_1);
-  output_string (output_implementation_file, " == NULL || ");
+  if (! cpp_flag)
+    {
+      output_string (output_implementation_file,
+		     INTERNAL_GRAPH_EQUALITY_PARAMETER_NAME_1);
+      output_string (output_implementation_file, " == NULL || ");
+    }
   output_string (output_implementation_file, GRAPH_EQUALITY_PARAMETER_NAME_2);
   output_string (output_implementation_file, " == NULL)\n    return 0;\n");
   /* Test that graphs are simultaneously cycled */
@@ -8529,9 +8544,12 @@ output_node_check_function (void)
   /* Function itself */
   output_title_of_node_check_function (output_implementation_file, cpp_flag);
   output_string (output_implementation_file, "\n{\n");
-  output_string (output_implementation_file, "  if (");
-  output_string (output_implementation_file, NODE_CHECK_NODE_PARAMETER_NAME);
-  output_string (output_implementation_file, " == NULL)\n    return 0;\n");
+  if (! cpp_flag)
+    {
+      output_string (output_implementation_file, "  if (");
+      output_string (output_implementation_file, NODE_CHECK_NODE_PARAMETER_NAME);
+      output_string (output_implementation_file, " == NULL)\n    return 0;\n");
+    }
   /* Field checking */
   output_string (output_implementation_file, "  if (!");
   output_name_of_field_check_function (output_implementation_file);
@@ -8726,10 +8744,13 @@ output_internal_graph_check_function (void)
   output_string (output_implementation_file, ";\n\n");
   /* Test graph cycle */
   output_string (output_implementation_file, "  if (");
-  output_string (output_implementation_file,
-                 INTERNAL_GRAPH_CHECK_GRAPH_PARAMETER_NAME);
-  output_string (output_implementation_file,
-                 " == NULL\n      || ");
+  if (! cpp_flag)
+    {
+      output_string (output_implementation_file,
+		     INTERNAL_GRAPH_CHECK_GRAPH_PARAMETER_NAME);
+      output_string (output_implementation_file,
+		     " == NULL\n      || ");
+    }
   output_string (output_implementation_file,
                  INTERNAL_GRAPH_CHECK_GRAPH_PARAMETER_NAME);
   output_string (output_implementation_file, "->");
@@ -9200,9 +9221,12 @@ output_node_print_function (void)
   /* Function itself */
   output_title_of_node_print_function (output_implementation_file, cpp_flag);
   output_string (output_implementation_file, "\n{\n");
-  output_string (output_implementation_file, "  if (");
-  output_string (output_implementation_file, NODE_PRINT_NODE_PARAMETER_NAME);
-  output_string (output_implementation_file, " == NULL)\n    return;\n");
+  if (! cpp_flag)
+    {
+      output_string (output_implementation_file, "  if (");
+      output_string (output_implementation_file, NODE_PRINT_NODE_PARAMETER_NAME);
+      output_string (output_implementation_file, " == NULL)\n    return;\n");
+    }
   /* Print node address */
   output_string (output_implementation_file, "  ");
   output_field_type_print_macro_name_prefix (output_implementation_file);
@@ -9538,9 +9562,12 @@ output_node_output_function (void)
       output_string (output_implementation_file, ";\n");
     }
   output_string (output_implementation_file, "\n");
-  output_string (output_implementation_file, "  if (");
-  output_string (output_implementation_file, NODE_OUTPUT_NODE_PARAMETER_NAME);
-  output_string (output_implementation_file, " == NULL)\n    return 0;\n");
+  if (! cpp_flag)
+    {
+      output_string (output_implementation_file, "  if (");
+      output_string (output_implementation_file, NODE_OUTPUT_NODE_PARAMETER_NAME);
+      output_string (output_implementation_file, " == NULL)\n    return 0;\n");
+    }
   output_ifdef (output_implementation_file, DEBUG_PARAMETER_NAME);
   output_string (output_implementation_file, "  if (");
   if (cpp_flag)
@@ -10369,10 +10396,13 @@ output_internal_traverse_function (int reverse_flag)
   output_string (output_implementation_file, "\n{\n");
   /* Test graph cycle */
   output_string (output_implementation_file, "  if (");
-  output_string (output_implementation_file,
-                 INTERNAL_TRAVERSE_GRAPH_PARAMETER_NAME);
-  output_string (output_implementation_file,
-                 " == NULL\n      || ");
+  if (! cpp_flag)
+    {
+      output_string (output_implementation_file,
+		     INTERNAL_TRAVERSE_GRAPH_PARAMETER_NAME);
+      output_string (output_implementation_file,
+		     " == NULL\n      || ");
+    }
   output_string (output_implementation_file,
                  INTERNAL_TRAVERSE_GRAPH_PARAMETER_NAME);
   output_string (output_implementation_file, "->");
@@ -10842,10 +10872,13 @@ output_internal_transformation_function (void)
                                            FALSE);
   output_string (output_implementation_file, "\n{\n");
   output_string (output_implementation_file, "  if (");
-  output_string (output_implementation_file,
-                 INTERNAL_TRANSFORM_GRAPH_PARAMETER_NAME);
-  output_string (output_implementation_file,
-                 " == NULL || !(*");
+  if (! cpp_flag)
+    {
+      output_string (output_implementation_file,
+		     INTERNAL_TRANSFORM_GRAPH_PARAMETER_NAME);
+      output_string (output_implementation_file, " == NULL || ");
+    }
+  output_string (output_implementation_file, "!(*");
   output_string (output_implementation_file,
                  TRANSFORM_GUARD_FUNCTION_PARAMETER_NAME);
   output_string (output_implementation_file, ") (");
@@ -11216,7 +11249,8 @@ output_class_field_initiation_finalization_function (int initiation_flag)
   output_string (output_implementation_file, ")\n    {\n");
   traverse_node_types
     (output_all_node_type_class_field_initiations_finalizations);
-  output_string (output_implementation_file, "    }\n");
+  output_string (output_implementation_file,
+		 "    default:\n      abort ();\n      break;\n    }\n");
   /* Function epilogue */
   output_string (output_implementation_file, "}\n\n");
 }

@@ -11,6 +11,34 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([d_main.c])
 AM_MAINTAINER_MODE
 
+DINO_MOD_LDFLAGS=
+system=`uname`.`uname -r`
+case $system in
+	Linux*)
+	  DINO_LIB_CFLAGS='-static'
+          DINO_LIB_LDFLAGS='-static'
+          ;;
+	Darwin*)
+	  DINO_LIB_CFLAGS='-shared'
+          DINO_LIB_LDFLAGS='-shared ../AMMUNITION/libcocom.la ../ONIGURUMA/libonig.la'
+	  CFLAGS="`echo $CFLAGS` -I/usr/include -I/usr/local/include -L/usr/lib -L/usr/local/lib"
+          ;;
+	CYGWIN*)
+	  DINO_LIB_CFLAGS='-shared'
+          DINO_LIB_LDFLAGS='-shared ../AMMUNITION/libcocom.la ../ONIGURUMA/libonig.la -no-undefined'
+	  DINO_MOD_LDFLAGS='libdino.la -no-undefined'
+	  CFLAGS="`echo $CFLAGS` -I/usr/include -I/usr/local/include -L/usr/lib -L/usr/local/lib"
+          ;;
+	*)
+	  DINO_LIB_CFLAGS=-static
+          DINO_LIB_LDFLAGS=-static 
+	  ;;
+esac
+
+AC_SUBST(DINO_LIB_CFLAGS)
+AC_SUBST(DINO_LIB_LDFLAGS)
+AC_SUBST(DINO_MOD_LDFLAGS)
+
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
@@ -55,7 +83,7 @@ AC_FUNC_MALLOC
 AC_FUNC_STRTOD
 AC_CHECK_FUNCS([atexit getcwd gethostbyaddr gethostbyname gethostname inet_ntoa memmove memset\
                 mkdir pow rmdir socket sqrt strerror strtoull strtod setitimer dlopen\
-		sigaction sigemptyset getc_unlocked])
+		sigaction sigemptyset getc_unlocked random])
 
 AC_SUBST(START_SPRUT_OPTIONS)
 AC_SUBST(C_DEBUG_DEFINE)
@@ -81,32 +109,6 @@ else
   C_DEBUG_DEFINE=
   START_SPRUT_OPTIONS=-debug
 fi
-
-DINO_MOD_LDFLAGS=
-system=`uname`.`uname -r`
-case $system in
-	Linux*)
-	  DINO_LIB_CFLAGS='-static'
-          DINO_LIB_LDFLAGS='-static'
-          ;;
-	Darwin*)
-	  DINO_LIB_CFLAGS='-shared'
-          DINO_LIB_LDFLAGS='-shared ../AMMUNITION/libcocom.la ../ONIGURUMA/libonig.la'
-          ;;
-	CYGWIN*)
-	  DINO_LIB_CFLAGS='-shared'
-          DINO_LIB_LDFLAGS='-shared ../AMMUNITION/libcocom.la ../ONIGURUMA/libonig.la -no-undefined'
-	  DINO_MOD_LDFLAGS='libdino.la -no-undefined'
-          ;;
-	*)
-	  DINO_LIB_CFLAGS=-static
-          DINO_LIB_LDFLAGS=-static 
-	  ;;
-esac
-
-AC_SUBST(DINO_LIB_CFLAGS)
-AC_SUBST(DINO_LIB_LDFLAGS)
-AC_SUBST(DINO_MOD_LDFLAGS)
 
 if test "$GCC" = yes && test x$cocom_debug = x -a x$dino_debug = x; then
   my_save_cflags="$CFLAGS"

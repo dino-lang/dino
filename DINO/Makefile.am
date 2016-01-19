@@ -6,8 +6,8 @@ libdino_la_SOURCES = d_dino.h d_errors.h d_common.h d_built.h d_yacc.h d_runtab.
 		     d_eval.c d_dino.c
 nodist_libdino_la_SOURCES = d_yacc.c d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_extern.h
 CC = @CC@
-libdino_la_CFLAGS = @DINO_LIB_CFLAGS@ -I$(srcdir)/../ONIGURUMA -I$(srcdir)/../AMMUNITION\
-        	    -DDINO_VERSION=$(VERSION) -DCC='"$(CC)"'\
+libdino_la_CFLAGS = -I$(srcdir)/../ONIGURUMA -I$(srcdir)/../AMMUNITION\
+        	    @DINO_LIB_CFLAGS@ -DDINO_VERSION=$(VERSION) -DCC='"$(CC)"'\
 		    -DSTANDARD_DINO_INCLUDE_DIRECTORY='"$(includedir)"'\
 		    -DSTANDARD_DINO_EXTERN_LIBS='"$(DINO_EXTERN_LIBS_PATH)"'\
 		    -DSTANDARD_DINO_LIB_DIRECTORY='"$(libdir)"'\

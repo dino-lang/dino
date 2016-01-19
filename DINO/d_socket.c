@@ -302,9 +302,9 @@ _getservbyname (int_t npars, val_t *vals)
   return form_servent (instance, getservbyname (name, proto));
 }
 
-
+#include <stdio.h>
 val_t
-_sread (int_t npars, val_t *vals)
+_dsread (int_t npars, val_t *vals)
 {
   int sd;
   rint_t len;
@@ -342,7 +342,7 @@ _sread (int_t npars, val_t *vals)
 }
 
 val_t
-_swrite (int_t npars, val_t *vals)
+_dswrite (int_t npars, val_t *vals)
 {
   int sd;
   rint_t len;
@@ -738,10 +738,10 @@ socket_address (const char *name)
     return _getservbyport;
   else if (strcmp (name, "_getservbyname") == 0)
     return _getservbyname;
-  else if (strcmp (name, "_sread") == 0)
-    return _sread;
-  else if (strcmp (name, "_swrite") == 0)
-    return _swrite;
+  else if (strcmp (name, "_dsread") == 0)
+    return _dsread;
+  else if (strcmp (name, "_dswrite") == 0)
+    return _dswrite;
   else if (strcmp (name, "_recvfrom") == 0)
     return _recvfrom;
   else if (strcmp (name, "_sendto") == 0)

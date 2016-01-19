@@ -1,3 +1,74 @@
+2016-01-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/objstackcpp.C (os::os): Rename parameter to
+	init_segment_length.
+	* DINO/Makefile.am: Move @DINO_LIB_CFLAGS@ after -I options.
+	* DINO/configure.ac: Move definitions DINO_{LIB_CFLAGS,
+	LIB_LDFLAGS, MOD_LDFLAGS} before checking programs.  Add
+	/usr/local/... to CFLAGS for Darwin and CYGWIN.
+	(random): Check the function.
+	* DINO/d_bcio.c (get_token): Clear errno after mpz_init_set_str.
+	* DINO/d_conv.c (form_format_string): Clear errno at the end.
+	Don't process errno.
+	(implicit_arithmetic_conversion): Clear errno.
+	* DINO/d_func.c (rename_call): Check the result of system function
+	and process errno in case of error.
+	(remove_call, mkdir_call, rmdir_call, getcwd_call, chdir_call):
+	Ditto.
+	(get_stat, general_chmod, open_call, close_call, flush_call): Ditto.
+	(popen_call, tell_call, seek_call, getgroups_call): Ditto.
+	(finish_output): Return ferror.
+	(general_put_call, general_print_call, general_putf_call): Check
+	finish_output_result.
+	(get_file_char): Process errno from get_ucode_from_stream.
+	(general_get_call, general_get_ln_file_call, get_token): Don't
+	process errno.
+	(general_scan_call): Ditto.
+	(general_random_code): Add call of random/srandom.
+	(process_errno_call): Save errno around to_vect_string_conversion.
+	* DINO/d_socket.c (_sread, _swrite): Rename to _dsread, _dswrite.
+	* DINO/socket.d: Ditto.
+	* DINO/dino.tst.in (494): Make expected output in [] optional.
+	(826): Use KOREAN for Darwin.
+	(844): Add Illegal byte sequence as expected output.
+	* MSTA/fparse.y: Use stdlib.h instead of malloc.h
+	* NONA/gen.c (output_state_struct_class): Increase length of
+	generated arrays.
+	(output_cs_nonterminal_rule_function): Don't check this on NULL.
+	(output_cs_it_is_axiom_function): Ditto.
+	(output_cs_traverse_cover_pass_function): Ditto.
+	(output_cs_traverse_cover_function): Ditto.
+	(output_internal_cs_delete_cover_function): Ditto.
+	(output_cs_delete_cover_function): Ditto.
+	* OKA/SCHEDULE/schedule.c (ge_for_data_ready_list): More pars
+	around &&.
+	(build_data_dependence_graph): Call finish_resource_history.
+	* OKA/SCHEDULE/schedule.cpp
+	(scheduler_state::ge_for_data_ready_list): More pars
+	around &&.
+	* OKA/gen.c (output_transition_table): Memset expanded vector.
+	(output_is_dead_locked_vector): Ditto.
+	* SPRUT/A_test.sprut (number): Put more pars.
+	* SPRUT/gen.c (output_node_type_macros_functions): Don't check
+	this on NULL.
+	(output_rest_double_link_functions_definitions): Ditto.
+	(output_field_access_function_definition): Ditto.
+	(output_set_double_link_function_definition): Ditto.
+	(output_field_modification_function_definition): Ditto.
+	(output_internal_graph_deletion_function): Ditto.
+	(output_node_copy_function): Ditto.
+	(output_internal_graph_copy_function): Ditto.
+	(output_node_equality_function): Ditto.
+	(output_internal_graph_equality_function): Ditto.
+	(output_node_check_function): Ditto.
+	(output_internal_graph_check_function): Ditto.
+	(output_node_print_function): Ditto.
+	(output_node_output_function): Ditto.
+	(output_internal_traverse_function): Ditto.
+	(output_internal_transformation_function): Ditto.
+	(output_class_field_initiation_finalization_function): Generate
+	default case too.
+	
 2016-01-16  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/compare.tst (17): Make 10 as minimal rep.

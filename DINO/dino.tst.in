@@ -27519,8 +27519,8 @@ TEST494
      if uname | fgrep CYGWIN >/dev/null; then
         echo '      ' "$DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@  $test_file time >$stdout"
         if $DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@ $test_file time >$stdout; then
-                echo '      ' egrep '^".+"\[".+"\]37"tcp"$' $stdout
-                if egrep '^".+"\[".+"\]37"tcp"$' $stdout; then
+                echo '      ' egrep '^".+"\[(".+")?\]37"tcp"$' $stdout
+                if egrep '^".+"\[(".+")?\]37"tcp"$' $stdout; then
                         result=ok
                 else
                         result=fail
@@ -27531,8 +27531,8 @@ TEST494
      else
         echo '      ' "$DINO -L.libs/d_ipcerr-$version.so -L.libs/d_socket-$version.so -I@srcdir@  $test_file time >$stdout"
         if $DINO -L.libs/d_ipcerr-$version.so -L.libs/d_socket-$version.so -I@srcdir@ $test_file time >$stdout; then
-                echo '      ' egrep '^".+"\[".+"\]37"tcp"$' $stdout
-                if egrep '^".+"\[".+"\]37"tcp"$' $stdout; then
+                echo '      ' egrep '^".+"\[(".+")?\]37"tcp"$' $stdout
+                if egrep '^".+"\[(".+")?\]37"tcp"$' $stdout; then
                         result=ok
                 else
                         result=fail
@@ -48895,7 +48895,7 @@ fi
 # Test 826.
 if test $result = ok -a $start_test_number -le 826; then
 	echo test 826: Non-ascii encoding
-        if uname | fgrep CYGWIN >/dev/null; then
+        if uname | fgrep CYGWIN >/dev/null || uname | fgrep Darwin >/dev/null; then
             cat >$test_file <<'TEST826'
 set_encoding ("KOREAN");
 TEST826
@@ -49354,6 +49354,10 @@ TEST844
                 if cat >$ftemp2 <<'OUTPUT844' && $CMP $stderr $ftemp2; then
 test.d:2:16: run time error - unexpected input for encoding used by `getln'
 OUTPUT844
+			result=ok
+                elif cat >$ftemp2 <<'OUTPUT844a' && $CMP $stderr $ftemp2; then
+test.d:2:16: Illegal byte sequence
+OUTPUT844a
 			result=ok
                 else
                         result=fail

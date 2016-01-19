@@ -54,19 +54,19 @@ _OS_memcpy (void *to, const void *from, size_t length)
 
 /* The constructor of OS with given initial segment length. */
 
-os::os (size_t initial_segment_length)
+os::os (size_t init_segment_length)
 {
-  if (initial_segment_length == 0)
-    initial_segment_length = OS_DEFAULT_SEGMENT_LENGTH;
+  if (init_segment_length == 0)
+    init_segment_length = OS_DEFAULT_SEGMENT_LENGTH;
   os_current_segment
-    = (class _os_segment *) allocate::malloc (initial_segment_length
+    = (class _os_segment *) allocate::malloc (init_segment_length
                                               + sizeof (class _os_segment));
   os_current_segment->os_previous_segment = NULL;
   os_top_object_start
     = (char *) _OS_ALIGNED_ADDRESS (os_current_segment->os_segment_contest);
   os_top_object_free = os_top_object_start;
-  os_boundary = os_top_object_start + initial_segment_length;
-  initial_segment_length = initial_segment_length;
+  os_boundary = os_top_object_start + init_segment_length;
+  initial_segment_length = init_segment_length;
 }
 
 /* The destructor frees memory allocated for OS. */

@@ -1158,7 +1158,14 @@ get_token (void)
               else if (! long_flag)
 		token_attr.i= a2i (VLO_BEGIN (symbol_text), 10);
 	      else
-		mpz_init_set_str (mpz_attr, VLO_BEGIN (symbol_text), 10);
+		{
+		  mpz_init_set_str (mpz_attr, VLO_BEGIN (symbol_text), 10);
+		  /* the mpz function might change errno if it is ok
+		     because it can use malloc/realloc which might
+		     change errno even in success case.  So clear
+		     errno.  */
+		  errno = 0;
+		}
 	      if (errno)
 		{
 		  d_assert (! long_flag);
