@@ -13,13 +13,13 @@ include_HEADERS = allocate.h vlobject.h objstack.h hashtab.h spset.h cspset.h \
                   commline.h position.h errors.h ticker.h bits.h arithm.h IEEE.h yaep.h 
 BUILT_SOURCES = sgramm.c
 CLEANFILES = sgramm.c
-EXTRA_DIST = sgramm.y allocate.tst.in vlobject.tst.in objstack.tst.in hashtab.tst.in\
+EXTRA_DIST = IEEEtens.c sgramm.y allocate.tst.in vlobject.tst.in objstack.tst.in hashtab.tst.in\
              spset.tst.in cspset.tst.in commline.tst.in position.tst.in errors.tst.in\
 	     ticker.tst.in bits.tst.in arithm.tst.in IEEE.tst.in yaep.tst.in\
 	     allocate++.tst.in vlobject++.tst.in objstack++.tst.in hashtab++.tst.in\
              spset++.tst.in cspset++.tst.in commline++.tst.in position++.tst.in errors++.tst.in\
 	     ticker++.tst.in bits++.tst.in arithm++.tst.in IEEE++.tst.in yaep++.tst.in\
-	     compare_parsers.tst.in ammunition.sgml.in ammunition++.sgml.in\
+	     compare_parsers.tst.in whole_gcc_test.i ammunition.sgml.in ammunition++.sgml.in\
 	     ammunition.txt ammunition.ps ammunition.pdf ammunition.dvi ammunition.info\
 	     ammunition.html ammunition-1.html ammunition-2.html ammunition-3.html ammunition-4.html\
 	     ammunition-5.html ammunition-6.html ammunition-7.html ammunition-8.html ammunition-9.html\

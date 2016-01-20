@@ -1,4 +1,28 @@
-2016-01-18  Vladimir Makarov  <vmakarov@redhat.com>
+2016-01-20  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/Makefile.am (EXTRA_DIST): Add IEEEtens.c and
+	whole_gcc_test.i.
+	* AMMUNITION/Makefile.in: Update.
+	* AMMUNITION/ammunition[++].{dvi, pdf, ps}: Update.
+	* AMMUNITION/compare_parsers.tst.in (LR_LIBRARY_PATH): Use
+	YAEPLIBDIR instead of YAEPDIR.
+	(BIG_TEST): Use ../AMMUNITION in the path.
+	* AMMUNITION/configure.ac (YAEPLIBDIR): New.
+	* AMMUNITION/configure: Update.
+	* DINO/Makefile.am (EXTRA_DIST): Add d_gen.c and UnicodeDB.c.
+	* DINO/Makefile.in: Update.
+	* DINO/dino.{dvi, pdf, ps}: Update.
+	* MSTA/Makefile.am (EXTRA_DIST): Add c5.y, cpp5.y, fcalc.y,
+	fcalc1.y, fparse.y, gram.y, java.y, lex.y, m2c.y, oberon2-gram.y
+	oberon2-kw.shilka, oberon2-lex.y, p-yacc.y, pascal.y, sql1.y.
+	* MSTA/Makefile.in: Update.
+	* MSTA/msta.{dvi, pdf, ps}: Update.
+	* NONA/nona.{dvi, pdf, ps}: Update.
+	* OKA/oka.{dvi, pdf, ps}: Update.
+	* SHILKA/shilka.{dvi, pdf, ps}: Update.
+	* SPRUT/sprut.{dvi, pdf, ps}: Update.
+
+2016-01-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/{Makefile.in, configure, DINO/d_config.h.in}: Update.
 

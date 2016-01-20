@@ -638,8 +638,9 @@ LTLIBOBJS
 C_DEBUG_DEFINE
 LIB_LDFLAGS
 LIB_CFLAGS
-YAEPDIR
+YAEPLIBDIR
 YAEPLIB
+YAEPDIR
 LEXLIB
 LEX_OUTPUT_ROOT
 LEX
@@ -16307,8 +16308,10 @@ ac_config_files="$ac_config_files Makefile"
 
 
 
+
+YAEPDIR=../AMMUNITION
 YAEPLIB=cocom
-YAEPDIR=../AMMUNITION/.libs
+YAEPLIBDIR=../AMMUNITION/.libs
 
 system=`uname`.`uname -r`
 case $system in

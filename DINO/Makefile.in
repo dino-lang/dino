@@ -449,9 +449,9 @@ d_socket_la_CFLAGS = -shared -I. -I$(srcdir)
 d_socket_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ -release $(VERSION)
 nodist_d_socket_la_SOURCES = extern.h
 EXTRA_d_socket_la_DEPENDENCIES = libdino.la
-EXTRA_DIST = d_yacc.y d_ir.sprut d_bc.sprut d_extern.sprut d_run.sprut\
-	      d_kw.shilka d_enc.shilka d_bcn.shilka d_bcf.shilka dino.tst.in compare.tst\
-	      README INSTALL d_minimize.d mpi.d ieee.d ipcerr.d socket.d\
+EXTRA_DIST = d_gen.c d_yacc.y d_ir.sprut d_bc.sprut d_extern.sprut d_run.sprut\
+	      d_kw.shilka d_enc.shilka d_bcn.shilka d_bcf.shilka dino.tst.in UnicodeDB.c\
+	      compare.tst README INSTALL d_minimize.d mpi.d ieee.d ipcerr.d socket.d\
 	      UnicodeOriginalData.txt process_ucodedb.d\
 	      dino.sgml.in dino.txt dino.info dino.html dino-1.html dino-2.html\
 	      dino-3.html dino-4.html dino-5.html dino-6.html dino-7.html\

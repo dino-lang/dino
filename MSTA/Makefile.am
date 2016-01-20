@@ -9,6 +9,8 @@ CLEANFILES = yacc.c ird.c ird.h
 msta_CFLAGS = -I$(srcdir)/../AMMUNITION
 msta_LDFLAGS = -static ../AMMUNITION/libcocom.la
 EXTRA_DIST =  yacc.y ird.sprut msta.tst.in quality.tst.in\
+	      c5.y cpp5.y fcalc.y fcalc1.y fparse.y gram.y java.y lex.y m2c.y\
+	      oberon2-gram.y oberon2-kw.shilka oberon2-lex.y p-yacc.y pascal.y sql1.y\
 	      README INSTALL msta.sgml.in msta.txt msta.info msta.html msta-1.html msta-2.html\
 	      msta-3.html msta-4.html msta-5.html msta-6.html msta-7.html msta-8.html msta-9.html\
 	      msta.pdf msta.dvi msta.ps
