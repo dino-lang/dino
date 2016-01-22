@@ -350,6 +350,9 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+
+# Cygwin can not find dll without changing PATH
+PATH := ${PATH}:../AMMUNITION/.libs
 msta_SOURCES = common.h common.c tab.h tab.c yacc.h anal.h anal.c\
 	       gen-comm.h gen-comm.c output.h output.c contexts.h contexts.c\
                relation.h relation.c lr-sets.h lr-sets.c lr.h lr.c\

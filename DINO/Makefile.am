@@ -1,3 +1,6 @@
+# Cygwin can not find dll without changing PATH
+PATH := ${PATH}:../AMMUNITION/.libs
+
 lib_LTLIBRARIES = libdino.la d_mpi.la d_ieee.la d_ipcerr.la d_socket.la
 libdino_la_SOURCES = d_dino.h d_errors.h d_common.h d_built.h d_yacc.h d_runtab.h d_bcio.h\
 		     d_types.h d_context.h d_inference.h d_conv.h d_udb.h d_func.h d_eval.h\

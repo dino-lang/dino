@@ -1,3 +1,6 @@
+# Cygwin can not find dll without changing PATH
+PATH := ${PATH}:../AMMUNITION/.libs
+
 bin_PROGRAMS = nona
 nona_SOURCES = common.h common.c tab.h tab.c yacc.h anal.h anal.c gen.h gen.c main.c
 nodist_nona_SOURCES = yacc.c ird.c ird.h

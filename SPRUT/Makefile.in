@@ -345,6 +345,9 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+
+# Cygwin can not find dll without changing PATH
+PATH := ${PATH}:../AMMUNITION/.libs
 sprut_SOURCES = anal.c gen.c tab.c main.c common.c anal.h gen.h tab.h common.h yacc.h
 nodist_sprut_SOURCES = yacc.c ird.c ird.h A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut
 CLEANFILES = yacc.c ird.c ird.h A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut

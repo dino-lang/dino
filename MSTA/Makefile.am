@@ -1,3 +1,6 @@
+# Cygwin can not find dll without changing PATH
+PATH := ${PATH}:../AMMUNITION/.libs
+
 bin_PROGRAMS = msta
 msta_SOURCES = common.h common.c tab.h tab.c yacc.h anal.h anal.c\
 	       gen-comm.h gen-comm.c output.h output.c contexts.h contexts.c\

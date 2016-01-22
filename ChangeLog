@@ -1,3 +1,18 @@
+2016-01-22  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Makefile.am: Add ammunition libs to PATH.
+	* MSTA/Makefile.am: Ditto.
+	* NONA/Makefile.am: Ditto.
+	* OKA/Makefile.am: Ditto.
+	* SHILKA/Makefile.am: Ditto.
+	* SPRUT/Makefile.am: Ditto.
+	* DINO/Makaefile.in: Update.
+	* MSTA/Makaefile.in: Ditto.
+	* NONA/Makaefile.in: Ditto.
+	* OKA/Makaefile.in: Ditto.
+	* SHILKA/Makaefile.in: Ditto.
+	* SPRUT/Makaefile.in: Ditto.
+
 2016-01-20  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* AMMUNITION/Makefile.am (EXTRA_DIST): Add IEEEtens.c and
