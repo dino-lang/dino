@@ -23,36 +23,39 @@ dino_DEPENDENCIES = libdino.la
 dino_CFLAGS = $(libdino_la_CFLAGS)
 dino_LDFLAGS = -lgmp -lm -export-dynamic @DINO_LIB_LDFLAGS@ \
                libdino.la ../ONIGURUMA/libonig.la ../AMMUNITION/libcocom.la
-BUILT_SOURCES = d_ir.h d_bc.h d_run.h d_extern.h d_kw.c d_enc.c d_bcn.c d_bcf.c
+BUILT_SOURCES = d_ir.h d_bc.h d_run.h d_extern.h d_kw.c d_enc.c d_bcn.c d_bcf.c dino.sgml
 d_mpi_la_SOURCES = d_mpi.c
 d_mpi_la_CFLAGS = -shared -I. -I$(srcdir) -I$(srcdir)/../AMMUNITION
 d_mpi_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ ../AMMUNITION/libcocom.la -release $(VERSION)
-nodist_d_mpi_la_SOURCES = extern.h
+nodist_d_mpi_la_SOURCES = d_extern.h
 EXTRA_d_mpi_la_DEPENDENCIES=libdino.la
 d_ieee_la_SOURCES = d_ieee.c
 d_ieee_la_CFLAGS = -shared -DIEEE_QUAD -I. -I$(srcdir) -I$(srcdir)/../AMMUNITION
 d_ieee_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ ../AMMUNITION/libcocom.la -release $(VERSION)
-nodist_d_ieee_la_SOURCES = extern.h
+nodist_d_ieee_la_SOURCES = d_extern.h
 EXTRA_d_ieee_la_DEPENDENCIES=libdino.la
 d_ipcerr_la_SOURCES = d_ipcerr.c
 d_ipcerr_la_CFLAGS = -shared -I. -I$(srcdir)
 d_ipcerr_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ -release $(VERSION)
-nodist_d_ipcerr_la_SOURCES = extern.h
+nodist_d_ipcerr_la_SOURCES = d_extern.h
 EXTRA_d_ipcerr_la_DEPENDENCIES=libdino.la
 d_socket_la_SOURCES = d_socket.c
 d_socket_la_CFLAGS = -shared -I. -I$(srcdir)
 d_socket_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ -release $(VERSION)
-nodist_d_socket_la_SOURCES = extern.h
+nodist_d_socket_la_SOURCES = d_extern.h
 EXTRA_d_socket_la_DEPENDENCIES=libdino.la
+dist_doc_DATA = dino.txt dino.info dino.html dino-1.html dino-2.html\
+	        dino-3.html dino-4.html dino-5.html dino-6.html dino-7.html\
+	        dino-8.html dino-9.html dino-10.html dino-11.html\
+	        dino.pdf dino.dvi dino.ps
+dist_man_MANS = dino.1
+include_HEADERS = d_types.h
+nodist_include_HEADERS = d_extern.h d_config.h d_gen.i
 EXTRA_DIST =  d_gen.c d_yacc.y d_ir.sprut d_bc.sprut d_extern.sprut d_run.sprut\
 	      d_kw.shilka d_enc.shilka d_bcn.shilka d_bcf.shilka dino.tst.in UnicodeDB.c\
 	      compare.tst README INSTALL d_minimize.d mpi.d ieee.d ipcerr.d socket.d\
 	      UnicodeOriginalData.txt process_ucodedb.d\
-	      dino.sgml.in dino.txt dino.info dino.html dino-1.html dino-2.html\
-	      dino-3.html dino-4.html dino-5.html dino-6.html dino-7.html\
-	      dino-8.html dino-9.html dino-10.html dino-11.html\
-	      dino.pdf dino.dvi dino.ps
-dist_man_MANS = dino.1
+	      dino.sgml.in
 ACLOCAL_AMFLAGS = -I m4
 SPRUT = ../SPRUT/sprut
 SHILKA = ../SHILKA/shilka
@@ -63,32 +66,10 @@ check : test
 all-local: d_gen.i
 dist-local:
 
-install-data-local:
-	-mkdir -p $(docdir)
-	$(INSTALL_DATA) $(srcdir)/dino.txt $(srcdir)/dino*.html\
-          $(srcdir)/dino.info* $(srcdir)/dino.pdf\
-          $(srcdir)/dino.dvi $(srcdir)/dino.ps\
-	  $(docdir)
-	-mkdir -p $(dinoincludedir)
-	$(INSTALLDATA) d_extern.h $(dinoincludedir)
-	$(INSTALLDATA) d_config.h $(dinoincludedir)
-	$(INSTALLDATA) $(srcdir)/d_types.h $(dinoincludedir)
-	$(INSTALL_DATA) d_gen.i $(dinoincludedir)
-	
-uninstall-local:
-	rm -f $(dinoincludedir)/d_extern.h
-	rm -f $(dinoincludedir)/d_config.h
-	rm -f $(dinoincludedir)/d_types.h
-	rm -f $(dinoincludedir)/d_gen.i
-	-rmdir $(dinoincludedir)
-	rm -f $(docdir)/dino.txt $(docdir)/dino*.html\
-          $(docdir)/dino.info* $(docdir)/dino.pdf\
-          $(docdir)/dino.dvi $(docdir)/dino.ps
-	-rmdir $(docdir)
-
 # Delete all not needed for distribution.
 distclean-local:
-	rm -f dino.sgml dino.tmp dino.tex dino.log dino.aux dino.toc quality.tst dino.tst dino.out
+	rm -f d_genheader.i d_extern.h d_gen.i\
+	      dino.sgml dino.tmp dino.tex dino.log dino.aux dino.toc quality.tst dino.tst dino.out
 
 d_gen.i : dino$(EXEEXT) d_genheader.i $(srcdir)/d_minimize.d
 	@if test d_gen.i -ot d_genheader.i;then\
@@ -103,7 +84,7 @@ d_genheader.i: $(srcdir)/d_gen.c $(srcdir)/d_common.h $(srcdir)/d_types.h $(srcd
 	       $(srcdir)/../AMMUNITION/position.h $(srcdir)/../AMMUNITION/hashtab.h \
 	       $(srcdir)/../AMMUNITION/ticker.h $(srcdir)/../AMMUNITION/bits.h \
 	       $(srcdir)/../AMMUNITION/errors.h $(srcdir)/../AMMUNITION/objstack.h
-	$(CC) @DEFS@ -I$(srcdir) -I. $(libdino_la_CFLAGS) $(CFLAGS) @C_DEBUG_DEFINE@  -E > d_gen.tmp $(srcdir)/d_gen.c && mv d_gen.tmp $@
+	$(CC) @DEFS@ -I$(srcdir) -I. $(libdino_la_CFLAGS) $(CFLAGS) -E > d_gen.tmp $(srcdir)/d_gen.c && mv d_gen.tmp $@
 
 sgramm.c: $(srcdir)/../AMMUNITION/sgramm.y
 	$(YACC) $(srcdir)/../AMMUNITION/sgramm.y
@@ -162,7 +143,7 @@ compare-dino : dino$(EXEEXT)
 
 # Creation of documentation
 
-doc : dino.sgml $(srcdir)/dino.txt $(srcdir)/dino.html\
+doc : $(srcdir)/dino.txt $(srcdir)/dino.html\
       $(srcdir)/dino.info $(srcdir)/dino.pdf $(srcdir)/dino.dvi $(srcdir)/dino.ps
 
 dino.sgml : $(srcdir)/dino.sgml.in $(srcdir)/dino.1
@@ -173,11 +154,11 @@ dino.sgml : $(srcdir)/dino.sgml.in $(srcdir)/dino.1
                  else print;}' $(srcdir)/dino.sgml.in > $@
 	rm -f dino.tmp
 
-$(srcdir)/dino.txt: dino.sgml
+$(srcdir)/dino.txt: $(srcdir)/dino.sgml.in
 	linuxdoc -B txt --papersize=letter -f dino.sgml
 	mv dino.txt $(srcdir)
 	
-$(srcdir)/dino.html: dino.sgml
+$(srcdir)/dino.html: $(srcdir)/dino.sgml.in
 	linuxdoc -B html --papersize=letter dino.sgml
 	if test -f dino-1.html;then\
   	  for i in dino-*.html;do\
@@ -186,7 +167,7 @@ $(srcdir)/dino.html: dino.sgml
         fi
 	mv dino.html $(srcdir)/dino.html
 	
-$(srcdir)/dino.info: dino.sgml
+$(srcdir)/dino.info: $(srcdir)/dino.sgml.in
 	linuxdoc -B info --papersize=letter dino.sgml
 	if test -f dino.info-1;then\
 	  for i in dino.info-*;do\
@@ -195,7 +176,7 @@ $(srcdir)/dino.info: dino.sgml
         fi
 	mv dino.info $(srcdir)/dino.info
 	
-$(srcdir)/dino.dvi: dino.sgml
+$(srcdir)/dino.dvi: $(srcdir)/dino.sgml.in
 	linuxdoc -B latex --papersize=letter dino.sgml
 	if test ! -f dino.dvi\
            -o -f dino.tex -a dino.tex -nt dino.dvi; then\

@@ -36,13 +36,21 @@ AC_TYPE_SIGNAL
 
 AC_CONFIG_FILES([Makefile])
 
-AC_SUBST(START_SPRUT_OPTIONS)
-AC_SUBST(C_DEBUG_DEFINE)
+AC_ARG_ENABLE([debug],
+[  --enable-debug    Turn on debugging],
+[case "${enableval}" in
+      yes) cocom_debug=true ;;
+       no)  cocom_debug= ;;
+        *) AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
+      esac],[cocom_debug=])
 
-if test x$cocom_debug = x -a x$dino_debug = x; then
-  C_DEBUG_DEFINE=-DNDEBUG
+AC_SUBST(START_SPRUT_OPTIONS)
+
+if test x$cocom_debug = x; then
+  c_debug_define=-DNDEBUG
   START_SPRUT_OPTIONS=-only-macro
 else
+  my_save_cflags="$CFLAGS"
   CFLAGS=-g3
   AC_MSG_CHECKING([whether CC supports -g3])
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
@@ -50,6 +58,7 @@ else
       [g3=yes],
       [AC_MSG_RESULT([no])]
   )
+  CFLAGS="$my_save_cflags"
 
   if test "$g3" = yes; then
     CFLAGS='-O0 -g3'
@@ -58,9 +67,12 @@ else
     CFLAGS='-O0 -g'
     CXXFLAGS='-O0 -g'
   fi
-  C_DEBUG_DEFINE=
+  c_debug_define=
   START_SPRUT_OPTIONS=-debug
 fi
+
+CFLAGS="$CFLAGS $c_debug_define"
+CXXFLAGS="$CXXFLAGS $c_debug_define"
 
 output_files="msta.tst quality.tst"
 AC_OUTPUT($output_files)

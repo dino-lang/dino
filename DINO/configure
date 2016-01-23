@@ -635,7 +635,6 @@ ac_unique_file="d_main.c"
 ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
-C_DEBUG_DEFINE
 START_SPRUT_OPTIONS
 POW_LIB
 LIBOBJS
@@ -782,6 +781,7 @@ enable_libtool_lock
 enable_dependency_tracking
 enable_silent_rules
 enable_maintainer_mode
+enable_debug
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1430,6 +1430,7 @@ Optional Features:
   --enable-maintainer-mode
                           enable make rules and dependencies not useful (and
                           sometimes confusing) to the casual installer
+  --enable-debug    Turn on debugging
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -17283,12 +17284,24 @@ fi
 done
 
 
+# Check whether --enable-debug was given.
+if test "${enable_debug+set}" = set; then :
+  enableval=$enable_debug; case "${enableval}" in
+      yes) dino_debug=true ;;
+       no)  dino_debug= ;;
+        *) as_fn_error $? "bad value ${enableval} for --enable-debug" "$LINENO" 5 ;;
+      esac
+else
+  dino_debug=
+fi
 
 
-if test x$cocom_debug = x -a x$dino_debug = x; then
-  C_DEBUG_DEFINE=-DNDEBUG
+
+if test x$dino_debug = x; then
+  c_debug_define=-DNDEBUG
   START_SPRUT_OPTIONS=-only-macro
 else
+  my_save_cflags="$CFLAGS"
   CFLAGS=-g3
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether CC supports -g3" >&5
 $as_echo_n "checking whether CC supports -g3... " >&6; }
@@ -17313,6 +17326,7 @@ $as_echo "no" >&6; }
 
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$my_save_cflags"
 
   if test "$g3" = yes; then
     CFLAGS="`echo $CFLAGS|sed s/-O2//` -O0 -g3"
@@ -17321,11 +17335,14 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     CFLAGS="`echo $CFLAGS|sed s/-O2//` -O0 -g"
     CXXFLAGS="`echo $CXXFLAGS|sed s/-O2//` -O0 -g"
   fi
-  C_DEBUG_DEFINE=
+  c_debug_define=
   START_SPRUT_OPTIONS=-debug
 fi
 
-if test "$GCC" = yes && test x$cocom_debug = x -a x$dino_debug = x; then
+CFLAGS="$CFLAGS $c_debug_define"
+CXXFLAGS="$CXXFLAGS $c_debug_define"
+
+if test "$GCC" = yes && test x$dino_debug = x; then
   my_save_cflags="$CFLAGS"
   CFLAGS=-Ofast
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether CC supports -Ofast" >&5

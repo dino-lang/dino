@@ -8,16 +8,18 @@ msta_SOURCES = common.h common.c tab.h tab.c yacc.h anal.h anal.c\
                regular.h regular.c la-trie.h la-trie.c descript.h descript.c\
                parser.h parser.c gen.h gen.c main.c
 nodist_msta_SOURCES = yacc.c ird.c ird.h
+BUILT_SOURCES = msta.sgml
 CLEANFILES = yacc.c ird.c ird.h
 msta_CFLAGS = -I$(srcdir)/../AMMUNITION
 msta_LDFLAGS = -static ../AMMUNITION/libcocom.la
+dist_doc_DATA = msta.txt msta.info msta.html msta-1.html msta-2.html msta-3.html\
+	        msta-4.html msta-5.html msta-6.html msta-7.html msta-8.html msta-9.html\
+	        msta.pdf msta.dvi msta.ps
+dist_man_MANS = msta.1
 EXTRA_DIST =  yacc.y ird.sprut msta.tst.in quality.tst.in\
 	      c5.y cpp5.y fcalc.y fcalc1.y fparse.y gram.y java.y lex.y m2c.y\
 	      oberon2-gram.y oberon2-kw.shilka oberon2-lex.y p-yacc.y pascal.y sql1.y\
-	      README INSTALL msta.sgml.in msta.txt msta.info msta.html msta-1.html msta-2.html\
-	      msta-3.html msta-4.html msta-5.html msta-6.html msta-7.html msta-8.html msta-9.html\
-	      msta.pdf msta.dvi msta.ps
-dist_man_MANS = msta.1
+	      README INSTALL msta.sgml.in
 ACLOCAL_AMFLAGS = -I m4
 SPRUT = ../SPRUT/sprut
 
@@ -25,19 +27,6 @@ check : test
 
 all-local:
 dist-local:
-
-install-data-local:
-	-mkdir -p $(docdir)
-	$(INSTALL_DATA) $(srcdir)/msta.txt $(srcdir)/msta*.html\
-          $(srcdir)/msta.info* $(srcdir)/msta.pdf\
-          $(srcdir)/msta.dvi $(srcdir)/msta.ps\
-	  $(docdir)
-	
-uninstall-local:
-	rm -f $(docdir)/msta.txt $(docdir)/msta*.html\
-          $(docdir)/msta.info* $(docdir)/msta.pdf\
-          $(docdir)/msta.dvi $(docdir)/msta.ps
-	-rmdir $(docdir)
 
 # Delete all not needed for distribution.
 distclean-local:
@@ -91,7 +80,7 @@ test: msta
 
 # Creation of documentation
 
-doc : msta.sgml $(srcdir)/msta.txt $(srcdir)/msta.html\
+doc : $(srcdir)/msta.txt $(srcdir)/msta.html\
       $(srcdir)/msta.info $(srcdir)/msta.pdf $(srcdir)/msta.dvi $(srcdir)/msta.ps
 
 msta.sgml : $(srcdir)/msta.sgml.in $(srcdir)/msta.1
@@ -102,11 +91,11 @@ msta.sgml : $(srcdir)/msta.sgml.in $(srcdir)/msta.1
                  else print;}' $(srcdir)/msta.sgml.in > $@
 	rm -f msta.tmp
 
-$(srcdir)/msta.txt: msta.sgml
+$(srcdir)/msta.txt: $(srcdir)/msta.sgml.in
 	linuxdoc -B txt --papersize=letter -f msta.sgml
 	mv msta.txt $(srcdir)
 	
-$(srcdir)/msta.html: msta.sgml
+$(srcdir)/msta.html: $(srcdir)/msta.sgml.in
 	linuxdoc -B html --papersize=letter msta.sgml
 	if test -f msta-1.html;then\
   	  for i in msta-*.html;do\
@@ -115,7 +104,7 @@ $(srcdir)/msta.html: msta.sgml
         fi
 	mv msta.html $(srcdir)/msta.html
 	
-$(srcdir)/msta.info: msta.sgml
+$(srcdir)/msta.info: $(srcdir)/msta.sgml.in
 	linuxdoc -B info --papersize=letter msta.sgml
 	if test -f msta.info;then\
 	  for i in msta.info*;do\
@@ -123,7 +112,7 @@ $(srcdir)/msta.info: msta.sgml
 	  done;\
         fi
 	
-$(srcdir)/msta.dvi: msta.sgml
+$(srcdir)/msta.dvi: $(srcdir)/msta.sgml.in
 	linuxdoc -B latex --papersize=letter msta.sgml
 	if test ! -f msta.dvi\
            -o -f msta.tex -a msta.tex -nt msta.dvi; then\

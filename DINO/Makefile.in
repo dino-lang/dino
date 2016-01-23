@@ -15,6 +15,8 @@
 @SET_MAKE@
 
 
+
+
 VPATH = @srcdir@
 am__is_gnu_make = test -n '$(MAKEFILE_LIST)' && test -n '$(MAKELEVEL)'
 am__make_running_with_option = \
@@ -83,9 +85,9 @@ bin_PROGRAMS = dino$(EXEEXT)
 subdir = .
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) \
-	$(srcdir)/d_config.h.in depcomp $(dist_man_MANS) INSTALL \
-	README compile config.guess config.sub install-sh missing \
-	ltmain.sh
+	$(srcdir)/d_config.h.in depcomp $(dist_man_MANS) \
+	$(dist_doc_DATA) $(include_HEADERS) INSTALL README compile \
+	config.guess config.sub install-sh missing ltmain.sh
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -127,7 +129,8 @@ am__uninstall_files_from_dir = { \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
-	"$(DESTDIR)$(man1dir)"
+	"$(DESTDIR)$(man1dir)" "$(DESTDIR)$(docdir)" \
+	"$(DESTDIR)$(includedir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 d_ieee_la_LIBADD =
 am_d_ieee_la_OBJECTS = d_ieee_la-d_ieee.lo
@@ -235,6 +238,8 @@ am__can_run_installinfo = \
 man1dir = $(mandir)/man1
 NROFF = nroff
 MANS = $(dist_man_MANS)
+DATA = $(dist_doc_DATA)
+HEADERS = $(include_HEADERS) $(nodist_include_HEADERS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) \
 	$(LISP)d_config.h.in
 # Read a list of newline-separated strings from the standard input,
@@ -292,7 +297,6 @@ CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
-C_DEBUG_DEFINE = @C_DEBUG_DEFINE@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DINO_LIB_CFLAGS = @DINO_LIB_CFLAGS@
@@ -431,37 +435,41 @@ dino_CFLAGS = $(libdino_la_CFLAGS)
 dino_LDFLAGS = -lgmp -lm -export-dynamic @DINO_LIB_LDFLAGS@ \
                libdino.la ../ONIGURUMA/libonig.la ../AMMUNITION/libcocom.la
 
-BUILT_SOURCES = d_ir.h d_bc.h d_run.h d_extern.h d_kw.c d_enc.c d_bcn.c d_bcf.c
+BUILT_SOURCES = d_ir.h d_bc.h d_run.h d_extern.h d_kw.c d_enc.c d_bcn.c d_bcf.c dino.sgml
 d_mpi_la_SOURCES = d_mpi.c
 d_mpi_la_CFLAGS = -shared -I. -I$(srcdir) -I$(srcdir)/../AMMUNITION
 d_mpi_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ ../AMMUNITION/libcocom.la -release $(VERSION)
-nodist_d_mpi_la_SOURCES = extern.h
+nodist_d_mpi_la_SOURCES = d_extern.h
 EXTRA_d_mpi_la_DEPENDENCIES = libdino.la
 d_ieee_la_SOURCES = d_ieee.c
 d_ieee_la_CFLAGS = -shared -DIEEE_QUAD -I. -I$(srcdir) -I$(srcdir)/../AMMUNITION
 d_ieee_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ ../AMMUNITION/libcocom.la -release $(VERSION)
-nodist_d_ieee_la_SOURCES = extern.h
+nodist_d_ieee_la_SOURCES = d_extern.h
 EXTRA_d_ieee_la_DEPENDENCIES = libdino.la
 d_ipcerr_la_SOURCES = d_ipcerr.c
 d_ipcerr_la_CFLAGS = -shared -I. -I$(srcdir)
 d_ipcerr_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ -release $(VERSION)
-nodist_d_ipcerr_la_SOURCES = extern.h
+nodist_d_ipcerr_la_SOURCES = d_extern.h
 EXTRA_d_ipcerr_la_DEPENDENCIES = libdino.la
 d_socket_la_SOURCES = d_socket.c
 d_socket_la_CFLAGS = -shared -I. -I$(srcdir)
 d_socket_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ -release $(VERSION)
-nodist_d_socket_la_SOURCES = extern.h
+nodist_d_socket_la_SOURCES = d_extern.h
 EXTRA_d_socket_la_DEPENDENCIES = libdino.la
+dist_doc_DATA = dino.txt dino.info dino.html dino-1.html dino-2.html\
+	        dino-3.html dino-4.html dino-5.html dino-6.html dino-7.html\
+	        dino-8.html dino-9.html dino-10.html dino-11.html\
+	        dino.pdf dino.dvi dino.ps
+
+dist_man_MANS = dino.1
+include_HEADERS = d_types.h
+nodist_include_HEADERS = d_extern.h d_config.h d_gen.i
 EXTRA_DIST = d_gen.c d_yacc.y d_ir.sprut d_bc.sprut d_extern.sprut d_run.sprut\
 	      d_kw.shilka d_enc.shilka d_bcn.shilka d_bcf.shilka dino.tst.in UnicodeDB.c\
 	      compare.tst README INSTALL d_minimize.d mpi.d ieee.d ipcerr.d socket.d\
 	      UnicodeOriginalData.txt process_ucodedb.d\
-	      dino.sgml.in dino.txt dino.info dino.html dino-1.html dino-2.html\
-	      dino-3.html dino-4.html dino-5.html dino-6.html dino-7.html\
-	      dino-8.html dino-9.html dino-10.html dino-11.html\
-	      dino.pdf dino.dvi dino.ps
+	      dino.sgml.in
 
-dist_man_MANS = dino.1
 ACLOCAL_AMFLAGS = -I m4
 SPRUT = ../SPRUT/sprut
 SHILKA = ../SHILKA/shilka
@@ -871,6 +879,69 @@ uninstall-man1:
 	} | sed -e 's,.*/,,;h;s,.*\.,,;s,^[^1][0-9a-z]*$$,1,;x' \
 	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,'`; \
 	dir='$(DESTDIR)$(man1dir)'; $(am__uninstall_files_from_dir)
+install-dist_docDATA: $(dist_doc_DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(dist_doc_DATA)'; test -n "$(docdir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(docdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(docdir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(docdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(docdir)" || exit $$?; \
+	done
+
+uninstall-dist_docDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dist_doc_DATA)'; test -n "$(docdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(docdir)'; $(am__uninstall_files_from_dir)
+install-includeHEADERS: $(include_HEADERS)
+	@$(NORMAL_INSTALL)
+	@list='$(include_HEADERS)'; test -n "$(includedir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(includedir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(includedir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(includedir)'"; \
+	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(includedir)" || exit $$?; \
+	done
+
+uninstall-includeHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(include_HEADERS)'; test -n "$(includedir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(includedir)'; $(am__uninstall_files_from_dir)
+install-nodist_includeHEADERS: $(nodist_include_HEADERS)
+	@$(NORMAL_INSTALL)
+	@list='$(nodist_include_HEADERS)'; test -n "$(includedir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(includedir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(includedir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(includedir)'"; \
+	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(includedir)" || exit $$?; \
+	done
+
+uninstall-nodist_includeHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(nodist_include_HEADERS)'; test -n "$(includedir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(includedir)'; $(am__uninstall_files_from_dir)
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
@@ -1097,12 +1168,12 @@ distcleancheck: distclean
 check-am: all-am
 check: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) check-am
-all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(MANS) d_config.h \
-		all-local
+all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(MANS) $(DATA) $(HEADERS) \
+		d_config.h all-local
 install-binPROGRAMS: install-libLTLIBRARIES
 
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(docdir)" "$(DESTDIR)$(includedir)" "$(DESTDIR)$(includedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: $(BUILT_SOURCES)
@@ -1162,7 +1233,8 @@ info: info-am
 
 info-am:
 
-install-data-am: install-data-local install-man
+install-data-am: install-dist_docDATA install-includeHEADERS \
+	install-man install-nodist_includeHEADERS
 
 install-dvi: install-dvi-am
 
@@ -1210,8 +1282,9 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS uninstall-libLTLIBRARIES \
-	uninstall-local uninstall-man
+uninstall-am: uninstall-binPROGRAMS uninstall-dist_docDATA \
+	uninstall-includeHEADERS uninstall-libLTLIBRARIES \
+	uninstall-man uninstall-nodist_includeHEADERS
 
 uninstall-man: uninstall-man1
 
@@ -1226,49 +1299,29 @@ uninstall-man: uninstall-man1
 	distclean-libtool distclean-local distclean-tags \
 	distcleancheck distdir distuninstallcheck dvi dvi-am html \
 	html-am info info-am install install-am install-binPROGRAMS \
-	install-data install-data-am install-data-local install-dvi \
+	install-data install-data-am install-dist_docDATA install-dvi \
 	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am \
-	install-libLTLIBRARIES install-man install-man1 install-pdf \
+	install-html-am install-includeHEADERS install-info \
+	install-info-am install-libLTLIBRARIES install-man \
+	install-man1 install-nodist_includeHEADERS install-pdf \
 	install-pdf-am install-ps install-ps-am install-strip \
 	installcheck installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am uninstall-binPROGRAMS \
-	uninstall-libLTLIBRARIES uninstall-local uninstall-man \
-	uninstall-man1
+	uninstall-dist_docDATA uninstall-includeHEADERS \
+	uninstall-libLTLIBRARIES uninstall-man uninstall-man1 \
+	uninstall-nodist_includeHEADERS
 
 check : test
 
 all-local: d_gen.i
 dist-local:
 
-install-data-local:
-	-mkdir -p $(docdir)
-	$(INSTALL_DATA) $(srcdir)/dino.txt $(srcdir)/dino*.html\
-          $(srcdir)/dino.info* $(srcdir)/dino.pdf\
-          $(srcdir)/dino.dvi $(srcdir)/dino.ps\
-	  $(docdir)
-	-mkdir -p $(dinoincludedir)
-	$(INSTALLDATA) d_extern.h $(dinoincludedir)
-	$(INSTALLDATA) d_config.h $(dinoincludedir)
-	$(INSTALLDATA) $(srcdir)/d_types.h $(dinoincludedir)
-	$(INSTALL_DATA) d_gen.i $(dinoincludedir)
-
-uninstall-local:
-	rm -f $(dinoincludedir)/d_extern.h
-	rm -f $(dinoincludedir)/d_config.h
-	rm -f $(dinoincludedir)/d_types.h
-	rm -f $(dinoincludedir)/d_gen.i
-	-rmdir $(dinoincludedir)
-	rm -f $(docdir)/dino.txt $(docdir)/dino*.html\
-          $(docdir)/dino.info* $(docdir)/dino.pdf\
-          $(docdir)/dino.dvi $(docdir)/dino.ps
-	-rmdir $(docdir)
-
 # Delete all not needed for distribution.
 distclean-local:
-	rm -f dino.sgml dino.tmp dino.tex dino.log dino.aux dino.toc quality.tst dino.tst dino.out
+	rm -f d_genheader.i d_extern.h d_gen.i\
+	      dino.sgml dino.tmp dino.tex dino.log dino.aux dino.toc quality.tst dino.tst dino.out
 
 d_gen.i : dino$(EXEEXT) d_genheader.i $(srcdir)/d_minimize.d
 	@if test d_gen.i -ot d_genheader.i;then\
@@ -1283,7 +1336,7 @@ d_genheader.i: $(srcdir)/d_gen.c $(srcdir)/d_common.h $(srcdir)/d_types.h $(srcd
 	       $(srcdir)/../AMMUNITION/position.h $(srcdir)/../AMMUNITION/hashtab.h \
 	       $(srcdir)/../AMMUNITION/ticker.h $(srcdir)/../AMMUNITION/bits.h \
 	       $(srcdir)/../AMMUNITION/errors.h $(srcdir)/../AMMUNITION/objstack.h
-	$(CC) @DEFS@ -I$(srcdir) -I. $(libdino_la_CFLAGS) $(CFLAGS) @C_DEBUG_DEFINE@  -E > d_gen.tmp $(srcdir)/d_gen.c && mv d_gen.tmp $@
+	$(CC) @DEFS@ -I$(srcdir) -I. $(libdino_la_CFLAGS) $(CFLAGS) -E > d_gen.tmp $(srcdir)/d_gen.c && mv d_gen.tmp $@
 
 sgramm.c: $(srcdir)/../AMMUNITION/sgramm.y
 	$(YACC) $(srcdir)/../AMMUNITION/sgramm.y
@@ -1342,7 +1395,7 @@ compare-dino : dino$(EXEEXT)
 
 # Creation of documentation
 
-doc : dino.sgml $(srcdir)/dino.txt $(srcdir)/dino.html\
+doc : $(srcdir)/dino.txt $(srcdir)/dino.html\
       $(srcdir)/dino.info $(srcdir)/dino.pdf $(srcdir)/dino.dvi $(srcdir)/dino.ps
 
 dino.sgml : $(srcdir)/dino.sgml.in $(srcdir)/dino.1
@@ -1353,11 +1406,11 @@ dino.sgml : $(srcdir)/dino.sgml.in $(srcdir)/dino.1
                  else print;}' $(srcdir)/dino.sgml.in > $@
 	rm -f dino.tmp
 
-$(srcdir)/dino.txt: dino.sgml
+$(srcdir)/dino.txt: $(srcdir)/dino.sgml.in
 	linuxdoc -B txt --papersize=letter -f dino.sgml
 	mv dino.txt $(srcdir)
 
-$(srcdir)/dino.html: dino.sgml
+$(srcdir)/dino.html: $(srcdir)/dino.sgml.in
 	linuxdoc -B html --papersize=letter dino.sgml
 	if test -f dino-1.html;then\
   	  for i in dino-*.html;do\
@@ -1366,7 +1419,7 @@ $(srcdir)/dino.html: dino.sgml
         fi
 	mv dino.html $(srcdir)/dino.html
 
-$(srcdir)/dino.info: dino.sgml
+$(srcdir)/dino.info: $(srcdir)/dino.sgml.in
 	linuxdoc -B info --papersize=letter dino.sgml
 	if test -f dino.info-1;then\
 	  for i in dino.info-*;do\
@@ -1375,7 +1428,7 @@ $(srcdir)/dino.info: dino.sgml
         fi
 	mv dino.info $(srcdir)/dino.info
 
-$(srcdir)/dino.dvi: dino.sgml
+$(srcdir)/dino.dvi: $(srcdir)/dino.sgml.in
 	linuxdoc -B latex --papersize=letter dino.sgml
 	if test ! -f dino.dvi\
            -o -f dino.tex -a dino.tex -nt dino.dvi; then\

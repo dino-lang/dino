@@ -4,46 +4,23 @@ PATH := ${PATH}:../AMMUNITION/.libs
 bin_PROGRAMS = sprut
 sprut_SOURCES = anal.c gen.c tab.c main.c common.c anal.h gen.h tab.h common.h yacc.h
 nodist_sprut_SOURCES = yacc.c ird.c ird.h A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut
+BUILT_SOURCES = sprut.sgml
 CLEANFILES = yacc.c ird.c ird.h A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut
 sprut_CFLAGS = -I$(srcdir)/../AMMUNITION
 sprut_LDFLAGS = -static ../AMMUNITION/libcocom.la
-EXTRA_DIST =  yacc.y sprut-ird.h sprut-ird.c A_test.sprut A_syntax.sprut A_value.sprut A_base.sprut\
-              ird.sprut std_type.sprut std_mem.sprut std_bmem.sprut std_str.sprut std_pos.sprut\
-	      sprut.tst README INSTALL sprut.sgml.in\
-	      sprut.txt sprut.info sprut.html sprut-1.html sprut-2.html sprut-3.html sprut-4.html sprut-5.html\
-	      sprut.pdf sprut.dvi sprut.ps
+dist_doc_DATA = sprut.txt sprut.info sprut.html sprut-1.html sprut-2.html sprut-3.html sprut-4.html sprut-5.html\
+	        sprut.pdf sprut.dvi sprut.ps
 dist_man_MANS = sprut.1
+include_HEADERS = std_type.sprut std_mem.sprut std_bmem.sprut std_str.sprut std_pos.sprut
+EXTRA_DIST =  yacc.y sprut-ird.h sprut-ird.c A_test.sprut A_syntax.sprut A_value.sprut A_base.sprut\
+              ird.sprut\
+	      sprut.tst README INSTALL sprut.sgml.in
 ACLOCAL_AMFLAGS = -I m4
 
 check : test
 
 all-local:
 dist-local:
-
-install-data-local:
-	-mkdir -p $(libdir)
-	$(INSTALL_DATA) $(srcdir)/std_type.sprut $(libdir)/std_type.sprut
-	$(INSTALL_DATA) $(srcdir)/std_mem.sprut $(libdir)/std_mem.sprut
-	$(INSTALL_DATA) $(srcdir)/std_bmem.sprut $(libdir)/std_bmem.sprut
-	$(INSTALL_DATA) $(srcdir)/std_str.sprut $(libdir)/std_str.sprut
-	$(INSTALL_DATA) $(srcdir)/std_pos.sprut $(libdir)/std_pos.sprut
-	-mkdir -p $(docdir)
-	$(INSTALL_DATA) $(srcdir)/sprut.txt $(srcdir)/sprut*.html\
-          $(srcdir)/sprut.info* $(srcdir)/sprut.pdf\
-          $(srcdir)/sprut.dvi $(srcdir)/sprut.ps\
-	  $(docdir)
-	
-uninstall-local:
-	rm -f $(libdir)/std_type.sprut
-	rm -f $(libdir)/std_mem.sprut
-	rm -f $(libdir)/std_bmem.sprut
-	rm -f $(libdir)/std_str.sprut
-	rm -f $(libdir)/std_pos.sprut
-	-rmdir $(libdir)
-	rm -f $(docdir)/sprut.txt $(docdir)/sprut*.html\
-          $(docdir)/sprut.info* $(docdir)/sprut.pdf\
-          $(docdir)/sprut.dvi $(docdir)/sprut.ps
-	-rmdir $(docdir)
 
 # Delete all not needed for distribution.
 distclean-local:
@@ -515,7 +492,7 @@ sprut-boot: sprut
 
 # Creation of documentation
 
-doc : sprut.sgml $(srcdir)/sprut.txt $(srcdir)/sprut.html $(srcdir)/sprut.info $(srcdir)/sprut.pdf $(srcdir)/sprut.dvi $(srcdir)/sprut.ps
+doc : $(srcdir)/sprut.txt $(srcdir)/sprut.html $(srcdir)/sprut.info $(srcdir)/sprut.pdf $(srcdir)/sprut.dvi $(srcdir)/sprut.ps
 
 sprut.sgml : $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
 	nroff -man $(srcdir)/sprut.1 | $(AWK) '{gsub (/.\b/,"");gsub (/.\200\230/,"\140");gsub (/.\200\231/,"\047");gsub (/\033\[[140]m/,"");gsub (/\033\[2[24]m/,"");print;}' > sprut.tmp
@@ -526,11 +503,11 @@ sprut.sgml : $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
 	rm -f sprut.tmp
 
 
-$(srcdir)/sprut.txt: sprut.sgml
+$(srcdir)/sprut.txt: $(srcdir)/sprut.sgml.in
 	linuxdoc -B txt --papersize=letter -f sprut.sgml
 	mv sprut.txt $(srcdir)
 	
-$(srcdir)/sprut.html: sprut.sgml
+$(srcdir)/sprut.html: $(srcdir)/sprut.sgml.in
 	linuxdoc -B html --papersize=letter sprut.sgml
 	if test -f sprut-1.html;then\
   	  for i in sprut-*.html;do\
@@ -539,7 +516,7 @@ $(srcdir)/sprut.html: sprut.sgml
         fi
 	mv sprut.html $(srcdir)/sprut.html
 	
-$(srcdir)/sprut.info: sprut.sgml
+$(srcdir)/sprut.info: $(srcdir)/sprut.sgml.in
 	linuxdoc -B info --papersize=letter sprut.sgml
 	if test -f sprut.info;then\
 	  for i in sprut.info*;do\
@@ -547,7 +524,7 @@ $(srcdir)/sprut.info: sprut.sgml
 	  done;\
         fi
 	
-$(srcdir)/sprut.dvi: sprut.sgml
+$(srcdir)/sprut.dvi: $(srcdir)/sprut.sgml.in
 	linuxdoc -B latex --papersize=letter sprut.sgml
 	if test ! -f sprut.dvi\
            -o -f sprut.tex -a sprut.tex -nt sprut.dvi; then\

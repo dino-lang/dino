@@ -75,6 +75,9 @@ mktable: $(encdir)/mktable.c $(srcdir)/regenc.h
 	$(CC) -I$(top_srcdir) -o mktable $(encdir)/mktable.c
 
 
+distclean-local:
+	rm -f oniguruma.pc
+
 # TEST
 TESTS = testc testp testcu
 

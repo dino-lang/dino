@@ -1,3 +1,112 @@
+2016-01-23  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/Makefile.am (dist_doc_DATA): New.  Move doc files
+	there.
+	(install-data-local, uninstall-local): Remove.
+	(BUILT_SOURCES): Add ammunition[++].sgml.
+	(doc): Remove *.sgml from dependencies.
+	(.txt, .html, .info, .dvi): Use dependencies from .sgml.in instead
+	of .sgml.
+	* AMMUNITION/Makefile.in: Update.
+	* AMMUNITION/ammunition[++].{dvi, pdf, ps}: Update.
+	* AMMUNITION/configure.ac (--enable-debug): New flag.
+	(C_DEBUG_DEFINE): Rename to c_debug_define.  Add to
+	CFLAGS/CXXFLAGS.
+	(-g3): Save/restore cflags.
+	* AMMUNITION/configure: Update.
+	* AMMUNITION/cspset++.tst.in: Remove include_file.
+	(C_DEBUG_DEFINE): Remove.
+	* AMMUNITION/cspset.tst.in (C_DEBUG_DEFINE): Remove.
+	* DINO/Makefile.am (extern.h): Use d_extern.h instead.
+	(dist_doc_DATA): New.  Move doc files there.
+	(include_HEADERS, nodist_include_HEADERS): New.
+	(install-data-local, uninstall-local): Remove.
+	(distclean-local): Remove d_genheader.i d_extern.h d_gen.i.
+	(C_DEBUG_DEFINE): Remove.
+	(BUILT_SOURCES): Add dino.sgml.
+	(doc): Remove *.sgml from dependencies.
+	(.txt, .html, .info, .dvi): Use dependencies from .sgml.in instead
+	of .sgml.
+	* DINO/Makefile.in: Update.
+	* DINO/configure.ac (--enable-debug): New flag.
+	(C_DEBUG_DEFINE): Rename to c_debug_define.  Add to
+	CFLAGS/CXXFLAGS.
+	(-g3): Save/restore cflags.
+	* DINO/configure: Update.
+	* DINO/dino.{dvi, pdf, ps}: Update.
+	* MSTA/Makefile.am (dist_doc_DATA): New.  Move doc files there.
+	(install-data-local, uninstall-local): Remove.
+	(BUILT_SOURCES): Add msta.sgml.
+	(doc): Remove *.sgml from dependencies.
+	(.txt, .html, .info, .dvi): Use dependencies from .sgml.in instead
+	of .sgml.
+	* MSTA/configure.ac (--enable-debug): New flag.
+	(C_DEBUG_DEFINE): Rename to c_debug_define.  Add to
+	CFLAGS/CXXFLAGS.
+	(-g3): Save/restore cflags.
+	* MSTA/Makefile.in: Update.
+	* MSTA/configure: Update.
+	* MSTA/msta.{dvi, pdf, ps}: Update.
+	* MSTA/quality.tst.in: Remove output_file and description_file in
+	each test for success.  Remove temp_file and temp3_file at the
+	end.
+	* NONA/Makefile.am (dist_doc_DATA): New.  Move doc files there.
+	(install-data-local, uninstall-local): Remove.
+	(BUILT_SOURCES): Add nona.sgml.
+	(doc): Remove *.sgml from dependencies.
+	(.txt, .html, .info, .dvi): Use dependencies from .sgml.in instead
+	of .sgml.
+	* NONA/configure.ac (--enable-debug): New flag.
+	(C_DEBUG_DEFINE): Rename to c_debug_define.  Add to
+	CFLAGS/CXXFLAGS.
+	(-g3): Save/restore cflags.
+	* NONA/Makefile.in: Update.
+	* NONA/configure: Update.
+	* NONA/nona.{dvi, pdf, ps}: Update.
+	* OKA/Makefile.am (dist_doc_DATA): New.  Move doc files there.
+	(install-data-local, uninstall-local): Remove.
+	(BUILT_SOURCES): Add oka.sgml.
+	(doc): Remove *.sgml from dependencies.
+	(.txt, .html, .info, .dvi): Use dependencies from .sgml.in instead
+	of .sgml.
+	* OKA/configure.ac (--enable-debug): New flag.
+	(C_DEBUG_DEFINE): Rename to c_debug_define.  Add to
+	CFLAGS/CXXFLAGS.
+	(-g3): Save/restore cflags.
+	* OKA/Makefile.in: Update.
+	* OKA/configure: Update.
+	* OKA/oka.{dvi, pdf, ps}: Update.
+	* ONIGURUMA/Makefile.am (distclean-local): Remove oniguruma.pc.
+	* ONIGURUMA/Makefile.in: Update.
+	* SHILKA/Makefile.am (dist_doc_DATA): New.  Move doc files there.
+	(install-data-local, uninstall-local): Remove.
+	(BUILT_SOURCES): Add shilka.sgml.
+	(doc): Remove *.sgml from dependencies.
+	(.txt, .html, .info, .dvi): Use dependencies from .sgml.in instead
+	of .sgml.
+	* SHILKA/configure.ac (--enable-debug): New flag.
+	(C_DEBUG_DEFINE): Rename to c_debug_define.  Add to
+	CFLAGS/CXXFLAGS.
+	(-g3): Save/restore cflags.
+	* SHILKA/Makefile.in: Update.
+	* SHILKA/configure: Update.
+	* SHILKA/shilka.{dvi, pdf, ps}: Update.
+	* SHILKA/shilka.tst.in: Remove `basename $test_shilka .shilka`.c.
+	* SPRUT/Makefile.am (dist_doc_DATA): New.  Move doc files there.
+	(include_HEADERS): New.  Move std_*.sprut files there.
+	(install-data-local, uninstall-local): Remove.
+	(BUILT_SOURCES): Add sprut.sgml.
+	(doc): Remove *.sgml from dependencies.
+	(.txt, .html, .info, .dvi): Use dependencies from .sgml.in instead
+	of .sgml.
+	* SPRUT/configure.ac (--enable-debug): New flag.
+	(C_DEBUG_DEFINE): Rename to c_debug_define.  Add to
+	CFLAGS/CXXFLAGS.
+	(-g3): Save/restore cflags.
+	* SPRUT/Makefile.in: Update.
+	* SPRUT/configure: Update.
+	* SPRUT/sprut.{dvi, pdf, ps}: Update.
+
 2016-01-22  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/Makefile.am: Add ammunition libs to PATH.

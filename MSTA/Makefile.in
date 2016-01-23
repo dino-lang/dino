@@ -14,6 +14,7 @@
 
 @SET_MAKE@
 
+
 VPATH = @srcdir@
 am__is_gnu_make = test -n '$(MAKEFILE_LIST)' && test -n '$(MAKELEVEL)'
 am__make_running_with_option = \
@@ -82,8 +83,9 @@ bin_PROGRAMS = msta$(EXEEXT)
 subdir = .
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) \
-	$(srcdir)/config.h.in depcomp $(dist_man_MANS) INSTALL README \
-	compile config.guess config.sub install-sh missing ltmain.sh
+	$(srcdir)/config.h.in depcomp $(dist_man_MANS) \
+	$(dist_doc_DATA) INSTALL README compile config.guess \
+	config.sub install-sh missing ltmain.sh
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -97,7 +99,8 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)"
+am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)" \
+	"$(DESTDIR)$(docdir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_msta_OBJECTS = msta-common.$(OBJEXT) msta-tab.$(OBJEXT) \
 	msta-anal.$(OBJEXT) msta-gen-comm.$(OBJEXT) \
@@ -187,6 +190,7 @@ am__uninstall_files_from_dir = { \
 man1dir = $(mandir)/man1
 NROFF = nroff
 MANS = $(dist_man_MANS)
+DATA = $(dist_doc_DATA)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) \
 	$(LISP)config.h.in
 # Read a list of newline-separated strings from the standard input,
@@ -244,7 +248,6 @@ CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
-C_DEBUG_DEFINE = @C_DEBUG_DEFINE@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
@@ -360,20 +363,23 @@ msta_SOURCES = common.h common.c tab.h tab.c yacc.h anal.h anal.c\
                parser.h parser.c gen.h gen.c main.c
 
 nodist_msta_SOURCES = yacc.c ird.c ird.h
+BUILT_SOURCES = msta.sgml
 CLEANFILES = yacc.c ird.c ird.h
 msta_CFLAGS = -I$(srcdir)/../AMMUNITION
 msta_LDFLAGS = -static ../AMMUNITION/libcocom.la
+dist_doc_DATA = msta.txt msta.info msta.html msta-1.html msta-2.html msta-3.html\
+	        msta-4.html msta-5.html msta-6.html msta-7.html msta-8.html msta-9.html\
+	        msta.pdf msta.dvi msta.ps
+
+dist_man_MANS = msta.1
 EXTRA_DIST = yacc.y ird.sprut msta.tst.in quality.tst.in\
 	      c5.y cpp5.y fcalc.y fcalc1.y fparse.y gram.y java.y lex.y m2c.y\
 	      oberon2-gram.y oberon2-kw.shilka oberon2-lex.y p-yacc.y pascal.y sql1.y\
-	      README INSTALL msta.sgml.in msta.txt msta.info msta.html msta-1.html msta-2.html\
-	      msta-3.html msta-4.html msta-5.html msta-6.html msta-7.html msta-8.html msta-9.html\
-	      msta.pdf msta.dvi msta.ps
+	      README INSTALL msta.sgml.in
 
-dist_man_MANS = msta.1
 ACLOCAL_AMFLAGS = -I m4
 SPRUT = ../SPRUT/sprut
-all: config.h
+all: $(BUILT_SOURCES) config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
@@ -815,6 +821,27 @@ uninstall-man1:
 	} | sed -e 's,.*/,,;h;s,.*\.,,;s,^[^1][0-9a-z]*$$,1,;x' \
 	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,'`; \
 	dir='$(DESTDIR)$(man1dir)'; $(am__uninstall_files_from_dir)
+install-dist_docDATA: $(dist_doc_DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(dist_doc_DATA)'; test -n "$(docdir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(docdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(docdir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(docdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(docdir)" || exit $$?; \
+	done
+
+uninstall-dist_docDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dist_doc_DATA)'; test -n "$(docdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(docdir)'; $(am__uninstall_files_from_dir)
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
@@ -1039,13 +1066,15 @@ distcleancheck: distclean
 	       $(distcleancheck_listfiles) ; \
 	       exit 1; } >&2
 check-am: all-am
-check: check-am
-all-am: Makefile $(PROGRAMS) $(MANS) config.h all-local
+check: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) check-am
+all-am: Makefile $(PROGRAMS) $(MANS) $(DATA) config.h all-local
 installdirs:
-	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)"; do \
+	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(docdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
-install: install-am
+install: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) install-am
 install-exec: install-exec-am
 install-data: install-data-am
 uninstall: uninstall-am
@@ -1076,6 +1105,7 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-am
 
 clean-am: clean-binPROGRAMS clean-generic clean-libtool mostlyclean-am
@@ -1099,7 +1129,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-data-local install-man
+install-data-am: install-dist_docDATA install-man
 
 install-dvi: install-dvi-am
 
@@ -1147,11 +1177,12 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS uninstall-local uninstall-man
+uninstall-am: uninstall-binPROGRAMS uninstall-dist_docDATA \
+	uninstall-man
 
 uninstall-man: uninstall-man1
 
-.MAKE: all install-am install-strip
+.MAKE: all check install install-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am all-local am--refresh check \
 	check-am clean clean-binPROGRAMS clean-cscope clean-generic \
@@ -1162,35 +1193,22 @@ uninstall-man: uninstall-man1
 	distclean-local distclean-tags distcleancheck distdir \
 	distuninstallcheck dvi dvi-am html html-am info info-am \
 	install install-am install-binPROGRAMS install-data \
-	install-data-am install-data-local install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man install-man1 \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	pdf pdf-am ps ps-am tags tags-am uninstall uninstall-am \
-	uninstall-binPROGRAMS uninstall-local uninstall-man \
-	uninstall-man1
+	install-data-am install-dist_docDATA install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-man1 install-pdf install-pdf-am install-ps \
+	install-ps-am install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-am uninstall \
+	uninstall-am uninstall-binPROGRAMS uninstall-dist_docDATA \
+	uninstall-man uninstall-man1
 
 
 check : test
 
 all-local:
 dist-local:
-
-install-data-local:
-	-mkdir -p $(docdir)
-	$(INSTALL_DATA) $(srcdir)/msta.txt $(srcdir)/msta*.html\
-          $(srcdir)/msta.info* $(srcdir)/msta.pdf\
-          $(srcdir)/msta.dvi $(srcdir)/msta.ps\
-	  $(docdir)
-
-uninstall-local:
-	rm -f $(docdir)/msta.txt $(docdir)/msta*.html\
-          $(docdir)/msta.info* $(docdir)/msta.pdf\
-          $(docdir)/msta.dvi $(docdir)/msta.ps
-	-rmdir $(docdir)
 
 # Delete all not needed for distribution.
 distclean-local:
@@ -1244,7 +1262,7 @@ test: msta
 
 # Creation of documentation
 
-doc : msta.sgml $(srcdir)/msta.txt $(srcdir)/msta.html\
+doc : $(srcdir)/msta.txt $(srcdir)/msta.html\
       $(srcdir)/msta.info $(srcdir)/msta.pdf $(srcdir)/msta.dvi $(srcdir)/msta.ps
 
 msta.sgml : $(srcdir)/msta.sgml.in $(srcdir)/msta.1
@@ -1255,11 +1273,11 @@ msta.sgml : $(srcdir)/msta.sgml.in $(srcdir)/msta.1
                  else print;}' $(srcdir)/msta.sgml.in > $@
 	rm -f msta.tmp
 
-$(srcdir)/msta.txt: msta.sgml
+$(srcdir)/msta.txt: $(srcdir)/msta.sgml.in
 	linuxdoc -B txt --papersize=letter -f msta.sgml
 	mv msta.txt $(srcdir)
 
-$(srcdir)/msta.html: msta.sgml
+$(srcdir)/msta.html: $(srcdir)/msta.sgml.in
 	linuxdoc -B html --papersize=letter msta.sgml
 	if test -f msta-1.html;then\
   	  for i in msta-*.html;do\
@@ -1268,7 +1286,7 @@ $(srcdir)/msta.html: msta.sgml
         fi
 	mv msta.html $(srcdir)/msta.html
 
-$(srcdir)/msta.info: msta.sgml
+$(srcdir)/msta.info: $(srcdir)/msta.sgml.in
 	linuxdoc -B info --papersize=letter msta.sgml
 	if test -f msta.info;then\
 	  for i in msta.info*;do\
@@ -1276,7 +1294,7 @@ $(srcdir)/msta.info: msta.sgml
 	  done;\
         fi
 
-$(srcdir)/msta.dvi: msta.sgml
+$(srcdir)/msta.dvi: $(srcdir)/msta.sgml.in
 	linuxdoc -B latex --papersize=letter msta.sgml
 	if test ! -f msta.dvi\
            -o -f msta.tex -a msta.tex -nt msta.dvi; then\

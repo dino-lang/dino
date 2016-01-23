@@ -34,7 +34,7 @@
 script_file=$0
 prefix=`basename $script_file .tst`
 CXX='@CXX@'
-CXX_options='@CXXFLAGS@ @C_DEBUG_DEFINE@ @DEFS@ -I. -I@srcdir@/'
+CXX_options='@CXXFLAGS@ @DEFS@ -I. -I@srcdir@/'
 source_addfiles='@srcdir@/allocatecpp.C @srcdir@/tickercpp.C @srcdir@/spsetcpp.C @srcdir@/cspsetcpp.C'
 addfiles="${prefix}_allocatecpp.o ${prefix}_tickercpp.o ${prefix}_spsetcpp.o ${prefix}_cspsetcpp.o"
 test_file=${prefix}_tcspset.C
@@ -785,7 +785,7 @@ fi
 
 if test $result = ok; then
         echo $script_file: it is all ok
-        rm -f $addfiles $test_file $outfile
+        rm -f $addfiles $test_file $outfile ${include_file}
         exit 0
 else
         echo '***' $script_file: test is failed see file $test_file

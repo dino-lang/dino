@@ -4,16 +4,17 @@ PATH := ${PATH}:../AMMUNITION/.libs:../../AMMUNITION/.libs
 bin_PROGRAMS = oka
 oka_SOURCES = common.h common.c tab.h tab.c yacc.h anal.h anal.c gen.h gen.c main.c
 nodist_oka_SOURCES = yacc.c ird.c ird.h
+BUILT_SOURCES = oka.sgml
 CLEANFILES = yacc.c ird.c ird.h
 oka_CFLAGS = -I$(srcdir)/../AMMUNITION
 oka_LDFLAGS = -static ../AMMUNITION/libcocom.la -lm
-EXTRA_DIST =  yacc.y ird.sprut alpha-ev4.oka alpha-ev5.oka README INSTALL oka.tst oka.sgml.in\
+dist_doc_DATA = oka.txt oka.info oka.html oka-1.html oka-2.html oka-3.html oka-4.html oka-5.html\
+   	        oka-6.html oka-7.html oka-8.html oka-9.html oka.pdf oka.dvi oka.ps
+dist_man_MANS = oka.1
+EXTRA_DIST =  yacc.y ird.sprut alpha-ev4.oka alpha-ev5.oka README INSTALL oka.tst oka.sgml.in oka.sgml\
 	      SCHEDULE/schedule.h SCHEDULE/schedtst.c SCHEDULE/schedtst.cpp\
               SCHEDULE/schedule.tst.in SCHEDULE/schedule++.tst.in SCHEDULE/schedule.c\
-	      SCHEDULE/schedule.cpp SCHEDULE/test.oka oka.txt oka.info\
-	      oka.html oka-1.html oka-2.html oka-3.html oka-4.html oka-5.html\
-	      oka-6.html oka-7.html oka-8.html oka-9.html oka.pdf oka.dvi oka.ps
-dist_man_MANS = oka.1
+	      SCHEDULE/schedule.cpp SCHEDULE/test.oka
 ACLOCAL_AMFLAGS = -I m4
 SPRUT = ../SPRUT/sprut
 
@@ -21,19 +22,6 @@ check : test
 
 all-local:
 dist-local:
-
-install-data-local:
-	-mkdir -p $(docdir)
-	$(INSTALL_DATA) $(srcdir)/oka.txt $(srcdir)/oka*.html\
-          $(srcdir)/oka.info* $(srcdir)/oka.pdf\
-          $(srcdir)/oka.dvi $(srcdir)/oka.ps\
-	  $(docdir)
-	
-uninstall-local:
-	rm -f $(docdir)/oka.txt $(docdir)/oka*.html\
-          $(docdir)/oka.info* $(docdir)/oka.pdf\
-          $(docdir)/oka.dvi $(docdir)/oka.ps
-	-rmdir $(docdir)
 
 # Delete all not needed for distribution.
 distclean-local:
@@ -63,7 +51,7 @@ test-sched: oka
 
 # Creation of documentation
 
-doc : oka.sgml $(srcdir)/oka.txt $(srcdir)/oka.html\
+doc : $(srcdir)/oka.txt $(srcdir)/oka.html\
       $(srcdir)/oka.info $(srcdir)/oka.pdf $(srcdir)/oka.dvi $(srcdir)/oka.ps
 
 oka.sgml : $(srcdir)/oka.sgml.in $(srcdir)/oka.1
@@ -74,11 +62,11 @@ oka.sgml : $(srcdir)/oka.sgml.in $(srcdir)/oka.1
                  else print;}' $(srcdir)/oka.sgml.in > $@
 	rm -f oka.tmp
 
-$(srcdir)/oka.txt: oka.sgml
+$(srcdir)/oka.txt: $(srcdir)/oka.sgml.in
 	linuxdoc -B txt --papersize=letter -f oka.sgml
 	mv oka.txt $(srcdir)
 	
-$(srcdir)/oka.html: oka.sgml
+$(srcdir)/oka.html: $(srcdir)/oka.sgml.in
 	linuxdoc -B html --papersize=letter oka.sgml
 	if test -f oka-1.html;then\
   	  for i in oka-*.html;do\
@@ -87,7 +75,7 @@ $(srcdir)/oka.html: oka.sgml
         fi
 	mv oka.html $(srcdir)/oka.html
 	
-$(srcdir)/oka.info: oka.sgml
+$(srcdir)/oka.info: $(srcdir)/oka.sgml.in
 	linuxdoc -B info --papersize=letter oka.sgml
 	if test -f oka.info;then\
 	  for i in oka.info*;do\
@@ -95,7 +83,7 @@ $(srcdir)/oka.info: oka.sgml
 	  done;\
         fi
 	
-$(srcdir)/oka.dvi: oka.sgml
+$(srcdir)/oka.dvi: $(srcdir)/oka.sgml.in
 	linuxdoc -B latex --papersize=letter oka.sgml
 	if test ! -f oka.dvi\
            -o -f oka.tex -a oka.tex -nt oka.dvi; then\

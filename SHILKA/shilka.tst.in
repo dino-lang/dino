@@ -217,7 +217,7 @@ fi
 
 if test $result = ok; then
         echo $script_file: it is all ok
-        rm -f $test_file $test_shilka $outfile $stderr
+        rm -f $test_file $test_shilka $outfile $stderr `basename $test_shilka .shilka`.c
         exit 0
 else
         echo '***' $script_file: test is failed see files $test_file $test_shilka

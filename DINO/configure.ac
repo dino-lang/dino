@@ -85,12 +85,20 @@ AC_CHECK_FUNCS([atexit getcwd gethostbyaddr gethostbyname gethostname inet_ntoa 
                 mkdir pow rmdir socket sqrt strerror strtoull strtod setitimer dlopen\
 		sigaction sigemptyset getc_unlocked random])
 
+AC_ARG_ENABLE([debug],
+[  --enable-debug    Turn on debugging],
+[case "${enableval}" in
+      yes) dino_debug=true ;;
+       no)  dino_debug= ;;
+        *) AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
+      esac],[dino_debug=])
+
 AC_SUBST(START_SPRUT_OPTIONS)
-AC_SUBST(C_DEBUG_DEFINE)
-if test x$cocom_debug = x -a x$dino_debug = x; then
-  C_DEBUG_DEFINE=-DNDEBUG
+if test x$dino_debug = x; then
+  c_debug_define=-DNDEBUG
   START_SPRUT_OPTIONS=-only-macro
 else
+  my_save_cflags="$CFLAGS"
   CFLAGS=-g3
   AC_MSG_CHECKING([whether CC supports -g3])
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
@@ -98,6 +106,7 @@ else
       [g3=yes],
       [AC_MSG_RESULT([no])]
   )
+  CFLAGS="$my_save_cflags"
 
   if test "$g3" = yes; then
     CFLAGS="`echo $CFLAGS|sed s/-O2//` -O0 -g3"
@@ -106,11 +115,14 @@ else
     CFLAGS="`echo $CFLAGS|sed s/-O2//` -O0 -g"
     CXXFLAGS="`echo $CXXFLAGS|sed s/-O2//` -O0 -g"
   fi
-  C_DEBUG_DEFINE=
+  c_debug_define=
   START_SPRUT_OPTIONS=-debug
 fi
 
-if test "$GCC" = yes && test x$cocom_debug = x -a x$dino_debug = x; then
+CFLAGS="$CFLAGS $c_debug_define"
+CXXFLAGS="$CXXFLAGS $c_debug_define"
+
+if test "$GCC" = yes && test x$dino_debug = x; then
   my_save_cflags="$CFLAGS"
   CFLAGS=-Ofast
   AC_MSG_CHECKING([whether CC supports -Ofast])

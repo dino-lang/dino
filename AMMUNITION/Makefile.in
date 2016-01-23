@@ -15,6 +15,7 @@
 @SET_MAKE@
 
 
+
 VPATH = @srcdir@
 am__is_gnu_make = test -n '$(MAKEFILE_LIST)' && test -n '$(MAKELEVEL)'
 am__make_running_with_option = \
@@ -82,9 +83,9 @@ host_triplet = @host@
 subdir = .
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) \
-	$(srcdir)/config.h.in depcomp $(include_HEADERS) INSTALL \
-	README compile config.guess config.sub install-sh missing \
-	ylwrap ltmain.sh
+	$(srcdir)/config.h.in depcomp $(dist_doc_DATA) \
+	$(include_HEADERS) INSTALL README compile config.guess \
+	config.sub install-sh missing ylwrap ltmain.sh
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -125,7 +126,8 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
+am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(docdir)" \
+	"$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libcocom_la_LIBADD =
 am_libcocom_la_OBJECTS = libcocom_la-allocate.lo \
@@ -216,6 +218,7 @@ am__can_run_installinfo = \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
+DATA = $(dist_doc_DATA)
 HEADERS = $(include_HEADERS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) \
 	$(LISP)config.h.in
@@ -274,7 +277,6 @@ CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
-C_DEBUG_DEFINE = @C_DEBUG_DEFINE@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
@@ -403,8 +405,19 @@ libcocomcpp_la_LDFLAGS = @LIB_LDFLAGS@
 include_HEADERS = allocate.h vlobject.h objstack.h hashtab.h spset.h cspset.h \
                   commline.h position.h errors.h ticker.h bits.h arithm.h IEEE.h yaep.h 
 
-BUILT_SOURCES = sgramm.c
+BUILT_SOURCES = sgramm.c ammunition.sgml ammunition++.sgml
 CLEANFILES = sgramm.c
+dist_doc_DATA = ammunition.txt ammunition.ps ammunition.pdf ammunition.dvi ammunition.info\
+	        ammunition.html ammunition-1.html ammunition-2.html ammunition-3.html ammunition-4.html\
+		ammunition-5.html ammunition-6.html ammunition-7.html ammunition-8.html ammunition-9.html\
+		ammunition-10.html ammunition-11.html ammunition-12.html\
+		ammunition-13.html ammunition-14.html ammunition-15.html\
+		ammunition++.txt ammunition++.ps ammunition++.pdf ammunition++.dvi ammunition++.info\
+		ammunition++.html ammunition++-1.html ammunition++-2.html ammunition++-3.html ammunition++-4.html\
+		ammunition++-5.html ammunition++-6.html ammunition++-7.html ammunition++-8.html ammunition++-9.html\
+		ammunition++-10.html ammunition++-11.html ammunition++-12.html\
+		ammunition++-13.html ammunition++-14.html ammunition++-15.html
+
 EXTRA_DIST = IEEEtens.c sgramm.y allocate.tst.in vlobject.tst.in objstack.tst.in hashtab.tst.in\
              spset.tst.in cspset.tst.in commline.tst.in position.tst.in errors.tst.in\
 	     ticker.tst.in bits.tst.in arithm.tst.in IEEE.tst.in yaep.tst.in\
@@ -412,16 +425,7 @@ EXTRA_DIST = IEEEtens.c sgramm.y allocate.tst.in vlobject.tst.in objstack.tst.in
              spset++.tst.in cspset++.tst.in commline++.tst.in position++.tst.in errors++.tst.in\
 	     ticker++.tst.in bits++.tst.in arithm++.tst.in IEEE++.tst.in yaep++.tst.in\
 	     compare_parsers.tst.in whole_gcc_test.i ammunition.sgml.in ammunition++.sgml.in\
-	     ammunition.txt ammunition.ps ammunition.pdf ammunition.dvi ammunition.info\
-	     ammunition.html ammunition-1.html ammunition-2.html ammunition-3.html ammunition-4.html\
-	     ammunition-5.html ammunition-6.html ammunition-7.html ammunition-8.html ammunition-9.html\
-             ammunition-10.html ammunition-11.html ammunition-12.html\
-	     ammunition-13.html ammunition-14.html ammunition-15.html\
-	     ammunition++.txt ammunition++.ps ammunition++.pdf ammunition++.dvi ammunition++.info\
-	     ammunition++.html ammunition++-1.html ammunition++-2.html ammunition++-3.html ammunition++-4.html\
-	     ammunition++-5.html ammunition++-6.html ammunition++-7.html ammunition++-8.html ammunition++-9.html\
-             ammunition++-10.html ammunition++-11.html ammunition++-12.html\
-	     ammunition++-13.html ammunition++-14.html ammunition++-15.html
+	     yaep_part.sgml.in yaep_part++.sgml.in
 
 ACLOCAL_AMFLAGS = -I m4
 all: $(BUILT_SOURCES) config.h
@@ -801,6 +805,27 @@ clean-libtool:
 
 distclean-libtool:
 	-rm -f libtool config.lt
+install-dist_docDATA: $(dist_doc_DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(dist_doc_DATA)'; test -n "$(docdir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(docdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(docdir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(docdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(docdir)" || exit $$?; \
+	done
+
+uninstall-dist_docDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dist_doc_DATA)'; test -n "$(docdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(docdir)'; $(am__uninstall_files_from_dir)
 install-includeHEADERS: $(include_HEADERS)
 	@$(NORMAL_INSTALL)
 	@list='$(include_HEADERS)'; test -n "$(includedir)" || list=; \
@@ -1048,9 +1073,9 @@ distcleancheck: distclean
 check-am: all-am
 check: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) check-am
-all-am: Makefile $(LTLIBRARIES) $(HEADERS) config.h all-local
+all-am: Makefile $(LTLIBRARIES) $(DATA) $(HEADERS) config.h all-local
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(docdir)" "$(DESTDIR)$(includedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: $(BUILT_SOURCES)
@@ -1110,7 +1135,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-data-local install-includeHEADERS
+install-data-am: install-dist_docDATA install-includeHEADERS
 
 install-dvi: install-dvi-am
 
@@ -1158,8 +1183,8 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-includeHEADERS uninstall-libLTLIBRARIES \
-	uninstall-local
+uninstall-am: uninstall-dist_docDATA uninstall-includeHEADERS \
+	uninstall-libLTLIBRARIES
 
 .MAKE: all check install install-am install-strip
 
@@ -1172,7 +1197,7 @@ uninstall-am: uninstall-includeHEADERS uninstall-libLTLIBRARIES \
 	distclean-local distclean-tags distcleancheck distdir \
 	distuninstallcheck dvi dvi-am html html-am info info-am \
 	install install-am install-data install-data-am \
-	install-data-local install-dvi install-dvi-am install-exec \
+	install-dist_docDATA install-dvi install-dvi-am install-exec \
 	install-exec-am install-html install-html-am \
 	install-includeHEADERS install-info install-info-am \
 	install-libLTLIBRARIES install-man install-pdf install-pdf-am \
@@ -1180,33 +1205,14 @@ uninstall-am: uninstall-includeHEADERS uninstall-libLTLIBRARIES \
 	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags tags-am uninstall uninstall-am uninstall-includeHEADERS \
-	uninstall-libLTLIBRARIES uninstall-local
+	tags tags-am uninstall uninstall-am uninstall-dist_docDATA \
+	uninstall-includeHEADERS uninstall-libLTLIBRARIES
 
 
 check : test
 
 all-local:
 dist-local:
-
-install-data-local:
-	mkdir -p $(docdir)
-	$(INSTALL_DATA) $(srcdir)/ammunition.txt $(srcdir)/ammunition*.html\
-          $(srcdir)/ammunition.info* $(srcdir)/ammunition.pdf\
-          $(srcdir)/ammunition.dvi $(srcdir)/ammunition.ps\
-          $(srcdir)/ammunition++.txt\
-          $(srcdir)/ammunition++.info* $(srcdir)/ammunition++.pdf\
-          $(srcdir)/ammunition++.dvi $(srcdir)/ammunition++.ps\
-	  $(docdir)
-
-uninstall-local:
-	rm -f $(docdir)/ammunition.txt $(docdir)/ammunition*.html\
-          $(docdir)/ammunition.info* $(docdir)/ammunition.pdf\
-          $(docdir)/ammunition.dvi $(docdir)/ammunition.ps\
-          $(docdir)/ammunition++.txt $(docdir)/ammunition++*.html\
-          $(docdir)/ammunition++.info* $(docdir)/ammunition++.pdf\
-          $(docdir)/ammunition++.dvi $(docdir)/ammunition++.ps
-	-rmdir $(docdir)
 
 # Delete all not needed for distribution.
 distclean-local:
@@ -1222,15 +1228,13 @@ distclean-local:
 	rm -f ammunition.sgml ammunition.tex ammunition.log\
               ammunition.aux ammunition.toc ammunition.tmp ammunition.out
 	rm -f ammunition++.sgml ammunition++.tex ammunition++.log\
-	      ammunition++.aux ammunition++.toc ammunition++.tmp ammunition++.out\
-              ammunition.sgml ammunition++.sgml 
+	      ammunition++.aux ammunition++.toc ammunition++.tmp ammunition++.out
 
 sgramm.c: $(srcdir)/sgramm.y
 	$(YACC) $(srcdir)/sgramm.y
 	mv y.tab.c $@
 
-doc : ammunition.sgml ammunition++.sgml\
-      $(srcdir)/ammunition.txt $(srcdir)/ammunition.html\
+doc : $(srcdir)/ammunition.txt $(srcdir)/ammunition.html\
       $(srcdir)/ammunition.info $(srcdir)/ammunition.pdf\
       $(srcdir)/ammunition.dvi $(srcdir)/ammunition.ps\
       $(srcdir)/ammunition++.txt $(srcdir)/ammunition++.html\
@@ -1243,11 +1247,11 @@ ammunition.sgml: $(srcdir)/ammunition.sgml.in $(srcdir)/yaep_part.sgml.in
                         print line;close(\"$(srcdir)/yaep_part.sgml.in\")}\
                  else print;}" $(srcdir)/ammunition.sgml.in > $@
 
-$(srcdir)/ammunition.txt: ammunition.sgml
+$(srcdir)/ammunition.txt: $(srcdir)/ammunition.sgml.in
 	linuxdoc -B txt --papersize=letter -f ammunition.sgml
 	mv ammunition.txt $(srcdir)
 
-$(srcdir)/ammunition.html: ammunition.sgml
+$(srcdir)/ammunition.html: $(srcdir)/ammunition.sgml.in
 	linuxdoc -B html --papersize=letter ammunition.sgml
 	if test -f ammunition-1.html;then\
   	  for i in ammunition-*.html;do\
@@ -1256,7 +1260,7 @@ $(srcdir)/ammunition.html: ammunition.sgml
         fi
 	mv ammunition.html $(srcdir)/ammunition.html
 
-$(srcdir)/ammunition.info: ammunition.sgml
+$(srcdir)/ammunition.info: $(srcdir)/ammunition.sgml.in
 	linuxdoc -B info --papersize=letter ammunition.sgml
 	if test -f ammunition.info;then\
 	  for i in ammunition.info*;do\
@@ -1264,7 +1268,7 @@ $(srcdir)/ammunition.info: ammunition.sgml
 	  done;\
         fi
 
-$(srcdir)/ammunition.dvi: ammunition.sgml
+$(srcdir)/ammunition.dvi: $(srcdir)/ammunition.sgml.in
 	linuxdoc -B latex --papersize=letter ammunition.sgml
 	if test ! -f ammunition.dvi\
            -o -f ammunition.tex -a ammunition.tex -nt ammunition.dvi; then\
@@ -1284,11 +1288,11 @@ ammunition++.sgml: $(srcdir)/ammunition++.sgml.in $(srcdir)/yaep_part++.sgml.in
                         print line;close(\"$(srcdir)/yaep_part++.sgml.in\")}\
                  else print;}" $(srcdir)/ammunition++.sgml.in > $@
 
-$(srcdir)/ammunition++.txt: ammunition++.sgml
+$(srcdir)/ammunition++.txt: $(srcdir)/ammunition++.sgml.in
 	linuxdoc -B txt --papersize=letter -f ammunition++.sgml
 	mv ammunition++.txt $(srcdir)
 
-$(srcdir)/ammunition++.html: ammunition++.sgml
+$(srcdir)/ammunition++.html: $(srcdir)/ammunition++.sgml.in
 	linuxdoc -B html --papersize=letter ammunition++.sgml
 	if test -f ammunition++-1.html;then\
   	  for i in ammunition++-*.html;do\
@@ -1297,7 +1301,7 @@ $(srcdir)/ammunition++.html: ammunition++.sgml
         fi
 	mv ammunition++.html $(srcdir)/ammunition++.html
 
-$(srcdir)/ammunition++.info: ammunition++.sgml
+$(srcdir)/ammunition++.info: $(srcdir)/ammunition++.sgml.in
 	linuxdoc -B info --papersize=letter ammunition++.sgml
 	if test -f ammunition++.info;then\
 	  for i in ammunition++.info*;do\
@@ -1305,7 +1309,7 @@ $(srcdir)/ammunition++.info: ammunition++.sgml
 	  done;\
         fi
 
-$(srcdir)/ammunition++.dvi: ammunition++.sgml
+$(srcdir)/ammunition++.dvi: $(srcdir)/ammunition++.sgml.in
 	linuxdoc -B latex --papersize=letter ammunition++.sgml
 	if test ! -f ammunition++.dvi\
            -o -f ammunition++.tex -a ammunition++.tex -nt ammunition++.dvi; then\

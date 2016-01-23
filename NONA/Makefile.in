@@ -14,6 +14,7 @@
 
 @SET_MAKE@
 
+
 VPATH = @srcdir@
 am__is_gnu_make = test -n '$(MAKEFILE_LIST)' && test -n '$(MAKELEVEL)'
 am__make_running_with_option = \
@@ -82,8 +83,9 @@ bin_PROGRAMS = nona$(EXEEXT)
 subdir = .
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) \
-	$(srcdir)/config.h.in depcomp $(dist_man_MANS) INSTALL README \
-	compile config.guess config.sub install-sh missing ltmain.sh
+	$(srcdir)/config.h.in depcomp $(dist_man_MANS) \
+	$(dist_doc_DATA) INSTALL README compile config.guess \
+	config.sub install-sh missing ltmain.sh
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -97,7 +99,8 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)"
+am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)" \
+	"$(DESTDIR)$(docdir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_nona_OBJECTS = nona-common.$(OBJEXT) nona-tab.$(OBJEXT) \
 	nona-anal.$(OBJEXT) nona-gen.$(OBJEXT) nona-main.$(OBJEXT)
@@ -182,6 +185,7 @@ am__uninstall_files_from_dir = { \
 man1dir = $(mandir)/man1
 NROFF = nroff
 MANS = $(dist_man_MANS)
+DATA = $(dist_doc_DATA)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) \
 	$(LISP)config.h.in
 # Read a list of newline-separated strings from the standard input,
@@ -239,7 +243,6 @@ CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
-C_DEBUG_DEFINE = @C_DEBUG_DEFINE@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
@@ -350,17 +353,18 @@ top_srcdir = @top_srcdir@
 PATH := ${PATH}:../AMMUNITION/.libs
 nona_SOURCES = common.h common.c tab.h tab.c yacc.h anal.h anal.c gen.h gen.c main.c
 nodist_nona_SOURCES = yacc.c ird.c ird.h
+BUILT_SOURCES = nona.sgml
 CLEANFILES = yacc.c ird.c ird.h
 nona_CFLAGS = -I$(srcdir)/../AMMUNITION
 nona_LDFLAGS = -static ../AMMUNITION/libcocom.la
-EXTRA_DIST = yacc.y ird.sprut a29k.nona README INSTALL nona.sgml.in nona.txt nona.info\
-	      nona.html nona-1.html nona-2.html nona-3.html nona-4.html nona-5.html\
-	      nona.pdf nona.dvi nona.ps
-
 dist_man_MANS = nona.1
+dist_doc_DATA = nona.txt nona.info nona.html nona-1.html nona-2.html nona-3.html nona-4.html nona-5.html\
+   	        nona.pdf nona.dvi nona.ps
+
+EXTRA_DIST = yacc.y ird.sprut a29k.nona README INSTALL nona.sgml.in
 ACLOCAL_AMFLAGS = -I m4
 SPRUT = ../SPRUT/sprut
-all: config.h
+all: $(BUILT_SOURCES) config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
@@ -652,6 +656,27 @@ uninstall-man1:
 	} | sed -e 's,.*/,,;h;s,.*\.,,;s,^[^1][0-9a-z]*$$,1,;x' \
 	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,'`; \
 	dir='$(DESTDIR)$(man1dir)'; $(am__uninstall_files_from_dir)
+install-dist_docDATA: $(dist_doc_DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(dist_doc_DATA)'; test -n "$(docdir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(docdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(docdir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(docdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(docdir)" || exit $$?; \
+	done
+
+uninstall-dist_docDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dist_doc_DATA)'; test -n "$(docdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(docdir)'; $(am__uninstall_files_from_dir)
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
@@ -876,13 +901,15 @@ distcleancheck: distclean
 	       $(distcleancheck_listfiles) ; \
 	       exit 1; } >&2
 check-am: all-am
-check: check-am
-all-am: Makefile $(PROGRAMS) $(MANS) config.h all-local
+check: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) check-am
+all-am: Makefile $(PROGRAMS) $(MANS) $(DATA) config.h all-local
 installdirs:
-	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)"; do \
+	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(docdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
-install: install-am
+install: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) install-am
 install-exec: install-exec-am
 install-data: install-data-am
 uninstall: uninstall-am
@@ -913,6 +940,7 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-am
 
 clean-am: clean-binPROGRAMS clean-generic clean-libtool mostlyclean-am
@@ -936,7 +964,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-data-local install-man
+install-data-am: install-dist_docDATA install-man
 
 install-dvi: install-dvi-am
 
@@ -984,11 +1012,12 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS uninstall-local uninstall-man
+uninstall-am: uninstall-binPROGRAMS uninstall-dist_docDATA \
+	uninstall-man
 
 uninstall-man: uninstall-man1
 
-.MAKE: all install-am install-strip
+.MAKE: all check install install-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am all-local am--refresh check \
 	check-am clean clean-binPROGRAMS clean-cscope clean-generic \
@@ -999,35 +1028,22 @@ uninstall-man: uninstall-man1
 	distclean-local distclean-tags distcleancheck distdir \
 	distuninstallcheck dvi dvi-am html html-am info info-am \
 	install install-am install-binPROGRAMS install-data \
-	install-data-am install-data-local install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man install-man1 \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	pdf pdf-am ps ps-am tags tags-am uninstall uninstall-am \
-	uninstall-binPROGRAMS uninstall-local uninstall-man \
-	uninstall-man1
+	install-data-am install-dist_docDATA install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-man1 install-pdf install-pdf-am install-ps \
+	install-ps-am install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-am uninstall \
+	uninstall-am uninstall-binPROGRAMS uninstall-dist_docDATA \
+	uninstall-man uninstall-man1
 
 
 check : test
 
 all-local:
 dist-local:
-
-install-data-local:
-	-mkdir -p $(docdir)
-	$(INSTALL_DATA) $(srcdir)/nona.txt $(srcdir)/nona*.html\
-          $(srcdir)/nona.info* $(srcdir)/nona.pdf\
-          $(srcdir)/nona.dvi $(srcdir)/nona.ps\
-	  $(docdir)
-
-uninstall-local:
-	rm -f $(docdir)/nona.txt $(docdir)/nona*.html\
-          $(docdir)/nona.info* $(docdir)/nona.pdf\
-          $(docdir)/nona.dvi $(docdir)/nona.ps
-	-rmdir $(docdir)
 
 # Delete all not needed for distribution.
 distclean-local:
@@ -1053,7 +1069,7 @@ test : nona
 
 # Creation of documentation
 
-doc : nona.sgml $(srcdir)/nona.txt $(srcdir)/nona.html $(srcdir)/nona.info $(srcdir)/nona.pdf $(srcdir)/nona.dvi $(srcdir)/nona.ps
+doc : $(srcdir)/nona.txt $(srcdir)/nona.html $(srcdir)/nona.info $(srcdir)/nona.pdf $(srcdir)/nona.dvi $(srcdir)/nona.ps
 
 nona.sgml : $(srcdir)/nona.sgml.in $(srcdir)/nona.1
 	nroff -man $(srcdir)/nona.1 | $(AWK) '{gsub (/.\b/,"");gsub (/.\200\230/,"\140");gsub (/.\200\231/,"\047");gsub (/\033\[[140]m/,"");gsub (/\033\[2[24]m/,"");print;}' > nona.tmp
@@ -1063,11 +1079,11 @@ nona.sgml : $(srcdir)/nona.sgml.in $(srcdir)/nona.1
                  else print;}' $(srcdir)/nona.sgml.in > $@
 	rm -f nona.tmp
 
-$(srcdir)/nona.txt: nona.sgml
+$(srcdir)/nona.txt: $(srcdir)/nona.sgml.in
 	linuxdoc -B txt --papersize=letter -f nona.sgml
 	mv nona.txt $(srcdir)
 
-$(srcdir)/nona.html: nona.sgml
+$(srcdir)/nona.html: $(srcdir)/nona.sgml.in
 	linuxdoc -B html --papersize=letter nona.sgml
 	if test -f nona-1.html;then\
   	  for i in nona-*.html;do\
@@ -1076,7 +1092,7 @@ $(srcdir)/nona.html: nona.sgml
         fi
 	mv nona.html $(srcdir)/nona.html
 
-$(srcdir)/nona.info: nona.sgml
+$(srcdir)/nona.info: $(srcdir)/nona.sgml.in
 	linuxdoc -B info --papersize=letter nona.sgml
 	if test -f nona.info;then\
 	  for i in nona.info*;do\
@@ -1084,7 +1100,7 @@ $(srcdir)/nona.info: nona.sgml
 	  done;\
         fi
 
-$(srcdir)/nona.dvi: nona.sgml
+$(srcdir)/nona.dvi: $(srcdir)/nona.sgml.in
 	linuxdoc -B latex --papersize=letter nona.sgml
 	if test ! -f nona.dvi\
            -o -f nona.tex -a nona.tex -nt nona.dvi; then\

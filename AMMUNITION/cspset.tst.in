@@ -34,7 +34,7 @@
 script_file=$0
 prefix=`basename $script_file .tst`
 CC='@CC@'
-CC_options='@CFLAGS@ @C_DEBUG_DEFINE@ @DEFS@ -I. -I@srcdir@/'
+CC_options='@CFLAGS@ @DEFS@ -I. -I@srcdir@/'
 source_addfiles='@srcdir@/allocate.c @srcdir@/ticker.c @srcdir@/spset.c @srcdir@/cspset.c'
 addfiles="${prefix}_allocate.o ${prefix}_ticker.o ${prefix}_spset.o ${prefix}_cspset.o"
 test_file=${prefix}_tcspset.c

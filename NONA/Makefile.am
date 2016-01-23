@@ -4,13 +4,14 @@ PATH := ${PATH}:../AMMUNITION/.libs
 bin_PROGRAMS = nona
 nona_SOURCES = common.h common.c tab.h tab.c yacc.h anal.h anal.c gen.h gen.c main.c
 nodist_nona_SOURCES = yacc.c ird.c ird.h
+BUILT_SOURCES = nona.sgml
 CLEANFILES = yacc.c ird.c ird.h
 nona_CFLAGS = -I$(srcdir)/../AMMUNITION
 nona_LDFLAGS = -static ../AMMUNITION/libcocom.la
-EXTRA_DIST =  yacc.y ird.sprut a29k.nona README INSTALL nona.sgml.in nona.txt nona.info\
-	      nona.html nona-1.html nona-2.html nona-3.html nona-4.html nona-5.html\
-	      nona.pdf nona.dvi nona.ps
 dist_man_MANS = nona.1
+dist_doc_DATA = nona.txt nona.info nona.html nona-1.html nona-2.html nona-3.html nona-4.html nona-5.html\
+   	        nona.pdf nona.dvi nona.ps
+EXTRA_DIST =  yacc.y ird.sprut a29k.nona README INSTALL nona.sgml.in
 ACLOCAL_AMFLAGS = -I m4
 SPRUT = ../SPRUT/sprut
 
@@ -18,19 +19,6 @@ check : test
 
 all-local:
 dist-local:
-
-install-data-local:
-	-mkdir -p $(docdir)
-	$(INSTALL_DATA) $(srcdir)/nona.txt $(srcdir)/nona*.html\
-          $(srcdir)/nona.info* $(srcdir)/nona.pdf\
-          $(srcdir)/nona.dvi $(srcdir)/nona.ps\
-	  $(docdir)
-	
-uninstall-local:
-	rm -f $(docdir)/nona.txt $(docdir)/nona*.html\
-          $(docdir)/nona.info* $(docdir)/nona.pdf\
-          $(docdir)/nona.dvi $(docdir)/nona.ps
-	-rmdir $(docdir)
 
 # Delete all not needed for distribution.
 distclean-local:
@@ -56,7 +44,7 @@ test : nona
 
 # Creation of documentation
 
-doc : nona.sgml $(srcdir)/nona.txt $(srcdir)/nona.html $(srcdir)/nona.info $(srcdir)/nona.pdf $(srcdir)/nona.dvi $(srcdir)/nona.ps
+doc : $(srcdir)/nona.txt $(srcdir)/nona.html $(srcdir)/nona.info $(srcdir)/nona.pdf $(srcdir)/nona.dvi $(srcdir)/nona.ps
 
 nona.sgml : $(srcdir)/nona.sgml.in $(srcdir)/nona.1
 	nroff -man $(srcdir)/nona.1 | $(AWK) '{gsub (/.\b/,"");gsub (/.\200\230/,"\140");gsub (/.\200\231/,"\047");gsub (/\033\[[140]m/,"");gsub (/\033\[2[24]m/,"");print;}' > nona.tmp
@@ -66,11 +54,11 @@ nona.sgml : $(srcdir)/nona.sgml.in $(srcdir)/nona.1
                  else print;}' $(srcdir)/nona.sgml.in > $@
 	rm -f nona.tmp
 
-$(srcdir)/nona.txt: nona.sgml
+$(srcdir)/nona.txt: $(srcdir)/nona.sgml.in
 	linuxdoc -B txt --papersize=letter -f nona.sgml
 	mv nona.txt $(srcdir)
 	
-$(srcdir)/nona.html: nona.sgml
+$(srcdir)/nona.html: $(srcdir)/nona.sgml.in
 	linuxdoc -B html --papersize=letter nona.sgml
 	if test -f nona-1.html;then\
   	  for i in nona-*.html;do\
@@ -79,7 +67,7 @@ $(srcdir)/nona.html: nona.sgml
         fi
 	mv nona.html $(srcdir)/nona.html
 	
-$(srcdir)/nona.info: nona.sgml
+$(srcdir)/nona.info: $(srcdir)/nona.sgml.in
 	linuxdoc -B info --papersize=letter nona.sgml
 	if test -f nona.info;then\
 	  for i in nona.info*;do\
@@ -87,7 +75,7 @@ $(srcdir)/nona.info: nona.sgml
 	  done;\
         fi
 
-$(srcdir)/nona.dvi: nona.sgml
+$(srcdir)/nona.dvi: $(srcdir)/nona.sgml.in
 	linuxdoc -B latex --papersize=letter nona.sgml
 	if test ! -f nona.dvi\
            -o -f nona.tex -a nona.tex -nt nona.dvi; then\

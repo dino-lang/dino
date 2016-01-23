@@ -4,16 +4,18 @@ PATH := ${PATH}:../AMMUNITION/.libs
 bin_PROGRAMS = shilka
 shilka_SOURCES = common.h common.c tab.h tab.c yacc.h anal.h anal.c gen.h gen.c main.c
 nodist_shilka_SOURCES = yacc.c ird.c ird.h
+BUILT_SOURCES = shilka.sgml
 CLEANFILES = yacc.c ird.c ird.h
 shilka_CFLAGS = -I$(srcdir)/../AMMUNITION
 shilka_LDFLAGS = -static ../AMMUNITION/libcocom.la
+dist_doc_DATA = shilka.txt shilka.info shilka.html shilka-1.html shilka-2.html\
+   	        shilka-3.html shilka-4.html shilka-5.html shilka-6.html shilka-7.html shilka-8.html\
+	        shilka.pdf shilka.dvi shilka.ps
+dist_man_MANS = shilka.1
 EXTRA_DIST =  yacc.y ird.sprut shilka.tst.in compare.tst.in\
 	      java.shilka ada-standards.shilka ada.shilka b.shilka c.shilka cpp.shilka d.shilka gpc.shilka\
               modula2.shilka modula3.shilka pascal.shilka gcc.shilka gcc.gperf c.gperf\
-	      README INSTALL shilka.sgml.in shilka.txt shilka.info shilka.html shilka-1.html shilka-2.html\
-	      shilka-3.html shilka-4.html shilka-5.html shilka-6.html shilka-7.html shilka-8.html\
-	      shilka.pdf shilka.dvi shilka.ps
-dist_man_MANS = shilka.1
+	      README INSTALL shilka.sgml.in
 ACLOCAL_AMFLAGS = -I m4
 SPRUT = ../SPRUT/sprut
 
@@ -21,19 +23,6 @@ check : test
 
 all-local:
 dist-local:
-
-install-data-local:
-	-mkdir -p $(docdir)
-	$(INSTALL_DATA) $(srcdir)/shilka.txt $(srcdir)/shilka*.html\
-          $(srcdir)/shilka.info* $(srcdir)/shilka.pdf\
-          $(srcdir)/shilka.dvi $(srcdir)/shilka.ps\
-	  $(docdir)
-	
-uninstall-local:
-	rm -f $(docdir)/shilka.txt $(docdir)/shilka*.html\
-          $(docdir)/shilka.info* $(docdir)/shilka.pdf\
-          $(docdir)/shilka.dvi $(docdir)/shilka.ps
-	-rmdir $(docdir)
 
 # Delete all not needed for distribution.
 distclean-local:
@@ -52,7 +41,7 @@ yacc.c: $(srcdir)/yacc.y
 	elif test ! -f y.tab.c && test -f ytab.c;then mv ytab.c $@;\
 	else mv y.tab.c $@;fi
 
-doc : shilka.sgml $(srcdir)/shilka.txt $(srcdir)/shilka.html $(srcdir)/shilka.info $(srcdir)/shilka.pdf $(srcdir)/shilka.dvi $(srcdir)/shilka.ps
+doc : $(srcdir)/shilka.txt $(srcdir)/shilka.html $(srcdir)/shilka.info $(srcdir)/shilka.pdf $(srcdir)/shilka.dvi $(srcdir)/shilka.ps
 
 shilka.sgml : $(srcdir)/shilka.sgml.in $(srcdir)/shilka.1
 	nroff -man $(srcdir)/shilka.1 | $(AWK) '{gsub (/.\200\230/,"\140");gsub (/.\200\231/,"\047");gsub (/\033\[[140]m/,"");gsub (/\033\[2[24]m/,"");gsub (/.\b/,"");print;}' > shilka.tmp
@@ -62,11 +51,11 @@ shilka.sgml : $(srcdir)/shilka.sgml.in $(srcdir)/shilka.1
                  else print;}' $(srcdir)/shilka.sgml.in > $@
 	rm -f shilka.tmp
 
-$(srcdir)/shilka.txt: shilka.sgml
+$(srcdir)/shilka.txt: $(srcdir)/shilka.sgml.in
 	linuxdoc -B txt --papersize=letter -f shilka.sgml
 	mv shilka.txt $(srcdir)
 	
-$(srcdir)/shilka.html: shilka.sgml
+$(srcdir)/shilka.html: $(srcdir)/shilka.sgml.in
 	linuxdoc -B html shilka.sgml
 	if test -f shilka-1.html;then\
   	  for i in shilka-*.html;do\
@@ -75,7 +64,7 @@ $(srcdir)/shilka.html: shilka.sgml
         fi
 	mv shilka.html $(srcdir)/shilka.html
 	
-$(srcdir)/shilka.info: shilka.sgml
+$(srcdir)/shilka.info: $(srcdir)/shilka.sgml.in
 	linuxdoc -B info shilka.sgml
 	if test -f shilka.info;then\
 	  for i in shilka.info*;do\
@@ -83,7 +72,7 @@ $(srcdir)/shilka.info: shilka.sgml
 	  done;\
         fi
 	
-$(srcdir)/shilka.dvi: shilka.sgml
+$(srcdir)/shilka.dvi: $(srcdir)/shilka.sgml.in
 	linuxdoc -B latex shilka.sgml
 	if test ! -f shilka.dvi\
            -o -f shilka.tex -a shilka.tex -nt shilka.dvi; then\

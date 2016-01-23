@@ -635,7 +635,6 @@ ac_unique_file="anal.c"
 ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
-C_DEBUG_DEFINE
 START_SPRUT_OPTIONS
 LIBOBJS
 YFLAGS
@@ -775,6 +774,7 @@ enable_libtool_lock
 enable_dependency_tracking
 enable_silent_rules
 enable_maintainer_mode
+enable_debug
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1423,6 +1423,7 @@ Optional Features:
   --enable-maintainer-mode
                           enable make rules and dependencies not useful (and
                           sometimes confusing) to the casual installer
+  --enable-debug    Turn on debugging
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -15870,13 +15871,25 @@ fi
 ac_config_files="$ac_config_files Makefile"
 
 
+# Check whether --enable-debug was given.
+if test "${enable_debug+set}" = set; then :
+  enableval=$enable_debug; case "${enableval}" in
+      yes) cocom_debug=true ;;
+       no)  cocom_debug= ;;
+        *) as_fn_error $? "bad value ${enableval} for --enable-debug" "$LINENO" 5 ;;
+      esac
+else
+  cocom_debug=
+fi
 
 
 
-if test x$cocom_debug = x -a x$dino_debug = x; then
-  C_DEBUG_DEFINE=-DNDEBUG
+
+if test x$cocom_debug = x; then
+  c_debug_define=-DNDEBUG
   START_SPRUT_OPTIONS=-only-macro
 else
+  my_save_cflags="$CFLAGS"
   CFLAGS=-g3
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether CC supports -g3" >&5
 $as_echo_n "checking whether CC supports -g3... " >&6; }
@@ -15901,6 +15914,7 @@ $as_echo "no" >&6; }
 
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$my_save_cflags"
 
   if test "$g3" = yes; then
     CFLAGS='-O0 -g3'
@@ -15909,9 +15923,12 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     CFLAGS='-O0 -g'
     CXXFLAGS='-O0 -g'
   fi
-  C_DEBUG_DEFINE=
+  c_debug_define=
   START_SPRUT_OPTIONS=-debug
 fi
+
+CFLAGS="$CFLAGS $c_debug_define"
+CXXFLAGS="$CXXFLAGS $c_debug_define"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
