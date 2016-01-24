@@ -1,5 +1,10 @@
 2016-01-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* OKA/Makefile.am (EXTRA_DITS): Remove oka.sgml.
+	* OKA/Makefiel.in: Update.
+	
+2016-01-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* Makefile.am (doc): Call recursively.
 	* Makefile.in: Update.
 	* AMMUNITION/Makefile.am (doc): Generate all files.

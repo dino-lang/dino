@@ -10,7 +10,7 @@ oka_LDFLAGS = -static ../AMMUNITION/libcocom.la -lm
 dist_doc_DATA = oka.txt oka.info oka.html oka-1.html oka-2.html oka-3.html oka-4.html oka-5.html\
    	        oka-6.html oka-7.html oka-8.html oka-9.html oka.pdf oka.dvi oka.ps
 dist_man_MANS = oka.1
-EXTRA_DIST =  yacc.y ird.sprut alpha-ev4.oka alpha-ev5.oka README INSTALL oka.tst oka.sgml.in oka.sgml\
+EXTRA_DIST =  yacc.y ird.sprut alpha-ev4.oka alpha-ev5.oka README INSTALL oka.tst oka.sgml.in\
 	      SCHEDULE/schedule.h SCHEDULE/schedtst.c SCHEDULE/schedtst.cpp\
               SCHEDULE/schedule.tst.in SCHEDULE/schedule++.tst.in SCHEDULE/schedule.c\
 	      SCHEDULE/schedule.cpp SCHEDULE/test.oka
