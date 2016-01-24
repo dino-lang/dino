@@ -67,7 +67,7 @@ A-test:
 	@echo A_test is executed
 	@echo C interface: non-flat structures and work with node fields
 	@if ./sprut -all -debug $(srcdir)/A_test.sprut; then\
-		if $(CC) A_test.c; then\
+		if $(CC) A_test.c -o a.out; then\
 			echo "+++ A_test is ok";\
 			rm -f A_test.c A_test.h a.out;\
 		else\
@@ -81,7 +81,7 @@ A-test:
 	fi
 	@echo C interface: flat structures and non-flat work with node fields
 	@if ./sprut -all -debug -flat-structure $(srcdir)/A_test.sprut; then\
-		if $(CC) A_test.c; then\
+		if $(CC) A_test.c -o a.out; then\
 			echo "+++ A_test is ok";\
 			rm -f A_test.c A_test.h a.out;\
 		else\
@@ -95,7 +95,7 @@ A-test:
 	fi
 	@echo C interface: non-flat structures and flat work with node fields
 	@if ./sprut -all -debug -flat $(srcdir)/A_test.sprut; then\
-		if $(CC) A_test.c; then\
+		if $(CC) A_test.c -o a.out; then\
 			echo "+++ A_test is ok";\
 			rm -f A_test.c A_test.h a.out;\
 		else\
@@ -109,7 +109,7 @@ A-test:
 	fi
 	@echo C interface: flat structures and work with node fields
 	@if ./sprut -all -debug -flat -flat-structure $(srcdir)/A_test.sprut; then\
-		if $(CC) A_test.c; then\
+		if $(CC) A_test.c -o a.out; then\
 			echo "+++ A_test is ok";\
 			rm -f A_test.c A_test.h a.out;\
 		else\
@@ -123,7 +123,7 @@ A-test:
 	fi
 	@echo C interface: Access and modification macros and functions
 	@if ./sprut -all -debug -macro $(srcdir)/A_test.sprut; then\
-		if $(CC) A_test.c; then\
+		if $(CC) A_test.c -o a.out; then\
 			echo "+++ A_test is ok";\
 			rm -f A_test.c A_test.h a.out;\
 		else\
@@ -137,7 +137,7 @@ A-test:
 	fi
 	@echo C interface: Only access and modification macros
 	@if ./sprut -all -debug -only-macro $(srcdir)/A_test.sprut; then\
-		if $(CC) A_test.c; then\
+		if $(CC) A_test.c -o a.out; then\
 			echo "+++ A_test is ok";\
 			rm -f A_test.c A_test.h a.out;\
 		else\
@@ -151,7 +151,7 @@ A-test:
 	fi
 	@echo C interface: Only access and modification functions
 	@if ./sprut -all -debug $(srcdir)/A_test.sprut; then\
-		if $(CC) A_test.c; then\
+		if $(CC) A_test.c -o a.out; then\
 			echo "+++ A_test is ok";\
 			rm -f A_test.c A_test.h a.out;\
 		else\
@@ -166,7 +166,7 @@ A-test:
 	@echo
 	@echo C++ interface: non-flat structures and work with node fields
 	@if ./sprut -c++ -all -debug $(srcdir)/A_test.sprut; then\
-		if $(CXX) A_test.cpp; then\
+		if $(CXX) A_test.cpp -o a.out; then\
 			echo "+++ A_test is ok";\
 			rm -f A_test.cpp A_test.h a.out;\
 		else\
@@ -180,7 +180,7 @@ A-test:
 	fi
 	@echo C++ interface: flat structures and non-flat work with node fields
 	@if ./sprut -c++ -all -debug -flat-structure $(srcdir)/A_test.sprut; then\
-		if $(CXX) A_test.cpp; then\
+		if $(CXX) A_test.cpp -o a.out; then\
 			echo "+++ A_test is ok";\
 			rm -f A_test.cpp A_test.h a.out;\
 		else\
@@ -194,7 +194,7 @@ A-test:
 	fi
 	@echo C++ interface: non-flat structures and flat work with node fields
 	@if ./sprut -c++ -all -debug -flat $(srcdir)/A_test.sprut; then\
-		if $(CXX) A_test.cpp; then\
+		if $(CXX) A_test.cpp -o a.out; then\
 			echo "+++ A_test is ok";\
 			rm -f A_test.cpp A_test.h a.out;\
 		else\
@@ -208,7 +208,7 @@ A-test:
 	fi
 	@echo C++ interface: flat structures and work with node fields
 	@if ./sprut -c++ -all -debug -flat -flat-structure $(srcdir)/A_test.sprut; then\
-		if $(CXX) A_test.cpp; then\
+		if $(CXX) A_test.cpp -o a.out; then\
 			echo "+++ A_test is ok";\
 			rm -f A_test.cpp A_test.h a.out;\
 		else\
@@ -222,7 +222,7 @@ A-test:
 	fi
 	@echo C++ interface: Access and modification macros and functions
 	@if ./sprut -c++ -all -debug -macro $(srcdir)/A_test.sprut; then\
-		if $(CXX) A_test.cpp; then\
+		if $(CXX) A_test.cpp -o a.out; then\
 			echo "+++ A_test is ok";\
 			rm -f A_test.cpp A_test.h a.out;\
 		else\
@@ -236,7 +236,7 @@ A-test:
 	fi
 	@echo C++ interface: Only access and modification macros
 	@if ./sprut -c++ -all -debug -only-macro $(srcdir)/A_test.sprut; then\
-		if $(CXX) A_test.cpp; then\
+		if $(CXX) A_test.cpp -o a.out; then\
 			echo "+++ A_test is ok";\
 			rm -f A_test.cpp A_test.h a.out;\
 		else\
@@ -250,7 +250,7 @@ A-test:
 	fi
 	@echo C++ interface: Only access and modification functions
 	@if ./sprut -c++ -all -debug $(srcdir)/A_test.sprut; then\
-		if $(CXX) A_test.cpp; then\
+		if $(CXX) A_test.cpp -o a.out; then\
 			echo "+++ A_test is ok";\
 			rm -f A_test.cpp A_test.h a.out;\
 		else\
@@ -279,7 +279,7 @@ A1-test: A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut
 	@echo A1_test is executed
 	@echo C interface: non-flat structures and work with node fields
 	@if ./sprut -all -debug A1_test.sprut; then\
-		if $(CC) A1_test.c; then\
+		if $(CC) A1_test.c -o a.out; then\
 			echo "+++ A1_test is ok";\
 			rm -f A1_test.c A1_test.h a.out;\
 		else\
@@ -293,7 +293,7 @@ A1-test: A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut
 	fi
 	@echo C interface: flat structures and non-flat work with node fields
 	@if ./sprut -all -debug -flat-structure A1_test.sprut; then\
-		if $(CC) A1_test.c; then\
+		if $(CC) A1_test.c -o a.out; then\
 			echo "+++ A1_test is ok";\
 			rm -f A1_test.c A1_test.h a.out;\
 		else\
@@ -307,7 +307,7 @@ A1-test: A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut
 	fi
 	@echo C interface: non-flat structures and flat work with node fields
 	@if ./sprut -all -debug -flat A1_test.sprut; then\
-		if $(CC) A1_test.c; then\
+		if $(CC) A1_test.c  -o a.out; then\
 			echo "+++ A1_test is ok";\
 			rm -f A1_test.c A1_test.h a.out;\
 		else\
@@ -321,7 +321,7 @@ A1-test: A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut
 	fi
 	@echo C interface: flat structures and work with node fields
 	@if ./sprut -all -debug -flat -flat-structure A1_test.sprut; then\
-		if $(CC) A1_test.c; then\
+		if $(CC) A1_test.c -o a.out; then\
 			echo "+++ A1_test is ok";\
 			rm -f A1_test.c A1_test.h a.out;\
 		else\
@@ -335,7 +335,7 @@ A1-test: A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut
 	fi
 	@echo C interface: Access and modification macros and functions
 	@if ./sprut -all -debug -macro A1_test.sprut; then\
-		if $(CC) A1_test.c; then\
+		if $(CC) A1_test.c -o a.out; then\
 			echo "+++ A1_test is ok";\
 			rm -f A1_test.c A1_test.h a.out;\
 		else\
@@ -349,7 +349,7 @@ A1-test: A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut
 	fi
 	@echo C interface: Only access and modification macros
 	@if ./sprut -all -debug -only-macro A1_test.sprut; then\
-		if $(CC) A1_test.c; then\
+		if $(CC) A1_test.c -o a.out; then\
 			echo "+++ A1_test is ok";\
 			rm -f A1_test.c A1_test.h a.out;\
 		else\
@@ -363,7 +363,7 @@ A1-test: A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut
 	fi
 	@echo C interface: Only access and modification functions
 	@if ./sprut -all -debug A1_test.sprut; then\
-		if $(CC) A1_test.c; then\
+		if $(CC) A1_test.c -o a.out; then\
 			echo "+++ A1_test is ok";\
 			rm -f A1_test.c A1_test.h a.out;\
 		else\
@@ -378,7 +378,7 @@ A1-test: A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut
 	@echo
 	@echo C++ interface: non-flat structures and work with node fields
 	@if ./sprut -c++ -all -debug A1_test.sprut; then\
-		if $(CXX) A1_test.cpp; then\
+		if $(CXX) A1_test.cpp -o a.out; then\
 			echo "+++ A1_test is ok";\
 			rm -f A1_test.cpp A1_test.h a.out;\
 		else\
@@ -392,7 +392,7 @@ A1-test: A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut
 	fi
 	@echo C++ interface: flat structures and non-flat work with node fields
 	@if ./sprut -c++ -all -debug -flat-structure A1_test.sprut; then\
-		if $(CXX) A1_test.cpp; then\
+		if $(CXX) A1_test.cpp -o a.out; then\
 			echo "+++ A1_test is ok";\
 			rm -f A1_test.cpp A1_test.h a.out;\
 		else\
@@ -406,7 +406,7 @@ A1-test: A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut
 	fi
 	@echo C++ interface: non-flat structures and flat work with node fields
 	@if ./sprut -c++ -all -debug -flat A1_test.sprut; then\
-		if $(CXX) A1_test.cpp; then\
+		if $(CXX) A1_test.cpp -o a.out; then\
 			echo "+++ A1_test is ok";\
 			rm -f A1_test.cpp A1_test.h a.out;\
 		else\
@@ -420,7 +420,7 @@ A1-test: A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut
 	fi
 	@echo C++ interface: flat structures and work with node fields
 	@if ./sprut -c++ -all -debug -flat -flat-structure A1_test.sprut; then\
-		if $(CXX) A1_test.cpp; then\
+		if $(CXX) A1_test.cpp -o a.out; then\
 			echo "+++ A1_test is ok";\
 			rm -f A1_test.cpp A1_test.h a.out;\
 		else\
@@ -434,7 +434,7 @@ A1-test: A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut
 	fi
 	@echo C++ interface: Access and modification macros and functions
 	@if ./sprut -c++ -all -debug -macro A1_test.sprut; then\
-		if $(CXX) A1_test.cpp; then\
+		if $(CXX) A1_test.cpp -o a.out; then\
 			echo "+++ A1_test is ok";\
 			rm -f A1_test.cpp A1_test.h a.out;\
 		else\
@@ -448,7 +448,7 @@ A1-test: A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut
 	fi
 	@echo C++ interface: Only access and modification macros
 	@if ./sprut -c++ -all -debug -only-macro A1_test.sprut; then\
-		if $(CXX) A1_test.cpp; then\
+		if $(CXX) A1_test.cpp -o a.out; then\
 			echo "+++ A1_test is ok";\
 			rm -f A1_test.cpp A1_test.h a.out;\
 		else\
@@ -462,7 +462,7 @@ A1-test: A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut
 	fi
 	@echo C++ interface: Only access and modification functions
 	@if ./sprut -c++ -all -debug A1_test.sprut; then\
-		if $(CXX) A1_test.cpp; then\
+		if $(CXX) A1_test.cpp -o a.out; then\
 			echo "+++ A1_test is ok";\
 			rm -f A1_test.cpp A1_test.h a.out;\
 		else\

@@ -1,8 +1,13 @@
 2016-01-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* SPRUT/Makefile.am: Use -o a.out.
+	* SPRUT/Makefile.in: Update.
+
+2016-01-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* OKA/Makefile.am (EXTRA_DITS): Remove oka.sgml.
 	* OKA/Makefiel.in: Update.
-	
+
 2016-01-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* Makefile.am (doc): Call recursively.
