@@ -353,7 +353,6 @@ top_srcdir = @top_srcdir@
 PATH := ${PATH}:../AMMUNITION/.libs:../../AMMUNITION/.libs
 oka_SOURCES = common.h common.c tab.h tab.c yacc.h anal.h anal.c gen.h gen.c main.c
 nodist_oka_SOURCES = yacc.c ird.c ird.h
-BUILT_SOURCES = oka.sgml
 CLEANFILES = yacc.c ird.c ird.h
 oka_CFLAGS = -I$(srcdir)/../AMMUNITION
 oka_LDFLAGS = -static ../AMMUNITION/libcocom.la -lm
@@ -368,7 +367,7 @@ EXTRA_DIST = yacc.y ird.sprut alpha-ev4.oka alpha-ev5.oka README INSTALL oka.tst
 
 ACLOCAL_AMFLAGS = -I m4
 SPRUT = ../SPRUT/sprut
-all: $(BUILT_SOURCES) config.h
+all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
@@ -905,15 +904,13 @@ distcleancheck: distclean
 	       $(distcleancheck_listfiles) ; \
 	       exit 1; } >&2
 check-am: all-am
-check: $(BUILT_SOURCES)
-	$(MAKE) $(AM_MAKEFLAGS) check-am
+check: check-am
 all-am: Makefile $(PROGRAMS) $(MANS) $(DATA) config.h all-local
 installdirs:
 	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(docdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
-install: $(BUILT_SOURCES)
-	$(MAKE) $(AM_MAKEFLAGS) install-am
+install: install-am
 install-exec: install-exec-am
 install-data: install-data-am
 uninstall: uninstall-am
@@ -944,7 +941,6 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-am
 
 clean-am: clean-binPROGRAMS clean-generic clean-libtool mostlyclean-am
@@ -1021,7 +1017,7 @@ uninstall-am: uninstall-binPROGRAMS uninstall-dist_docDATA \
 
 uninstall-man: uninstall-man1
 
-.MAKE: all check install install-am install-strip
+.MAKE: all install-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am all-local am--refresh check \
 	check-am clean clean-binPROGRAMS clean-cscope clean-generic \
@@ -1077,22 +1073,15 @@ test-sched: oka
 
 # Creation of documentation
 
-doc : $(srcdir)/oka.txt $(srcdir)/oka.html\
-      $(srcdir)/oka.info $(srcdir)/oka.pdf $(srcdir)/oka.dvi $(srcdir)/oka.ps
-
-oka.sgml : $(srcdir)/oka.sgml.in $(srcdir)/oka.1
+doc : 
 	nroff -man $(srcdir)/oka.1 | $(AWK) '{gsub (/.\b/,"");gsub (/.\200\230/,"\140");gsub (/.\200\231/,"\047");gsub (/\033\[[140]m/,"");gsub (/\033\[2[24]m/,"");print;}' > oka.tmp
 	$(AWK) '{if($$0 == "%%%")\
                      {while ((getline line < "oka.tmp") > 0)\
                         print line;close("oka.tmp")}\
-                 else print;}' $(srcdir)/oka.sgml.in > $@
+                 else print;}' $(srcdir)/oka.sgml.in > oka.sgml
 	rm -f oka.tmp
-
-$(srcdir)/oka.txt: $(srcdir)/oka.sgml.in
 	linuxdoc -B txt --papersize=letter -f oka.sgml
 	mv oka.txt $(srcdir)
-
-$(srcdir)/oka.html: $(srcdir)/oka.sgml.in
 	linuxdoc -B html --papersize=letter oka.sgml
 	if test -f oka-1.html;then\
   	  for i in oka-*.html;do\
@@ -1100,28 +1089,20 @@ $(srcdir)/oka.html: $(srcdir)/oka.sgml.in
 	  done;\
         fi
 	mv oka.html $(srcdir)/oka.html
-
-$(srcdir)/oka.info: $(srcdir)/oka.sgml.in
 	linuxdoc -B info --papersize=letter oka.sgml
 	if test -f oka.info;then\
 	  for i in oka.info*;do\
    	    mv $$i $(srcdir)/$$i;\
 	  done;\
         fi
-
-$(srcdir)/oka.dvi: $(srcdir)/oka.sgml.in
 	linuxdoc -B latex --papersize=letter oka.sgml
 	if test ! -f oka.dvi\
            -o -f oka.tex -a oka.tex -nt oka.dvi; then\
     	        latex oka.tex; latex oka.tex;\
         fi
 	mv oka.dvi $(srcdir)/oka.dvi
-
-$(srcdir)/oka.ps: $(srcdir)/oka.dvi
-	dvips -o $@ $(srcdir)/oka.dvi
-
-$(srcdir)/oka.pdf: $(srcdir)/oka.ps
-	ps2pdf $(srcdir)/oka.ps $@
+	dvips -o $(srcdir)/oka.ps $(srcdir)/oka.dvi
+	ps2pdf $(srcdir)/oka.ps $(srcdir)/oka.pdf
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

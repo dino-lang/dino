@@ -4,7 +4,6 @@ PATH := ${PATH}:../AMMUNITION/.libs
 bin_PROGRAMS = sprut
 sprut_SOURCES = anal.c gen.c tab.c main.c common.c anal.h gen.h tab.h common.h yacc.h
 nodist_sprut_SOURCES = yacc.c ird.c ird.h A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut
-BUILT_SOURCES = sprut.sgml
 CLEANFILES = yacc.c ird.c ird.h A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut
 sprut_CFLAGS = -I$(srcdir)/../AMMUNITION
 sprut_LDFLAGS = -static ../AMMUNITION/libcocom.la
@@ -492,22 +491,15 @@ sprut-boot: sprut
 
 # Creation of documentation
 
-doc : $(srcdir)/sprut.txt $(srcdir)/sprut.html $(srcdir)/sprut.info $(srcdir)/sprut.pdf $(srcdir)/sprut.dvi $(srcdir)/sprut.ps
-
-sprut.sgml : $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
+doc : 
 	nroff -man $(srcdir)/sprut.1 | $(AWK) '{gsub (/.\b/,"");gsub (/.\200\230/,"\140");gsub (/.\200\231/,"\047");gsub (/\033\[[140]m/,"");gsub (/\033\[2[24]m/,"");print;}' > sprut.tmp
 	$(AWK) '{if($$0 == "%%%")\
                      {while ((getline line < "sprut.tmp") > 0)\
                         print line;close("sprut.tmp")}\
-                 else print;}' $(srcdir)/sprut.sgml.in > $@
+                 else print;}' $(srcdir)/sprut.sgml.in > sprut.sgml
 	rm -f sprut.tmp
-
-
-$(srcdir)/sprut.txt: $(srcdir)/sprut.sgml.in
 	linuxdoc -B txt --papersize=letter -f sprut.sgml
 	mv sprut.txt $(srcdir)
-	
-$(srcdir)/sprut.html: $(srcdir)/sprut.sgml.in
 	linuxdoc -B html --papersize=letter sprut.sgml
 	if test -f sprut-1.html;then\
   	  for i in sprut-*.html;do\
@@ -515,26 +507,17 @@ $(srcdir)/sprut.html: $(srcdir)/sprut.sgml.in
 	  done;\
         fi
 	mv sprut.html $(srcdir)/sprut.html
-	
-$(srcdir)/sprut.info: $(srcdir)/sprut.sgml.in
 	linuxdoc -B info --papersize=letter sprut.sgml
 	if test -f sprut.info;then\
 	  for i in sprut.info*;do\
    	    mv $$i $(srcdir)/$$i;\
 	  done;\
         fi
-	
-$(srcdir)/sprut.dvi: $(srcdir)/sprut.sgml.in
 	linuxdoc -B latex --papersize=letter sprut.sgml
 	if test ! -f sprut.dvi\
            -o -f sprut.tex -a sprut.tex -nt sprut.dvi; then\
     	        latex sprut.tex; latex sprut.tex;\
         fi
 	mv sprut.dvi $(srcdir)/sprut.dvi
-
-$(srcdir)/sprut.ps: $(srcdir)/sprut.dvi
-	dvips -o $@ $(srcdir)/sprut.dvi
-
-$(srcdir)/sprut.pdf: $(srcdir)/sprut.ps
-	ps2pdf $(srcdir)/sprut.ps $@
-
+	dvips -o $(srcdir)/sprut.ps $(srcdir)/sprut.dvi
+	ps2pdf $(srcdir)/sprut.ps $(srcdir)/sprut.pdf

@@ -23,7 +23,7 @@ dino_DEPENDENCIES = libdino.la
 dino_CFLAGS = $(libdino_la_CFLAGS)
 dino_LDFLAGS = -lgmp -lm -export-dynamic @DINO_LIB_LDFLAGS@ \
                libdino.la ../ONIGURUMA/libonig.la ../AMMUNITION/libcocom.la
-BUILT_SOURCES = d_ir.h d_bc.h d_run.h d_extern.h d_kw.c d_enc.c d_bcn.c d_bcf.c dino.sgml
+BUILT_SOURCES = d_ir.h d_bc.h d_run.h d_extern.h d_kw.c d_enc.c d_bcn.c d_bcf.c
 d_mpi_la_SOURCES = d_mpi.c
 d_mpi_la_CFLAGS = -shared -I. -I$(srcdir) -I$(srcdir)/../AMMUNITION
 d_mpi_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ ../AMMUNITION/libcocom.la -release $(VERSION)
@@ -142,23 +142,15 @@ compare-dino : dino$(EXEEXT)
 	$(srcdir)/compare.tst
 
 # Creation of documentation
-
-doc : $(srcdir)/dino.txt $(srcdir)/dino.html\
-      $(srcdir)/dino.info $(srcdir)/dino.pdf $(srcdir)/dino.dvi $(srcdir)/dino.ps
-
-dino.sgml : $(srcdir)/dino.sgml.in $(srcdir)/dino.1
+doc : 
 	nroff -man $(srcdir)/dino.1 | $(AWK) '{gsub (/.\b/,"");gsub (/.\200\230/,"\140");gsub (/.\200\231/,"\047");gsub (/\033\[[140]m/,"");gsub (/\033\[2[24]m/,"");print;}' > dino.tmp
 	$(AWK) '{if($$0 == "%%%")\
                      {while ((getline line < "dino.tmp") > 0)\
                         print line;close("dino.tmp")}\
-                 else print;}' $(srcdir)/dino.sgml.in > $@
+                 else print;}' $(srcdir)/dino.sgml.in > dino.sgml
 	rm -f dino.tmp
-
-$(srcdir)/dino.txt: $(srcdir)/dino.sgml.in
 	linuxdoc -B txt --papersize=letter -f dino.sgml
 	mv dino.txt $(srcdir)
-	
-$(srcdir)/dino.html: $(srcdir)/dino.sgml.in
 	linuxdoc -B html --papersize=letter dino.sgml
 	if test -f dino-1.html;then\
   	  for i in dino-*.html;do\
@@ -166,8 +158,6 @@ $(srcdir)/dino.html: $(srcdir)/dino.sgml.in
 	  done;\
         fi
 	mv dino.html $(srcdir)/dino.html
-	
-$(srcdir)/dino.info: $(srcdir)/dino.sgml.in
 	linuxdoc -B info --papersize=letter dino.sgml
 	if test -f dino.info-1;then\
 	  for i in dino.info-*;do\
@@ -175,18 +165,12 @@ $(srcdir)/dino.info: $(srcdir)/dino.sgml.in
 	  done;\
         fi
 	mv dino.info $(srcdir)/dino.info
-	
-$(srcdir)/dino.dvi: $(srcdir)/dino.sgml.in
 	linuxdoc -B latex --papersize=letter dino.sgml
 	if test ! -f dino.dvi\
            -o -f dino.tex -a dino.tex -nt dino.dvi; then\
     	        latex dino.tex; latex dino.tex;\
         fi
 	mv dino.dvi $(srcdir)/dino.dvi
-
-$(srcdir)/dino.ps: $(srcdir)/dino.dvi
-	dvips -o $@ $(srcdir)/dino.dvi
-
-$(srcdir)/dino.pdf: $(srcdir)/dino.ps
-	ps2pdf $(srcdir)/dino.ps $@
+	dvips -o $(srcdir)/dino.ps $(srcdir)/dino.dvi
+	ps2pdf $(srcdir)/dino.ps $(srcdir)/dino.pdf
 

@@ -11,7 +11,7 @@ libcocomcpp_la_CXXFLAGS = @LIB_CFLAGS@ -DIEEE_QUAD
 libcocomcpp_la_LDFLAGS = @LIB_LDFLAGS@
 include_HEADERS = allocate.h vlobject.h objstack.h hashtab.h spset.h cspset.h \
                   commline.h position.h errors.h ticker.h bits.h arithm.h IEEE.h yaep.h 
-BUILT_SOURCES = sgramm.c ammunition.sgml ammunition++.sgml
+BUILT_SOURCES = sgramm.c
 CLEANFILES = sgramm.c
 dist_doc_DATA = ammunition.txt ammunition.ps ammunition.pdf ammunition.dvi ammunition.info\
 	        ammunition.html ammunition-1.html ammunition-2.html ammunition-3.html ammunition-4.html\
@@ -58,24 +58,14 @@ sgramm.c: $(srcdir)/sgramm.y
 	$(YACC) $(srcdir)/sgramm.y
 	mv y.tab.c $@
 
-doc : $(srcdir)/ammunition.txt $(srcdir)/ammunition.html\
-      $(srcdir)/ammunition.info $(srcdir)/ammunition.pdf\
-      $(srcdir)/ammunition.dvi $(srcdir)/ammunition.ps\
-      $(srcdir)/ammunition++.txt $(srcdir)/ammunition++.html\
-      $(srcdir)/ammunition++.info $(srcdir)/ammunition++.pdf\
-      $(srcdir)/ammunition++.dvi $(srcdir)/ammunition++.ps
-
-ammunition.sgml: $(srcdir)/ammunition.sgml.in $(srcdir)/yaep_part.sgml.in
+# Update all doc
+doc : 
 	$(AWK) "{if(\$$0 == \"%%%\")\
                      {while ((getline line < \"$(srcdir)/yaep_part.sgml.in\") > 0)\
                         print line;close(\"$(srcdir)/yaep_part.sgml.in\")}\
-                 else print;}" $(srcdir)/ammunition.sgml.in > $@
-
-$(srcdir)/ammunition.txt: $(srcdir)/ammunition.sgml.in
+                 else print;}" $(srcdir)/ammunition.sgml.in > ammunition.sgml
 	linuxdoc -B txt --papersize=letter -f ammunition.sgml
 	mv ammunition.txt $(srcdir)
-	
-$(srcdir)/ammunition.html: $(srcdir)/ammunition.sgml.in
 	linuxdoc -B html --papersize=letter ammunition.sgml
 	if test -f ammunition-1.html;then\
   	  for i in ammunition-*.html;do\
@@ -83,40 +73,26 @@ $(srcdir)/ammunition.html: $(srcdir)/ammunition.sgml.in
 	  done;\
         fi
 	mv ammunition.html $(srcdir)/ammunition.html
-	
-$(srcdir)/ammunition.info: $(srcdir)/ammunition.sgml.in
 	linuxdoc -B info --papersize=letter ammunition.sgml
 	if test -f ammunition.info;then\
 	  for i in ammunition.info*;do\
    	    mv $$i $(srcdir)/$$i;\
 	  done;\
         fi
-	
-$(srcdir)/ammunition.dvi: $(srcdir)/ammunition.sgml.in
 	linuxdoc -B latex --papersize=letter ammunition.sgml
 	if test ! -f ammunition.dvi\
            -o -f ammunition.tex -a ammunition.tex -nt ammunition.dvi; then\
     	        latex ammunition.tex; latex ammunition.tex;\
         fi
 	mv ammunition.dvi $(srcdir)/ammunition.dvi
+	dvips -o $(srcdir)/ammunition.ps $(srcdir)/ammunition.dvi
+	ps2pdf $(srcdir)/ammunition.ps $(srcdir)/ammunition.pdf
 
-$(srcdir)/ammunition.ps: $(srcdir)/ammunition.dvi
-	dvips -o $@ $(srcdir)/ammunition.dvi
-
-$(srcdir)/ammunition.pdf: $(srcdir)/ammunition.ps
-	ps2pdf $(srcdir)/ammunition.ps $@
-
-ammunition++.sgml: $(srcdir)/ammunition++.sgml.in $(srcdir)/yaep_part++.sgml.in
 	$(AWK) "{if(\$$0 == \"%%%\")\
                      {while ((getline line < \"$(srcdir)/yaep_part++.sgml.in\") > 0)\
                         print line;close(\"$(srcdir)/yaep_part++.sgml.in\")}\
-                 else print;}" $(srcdir)/ammunition++.sgml.in > $@
-
-$(srcdir)/ammunition++.txt: $(srcdir)/ammunition++.sgml.in
-	linuxdoc -B txt --papersize=letter -f ammunition++.sgml
+                 else print;}" $(srcdir)/ammunition++.sgml.in >ammunition++.sgml
 	mv ammunition++.txt $(srcdir)
-
-$(srcdir)/ammunition++.html: $(srcdir)/ammunition++.sgml.in
 	linuxdoc -B html --papersize=letter ammunition++.sgml
 	if test -f ammunition++-1.html;then\
   	  for i in ammunition++-*.html;do\
@@ -124,28 +100,20 @@ $(srcdir)/ammunition++.html: $(srcdir)/ammunition++.sgml.in
 	  done;\
         fi
 	mv ammunition++.html $(srcdir)/ammunition++.html
-	
-$(srcdir)/ammunition++.info: $(srcdir)/ammunition++.sgml.in
 	linuxdoc -B info --papersize=letter ammunition++.sgml
 	if test -f ammunition++.info;then\
 	  for i in ammunition++.info*;do\
    	    mv $$i $(srcdir)/$$i;\
 	  done;\
         fi
-	
-$(srcdir)/ammunition++.dvi: $(srcdir)/ammunition++.sgml.in
 	linuxdoc -B latex --papersize=letter ammunition++.sgml
 	if test ! -f ammunition++.dvi\
            -o -f ammunition++.tex -a ammunition++.tex -nt ammunition++.dvi; then\
     	        latex ammunition++.tex; latex ammunition++.tex;\
         fi
 	mv ammunition++.dvi $(srcdir)/ammunition++.dvi
-
-$(srcdir)/ammunition++.ps: $(srcdir)/ammunition++.dvi
-	dvips -o $@ $(srcdir)/ammunition++.dvi
-
-$(srcdir)/ammunition++.pdf: $(srcdir)/ammunition++.ps
-	ps2pdf $(srcdir)/ammunition++.ps $@
+	dvips -o $(srcdir)/ammunition++.ps $(srcdir)/ammunition++.dvi
+	ps2pdf $(srcdir)/ammunition++.ps $(srcdir)/ammunition++.pdf
 
 # Generation of the most precise floating point representation of
 # powers of ten (max power (5010) > log10 (2) * (max power of IEEE quad

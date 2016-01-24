@@ -4,7 +4,6 @@ PATH := ${PATH}:../AMMUNITION/.libs
 bin_PROGRAMS = nona
 nona_SOURCES = common.h common.c tab.h tab.c yacc.h anal.h anal.c gen.h gen.c main.c
 nodist_nona_SOURCES = yacc.c ird.c ird.h
-BUILT_SOURCES = nona.sgml
 CLEANFILES = yacc.c ird.c ird.h
 nona_CFLAGS = -I$(srcdir)/../AMMUNITION
 nona_LDFLAGS = -static ../AMMUNITION/libcocom.la
@@ -44,21 +43,15 @@ test : nona
 
 # Creation of documentation
 
-doc : $(srcdir)/nona.txt $(srcdir)/nona.html $(srcdir)/nona.info $(srcdir)/nona.pdf $(srcdir)/nona.dvi $(srcdir)/nona.ps
-
-nona.sgml : $(srcdir)/nona.sgml.in $(srcdir)/nona.1
+doc :
 	nroff -man $(srcdir)/nona.1 | $(AWK) '{gsub (/.\b/,"");gsub (/.\200\230/,"\140");gsub (/.\200\231/,"\047");gsub (/\033\[[140]m/,"");gsub (/\033\[2[24]m/,"");print;}' > nona.tmp
 	$(AWK) '{if($$0 == "%%%")\
                      {while ((getline line < "nona.tmp") > 0)\
                         print line;close("nona.tmp")}\
-                 else print;}' $(srcdir)/nona.sgml.in > $@
+                 else print;}' $(srcdir)/nona.sgml.in > nona.sgml
 	rm -f nona.tmp
-
-$(srcdir)/nona.txt: $(srcdir)/nona.sgml.in
 	linuxdoc -B txt --papersize=letter -f nona.sgml
 	mv nona.txt $(srcdir)
-	
-$(srcdir)/nona.html: $(srcdir)/nona.sgml.in
 	linuxdoc -B html --papersize=letter nona.sgml
 	if test -f nona-1.html;then\
   	  for i in nona-*.html;do\
@@ -66,26 +59,18 @@ $(srcdir)/nona.html: $(srcdir)/nona.sgml.in
 	  done;\
         fi
 	mv nona.html $(srcdir)/nona.html
-	
-$(srcdir)/nona.info: $(srcdir)/nona.sgml.in
 	linuxdoc -B info --papersize=letter nona.sgml
 	if test -f nona.info;then\
 	  for i in nona.info*;do\
    	    mv $$i $(srcdir)/$$i;\
 	  done;\
         fi
-
-$(srcdir)/nona.dvi: $(srcdir)/nona.sgml.in
 	linuxdoc -B latex --papersize=letter nona.sgml
 	if test ! -f nona.dvi\
            -o -f nona.tex -a nona.tex -nt nona.dvi; then\
     	        latex nona.tex; latex nona.tex;\
         fi
 	mv nona.dvi $(srcdir)/nona.dvi
-
-$(srcdir)/nona.ps: $(srcdir)/nona.dvi
-	dvips -o $@ $(srcdir)/nona.dvi
-
-$(srcdir)/nona.pdf: $(srcdir)/nona.ps
-	ps2pdf $(srcdir)/nona.ps $@
+	dvips -o $(srcdir)/nona.ps $(srcdir)/nona.dvi
+	ps2pdf $(srcdir)/nona.ps $(srcdir)/nona.pdf
 

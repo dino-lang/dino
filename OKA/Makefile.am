@@ -4,7 +4,6 @@ PATH := ${PATH}:../AMMUNITION/.libs:../../AMMUNITION/.libs
 bin_PROGRAMS = oka
 oka_SOURCES = common.h common.c tab.h tab.c yacc.h anal.h anal.c gen.h gen.c main.c
 nodist_oka_SOURCES = yacc.c ird.c ird.h
-BUILT_SOURCES = oka.sgml
 CLEANFILES = yacc.c ird.c ird.h
 oka_CFLAGS = -I$(srcdir)/../AMMUNITION
 oka_LDFLAGS = -static ../AMMUNITION/libcocom.la -lm
@@ -51,22 +50,15 @@ test-sched: oka
 
 # Creation of documentation
 
-doc : $(srcdir)/oka.txt $(srcdir)/oka.html\
-      $(srcdir)/oka.info $(srcdir)/oka.pdf $(srcdir)/oka.dvi $(srcdir)/oka.ps
-
-oka.sgml : $(srcdir)/oka.sgml.in $(srcdir)/oka.1
+doc : 
 	nroff -man $(srcdir)/oka.1 | $(AWK) '{gsub (/.\b/,"");gsub (/.\200\230/,"\140");gsub (/.\200\231/,"\047");gsub (/\033\[[140]m/,"");gsub (/\033\[2[24]m/,"");print;}' > oka.tmp
 	$(AWK) '{if($$0 == "%%%")\
                      {while ((getline line < "oka.tmp") > 0)\
                         print line;close("oka.tmp")}\
-                 else print;}' $(srcdir)/oka.sgml.in > $@
+                 else print;}' $(srcdir)/oka.sgml.in > oka.sgml
 	rm -f oka.tmp
-
-$(srcdir)/oka.txt: $(srcdir)/oka.sgml.in
 	linuxdoc -B txt --papersize=letter -f oka.sgml
 	mv oka.txt $(srcdir)
-	
-$(srcdir)/oka.html: $(srcdir)/oka.sgml.in
 	linuxdoc -B html --papersize=letter oka.sgml
 	if test -f oka-1.html;then\
   	  for i in oka-*.html;do\
@@ -74,25 +66,17 @@ $(srcdir)/oka.html: $(srcdir)/oka.sgml.in
 	  done;\
         fi
 	mv oka.html $(srcdir)/oka.html
-	
-$(srcdir)/oka.info: $(srcdir)/oka.sgml.in
 	linuxdoc -B info --papersize=letter oka.sgml
 	if test -f oka.info;then\
 	  for i in oka.info*;do\
    	    mv $$i $(srcdir)/$$i;\
 	  done;\
         fi
-	
-$(srcdir)/oka.dvi: $(srcdir)/oka.sgml.in
 	linuxdoc -B latex --papersize=letter oka.sgml
 	if test ! -f oka.dvi\
            -o -f oka.tex -a oka.tex -nt oka.dvi; then\
     	        latex oka.tex; latex oka.tex;\
         fi
 	mv oka.dvi $(srcdir)/oka.dvi
-
-$(srcdir)/oka.ps: $(srcdir)/oka.dvi
-	dvips -o $@ $(srcdir)/oka.dvi
-
-$(srcdir)/oka.pdf: $(srcdir)/oka.ps
-	ps2pdf $(srcdir)/oka.ps $@
+	dvips -o $(srcdir)/oka.ps $(srcdir)/oka.dvi
+	ps2pdf $(srcdir)/oka.ps $(srcdir)/oka.pdf

@@ -1,3 +1,21 @@
+2016-01-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* Makefile.am (doc): Call recursively.
+	* Makefile.in: Update.
+	* AMMUNITION/Makefile.am (doc): Generate all files.
+	(BUILT_SOURCES): Remove sgml files.
+	* {DINO, MSTA, NONA, OKA, SHILKA, SPRUT}/Makefile.am: Ditto.
+	* AMMUNITION/Makefile.in: Update.
+	* {DINO, MSTA, NONA, OKA, SHILKA, SPRUT}/Makefile.in: Ditto.
+	* AMMUNITION/ammunition.{dvi, ps, pdf}: Update.
+	* AMMUNITION/ammunition++.{dvi, ps, pdf}: Update.
+	* DINO/dino.{dvi, ps, pdf}: Update.
+	* MSTA/msta.{dvi, ps, pdf}: Update.
+	* NONA/nona.{dvi, ps, pdf}: Update.
+	* OKA/oka.{dvi, ps, pdf}: Update.
+	* SHILKA/shilka.{dvi, ps, pdf}: Update.
+	* SPRUT/sprut.{dvi, ps, pdf}: Update.
+
 2016-01-23  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* configure.ac: Use 0.97 as the version.

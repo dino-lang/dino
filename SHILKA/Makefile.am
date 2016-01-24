@@ -4,7 +4,6 @@ PATH := ${PATH}:../AMMUNITION/.libs
 bin_PROGRAMS = shilka
 shilka_SOURCES = common.h common.c tab.h tab.c yacc.h anal.h anal.c gen.h gen.c main.c
 nodist_shilka_SOURCES = yacc.c ird.c ird.h
-BUILT_SOURCES = shilka.sgml
 CLEANFILES = yacc.c ird.c ird.h
 shilka_CFLAGS = -I$(srcdir)/../AMMUNITION
 shilka_LDFLAGS = -static ../AMMUNITION/libcocom.la
@@ -41,21 +40,15 @@ yacc.c: $(srcdir)/yacc.y
 	elif test ! -f y.tab.c && test -f ytab.c;then mv ytab.c $@;\
 	else mv y.tab.c $@;fi
 
-doc : $(srcdir)/shilka.txt $(srcdir)/shilka.html $(srcdir)/shilka.info $(srcdir)/shilka.pdf $(srcdir)/shilka.dvi $(srcdir)/shilka.ps
-
-shilka.sgml : $(srcdir)/shilka.sgml.in $(srcdir)/shilka.1
+doc :
 	nroff -man $(srcdir)/shilka.1 | $(AWK) '{gsub (/.\200\230/,"\140");gsub (/.\200\231/,"\047");gsub (/\033\[[140]m/,"");gsub (/\033\[2[24]m/,"");gsub (/.\b/,"");print;}' > shilka.tmp
 	$(AWK) '{if($$0 == "%%%")\
                      {while ((getline line < "shilka.tmp") > 0)\
                         print line;close("shilka.tmp")}\
-                 else print;}' $(srcdir)/shilka.sgml.in > $@
+                 else print;}' $(srcdir)/shilka.sgml.in > shilka.sgml
 	rm -f shilka.tmp
-
-$(srcdir)/shilka.txt: $(srcdir)/shilka.sgml.in
 	linuxdoc -B txt --papersize=letter -f shilka.sgml
 	mv shilka.txt $(srcdir)
-	
-$(srcdir)/shilka.html: $(srcdir)/shilka.sgml.in
 	linuxdoc -B html shilka.sgml
 	if test -f shilka-1.html;then\
   	  for i in shilka-*.html;do\
@@ -63,28 +56,20 @@ $(srcdir)/shilka.html: $(srcdir)/shilka.sgml.in
 	  done;\
         fi
 	mv shilka.html $(srcdir)/shilka.html
-	
-$(srcdir)/shilka.info: $(srcdir)/shilka.sgml.in
 	linuxdoc -B info shilka.sgml
 	if test -f shilka.info;then\
 	  for i in shilka.info*;do\
    	    mv $$i $(srcdir)/$$i;\
 	  done;\
         fi
-	
-$(srcdir)/shilka.dvi: $(srcdir)/shilka.sgml.in
 	linuxdoc -B latex shilka.sgml
 	if test ! -f shilka.dvi\
            -o -f shilka.tex -a shilka.tex -nt shilka.dvi; then\
     	        latex shilka.tex; latex shilka.tex;\
         fi
 	mv shilka.dvi $(srcdir)/shilka.dvi
-
-$(srcdir)/shilka.ps: $(srcdir)/shilka.dvi
-	dvips -o $@ $(srcdir)/shilka.dvi
-
-$(srcdir)/shilka.pdf: $(srcdir)/shilka.ps
-	ps2pdf $(srcdir)/shilka.ps $@
+	dvips -o $(srcdir)/shilka.ps $(srcdir)/shilka.dvi
+	ps2pdf $(srcdir)/shilka.ps $(srcdir)/shilka.pdf
 
 test : shilka
 	$(SHELL) ./shilka.tst

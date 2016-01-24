@@ -353,7 +353,6 @@ top_srcdir = @top_srcdir@
 PATH := ${PATH}:../AMMUNITION/.libs
 nona_SOURCES = common.h common.c tab.h tab.c yacc.h anal.h anal.c gen.h gen.c main.c
 nodist_nona_SOURCES = yacc.c ird.c ird.h
-BUILT_SOURCES = nona.sgml
 CLEANFILES = yacc.c ird.c ird.h
 nona_CFLAGS = -I$(srcdir)/../AMMUNITION
 nona_LDFLAGS = -static ../AMMUNITION/libcocom.la
@@ -364,7 +363,7 @@ dist_doc_DATA = nona.txt nona.info nona.html nona-1.html nona-2.html nona-3.html
 EXTRA_DIST = yacc.y ird.sprut a29k.nona README INSTALL nona.sgml.in
 ACLOCAL_AMFLAGS = -I m4
 SPRUT = ../SPRUT/sprut
-all: $(BUILT_SOURCES) config.h
+all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
@@ -901,15 +900,13 @@ distcleancheck: distclean
 	       $(distcleancheck_listfiles) ; \
 	       exit 1; } >&2
 check-am: all-am
-check: $(BUILT_SOURCES)
-	$(MAKE) $(AM_MAKEFLAGS) check-am
+check: check-am
 all-am: Makefile $(PROGRAMS) $(MANS) $(DATA) config.h all-local
 installdirs:
 	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(docdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
-install: $(BUILT_SOURCES)
-	$(MAKE) $(AM_MAKEFLAGS) install-am
+install: install-am
 install-exec: install-exec-am
 install-data: install-data-am
 uninstall: uninstall-am
@@ -940,7 +937,6 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-am
 
 clean-am: clean-binPROGRAMS clean-generic clean-libtool mostlyclean-am
@@ -1017,7 +1013,7 @@ uninstall-am: uninstall-binPROGRAMS uninstall-dist_docDATA \
 
 uninstall-man: uninstall-man1
 
-.MAKE: all check install install-am install-strip
+.MAKE: all install-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am all-local am--refresh check \
 	check-am clean clean-binPROGRAMS clean-cscope clean-generic \
@@ -1069,21 +1065,15 @@ test : nona
 
 # Creation of documentation
 
-doc : $(srcdir)/nona.txt $(srcdir)/nona.html $(srcdir)/nona.info $(srcdir)/nona.pdf $(srcdir)/nona.dvi $(srcdir)/nona.ps
-
-nona.sgml : $(srcdir)/nona.sgml.in $(srcdir)/nona.1
+doc :
 	nroff -man $(srcdir)/nona.1 | $(AWK) '{gsub (/.\b/,"");gsub (/.\200\230/,"\140");gsub (/.\200\231/,"\047");gsub (/\033\[[140]m/,"");gsub (/\033\[2[24]m/,"");print;}' > nona.tmp
 	$(AWK) '{if($$0 == "%%%")\
                      {while ((getline line < "nona.tmp") > 0)\
                         print line;close("nona.tmp")}\
-                 else print;}' $(srcdir)/nona.sgml.in > $@
+                 else print;}' $(srcdir)/nona.sgml.in > nona.sgml
 	rm -f nona.tmp
-
-$(srcdir)/nona.txt: $(srcdir)/nona.sgml.in
 	linuxdoc -B txt --papersize=letter -f nona.sgml
 	mv nona.txt $(srcdir)
-
-$(srcdir)/nona.html: $(srcdir)/nona.sgml.in
 	linuxdoc -B html --papersize=letter nona.sgml
 	if test -f nona-1.html;then\
   	  for i in nona-*.html;do\
@@ -1091,28 +1081,20 @@ $(srcdir)/nona.html: $(srcdir)/nona.sgml.in
 	  done;\
         fi
 	mv nona.html $(srcdir)/nona.html
-
-$(srcdir)/nona.info: $(srcdir)/nona.sgml.in
 	linuxdoc -B info --papersize=letter nona.sgml
 	if test -f nona.info;then\
 	  for i in nona.info*;do\
    	    mv $$i $(srcdir)/$$i;\
 	  done;\
         fi
-
-$(srcdir)/nona.dvi: $(srcdir)/nona.sgml.in
 	linuxdoc -B latex --papersize=letter nona.sgml
 	if test ! -f nona.dvi\
            -o -f nona.tex -a nona.tex -nt nona.dvi; then\
     	        latex nona.tex; latex nona.tex;\
         fi
 	mv nona.dvi $(srcdir)/nona.dvi
-
-$(srcdir)/nona.ps: $(srcdir)/nona.dvi
-	dvips -o $@ $(srcdir)/nona.dvi
-
-$(srcdir)/nona.pdf: $(srcdir)/nona.ps
-	ps2pdf $(srcdir)/nona.ps $@
+	dvips -o $(srcdir)/nona.ps $(srcdir)/nona.dvi
+	ps2pdf $(srcdir)/nona.ps $(srcdir)/nona.pdf
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

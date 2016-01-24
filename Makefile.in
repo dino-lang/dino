@@ -738,6 +738,7 @@ uninstall-am:
 
 
 doc:
+	for i in AMMUNITION SPRUT MSTA SHILKA DINO NONA OKA;do (cd $$i && $(MAKE) doc);done
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

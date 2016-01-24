@@ -8,7 +8,6 @@ msta_SOURCES = common.h common.c tab.h tab.c yacc.h anal.h anal.c\
                regular.h regular.c la-trie.h la-trie.c descript.h descript.c\
                parser.h parser.c gen.h gen.c main.c
 nodist_msta_SOURCES = yacc.c ird.c ird.h
-BUILT_SOURCES = msta.sgml
 CLEANFILES = yacc.c ird.c ird.h
 msta_CFLAGS = -I$(srcdir)/../AMMUNITION
 msta_LDFLAGS = -static ../AMMUNITION/libcocom.la
@@ -80,22 +79,15 @@ test: msta
 
 # Creation of documentation
 
-doc : $(srcdir)/msta.txt $(srcdir)/msta.html\
-      $(srcdir)/msta.info $(srcdir)/msta.pdf $(srcdir)/msta.dvi $(srcdir)/msta.ps
-
-msta.sgml : $(srcdir)/msta.sgml.in $(srcdir)/msta.1
+doc :
 	nroff -man $(srcdir)/msta.1 | $(AWK) '{gsub (/.\b/,"");gsub (/.\200\230/,"\140");gsub (/.\200\231/,"\047");gsub (/\033\[[140]m/,"");gsub (/\033\[2[24]m/,"");print;}' > msta.tmp
 	$(AWK) '{if($$0 == "%%%")\
                      {while ((getline line < "msta.tmp") > 0)\
                         print line;close("msta.tmp")}\
-                 else print;}' $(srcdir)/msta.sgml.in > $@
+                 else print;}' $(srcdir)/msta.sgml.in > msta.sgml
 	rm -f msta.tmp
-
-$(srcdir)/msta.txt: $(srcdir)/msta.sgml.in
 	linuxdoc -B txt --papersize=letter -f msta.sgml
 	mv msta.txt $(srcdir)
-	
-$(srcdir)/msta.html: $(srcdir)/msta.sgml.in
 	linuxdoc -B html --papersize=letter msta.sgml
 	if test -f msta-1.html;then\
   	  for i in msta-*.html;do\
@@ -103,26 +95,18 @@ $(srcdir)/msta.html: $(srcdir)/msta.sgml.in
 	  done;\
         fi
 	mv msta.html $(srcdir)/msta.html
-	
-$(srcdir)/msta.info: $(srcdir)/msta.sgml.in
 	linuxdoc -B info --papersize=letter msta.sgml
 	if test -f msta.info;then\
 	  for i in msta.info*;do\
    	    mv $$i $(srcdir)/$$i;\
 	  done;\
         fi
-	
-$(srcdir)/msta.dvi: $(srcdir)/msta.sgml.in
 	linuxdoc -B latex --papersize=letter msta.sgml
 	if test ! -f msta.dvi\
            -o -f msta.tex -a msta.tex -nt msta.dvi; then\
     	        latex msta.tex; latex msta.tex;\
         fi
 	mv msta.dvi $(srcdir)/msta.dvi
-
-$(srcdir)/msta.ps: $(srcdir)/msta.dvi
-	dvips -o $@ $(srcdir)/msta.dvi
-
-$(srcdir)/msta.pdf: $(srcdir)/msta.ps
-	ps2pdf $(srcdir)/msta.ps $@
+	dvips -o $(srcdir)/msta.ps $(srcdir)/msta.dvi
+	ps2pdf $(srcdir)/msta.ps $(srcdir)/msta.pdf
 
