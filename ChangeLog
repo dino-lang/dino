@@ -1,3 +1,9 @@
+2016-01-25  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/compare_parsers.tst.in: Use DYLD_LIBRARY_PATH for
+	Darwin.
+	* install-sh: Add exec permission.
+
 2016-01-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* SPRUT/Makefile.am: Use -o a.out.
