@@ -25,6 +25,7 @@ dist-local:
 # Delete all not needed for distribution.
 distclean-local:
 	rm -f SCHEDULE/schedule.tst SCHEDULE/schedule++.tst
+	rm -rf SCHEDULE/*a.out.dSYM
 	-rmdir SCHEDULE
 	rm -f oka.sgml oka.tex oka.log oka.aux oka.toc oka.tmp oka.out
 

@@ -26,6 +26,7 @@ dist-local:
 # Delete all not needed for distribution.
 distclean-local:
 	rm -f shilka.sgml shilka.tex shilka.log shilka.aux shilka.toc compare.tst shilka.tst shilka.tmp shilka.out
+	rm -rf *a.out.dSYM
 
 ird.c ird.h : $(srcdir)/ird.sprut
 	$(SPRUT) @START_SPRUT_OPTIONS@ -access -set -new\

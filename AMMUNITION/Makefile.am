@@ -53,6 +53,7 @@ distclean-local:
               ammunition.aux ammunition.toc ammunition.tmp ammunition.out
 	rm -f ammunition++.sgml ammunition++.tex ammunition++.log\
 	      ammunition++.aux ammunition++.toc ammunition++.tmp ammunition++.out
+	rm -rf *a.out.dSYM
 
 sgramm.c: $(srcdir)/sgramm.y
 	$(YACC) $(srcdir)/sgramm.y

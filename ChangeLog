@@ -1,5 +1,11 @@
 2016-01-25  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* {AMMUNITION, MSTA, OKA, SHILKA}/Makefile.am: Remove *a.out.dDYM
+	directories.
+	* {AMMUNITION, MSTA, OKA, SHILKA}/Makefile.in: Update.
+
+2016-01-25  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* AMMUNITION/compare_parsers.tst.in: Use DYLD_LIBRARY_PATH for
 	Darwin.
 	* install-sh: Add exec permission.

@@ -30,6 +30,7 @@ dist-local:
 # Delete all not needed for distribution.
 distclean-local:
 	rm -f msta.sgml msta.tmp msta.tex msta.log msta.aux msta.toc quality.tst msta.tst msta.out
+	rm -rf *a.out.dSYM
 
 ird.c ird.h : $(srcdir)/ird.sprut
 	$(SPRUT) @START_SPRUT_OPTIONS@ -access -set -new -copy $(srcdir)/ird.sprut
