@@ -1,5 +1,10 @@
 2016-01-25  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* AMMUNITION/Makefile.am: Remove *.out.dDYM
+	* AMMUNITION/Makefile.in: Update.
+
+2016-01-25  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* {AMMUNITION, MSTA, OKA, SHILKA}/Makefile.am: Remove *a.out.dDYM
 	directories.
 	* {AMMUNITION, MSTA, OKA, SHILKA}/Makefile.in: Update.
