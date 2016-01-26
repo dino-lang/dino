@@ -1,5 +1,22 @@
 2016-01-25  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* COCOM-CHANGES, COCOM-README, DINO-CHANGES: Remove.
+	* DINO-INSTALL, DINO-README, dino-copyright, dino.dsc, dino.spec:
+	Ditto.
+	* msta-template.bmp: Ditto.
+	* cocom-copyright: Rename to copyright.  Use GPL version 2, add
+	references to COPYING and COPYING.LIB.
+	* COPYING: Update to version 2.
+	* INSTALL: Modify.  Describe debug mode.  Add instructions for
+	Windows and Mac OSX.
+	* Makefile.am (dist_doc_DATA, EXTRA_DIST, ditclean-local): New.
+	(cocom-doc): New.
+	* Makefile.in: Update.
+	* cocom.sgml.in: Change date.  Fix typo for cspset.
+	* cocom.{dvi, html, info, pdf, ps, txt}: Update.
+
+2016-01-25  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* AMMUNITION/Makefile.am: Remove *.out.dDYM
 	* AMMUNITION/Makefile.in: Update.
 
