@@ -1076,12 +1076,10 @@ distclean-local:
 	      A1_test.sprut A1_syntax.sprut A1_value.sprut A1_base.sprut
 
 ird.c : $(srcdir)/sprut-ird.c
-	rm -f $@
 	cp $(srcdir)/sprut-ird.c $@
 	chmod +w $@
 
 ird.h : $(srcdir)/sprut-ird.h
-	rm -f $@
 	cp $(srcdir)/sprut-ird.h $@
 	chmod +w $@
 

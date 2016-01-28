@@ -34,10 +34,6 @@
 #define STANDARD_DINO_LIB_DIRECTORY "/usr/local/lib"
 #endif
 
-#ifndef STANDARD_DINO_LIB_NAME
-#define STANDARD_DINO_LIB_NAME "libdino.so"
-#endif
-
 /* Libraries are prefixed by $DINO_HOME (if any) or
    STANDARD_DINO_LIB_DIRECTORY.  Separator is :. */
 #ifndef STANDARD_DINO_EXTERN_LIBS

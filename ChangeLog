@@ -1,3 +1,12 @@
+2016-01-27  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Makefile.am (libdino_la_CFLAGS): Remove
+	-DSTANDARD_DINO_LIB_NAME.
+	* DINO/Makefile.in: Update.
+	* DINO/d_dino.h (STNDARD_LIB_NAME): Remove.
+	* SPRUT/Makefile.am (ird.c, ird.h): Remove rm.
+	* SPRUT/Makefile.in: Update.
+
 2016-01-25  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* COCOM-CHANGES, COCOM-README, DINO-CHANGES: Remove.

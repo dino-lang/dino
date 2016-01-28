@@ -13,8 +13,7 @@ libdino_la_CFLAGS = -I$(srcdir)/../ONIGURUMA -I$(srcdir)/../AMMUNITION\
         	    @DINO_LIB_CFLAGS@ -DDINO_VERSION=$(VERSION) -DCC='"$(CC)"'\
 		    -DSTANDARD_DINO_INCLUDE_DIRECTORY='"$(includedir)"'\
 		    -DSTANDARD_DINO_EXTERN_LIBS='"$(DINO_EXTERN_LIBS_PATH)"'\
-		    -DSTANDARD_DINO_LIB_DIRECTORY='"$(libdir)"'\
-		    -DSTANDARD_DINO_LIB_NAME='"$(DINO_LIB_NAME)"'
+		    -DSTANDARD_DINO_LIB_DIRECTORY='"$(libdir)"'
 libdino_la_LDFLAGS = @DINO_LIB_LDFLAGS@ -release $(VERSION)
 bin_PROGRAMS = dino
 dino_SOURCES = d_main.c
