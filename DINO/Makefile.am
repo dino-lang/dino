@@ -85,6 +85,11 @@ d_genheader.i: $(srcdir)/d_gen.c $(srcdir)/d_common.h $(srcdir)/d_types.h $(srcd
 	       $(srcdir)/../AMMUNITION/errors.h $(srcdir)/../AMMUNITION/objstack.h
 	$(CC) @DEFS@ -I$(srcdir) -I. $(libdino_la_CFLAGS) $(CFLAGS) -E > d_gen.tmp $(srcdir)/d_gen.c && mv d_gen.tmp $@
 
+install-exec-hook:
+	if uname | fgrep CYGWIN > /dev/null && fgrep '%%%MAGIC variable%%%' $(bindir)/dino$(EXEEXT) >/dev/null; then\
+	    $(INSTALL_PROGRAM) .libs/dino$(EXEEXT) $(bindir)/dino$(EXEEXT);\
+	fi
+
 sgramm.c: $(srcdir)/../AMMUNITION/sgramm.y
 	$(YACC) $(srcdir)/../AMMUNITION/sgramm.y
 	mv y.tab.c $@
