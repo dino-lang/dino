@@ -301,6 +301,7 @@ DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DINO_LIB_CFLAGS = @DINO_LIB_CFLAGS@
 DINO_LIB_LDFLAGS = @DINO_LIB_LDFLAGS@
+DINO_MODULE_SUFFIX = @DINO_MODULE_SUFFIX@
 DINO_MOD_LDFLAGS = @DINO_MOD_LDFLAGS@
 DLLTOOL = @DLLTOOL@
 DSYMUTIL = @DSYMUTIL@
@@ -420,10 +421,16 @@ libdino_la_SOURCES = d_dino.h d_errors.h d_common.h d_built.h d_yacc.h d_runtab.
 		     d_eval.c d_dino.c
 
 nodist_libdino_la_SOURCES = d_yacc.c d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_extern.h
+module_suffix = @DINO_MODULE_SUFFIX@
+mpi_lib = d_mpi.$(module_suffix)
+ieee_lib = d_ieee.$(module_suffix)
+ipcerr_lib = d_ipcerr.$(module_suffix)
+socket_lib = d_socket.$(module_suffix)
+DINO_EXTERN_LIBS_PATH = \"$(mpi_lib):$(ieee_lib):$(ipcerr_lib):$(socket_lib)\"
 libdino_la_CFLAGS = -I$(srcdir)/../ONIGURUMA -I$(srcdir)/../AMMUNITION\
         	    @DINO_LIB_CFLAGS@ -DDINO_VERSION=$(VERSION) -DCC='"$(CC)"'\
 		    -DSTANDARD_DINO_INCLUDE_DIRECTORY='"$(includedir)"'\
-		    -DSTANDARD_DINO_EXTERN_LIBS='"$(DINO_EXTERN_LIBS_PATH)"'\
+		    -DSTANDARD_DINO_EXTERN_LIBS=$(DINO_EXTERN_LIBS_PATH)\
 		    -DSTANDARD_DINO_LIB_DIRECTORY='"$(libdir)"'
 
 libdino_la_LDFLAGS = @DINO_LIB_LDFLAGS@ -release $(VERSION)
@@ -461,11 +468,11 @@ dist_doc_DATA = dino.txt dino.info dino.html dino-1.html dino-2.html\
 	        dino.pdf dino.dvi dino.ps
 
 dist_man_MANS = dino.1
-include_HEADERS = d_types.h
+include_HEADERS = d_types.h mpi.d ieee.d ipcerr.d socket.d
 nodist_include_HEADERS = d_extern.h d_config.h d_gen.i
 EXTRA_DIST = d_gen.c d_yacc.y d_ir.sprut d_bc.sprut d_extern.sprut d_run.sprut\
 	      d_kw.shilka d_enc.shilka d_bcn.shilka d_bcf.shilka dino.tst.in UnicodeDB.c\
-	      compare.tst README INSTALL d_minimize.d mpi.d ieee.d ipcerr.d socket.d\
+	      compare.tst README INSTALL d_minimize.d\
 	      UnicodeOriginalData.txt process_ucodedb.d\
 	      dino.sgml.in
 

@@ -17,27 +17,32 @@ case $system in
 	Linux*)
 	  DINO_LIB_CFLAGS='-static'
           DINO_LIB_LDFLAGS='-static'
-          ;;
+	  DINO_MODULE_SUFFIX='so'
+	  ;;
 	Darwin*)
 	  DINO_LIB_CFLAGS='-shared'
           DINO_LIB_LDFLAGS='-shared ../AMMUNITION/libcocom.la ../ONIGURUMA/libonig.la'
 	  CFLAGS="`echo $CFLAGS` -I/usr/include -I/usr/local/include -L/usr/lib -L/usr/local/lib"
+	  DINO_MODULE_SUFFIX='so'
           ;;
 	CYGWIN*)
 	  DINO_LIB_CFLAGS='-shared'
           DINO_LIB_LDFLAGS='-shared ../AMMUNITION/libcocom.la ../ONIGURUMA/libonig.la -no-undefined'
 	  DINO_MOD_LDFLAGS='libdino.la -no-undefined'
 	  CFLAGS="`echo $CFLAGS` -I/usr/include -I/usr/local/include -L/usr/lib -L/usr/local/lib"
+	  DINO_MODULE_SUFFIX='dll'
           ;;
 	*)
 	  DINO_LIB_CFLAGS=-static
           DINO_LIB_LDFLAGS=-static 
+	  DINO_MODULE_SUFFIX='so'
 	  ;;
 esac
 
 AC_SUBST(DINO_LIB_CFLAGS)
 AC_SUBST(DINO_LIB_LDFLAGS)
 AC_SUBST(DINO_MOD_LDFLAGS)
+AC_SUBST(DINO_MODULE_SUFFIX)
 
 # Checks for programs.
 AC_PROG_CC

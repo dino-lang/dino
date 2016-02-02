@@ -1,5 +1,16 @@
 2016-02-01  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/configure.ac (DINO_MODULE_SUFFIX): New.
+	* DINO/configure: Update.
+	* DINO/Makafile.am (module_suffix, mpi_lib, ieee_lib): New.
+	(ipcerr_lib, socket_lib, DINO_EXTERN_LIBS_PATH): Ditto.
+	(libdino_la_CFLAGS): Use DINO_EXTERN_LIBS_PATH.
+	(EXTRA_DIST): Move mpi.d, ieee.d, ipcerr.d,
+	socket.d to include_HEADERS.
+	* DINO/Makefile.in: Update.
+
+2016-02-01  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/Makafile.am (install-exec-hook): Add comment.
 	* DINO/Makefile.in: Update.
 	* {MSTA, SHILKA, SPRUT, NONA, OKA}/Makefile.am
