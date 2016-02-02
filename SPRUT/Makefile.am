@@ -45,6 +45,12 @@ yacc.c: $(srcdir)/yacc.y
 	elif test ! -f y.tab.c && test -f ytab.c;then mv ytab.c $@;\
 	else mv y.tab.c $@;fi
 
+# CYGWIN libtools sometimes wrongly install wrapper program -- correct it
+install-exec-hook:
+	if uname | fgrep CYGWIN > /dev/null && fgrep '%%%MAGIC variable%%%' $(bindir)/sprut$(EXEEXT) >/dev/null; then\
+	    $(INSTALL_PROGRAM) .libs/sprut$(EXEEXT) $(bindir)/sprut$(EXEEXT);\
+	fi
+
 # B-tests and test of `sprut' built on base `ird.sprut'
 test : sprut A-test A1-test B-tests sprut-boot
 	@echo

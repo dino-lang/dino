@@ -1,6 +1,14 @@
 2016-02-01  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
-	* DINO/Makefile.am (install-exec-hoo): A new fix for CYGWIN.
+	* DINO/Makafile.am (install-exec-hook): Add comment.
+	* DINO/Makefile.in: Update.
+	* {MSTA, SHILKA, SPRUT, NONA, OKA}/Makefile.am
+	(install-exec-hook): A new fix for CYGWIN.
+	* {MSTA, SHILKA, SPRUT, NONA, OKA}/Makefile.in: Update.
+
+2016-02-01  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Makefile.am (install-exec-hook): A new fix for CYGWIN.
 	* DINO/Makefile.in: Update.
 
 2016-01-27  Vladimir Makarov  <vmakarov@gcc.gnu.org>

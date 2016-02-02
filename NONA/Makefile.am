@@ -35,6 +35,12 @@ yacc.c: $(srcdir)/yacc.y
 
 nona-common.$(OBJEXT) nona-anal.$(OBJEXT) nona-gen.$(OBJEXT) nona-tab.$(OBJEXT) nona-main.$(OBJEXT) nona-yacc.$(OBJEXT): ird.h
 
+# CYGWIN libtools sometimes wrongly install wrapper program -- correct it
+install-exec-hook:
+	if uname | fgrep CYGWIN > /dev/null && fgrep '%%%MAGIC variable%%%' $(bindir)/nona$(EXEEXT) >/dev/null; then\
+	    $(INSTALL_PROGRAM) .libs/nona$(EXEEXT) $(bindir)/nona$(EXEEXT);\
+	fi
+
 test : nona
 	if ./nona -export $(srcdir)/a29k.nona && $(CC) -c a29k.c\
            && ./nona -c++ -export $(srcdir)/a29k.nona && $(CC) -c a29k.cpp;\

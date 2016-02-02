@@ -967,7 +967,8 @@ install-dvi: install-dvi-am
 install-dvi-am:
 
 install-exec-am: install-binPROGRAMS
-
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-exec-hook
 install-html: install-html-am
 
 install-html-am:
@@ -1013,7 +1014,7 @@ uninstall-am: uninstall-binPROGRAMS uninstall-dist_docDATA \
 
 uninstall-man: uninstall-man1
 
-.MAKE: all install-am install-strip
+.MAKE: all install-am install-exec-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am all-local am--refresh check \
 	check-am clean clean-binPROGRAMS clean-cscope clean-generic \
@@ -1025,9 +1026,9 @@ uninstall-man: uninstall-man1
 	distuninstallcheck dvi dvi-am html html-am info info-am \
 	install install-am install-binPROGRAMS install-data \
 	install-data-am install-dist_docDATA install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-man1 install-pdf install-pdf-am install-ps \
+	install-dvi-am install-exec install-exec-am install-exec-hook \
+	install-html install-html-am install-info install-info-am \
+	install-man install-man1 install-pdf install-pdf-am install-ps \
 	install-ps-am install-strip installcheck installcheck-am \
 	installdirs maintainer-clean maintainer-clean-generic \
 	mostlyclean mostlyclean-compile mostlyclean-generic \
@@ -1056,6 +1057,12 @@ yacc.c: $(srcdir)/yacc.y
 	else mv y.tab.c $@;fi
 
 nona-common.$(OBJEXT) nona-anal.$(OBJEXT) nona-gen.$(OBJEXT) nona-tab.$(OBJEXT) nona-main.$(OBJEXT) nona-yacc.$(OBJEXT): ird.h
+
+# CYGWIN libtools sometimes wrongly install wrapper program -- correct it
+install-exec-hook:
+	if uname | fgrep CYGWIN > /dev/null && fgrep '%%%MAGIC variable%%%' $(bindir)/nona$(EXEEXT) >/dev/null; then\
+	    $(INSTALL_PROGRAM) .libs/nona$(EXEEXT) $(bindir)/nona$(EXEEXT);\
+	fi
 
 test : nona
 	if ./nona -export $(srcdir)/a29k.nona && $(CC) -c a29k.c\

@@ -72,6 +72,12 @@ doc :
 	dvips -o $(srcdir)/shilka.ps $(srcdir)/shilka.dvi
 	ps2pdf $(srcdir)/shilka.ps $(srcdir)/shilka.pdf
 
+# CYGWIN libtools sometimes wrongly install wrapper program -- correct it
+install-exec-hook:
+	if uname | fgrep CYGWIN > /dev/null && fgrep '%%%MAGIC variable%%%' $(bindir)/shilka$(EXEEXT) >/dev/null; then\
+	    $(INSTALL_PROGRAM) .libs/shilka$(EXEEXT) $(bindir)/shilka$(EXEEXT);\
+	fi
+
 test : shilka
 	$(SHELL) ./shilka.tst
 	@if type gperf 2>&1|fgrep 'ot found';then\

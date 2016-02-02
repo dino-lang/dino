@@ -1132,7 +1132,8 @@ install-dvi: install-dvi-am
 install-dvi-am:
 
 install-exec-am: install-binPROGRAMS
-
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-exec-hook
 install-html: install-html-am
 
 install-html-am:
@@ -1178,7 +1179,7 @@ uninstall-am: uninstall-binPROGRAMS uninstall-dist_docDATA \
 
 uninstall-man: uninstall-man1
 
-.MAKE: all install-am install-strip
+.MAKE: all install-am install-exec-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am all-local am--refresh check \
 	check-am clean clean-binPROGRAMS clean-cscope clean-generic \
@@ -1190,9 +1191,9 @@ uninstall-man: uninstall-man1
 	distuninstallcheck dvi dvi-am html html-am info info-am \
 	install install-am install-binPROGRAMS install-data \
 	install-data-am install-dist_docDATA install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-man1 install-pdf install-pdf-am install-ps \
+	install-dvi-am install-exec install-exec-am install-exec-hook \
+	install-html install-html-am install-info install-info-am \
+	install-man install-man1 install-pdf install-pdf-am install-ps \
 	install-ps-am install-strip installcheck installcheck-am \
 	installdirs maintainer-clean maintainer-clean-generic \
 	mostlyclean mostlyclean-compile mostlyclean-generic \
@@ -1226,6 +1227,12 @@ yacc.c: $(srcdir)/yacc.y
 	if test ! -f y.tab.c && test -f y_tab.c;then mv y_tab.c $@;\
 	elif test ! -f y.tab.c && test -f ytab.c;then mv ytab.c $@;\
 	else mv y.tab.c $@;fi
+
+# CYGWIN libtools sometimes wrongly install wrapper program -- correct it
+install-exec-hook:
+	if uname | fgrep CYGWIN > /dev/null && fgrep '%%%MAGIC variable%%%' $(bindir)/msta$(EXEEXT) >/dev/null; then\
+	    $(INSTALL_PROGRAM) .libs/msta$(EXEEXT) $(bindir)/msta$(EXEEXT);\
+	fi
 
 test: msta
 	$(SHELL) msta.tst

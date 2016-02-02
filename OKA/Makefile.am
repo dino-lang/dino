@@ -41,6 +41,12 @@ yacc.c: $(srcdir)/yacc.y
 
 oka-common.$(OBJEXT) oka-anal.$(OBJEXT) oka-gen.$(OBJEXT) oka-tab.$(OBJEXT) oka-main.$(OBJEXT) oka-yacc.$(OBJEXT): ird.h
 
+# CYGWIN libtools sometimes wrongly install wrapper program -- correct it
+install-exec-hook:
+	if uname | fgrep CYGWIN > /dev/null && fgrep '%%%MAGIC variable%%%' $(bindir)/oka$(EXEEXT) >/dev/null; then\
+	    $(INSTALL_PROGRAM) .libs/oka$(EXEEXT) $(bindir)/oka$(EXEEXT);\
+	fi
+
 test : test-oka test-sched
 
 test-oka: oka
