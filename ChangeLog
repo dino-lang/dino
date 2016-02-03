@@ -1,5 +1,9 @@
 2016-02-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/Makefile.in: Update.
+
+2016-02-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/Makefile.am (libdino_la_CFLAGS): Add
 	-DSTANDARD_DINO_BIN_DIRECTORY.
 	* DINO/d_bc.sprut (CC_OPTIONS, CC_OPTIONS2): Remove dll for
