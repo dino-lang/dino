@@ -38,7 +38,7 @@ CC='@CC@'
 CC_options='@CFLAGS@ @DEFS@ -I. -I@srcdir@/'
 source_addfiles='@srcdir@/allocate.c @srcdir@/vlobject.c'
 addfiles="${prefix}_allocate.o ${prefix}_vlobject.o"
-test_file=${prefix}_tvlobject.c
+test_file=${prefix}_tv.object.c
 outfile=./${prefix}_a.out
 
 if test x$1 = x
@@ -72,7 +72,7 @@ if test $result = ok -a $start_test_number -le 1; then
 #include <stdlib.h>
 #include "allocate.h"
 #include "vlobject.h"
-main ()
+int main ()
 {
   vlo_t v;
 
@@ -109,7 +109,7 @@ if test $result = ok -a $start_test_number -le 2; then
 #include <string.h>
 #include "allocate.h"
 #include "vlobject.h"
-main ()
+int main ()
 {
   vlo_t v;
 
@@ -147,7 +147,7 @@ if test $result = ok -a $start_test_number -le 3; then
 #include <string.h>
 #include "allocate.h"
 #include "vlobject.h"
-main ()
+int main ()
 {
   vlo_t v;
 
@@ -186,7 +186,7 @@ if test $result = ok -a $start_test_number -le 4; then
 #include <stdlib.h>
 #include "allocate.h"
 #include "vlobject.h"
-main ()
+int main ()
 {
   vlo_t v;
 
@@ -223,7 +223,7 @@ if test $result = ok -a $start_test_number -le 5; then
 #include <stdlib.h>
 #include "allocate.h"
 #include "vlobject.h"
-main ()
+int main ()
 {
   vlo_t v;
 

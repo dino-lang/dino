@@ -163,7 +163,9 @@ main ()
 }
 EOF
 
-if $CC -DGPERF -O2 -I@srcdir@/../AMMUNITION -L../AMMUNITION test.c -lcocom -o $outfile; then
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../AMMUNITION/.libs
+
+if $CC -DGPERF -O2 -I@srcdir@/../AMMUNITION -L../AMMUNITION/.libs test.c -lcocom -o $outfile; then
   echo '  ' gperf: time:
   $CC -E -I. -I@srcdir@ -I@srcdir@/../AMMUNITION @srcdir@/gen.c | time $outfile
 else
@@ -171,7 +173,7 @@ else
   exit 1
 fi
 
-if $CC -O2 -I@srcdir@/../AMMUNITION -L../AMMUNITION test.c -lcocom -o $outfile; then
+if $CC -O2 -I@srcdir@/../AMMUNITION -L../AMMUNITION/.libs test.c -lcocom -o $outfile; then
   echo '  ' shilka: time:
   $CC -E -I. -I@srcdir@ -I@srcdir@/../AMMUNITION @srcdir@/gen.c | time $outfile
 else
@@ -196,7 +198,7 @@ else
   exit 1
 fi
 
-if $CC -DGPERF -O2 -I@srcdir@/../AMMUNITION -L../AMMUNITION test.c -lcocom -o $outfile; then
+if $CC -DGPERF -O2 -I@srcdir@/../AMMUNITION -L../AMMUNITION/.libs test.c -lcocom -o $outfile; then
   echo '  ' gperf: time:
   $CC -E -I. -I@srcdir@ -I@srcdir@/../AMMUNITION @srcdir@/gen.c | time $outfile
 else
@@ -205,7 +207,7 @@ else
 fi
 
 
-if $CC -O2 -I@srcdir@/../AMMUNITION -L../AMMUNITION test.c -lcocom -o $outfile; then
+if $CC -O2 -I@srcdir@/../AMMUNITION -L../AMMUNITION/.libs test.c -lcocom -o $outfile; then
   echo '  ' shilka: time:
   $CC -E -I. -I@srcdir@ -I@srcdir@/../AMMUNITION @srcdir@/gen.c | time $outfile
 else

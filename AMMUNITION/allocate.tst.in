@@ -70,7 +70,7 @@ if test $result = ok -a $start_test_number -le 1; then
         cat >$test_file <<'TEST1'
 #include <stdlib.h>
 #include "allocate.h"
-main ()
+int main ()
 {
   char * str;
   MALLOC (str, 10);

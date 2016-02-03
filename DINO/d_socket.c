@@ -302,9 +302,9 @@ _getservbyname (int_t npars, val_t *vals)
   return form_servent (instance, getservbyname (name, proto));
 }
 
-
+#include <stdio.h>
 val_t
-_sread (int_t npars, val_t *vals)
+_dsread (int_t npars, val_t *vals)
 {
   int sd;
   rint_t len;
@@ -342,7 +342,7 @@ _sread (int_t npars, val_t *vals)
 }
 
 val_t
-_swrite (int_t npars, val_t *vals)
+_dswrite (int_t npars, val_t *vals)
 {
   int sd;
   rint_t len;
@@ -710,59 +710,3 @@ _socket_fin (int_t npars, val_t *vals)
   ER_SET_MODE (res, ER_NM_nil);
   return val;
 }
-
-#if !defined(HAVE_DLOPEN) || defined(NO_EXTERN_SHLIB)
-
-/* Function for implementing externals with static libraries.  See all
-   externals name in ieee.d. */
-void *
-socket_address (const char *name)
-{
-  if (strcmp (name, "_socket_errno") == 0)
-    return &_socket_errno;
-  else if (strcmp (name, "_socket_invalid_address") == 0)
-    return &_socket_invalid_address;
-  else if (strcmp (name, "_socket_host_not_found") == 0)
-    return &_socket_host_not_found;
-  else if (strcmp (name, "_socket_no_address") == 0)
-    return &_socket_no_address;
-  else if (strcmp (name, "_socket_no_recovery") == 0)
-    return &_socket_no_recovery;
-  else if (strcmp (name, "_socket_try_again") == 0)
-    return &_socket_try_again;
-  else if (strcmp (name, "_socket_eof") == 0)
-    return &_socket_eof;
-  else if (strcmp (name, "_gethostinfo") == 0)
-    return _gethostinfo;
-  else if (strcmp (name, "_getservbyport") == 0)
-    return _getservbyport;
-  else if (strcmp (name, "_getservbyname") == 0)
-    return _getservbyname;
-  else if (strcmp (name, "_sread") == 0)
-    return _sread;
-  else if (strcmp (name, "_swrite") == 0)
-    return _swrite;
-  else if (strcmp (name, "_recvfrom") == 0)
-    return _recvfrom;
-  else if (strcmp (name, "_sendto") == 0)
-    return _sendto;
-  else if (strcmp (name, "_accept") == 0)
-    return _accept;
-  else if (strcmp (name, "_stream_client") == 0)
-    return _stream_client;
-  else if (strcmp (name, "_dgram_client") == 0)
-    return _dgram_client;
-  else if (strcmp (name, "_stream_server") == 0)
-    return _stream_server;
-  else if (strcmp (name, "_dgram_server") == 0)
-    return _dgram_server;
-  else if (strcmp (name, "_close_socket") == 0)
-    return _close_socket;
-  else if (strcmp (name, "_socket_init") == 0)
-    return _socket_init;
-  else if (strcmp (name, "_socket_fin") == 0)
-    return _socket_fin;
-  else
-    return NULL;
-}
-#endif

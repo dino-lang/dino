@@ -35,7 +35,7 @@
 
 
 #ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
+#include "config.h"
 #else /* In this case we are oriented to ANSI C */
 #endif /* #ifdef HAVE_CONFIG_H */
 
@@ -432,7 +432,7 @@ cspset_print (FILE *f, cspset_t *s)
       if (n >= 10)
 	n = 0;
     }
-  fprintf (f, "\n", el);
+  fprintf (f, "\n");
 }
 
 /* Print set S to stderr.  */

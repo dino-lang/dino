@@ -184,7 +184,7 @@ static int execution_time [6] =
   28  /* FDIV */
 };
 
-scheduler_execution_duration (instruction_t instruction)
+int scheduler_execution_duration (instruction_t instruction)
 {
   assert (((struct instruction *) instruction)->code < OKA__ADVANCE_CYCLE);
   return execution_time [((struct instruction *) instruction)->code];

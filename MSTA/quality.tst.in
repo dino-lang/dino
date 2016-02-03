@@ -76,6 +76,7 @@ INPUT1
                         echo '      ' $CC $output_file -o $fexec "2>$temp_file"
                         if $CC $output_file -o $fexec 2>$temp_file; then
                                 result=ok
+                                rm -f $output_file $description_file
                         else
                                 result=fail
                         fi                        
@@ -109,6 +110,7 @@ INPUT2
                         echo '      ' $CC $output_file -o $fexec "2>$temp_file"
                         if $CC $output_file -o $fexec 2>$temp_file; then
                                 result=ok
+                                rm -f $output_file $description_file
                         else
                                 result=fail
                         fi                        
@@ -137,6 +139,7 @@ INPUT3
                         echo '      ' $CC $output_file -o $fexec "2>$temp_file"
                         if $CC $output_file -o $fexec 2>$temp_file; then
                                 result=ok
+                                rm -f $output_file $description_file
                         else
                                 result=fail
                         fi                        
@@ -171,6 +174,7 @@ INPUT4
                         echo '      ' $CC $output_file -o $fexec "2>$temp_file"
                         if $CC $output_file -o $fexec 2>$temp_file; then
                                 result=ok
+                                rm -f $output_file $description_file
                         else
                                 result=fail
                         fi                        
@@ -204,6 +208,7 @@ INPUT5
                         echo '      ' $CC $output_file -o $fexec "2>$temp_file"
                         if $CC $output_file -o $fexec 2>$temp_file; then
                                 result=ok
+                                rm -f $output_file $description_file
                         else
                                 result=fail
                         fi                        
@@ -234,6 +239,7 @@ if test $result = ok -a $start_test_number -le 6; then
   1 shift/reduce conflict.
 INPUT6
                         result=ok
+                        rm -f $output_file $description_file
                 else
                         result=fail
                 fi
@@ -260,6 +266,7 @@ if test $result = ok -a $start_test_number -le 7; then
   Real look ahead is 1 token
 INPUT7
                         result=ok
+                        rm -f $output_file $description_file
                 else
                         result=fail
                 fi
@@ -289,6 +296,7 @@ INPUT8
                         echo '      ' $CC $output_file -o $fexec "2>$temp_file"
                         if $CC $output_file -o $fexec 2>$temp_file; then
                                 result=ok
+                                rm -f $output_file $description_file
                         else
                                 result=fail
                         fi                        
@@ -320,6 +328,7 @@ if test $result = ok -a $start_test_number -le 9; then
   1 shift/reduce conflict.
 INPUT9
                         result=ok
+                        rm -f $output_file $description_file
                 else
                         result=fail
                 fi
@@ -351,6 +360,7 @@ INPUT11
                         echo '      ' $CC $output_file -o $fexec "2>$temp_file"
                         if $CC $output_file -o $fexec 2>$temp_file; then
                                 result=ok
+                                rm -f $output_file $description_file
                         else
                                 result=fail
                         fi                        
@@ -384,6 +394,7 @@ INPUT12
                         echo '      ' $CC $output_file -o $fexec "2>$temp_file"
                         if $CC $output_file -o $fexec 2>$temp_file; then
                                 result=ok
+                                rm -f $output_file $description_file
                         else
                                 result=fail
                         fi                        
@@ -412,6 +423,7 @@ INPUT13
                         echo '      ' $CC $output_file -o $fexec "2>$temp_file"
                         if $CC $output_file -o $fexec 2>$temp_file; then
                                 result=ok
+                                rm -f $output_file $description_file
                         else
                                 result=fail
                         fi                        
@@ -446,6 +458,7 @@ INPUT14
                         echo '      ' $CC $output_file -o $fexec "2>$temp_file"
                         if $CC $output_file -o $fexec 2>$temp_file; then
                                 result=ok
+                                rm -f $output_file $description_file
                         else
                                 result=fail
                         fi                        
@@ -479,6 +492,7 @@ INPUT15
                         echo '      ' $CC $output_file -o $fexec "2>$temp_file"
                         if $CC $output_file -o $fexec 2>$temp_file; then
                                 result=ok
+                                rm -f $output_file $description_file
                         else
                                 result=fail
                         fi                        
@@ -509,6 +523,7 @@ if test $result = ok -a $start_test_number -le 16; then
   1 shift/reduce conflict.
 INPUT16
                         result=ok
+                        rm -f $output_file $description_file
                 else
                         result=fail
                 fi
@@ -535,6 +550,7 @@ if test $result = ok -a $start_test_number -le 17; then
   Real look ahead is 1 token
 INPUT17
                         result=ok
+                        rm -f $output_file $description_file
                 else
                         result=fail
                 fi
@@ -564,6 +580,7 @@ INPUT18
                         echo '      ' $CC $output_file -o $fexec "2>$temp_file"
                         if $CC $output_file -o $fexec 2>$temp_file; then
                                 result=ok
+                                rm -f $output_file $description_file
                         else
                                 result=fail
                         fi                        
@@ -595,6 +612,7 @@ if test $result = ok -a $start_test_number -le 19; then
   1 shift/reduce conflict.
 INPUT19
                         result=ok
+                        rm -f $output_file $description_file
                 else
                         result=fail
                 fi
@@ -626,6 +644,7 @@ INPUT21
                         echo '      ' $CC $output_file -o $fexec "2>$temp_file"
                         if $CC $output_file -o $fexec 2>$temp_file; then
                                 result=ok
+                                rm -f $output_file $description_file
                         else
                                 result=fail
                         fi                        
@@ -659,6 +678,7 @@ INPUT22
                         echo '      ' $CC $output_file -o $fexec "2>$temp_file"
                         if $CC $output_file -o $fexec 2>$temp_file; then
                                 result=ok
+                                rm -f $output_file $description_file
                         else
                                 result=fail
                         fi                        
@@ -687,6 +707,7 @@ INPUT23
                         echo '      ' $CC $output_file -o $fexec "2>$temp_file"
                         if $CC $output_file -o $fexec 2>$temp_file; then
                                 result=ok
+                                rm -f $output_file $description_file
                         else
                                 result=fail
                         fi                        
@@ -721,6 +742,7 @@ INPUT24
                         echo '      ' $CC $output_file -o $fexec "2>$temp_file"
                         if $CC $output_file -o $fexec 2>$temp_file; then
                                 result=ok
+                                rm -f $output_file $description_file
                         else
                                 result=fail
                         fi                        
@@ -754,6 +776,7 @@ INPUT25
                         echo '      ' $CC $output_file -o $fexec "2>$temp_file"
                         if $CC $output_file -o $fexec 2>$temp_file; then
                                 result=ok
+                                rm -f $output_file $description_file
                         else
                                 result=fail
                         fi                        
@@ -784,6 +807,7 @@ if test $result = ok -a $start_test_number -le 26; then
   1 shift/reduce conflict.
 INPUT26
                         result=ok
+                        rm -f $output_file $description_file
                 else
                         result=fail
                 fi
@@ -839,6 +863,7 @@ INPUT28
                         echo '      ' $CC $output_file -o $fexec "2>$temp_file"
                         if $CC $output_file -o $fexec 2>$temp_file; then
                                 result=ok
+                                rm -f $output_file $description_file
                         else
                                 result=fail
                         fi                        
@@ -870,6 +895,7 @@ if test $result = ok -a $start_test_number -le 29; then
   1 shift/reduce conflict.
 INPUT29
                         result=ok
+                        rm -f $output_file $description_file
                 else
                         result=fail
                 fi
@@ -898,6 +924,7 @@ if test $result = ok -a $start_test_number -le 30; then
   1 shift/reduce conflict.
 INPUT30
                         result=ok
+                        rm -f $output_file $description_file
                 else
                         result=fail
                 fi
@@ -926,6 +953,7 @@ if test $result = ok -a $start_test_number -le 31; then
   1 shift/reduce conflict.
 INPUT31
                         result=ok
+                        rm -f $output_file $description_file
                 else
                         result=fail
                 fi
@@ -954,6 +982,7 @@ if test $result = ok -a $start_test_number -le 32; then
   1 shift/reduce conflict.
 INPUT32
                         result=ok
+                        rm -f $output_file $description_file
                 else
                         result=fail
                 fi
@@ -998,6 +1027,7 @@ INPUT33-1
 	2
 INPUT33-2
                                         result=ok
+                                        rm -f $output_file $description_file
                                     else
                                         result=fail
                                     fi
@@ -1050,6 +1080,7 @@ INPUT34-1
 	2
 INPUT34-2
                                         result=ok
+                                        rm -f $output_file $description_file
                                     else
                                         result=fail
                                     fi
@@ -1102,6 +1133,7 @@ INPUT35-1
 	2
 INPUT35-2
                                         result=ok
+                                        rm -f $output_file $description_file
                                     else
                                         result=fail
                                     fi
@@ -1172,6 +1204,7 @@ syntax error
 	2
 INPUT36-2
                                         result=ok
+                                        rm -f $output_file $description_file
                                     else
                                         result=fail
                                     fi
@@ -1242,6 +1275,7 @@ syntax error
 	2
 INPUT37-2
                                         result=ok
+                                        rm -f $output_file $description_file
                                     else
                                         result=fail
                                     fi
@@ -1281,6 +1315,7 @@ INPUT38
                         echo '      ' $CXX $output_file -o $fexec "2>$temp_file"
                         if $CXX $output_file -o $fexec 2>$temp_file; then
                                 result=ok
+                                rm -f $output_file $description_file
                         else
                                 result=fail
                         fi                        
@@ -1333,6 +1368,7 @@ INPUT39-1
 300 - b20
 INPUT39-2
                                         result=ok
+                                        rm -f $output_file $description_file
                                     else
                                         result=fail
                                     fi
@@ -1391,6 +1427,7 @@ INPUT40-1
 300 - b20
 INPUT40-2
                                         result=ok
+                                        rm -f $output_file $description_file
                                     else
                                         result=fail
                                     fi
@@ -1479,6 +1516,7 @@ INPUT41-3
 code = 0
 INPUT41-4
                             result=ok
+                            rm -f $output_file1 $output_file2 $description_file
                          else
                             result=fail
                          fi
@@ -1535,6 +1573,7 @@ EOF
   Real look ahead is 6 tokens
 INPUT42
                         result=ok
+                        rm -f $output_file $description_file
                 else
                         result=fail
                 fi
@@ -1569,6 +1608,7 @@ EOF
   Real look ahead is 6 tokens
 INPUT43
                         result=ok
+                        rm -f $output_file $description_file
                 else
                         result=fail
                 fi
@@ -1602,6 +1642,7 @@ EOF
   Real look ahead is 6 tokens
 INPUT44
                         result=ok
+                        rm -f $output_file $description_file
                 else
                         result=fail
                 fi
@@ -1634,6 +1675,7 @@ EOF
   Real look ahead is 6 tokens
 INPUT45
                         result=ok
+                        rm -f $output_file $description_file
                 else
                         result=fail
                 fi
@@ -1687,6 +1729,7 @@ syntax error
 syntax error
 INPUT46-2
                                         result=ok
+                                        rm -f $output_file $description_file
                                     else
                                         result=fail
                                     fi
@@ -1739,6 +1782,7 @@ syntax error
 syntax error
 INPUT47-2
                                         result=ok
+                                        rm -f $output_file $description_file
                                     else
                                         result=fail
                                     fi
@@ -1760,6 +1804,7 @@ fi
 
 if test $result = ok; then
         echo $script_file: it is all ok
+	rm -f $temp_file $temp3_file
         exit 0
 else
         echo '***' $script_file: test is failed see file $temp_file, $temp3_file, $msta_file, $output_file

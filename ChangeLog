@@ -1,3 +1,860 @@
+2016-02-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_bc.sprut (CC_OPTIONS2): Add -xnone.
+	(find_dllname): Add parameter.
+	(gen_cfblock): Add "/" after standard library.
+
+2016-02-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Makefile.in: Update.
+
+2016-02-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Makefile.am (libdino_la_CFLAGS): Add
+	-DSTANDARD_DINO_BIN_DIRECTORY.
+	* DINO/d_bc.sprut (CC_OPTIONS, CC_OPTIONS2): Remove dll for
+	CYGWIN.
+	(find_dllname): New.
+	(gen_cfblock): Use it add dll for CYGWIN.
+
+2016-02-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Makefile.am (version_suffix, full_suffix): New.
+	(libdino_la_CFLAGS): Transfer version_suffix as
+	DINO_VERSION_SUFFIX.
+	(test-installed): New entry.
+	* DINO/configure.ac (DINO_VERSION_SUFFIX): New.
+	* DINO/{configure, Makefile.in}: Update.
+
+2016-02-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/conifgure.ac (DINO_MODULE_SUFFIX): Add version.
+	* DINO/Makefile.am (mpi_lib, ieee_lib, ipcerr_lib, socket_lib):
+	Remove dot.
+	* DINO/{configure, Makefile.in}: Update.
+
+2016-02-01  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/configure.ac (DINO_MODULE_SUFFIX): New.
+	* DINO/configure: Update.
+	* DINO/Makafile.am (module_suffix, mpi_lib, ieee_lib): New.
+	(ipcerr_lib, socket_lib, DINO_EXTERN_LIBS_PATH): Ditto.
+	(libdino_la_CFLAGS): Use DINO_EXTERN_LIBS_PATH.
+	(EXTRA_DIST): Move mpi.d, ieee.d, ipcerr.d,
+	socket.d to include_HEADERS.
+	* DINO/Makefile.in: Update.
+
+2016-02-01  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Makafile.am (install-exec-hook): Add comment.
+	* DINO/Makefile.in: Update.
+	* {MSTA, SHILKA, SPRUT, NONA, OKA}/Makefile.am
+	(install-exec-hook): A new fix for CYGWIN.
+	* {MSTA, SHILKA, SPRUT, NONA, OKA}/Makefile.in: Update.
+
+2016-02-01  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Makefile.am (install-exec-hook): A new fix for CYGWIN.
+	* DINO/Makefile.in: Update.
+
+2016-01-27  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Makefile.am (libdino_la_CFLAGS): Remove
+	-DSTANDARD_DINO_LIB_NAME.
+	* DINO/Makefile.in: Update.
+	* DINO/d_dino.h (STNDARD_LIB_NAME): Remove.
+	* SPRUT/Makefile.am (ird.c, ird.h): Remove rm.
+	* SPRUT/Makefile.in: Update.
+
+2016-01-25  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* COCOM-CHANGES, COCOM-README, DINO-CHANGES: Remove.
+	* DINO-INSTALL, DINO-README, dino-copyright, dino.dsc, dino.spec:
+	Ditto.
+	* msta-template.bmp: Ditto.
+	* cocom-copyright: Rename to copyright.  Use GPL version 2, add
+	references to COPYING and COPYING.LIB.
+	* COPYING: Update to version 2.
+	* INSTALL: Modify.  Describe debug mode.  Add instructions for
+	Windows and Mac OSX.
+	* Makefile.am (dist_doc_DATA, EXTRA_DIST, ditclean-local): New.
+	(cocom-doc): New.
+	* Makefile.in: Update.
+	* cocom.sgml.in: Change date.  Fix typo for cspset.
+	* cocom.{dvi, html, info, pdf, ps, txt}: Update.
+
+2016-01-25  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/Makefile.am: Remove *.out.dDYM
+	* AMMUNITION/Makefile.in: Update.
+
+2016-01-25  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* {AMMUNITION, MSTA, OKA, SHILKA}/Makefile.am: Remove *a.out.dDYM
+	directories.
+	* {AMMUNITION, MSTA, OKA, SHILKA}/Makefile.in: Update.
+
+2016-01-25  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/compare_parsers.tst.in: Use DYLD_LIBRARY_PATH for
+	Darwin.
+	* install-sh: Add exec permission.
+
+2016-01-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* SPRUT/Makefile.am: Use -o a.out.
+	* SPRUT/Makefile.in: Update.
+
+2016-01-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* OKA/Makefile.am (EXTRA_DITS): Remove oka.sgml.
+	* OKA/Makefiel.in: Update.
+
+2016-01-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* Makefile.am (doc): Call recursively.
+	* Makefile.in: Update.
+	* AMMUNITION/Makefile.am (doc): Generate all files.
+	(BUILT_SOURCES): Remove sgml files.
+	* {DINO, MSTA, NONA, OKA, SHILKA, SPRUT}/Makefile.am: Ditto.
+	* AMMUNITION/Makefile.in: Update.
+	* {DINO, MSTA, NONA, OKA, SHILKA, SPRUT}/Makefile.in: Ditto.
+	* AMMUNITION/ammunition.{dvi, ps, pdf}: Update.
+	* AMMUNITION/ammunition++.{dvi, ps, pdf}: Update.
+	* DINO/dino.{dvi, ps, pdf}: Update.
+	* MSTA/msta.{dvi, ps, pdf}: Update.
+	* NONA/nona.{dvi, ps, pdf}: Update.
+	* OKA/oka.{dvi, ps, pdf}: Update.
+	* SHILKA/shilka.{dvi, ps, pdf}: Update.
+	* SPRUT/sprut.{dvi, ps, pdf}: Update.
+
+2016-01-23  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* configure.ac: Use 0.97 as the version.
+	* configure: Update.
+
+2016-01-23  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/Makefile.am (dist_doc_DATA): New.  Move doc files
+	there.
+	(install-data-local, uninstall-local): Remove.
+	(BUILT_SOURCES): Add ammunition[++].sgml.
+	(doc): Remove *.sgml from dependencies.
+	(.txt, .html, .info, .dvi): Use dependencies from .sgml.in instead
+	of .sgml.
+	* AMMUNITION/Makefile.in: Update.
+	* AMMUNITION/ammunition[++].{dvi, pdf, ps}: Update.
+	* AMMUNITION/configure.ac (--enable-debug): New flag.
+	(C_DEBUG_DEFINE): Rename to c_debug_define.  Add to
+	CFLAGS/CXXFLAGS.
+	(-g3): Save/restore cflags.
+	* AMMUNITION/configure: Update.
+	* AMMUNITION/cspset++.tst.in: Remove include_file.
+	(C_DEBUG_DEFINE): Remove.
+	* AMMUNITION/cspset.tst.in (C_DEBUG_DEFINE): Remove.
+	* DINO/Makefile.am (extern.h): Use d_extern.h instead.
+	(dist_doc_DATA): New.  Move doc files there.
+	(include_HEADERS, nodist_include_HEADERS): New.
+	(install-data-local, uninstall-local): Remove.
+	(distclean-local): Remove d_genheader.i d_extern.h d_gen.i.
+	(C_DEBUG_DEFINE): Remove.
+	(BUILT_SOURCES): Add dino.sgml.
+	(doc): Remove *.sgml from dependencies.
+	(.txt, .html, .info, .dvi): Use dependencies from .sgml.in instead
+	of .sgml.
+	* DINO/Makefile.in: Update.
+	* DINO/configure.ac (--enable-debug): New flag.
+	(C_DEBUG_DEFINE): Rename to c_debug_define.  Add to
+	CFLAGS/CXXFLAGS.
+	(-g3): Save/restore cflags.
+	* DINO/configure: Update.
+	* DINO/dino.{dvi, pdf, ps}: Update.
+	* MSTA/Makefile.am (dist_doc_DATA): New.  Move doc files there.
+	(install-data-local, uninstall-local): Remove.
+	(BUILT_SOURCES): Add msta.sgml.
+	(doc): Remove *.sgml from dependencies.
+	(.txt, .html, .info, .dvi): Use dependencies from .sgml.in instead
+	of .sgml.
+	* MSTA/configure.ac (--enable-debug): New flag.
+	(C_DEBUG_DEFINE): Rename to c_debug_define.  Add to
+	CFLAGS/CXXFLAGS.
+	(-g3): Save/restore cflags.
+	* MSTA/Makefile.in: Update.
+	* MSTA/configure: Update.
+	* MSTA/msta.{dvi, pdf, ps}: Update.
+	* MSTA/quality.tst.in: Remove output_file and description_file in
+	each test for success.  Remove temp_file and temp3_file at the
+	end.
+	* NONA/Makefile.am (dist_doc_DATA): New.  Move doc files there.
+	(install-data-local, uninstall-local): Remove.
+	(BUILT_SOURCES): Add nona.sgml.
+	(doc): Remove *.sgml from dependencies.
+	(.txt, .html, .info, .dvi): Use dependencies from .sgml.in instead
+	of .sgml.
+	* NONA/configure.ac (--enable-debug): New flag.
+	(C_DEBUG_DEFINE): Rename to c_debug_define.  Add to
+	CFLAGS/CXXFLAGS.
+	(-g3): Save/restore cflags.
+	* NONA/Makefile.in: Update.
+	* NONA/configure: Update.
+	* NONA/nona.{dvi, pdf, ps}: Update.
+	* OKA/Makefile.am (dist_doc_DATA): New.  Move doc files there.
+	(install-data-local, uninstall-local): Remove.
+	(BUILT_SOURCES): Add oka.sgml.
+	(doc): Remove *.sgml from dependencies.
+	(.txt, .html, .info, .dvi): Use dependencies from .sgml.in instead
+	of .sgml.
+	* OKA/configure.ac (--enable-debug): New flag.
+	(C_DEBUG_DEFINE): Rename to c_debug_define.  Add to
+	CFLAGS/CXXFLAGS.
+	(-g3): Save/restore cflags.
+	* OKA/Makefile.in: Update.
+	* OKA/configure: Update.
+	* OKA/oka.{dvi, pdf, ps}: Update.
+	* ONIGURUMA/Makefile.am (distclean-local): Remove oniguruma.pc.
+	* ONIGURUMA/Makefile.in: Update.
+	* SHILKA/Makefile.am (dist_doc_DATA): New.  Move doc files there.
+	(install-data-local, uninstall-local): Remove.
+	(BUILT_SOURCES): Add shilka.sgml.
+	(doc): Remove *.sgml from dependencies.
+	(.txt, .html, .info, .dvi): Use dependencies from .sgml.in instead
+	of .sgml.
+	* SHILKA/configure.ac (--enable-debug): New flag.
+	(C_DEBUG_DEFINE): Rename to c_debug_define.  Add to
+	CFLAGS/CXXFLAGS.
+	(-g3): Save/restore cflags.
+	* SHILKA/Makefile.in: Update.
+	* SHILKA/configure: Update.
+	* SHILKA/shilka.{dvi, pdf, ps}: Update.
+	* SHILKA/shilka.tst.in: Remove `basename $test_shilka .shilka`.c.
+	* SPRUT/Makefile.am (dist_doc_DATA): New.  Move doc files there.
+	(include_HEADERS): New.  Move std_*.sprut files there.
+	(install-data-local, uninstall-local): Remove.
+	(BUILT_SOURCES): Add sprut.sgml.
+	(doc): Remove *.sgml from dependencies.
+	(.txt, .html, .info, .dvi): Use dependencies from .sgml.in instead
+	of .sgml.
+	* SPRUT/configure.ac (--enable-debug): New flag.
+	(C_DEBUG_DEFINE): Rename to c_debug_define.  Add to
+	CFLAGS/CXXFLAGS.
+	(-g3): Save/restore cflags.
+	* SPRUT/Makefile.in: Update.
+	* SPRUT/configure: Update.
+	* SPRUT/sprut.{dvi, pdf, ps}: Update.
+
+2016-01-22  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Makefile.am: Add ammunition libs to PATH.
+	* MSTA/Makefile.am: Ditto.
+	* NONA/Makefile.am: Ditto.
+	* OKA/Makefile.am: Ditto.
+	* SHILKA/Makefile.am: Ditto.
+	* SPRUT/Makefile.am: Ditto.
+	* DINO/Makaefile.in: Update.
+	* MSTA/Makaefile.in: Ditto.
+	* NONA/Makaefile.in: Ditto.
+	* OKA/Makaefile.in: Ditto.
+	* SHILKA/Makaefile.in: Ditto.
+	* SPRUT/Makaefile.in: Ditto.
+
+2016-01-20  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/Makefile.am (EXTRA_DIST): Add IEEEtens.c and
+	whole_gcc_test.i.
+	* AMMUNITION/Makefile.in: Update.
+	* AMMUNITION/ammunition[++].{dvi, pdf, ps}: Update.
+	* AMMUNITION/compare_parsers.tst.in (LR_LIBRARY_PATH): Use
+	YAEPLIBDIR instead of YAEPDIR.
+	(BIG_TEST): Use ../AMMUNITION in the path.
+	* AMMUNITION/configure.ac (YAEPLIBDIR): New.
+	* AMMUNITION/configure: Update.
+	* DINO/Makefile.am (EXTRA_DIST): Add d_gen.c and UnicodeDB.c.
+	* DINO/Makefile.in: Update.
+	* DINO/dino.{dvi, pdf, ps}: Update.
+	* MSTA/Makefile.am (EXTRA_DIST): Add c5.y, cpp5.y, fcalc.y,
+	fcalc1.y, fparse.y, gram.y, java.y, lex.y, m2c.y, oberon2-gram.y
+	oberon2-kw.shilka, oberon2-lex.y, p-yacc.y, pascal.y, sql1.y.
+	* MSTA/Makefile.in: Update.
+	* MSTA/msta.{dvi, pdf, ps}: Update.
+	* NONA/nona.{dvi, pdf, ps}: Update.
+	* OKA/oka.{dvi, pdf, ps}: Update.
+	* SHILKA/shilka.{dvi, pdf, ps}: Update.
+	* SPRUT/sprut.{dvi, pdf, ps}: Update.
+
+2016-01-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/{Makefile.in, configure, DINO/d_config.h.in}: Update.
+
+2016-01-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/objstackcpp.C (os::os): Rename parameter to
+	init_segment_length.
+	* DINO/Makefile.am: Move @DINO_LIB_CFLAGS@ after -I options.
+	* DINO/configure.ac: Move definitions DINO_{LIB_CFLAGS,
+	LIB_LDFLAGS, MOD_LDFLAGS} before checking programs.  Add
+	/usr/local/... to CFLAGS for Darwin and CYGWIN.
+	(random): Check the function.
+	* DINO/d_bcio.c (get_token): Clear errno after mpz_init_set_str.
+	* DINO/d_conv.c (form_format_string): Clear errno at the end.
+	Don't process errno.
+	(implicit_arithmetic_conversion): Clear errno.
+	* DINO/d_func.c (rename_call): Check the result of system function
+	and process errno in case of error.
+	(remove_call, mkdir_call, rmdir_call, getcwd_call, chdir_call):
+	Ditto.
+	(get_stat, general_chmod, open_call, close_call, flush_call): Ditto.
+	(popen_call, tell_call, seek_call, getgroups_call): Ditto.
+	(finish_output): Return ferror.
+	(general_put_call, general_print_call, general_putf_call): Check
+	finish_output_result.
+	(get_file_char): Process errno from get_ucode_from_stream.
+	(general_get_call, general_get_ln_file_call, get_token): Don't
+	process errno.
+	(general_scan_call): Ditto.
+	(general_random_code): Add call of random/srandom.
+	(process_errno_call): Save errno around to_vect_string_conversion.
+	* DINO/d_socket.c (_sread, _swrite): Rename to _dsread, _dswrite.
+	* DINO/socket.d: Ditto.
+	* DINO/dino.tst.in (494): Make expected output in [] optional.
+	(826): Use KOREAN for Darwin.
+	(844): Add Illegal byte sequence as expected output.
+	* MSTA/fparse.y: Use stdlib.h instead of malloc.h
+	* NONA/gen.c (output_state_struct_class): Increase length of
+	generated arrays.
+	(output_cs_nonterminal_rule_function): Don't check this on NULL.
+	(output_cs_it_is_axiom_function): Ditto.
+	(output_cs_traverse_cover_pass_function): Ditto.
+	(output_cs_traverse_cover_function): Ditto.
+	(output_internal_cs_delete_cover_function): Ditto.
+	(output_cs_delete_cover_function): Ditto.
+	* OKA/SCHEDULE/schedule.c (ge_for_data_ready_list): More pars
+	around &&.
+	(build_data_dependence_graph): Call finish_resource_history.
+	* OKA/SCHEDULE/schedule.cpp
+	(scheduler_state::ge_for_data_ready_list): More pars
+	around &&.
+	* OKA/gen.c (output_transition_table): Memset expanded vector.
+	(output_is_dead_locked_vector): Ditto.
+	* SPRUT/A_test.sprut (number): Put more pars.
+	* SPRUT/gen.c (output_node_type_macros_functions): Don't check
+	this on NULL.
+	(output_rest_double_link_functions_definitions): Ditto.
+	(output_field_access_function_definition): Ditto.
+	(output_set_double_link_function_definition): Ditto.
+	(output_field_modification_function_definition): Ditto.
+	(output_internal_graph_deletion_function): Ditto.
+	(output_node_copy_function): Ditto.
+	(output_internal_graph_copy_function): Ditto.
+	(output_node_equality_function): Ditto.
+	(output_internal_graph_equality_function): Ditto.
+	(output_node_check_function): Ditto.
+	(output_internal_graph_check_function): Ditto.
+	(output_node_print_function): Ditto.
+	(output_node_output_function): Ditto.
+	(output_internal_traverse_function): Ditto.
+	(output_internal_transformation_function): Ditto.
+	(output_class_field_initiation_finalization_function): Generate
+	default case too.
+	
+2016-01-16  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/compare.tst (17): Make 10 as minimal rep.
+	* OKA/oka.tst: Remove CMP and SCMP for Cygwin.
+	(2, 3): Make another variant with ab bit different # of combe
+	vector elements.
+
+2016-01-16  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Makefile.am
+	(EXTRA_d_{mpi,ieee,ipcerr,socket}_la_DEPENDENCIES): New.
+	* DINO/Makefile.in: Update.
+
+2016-01-16  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Makefile.am: Don't use shell for compare.tst.  Use EXEEXT
+	for dino.
+	* DINO/Makefile.in: Update.
+	* DINO/compare.tst (17): Use 6 as a divide factor.  Make 2 as
+	minimal rep.
+
+2016-01-15  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/compare.tst (17): Make divide factor 6 and minimal rep 2.
+	(18): Add - when searching .so and .dll.
+	* DINO/dino.tst.in: Ignore output from fgrep CYGWIN.
+	(826): Make a special variant for Cygwin using KOREAN.
+	* ONIGURUMA/configure.in (LIB_{C,LD}FLAGS): Use -static.
+	* ONIGURUMA/configure: Update.
+
+2016-01-15  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_bc.sprut (CC_OPTIONS, CC_OPTIONS2): Add dino dll for
+	cygwin.
+	* DINO/dino.tst.in: Use non cygwin CMP and SCMP for cygwin too.
+	(140): Add space in expected group name.
+	(258, 453, 493-497, 499-501, 501a): Add version for dll and so.
+	(826): Use KOREAN instead of GREEK7.
+	* DINO/comapre.tst:  Use time -p.
+	(18): Find dl and so libraries for test.
+
+2016-01-15  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* yacc.exe: Remove.
+
+2016-01-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/dino.tst.in: Use version in dll and .libs.
+	* DINO/Makefile.am: Add -release for modules.
+	* DINO/Makefile.in: Update.
+
+2016-01-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_minimize.d: Add progress bar and print compilations # and
+	time.
+	* DINO/d_bc.sprut (CC_OPTIONS, CC_OPTIONS2): Define for CYGWIN.
+	(gen_cfblock): Move conditionals with options up.
+
+2016-01-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/configure.ac (LIB_{C,LD{FLAGS}): Use quotes for
+	values.
+	* AMMUNITION/configure: Update.
+	* DINO/configure.ac (DINO_LIB_{C,LD{FLAGS}, DINO_MOD_LDFLAGS): Use
+	quotes for values.
+	* DINO/Makefile.am: Remove time in d_gen.i generation.
+	* DINO/{Makefile.in, configure}: Update.
+	* DINO/UnicodeData.txt: Rename to UnicodeOriginalData.txt.
+	* ONIGURUMA/configure.in (LIB_{C,LD{FLAGS}): Use quotes for
+	values.
+	* ONIGURUMA/Makefile.in: Update.
+	* ONIGURUMA/{aclocal.m4, configure}: Update.
+	* ONIGURUMA/sample/Makefile.in: Update.
+
+2016-01-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+    	* AMMUNITION/configure.ac (LIB_{C, LD}FLAGS): New.
+    	* AMMUNITION/Makefile.am (libcocom[cpp]_la_{C, LD}FLAGS): Use
+    	them.
+    	* AMMUNITION/{Makefile.in, configure}: Update.
+    	* DINO/Makefile.am (UnicodeData.txt): Rename to
+    	UnicodeOriginalData.txt.
+    	* DINO/configure.ac (DINO_LIB_LDFLAGS, DINO_MOD_LDFLAGS): Add
+    	-no-undefined for CYGWIN..
+    	* DINO/configure: Update.
+    	* ONIGURUMA/configure.in (LIB_{C, LD}FLAGS): New.
+    	* ONIGURUMA/Makefile.am (libonig_la_{C, LD}FLAGS): Use them.
+    	* ONIGURUMA/{Makefile.in, configure}: Update.
+    	* ONIGURUMA/sample/Makefile.in: Update.
+
+2016-01-13  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+    	* AMMUNITION/Makefile.am (libcocom[cpp]_la_LDFLAGS): New.
+    	* AMMUNITION/Makefile.in: Update.
+    	* DINO/configure.ac (DINO_LIB_CFLAGS, DINO_LIB_LDFLAGS): Define.
+    	(DINO_MOD_LDFLAGS): Ditto.
+    	* DINO/Makefile.am (libdino_la_CFLAGS): Use them.
+    	(libdino_la_LDFLAGS): Ditto.
+    	(d_{mpi, ieee, ipcerr, socket}_la_{C,LD}FLAGS): Ditto.
+    	* DINO/{Makefile.in, configure}: Update.
+
+2016-01-12  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+    	* DINO/configure.ac (DINO_LINK_OPTION): Set for cygwin.
+    	* DINO/configure: Update.
+    	* Makefile.in (DIST_COMMON): Remove TODO.
+
+2016-01-12  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* {AMMUNITION, MSTA, NONA, OKA, SHILKA, SPRUT}/configure.ac: Add
+	AM_MAINTAINER_MODE.
+	* configure.ac: Ditto.
+	* DINO/configure.ac: Ditto.  Check libiconv_open too.
+	* [{AMMUNITION, DINO, MSTA, NONA, OKA, SHILKA, SPRUT}/]{configure,
+	aclocal.m4, Makefile.in}: Update.
+	* ONIGURUMA/{configure, m4/libtool.m4}: Update.
+
+2016-01-11  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/compare.tst: Use printf when echo -n unavailable.  Use =
+	for equality in expr.  Use ${#v} instead of expr length.  Use time
+	-p.  Print additional spaces before scale.
+	* SPRUT/common.c: Include stdio.h
+
+2016-01-11  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Makefile.am (dino_LDFLAGS): Use DINO_LINK_OPTION.
+	(d_genheader.i): Add CFLAGS.
+	* DINO/configure: Update.
+	* DINO/Makefile.in: Update.
+	* DINO/aclocal.m4: Update.
+	* DINO/configure.ac: Append to CFLAGS.
+	(DINO_LINK_OPTION): New.
+	* DINO/d_bc.sprut: Add -w to linux options.
+	* DINO/dino.tst.in (831-833, 839, 840, 842-844): Use printf
+	instead of echo.
+
+2016-01-11  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/cspset.c (cspset_print): Remove additional arg to
+	fprintf.
+	* AMMUNITION/cspsetcpp.C (cspset::print): Ditto.
+	* AMMUNITION/cspset.h (class cspset): Remove empty blocks for
+	constructor and assignment.
+	* AMMUNITION/errors[++].tst.in (3, 7-9): Add output with undefined
+	error.
+	* AMMUNITION/hashtab.tst.in (1): Include string.h
+	* AMMUNITION/spset.c (spset_print): Remove additional arg to
+	fprintf.
+	* AMMUNITION/spsetcpp.C (spset::print): Ditto.
+	* AMMUNITION/spset.h (class spset): Remove empty blocks for
+	constructor and assignment.
+	* AMMUNITION/yaep.c (make_parse): Use %lu for printing top.
+	* DINO/d_bc.sprut (print_node): Use explicit cast for print arg.
+	(CC_OPTIONS, CC_OPTIONS2): Define for Apple.
+	(form_fname): Use %lu for getpid value.
+	(gen_cfblock): Return NULL if options is not defined.  Use pclose.
+	* DINO/d_bcio.c (dump_code): Exchange arg places for %.*g.
+	* DINO/d_context.c (set_field_ident_number): Make void return
+	type.
+	(create_pattern_vars): Add default for switch.
+	(make_designator_lvalue): Use BC_node_mode_t for return type.
+	* DINO/d_dino.c (i2a, i2mpz): Use explicit cast for print arg.
+	(encode_byte_str_vlo): Use explicit cast for strlen arg.
+	(encode_byte_str_vlo): Use explicit cast for is assignment.
+	(get_ucode_from_stream): Use parentheses around &&.
+	(check_encoding_on_ascii): Use size_t cast.
+	(dino_main): Use cast to byte_t * in encode_byte_str_vlo call.
+	* DINO/d_eval.c (load_packed_vector_element): Use cast to
+	type_val_t for ER_NM_type case.
+	(store_packed_vector_element): Use cast to ER_node_mode_t for
+	ER_NM_type case.
+	(find_catch_pc): Use cast to byte_t * in encode_byte_str_vlo call.
+	* DINO/d_extern.sprut (ER_mpz_ptr): Remove expr before comma.
+	* DINO/d_func.c (find_regex): Use cast to OnigUchar *.
+	(internal_match_call): Ditto.
+	(gmatch_call, generall_sub_call, split_call): Ditto.
+	(cmpv_call): Fix typo (== instead of =).
+	(print_val): Don't use %d.  Use explicit casts for sprintf args.
+	(readdir_call): Use cast to byte_t * in encode_byte_str_vlo call.
+	* DINO/d_gen.c (fbend): Return TRUE.
+	* DINO/d_heap.c (ucodevect_to_bytevect_if_possible): Use cast to
+	byte_t *.
+	* DINO/d_ir.sprut (hash_func): Use type ucode_t for ch.  Use cast
+	to char * for chp.
+	* DINO/d_minimize.d: Use -Werror=implicit-function-declaration
+	-Werror=implicit-int instead of -Werror
+	-Wimplicit-function-declaration.  Use try around remove call.
+	* DINO/dino.tst.in (140):  Add . for group name regexep.
+	(831-833, 839, 840, 842-844): Use $'' instead -e for echo.
+
+2016-01-09  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/configure.ac: Check libiconv.
+	* DINO/configure: Update.
+	* DINO/d_common.h (is_hex_digit): Put parentheses around &&.
+	* DINO/d_dino.c (initiate_cds, set_conv_descs): Use UTF-32{BE,LE}
+	instead if UTF32{BE,LE}.
+
+2016-01-08  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* Makefile.am: Add EXTRA_DIST and doc.
+	* Makefile.in: Update.
+	* {AMMUNITION, SPRUT, SHILKA, MSTA, NONA, OKA, DINO}/Makefile.am
+	(all-local, dist-local): Remove doc.
+	* {AMMUNITION, SPRUT, SHILKA, MSTA, NONA, OKA, DINO}/Makefile.in: Updat.
+	* DINO/d_bc.sprut (wait): Rename to waitcond.
+	* DINO/d_bcn.shilka (wait): Ditto.
+	* DINO/d_bcio.c (dump_code): Rename BC_NM_wait to BC_NM_waitcond.
+	* DINO/d_eval.c (evaluate_code): Ditto.
+	* DINO/d_gen.c (wait): Rename to waitcode.
+	* DINO/d_inference.c (get_insn_op_place, type_transf): Rename
+	BC_NM_wait to BC_NM_waitcond
+	(specialize_insn): Ditto.
+
+2016-01-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Makefile.am (all): Move dependecies to BUILT_SOURCES.
+	(d_genheader.i): Add @DEFS@ and -I for current and source
+	directory.  Generate target only if the generation is successful.
+	* DINO/Makefile.in: Update.
+
+2016-01-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* ONIGURUMA/test-drive: Add.
+
+2016-01-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* ONIGURUMA/compile: Add.
+
+2016-01-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/errorcpp.C: Add.
+
+2016-01-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* missing: New.
+	* AMMUNITION/{install-sh, ltmain.sh, missing, ylwrap}: New.
+	* DINO/{install-sh, ltmain.sh, missing}: New.
+	* MSTA/{install-sh, ltmain.sh, missing}: New.
+	* NONA/{install-sh, ltmain.sh, missing}: New.
+	* OKA/{install-sh, ltmain.sh, missing}: New.
+	* SHILKA/{install-sh, ltmain.sh, missing}: New.
+	* SPRUT/{install-sh, ltmain.sh, missing}: New.
+	* AMMUNITION/m4/{libtool, ltoptions, ltsugar, ltversion,
+	lt-obsolete}.m4: New.
+	* DINO/m4/{libtool, ltoptions, ltsugar, ltversion,
+	lt-obsolete}.m4: New.
+	* MSTA/m4/{libtool, ltoptions, ltsugar, ltversion,
+	lt-obsolete}.m4: New.
+	* NONA/m4/{libtool, ltoptions, ltsugar, ltversion,
+	lt-obsolete}.m4: New.
+	* OKA/m4/{libtool, ltoptions, ltsugar, ltversion,
+	lt-obsolete}.m4: New.
+	* SHILKA/m4/{libtool, ltoptions, ltsugar, ltversion,
+	lt-obsolete}.m4: New.
+	* SPRUT/m4/{libtool, ltoptions, ltsugar, ltversion,
+	lt-obsolete}.m4: New.
+
+2016-01-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* compile, config.guess, config.sub, depcomp: New.
+	* AMMUNITION/{compile, config.guess, config.sub, depcomp}: New.
+	* SPRUT/{compile, config.guess, config.sub, depcomp}: New.
+	* SHILKA/{compile, config.guess, config.sub, depcomp}: New.
+	* MSTA/{compile, config.guess, config.sub, depcomp}: New.
+	* NONA/{compile, config.guess, config.sub, depcomp}: New.
+	* OKA/{compile, config.guess, config.sub, depcomp}: New.
+	* DINO/{compile, config.guess, config.sub, depcomp}: New.
+
+2016-01-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/allocate++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use allocatecpp.C instead of
+	allocate.cpp.
+	* AMMUNITION/allocate.tst.in: Add return type to main functions.
+	* AMMUNITION/allocate.c: Change config code.
+	* AMMUNITION/allocate.cpp: Ditto.  Rename to allocatecpp.C.
+	* AMMUNITION/allocate.h: Remove config code.
+	* AMMUNITION/IEEE++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use IEEEcpp.C instead of IEEE.cpp.
+	* AMMUNITION/IEEE.tst.in: Add return type to main functions.
+	* AMMUNITION/IEEE.c: Remove config code relative to assert, memcpy,
+	memcmp, limits.
+	* AMMUNITION/IEEE.cpp: Ditto.  Rename to IEEEcpp.C.
+	* AMMUNITION/IEEE.h: Remove config code.
+	* AMMUNITION/airthm++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use airthmcpp.C instead of airthm.cpp.
+	Remove config code relative to limits.
+	* AMMUNITION/airthm.tst.in: Add return type to main functions.
+	Remove config code relative to limits.
+	* AMMUNITION/airthm.c: Remove config code relative to assert, memcpy,
+	memcmp, limits.
+	* AMMUNITION/airthm.cpp: Ditto.  Rename to airthmcpp.C.
+	* AMMUNITION/airthm.h: Remove config code.
+	* AMMUNITION/bits++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use bitscpp.C instead of bits.cpp.
+	* AMMUNITION/bits.tst.in: Add return type to main functions.
+	* AMMUNITION/bits.c: Change config code.
+	* AMMUNITION/bits.cpp: Ditto.  Rename to bitscpp.C.
+	* AMMUNITION/bits.h: Remove config code.
+	* AMMUNITION/commline++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use commlinecpp.C instead of commline.cpp.
+	* AMMUNITION/commline.tst.in: Add return type to main functions.
+	* AMMUNITION/commline.c: Change config code.
+	* AMMUNITION/commline.cpp: Ditto.  Rename to commlinecpp.C.
+	* AMMUNITION/commline.h: Remove config code.
+	* AMMUNITION/cocom-config.h.in: Remove.
+	* AMMUNITION/compare_parsers.tst.in: Forward declaration of yylex
+	and yyerror.  Add return type to main functions.
+	* AMMUNITION/cspset++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use cspsetcpp.C instead of cspset.cpp.
+	* AMMUNITION/cspset.tst.in: Add return type to main functions.
+	* AMMUNITION/cspset.c: Change config code.
+	* AMMUNITION/cspset.cpp: Ditto.  Rename to cspsetcpp.C.
+	* AMMUNITION/cspset.h: Remove config code.
+	* AMMUNITION/errors++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use errorscpp.C instead of errors.cpp.
+	* AMMUNITION/errors.tst.in: Add return type to main functions.
+	* AMMUNITION/errors.c: Change config code.
+	* AMMUNITION/errors.cpp: Ditto.  Rename to errorscpp.C.
+	* AMMUNITION/errors.h: Remove config code.
+	* AMMUNITION/hashtab++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use hashtabcpp.C instead of hashtab.cpp.
+	* AMMUNITION/hashtab.tst.in: Add return type to main functions.
+	* AMMUNITION/hashtab.c: Change config code.
+	* AMMUNITION/hashtab.cpp: Ditto.  Rename to hashtabcpp.C.
+	* AMMUNITION/hashtab.h: Remove config code.
+	* AMMUNITION/objstack++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use objstackcpp.C instead of
+	objstack.cpp.  Change congig code.
+	* AMMUNITION/objstack.tst.in: Add return type to main functions.
+	Change congig code.
+	* AMMUNITION/objstack.c: Change config code.
+	* AMMUNITION/objstack.cpp: Ditto.  Rename to objstackcpp.C.
+	* AMMUNITION/objstack.h: Remove config code.
+	* AMMUNITION/position++.tst.in: Add return type to main function.
+	Use .C instead of .cpp.  Use positioncpp.C instead of position.cpp.
+	* AMMUNITION/position.tst.in: Add return type to main function.
+	* AMMUNITION/position.c: Change config code.
+	* AMMUNITION/position.cpp: Ditto.  Rename to positioncpp.C.
+	* AMMUNITION/position.h: Remove config code.
+	* AMMUNITION/sgramm.y: Remove config code.
+	* AMMUNITION/spset++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use spsetcpp.C instead of spset.cpp.
+	* AMMUNITION/spset.tst.in: Add return type to main functions.
+	* AMMUNITION/spset.c: Change config code.
+	* AMMUNITION/spset.cpp: Ditto.  Rename to spsetcpp.C.
+	* AMMUNITION/spset.h: Remove config code.
+	* AMMUNITION/ticker++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use tickercpp.C instead of ticker.cpp.
+	* AMMUNITION/ticker.tst.in: Add return type to main functions.
+	* AMMUNITION/ticker.c: Change config code.
+	* AMMUNITION/ticker.cpp: Ditto.  Rename to tickercpp.C.
+	* AMMUNITION/ticker.h: Remove config code.
+	* AMMUNITION/vlobject++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use vlobjectcpp.C instead of
+	vlobject.cpp.  Change congig code.
+	* AMMUNITION/vlobject.tst.in: Add return type to main functions.
+	Change congig code.
+	* AMMUNITION/vlobject.c: Change config code.
+	* AMMUNITION/vlobject.cpp: Ditto.  Rename to vlobjectcpp.C.
+	* AMMUNITION/vlobject.h: Remove config code.
+	* AMMUNITION/yaep++.tst.in: Add return type to main functions.
+	Use .C instead of .cpp.  Use yaepcpp.C instead of yaep.cpp.
+	* AMMUNITION/yaep.tst.in: Add return type to main functions.
+	* AMMUNITION/yaep.c: Change config code.
+	* AMMUNITION/yaep.cpp: Ditto.  Rename to yaepcpp.C.
+	* AMMUNITION/yaep.h: Remove config code.
+	* AMMUNITION/configure.ac: New.
+	* AMMUNITION/Makefile.am: New.
+	* AMMUNITION/config.h.in: New.
+	* AMMUNITION/Makefile.in: Update.
+	* AMMUITION/configure: Update.
+	* AMMUITION/aclocal.m4: New.
+	* AMMUNITION/ammunition[++].{dvi, pdf, ps}: Update.
+	* DINO/configure.ac: New.
+	* DINO/Makefile.am: New.
+	* DINO/d_config.h.in: New.
+	* DINO/Makefile.in: Update.
+	* DINO/configure: Update.
+	* DINO/aclocal.m4: New.
+	* DINO/compare.tst: Use libraries from .libs.
+	* DINO/d_common.h: Remove config code relative to assert, memcpy,
+	memcmp, limits, floats, errno.
+	* DINO/d_dino.c: Remove config code for memcpy, memcmp.  Remove
+	HAVE_STRTOLL.
+	* DINO/d_heap.c (activate_given_porocess): Remove double declared
+	block.
+	* DINO/d_main.c: Remove code fro AIX_DLOPEN.
+	(main): Remove code for ! NO_DINO_SHLIB.
+	* DINO/d_types.h: Remove config code for floats, limits.
+	* DINO/dino.{dvi, pdf, ps}: Update.
+	* DINO/dino.tst.in: Use libraries from .libs.
+	* MSTA/anal.c: Remove config code for limits and assert.
+	* MSTA/contexts.c: Ditto.
+	* MSTA/common.h: Use config.h.
+	* MSTA/descript.c: Remove config code for assert.
+	* MSTA/fcalc.y: Add forward decls for yyerror and yylex.  Add
+	return type for main.
+	* MSTA/gen-comm.c: Remove config code for assert, memcpy.
+	* MSTA/gen.c: Remove config code for assert.
+	* MSTA/ird.sprut: Ditto.
+	* MSTA/la-trie.c: Ditto.
+	* MSTA/lr-sets.c: Ditto.
+	* MSTA/lr.c: Ditto.
+	* MSTA/main.c: Ditto.
+	* MSTA/output.c: Ditto.
+	* MSTA/parser.c: Remove config code for assert, limits.
+	* MSTA/regular.c: Remove config code for assert, memcmp.
+	* MSTA/relation.c: Remove config code for assert.
+	* MSTA/tab.c: Remove config code for assert, limits.
+	* MSTA/yacc.y: Ditto.
+	* MSTA/msta.{dvi, pdf, ps}: Update.
+	* MSTA/msta.tst.in: Add return types to yylex and yyerror.
+	* MSTA/configure.ac: New.
+	* MSTA/Makefile.am: New.
+	* MSTA/config.h.in: New.
+	* MSTA/Makefile.in: Update.
+	* MSTA/configure: Update.
+	* MSTA/aclocal.m4: New.
+	* NONA/configure.ac: New.
+	* NONA/Makefile.am: New.
+	* NONA/config.h.in: New.
+	* NONA/Makefile.in: Update.
+	* NONA/configure: Update.
+	* NONA/aclocal.m4: New.
+	* NONA/anal.c: Remove config code for assert.
+	* NONA/gen.c: Ditto.
+	* NONA/main.c: Ditto.
+	* NONA/yacc.y: Ditto.
+	* NONA/tab.c: Remove config code for assert and limits.
+	* NONA/common.h: Modify config code.
+	* NONA/nona.{dvi, pdf, ps}: Update.
+	* OKA/configure.ac: New.
+	* OKA/Makefile.am: New.
+	* OKA/config.h.in: New.
+	* OKA/Makefile.in: Update.
+	* OKA/configure: Update.
+	* OKA/aclocal.m4: New.
+	* OKA/anal.c: Remove config code for assert.
+	* OKA/main.c: Ditto.
+	* OKA/yacc.y: Ditto.
+	* OKA/gen.c: Remove config code for assert, floats, limits.
+	* OKA/tab.c: Remove config code for assert and limits.
+	* OKA/common.h: Modify config code.
+	* OKA/oka.{dvi, pdf, ps}: Update.
+	* OKA/SCHEDULE/schedtst.c (scheduler_execution_duration): Make int
+	as return type.
+	* OKA/SCHEDULE/schedule++.tst.in: Use srcdir instead of top_srcdir.
+	* OKA/SCHEDULE/schedule.tst.in: Ditto.
+	* ONIGURUMA/Makefile.in: Update.
+	* ONIGURUMA/aclocal.m4: Ditto.
+	* ONIGURUMA/configure: Ditto.
+	* ONIGURUMA/sample/Makefile.in: Ditto.
+	* ONIGURUMA/configure.in (AM_INIT_AUTOMAKE): Add foreign.
+	* SHILKA/configure.ac: New.
+	* SHILKA/Makefile.am: New.
+	* SHILKA/config.h.in: New.
+	* SHILKA/Makefile.in: Update.
+	* SHILKA/configure: Update.
+	* SHILKA/aclocal.m4: New.
+	* SHILKA/anal.c: Remove config code for assert.
+	* SHILKA/main.c: Ditto.
+	* SHILKA/yacc.y: Ditto.
+	* SHILKA/gen.c: Remove config code for assert, limits.
+	* SHILKA/tab.c: Ditto.
+	* SHILKA/common.[ch]: Modify config code.
+	* SHILKA/shilka.{dvi, pdf, ps}: Update.
+	* SHILKA/compare.tst.in: Use .libs.
+	* SHILKA/shilka.tst.in: Add return types to main functions.
+	* SPRUT/configure.ac: New.
+	* SPRUT/Makefile.am: New.
+	* SPRUT/config.h.in: New.
+	* SPRUT/Makefile.in: Update.
+	* SPRUT/configure: Update.
+	* SPRUT/aclocal.m4: New.
+	* SPRUT/anal.c: Remove config code for assert.
+	* SPRUT/main.c: Ditto.
+	* SPRUT/yacc.y: Ditto.
+	* SPRUT/gen.c: Remove config code for assert, limits.
+	* SPRUT/tab.c: Ditto.
+	* SPRUT/common.h: Modify config code.
+	* SPRUT/sprut-ird.c: Remove config code for memcpy.
+	* SPRUT/sprut.{dvi, pdf, ps}: Update.
+	* SPRUT/A_test.sprut: Add return types to main functions.
+	* configure.in: Delete.
+	* configure.ac: New.
+	* Makefile.am: New.
+	* config.h.in: New.
+	* Makefile.in: Update.
+	* configure: Update.
+	* aclocal.m4: New.
+
+2015-12-23  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_common.h (check_encoding_on_ascii): New.
+	(ucodestrlen): Add return type.
+
 2015-10-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_yacc.y (declaration): Use qual_ident in use-clause.

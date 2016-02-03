@@ -1254,7 +1254,7 @@ hash_func (hash_table_entry_t el_ptr)
   IR_node_t node_ref;
   IR_node_mode_t mode;
   const char *chp;
-  char ch;
+  ucode_t ch;
   rint_t int_number;
   rfloat_t float_number;
   size_t i, size, hash_value;
@@ -1275,7 +1275,7 @@ hash_func (hash_table_entry_t el_ptr)
 	{
 	  size = sizeof (ucode_t);
           ch = IR_char_value (node_ref);
-	  chp = &ch;
+	  chp = (char *) &ch;
 	}
       else if (mode == IR_NM_unique_int)
 	{

@@ -38,7 +38,7 @@ CC='@CC@'
 CC_options='@CFLAGS@ @DEFS@ -I. -I@srcdir@/'
 source_addfiles='@srcdir@/allocate.c @srcdir@/objstack.c'
 addfiles="${prefix}_allocate.o ${prefix}_objstack.o"
-test_file=${prefix}_tobjstack.c
+test_file=${prefix}_.objstack.c
 outfile=./${prefix}_a.out
 
 if test x$1 = x
@@ -72,7 +72,7 @@ if test $result = ok -a $start_test_number -le 1; then
 #include <stdlib.h>
 #include "allocate.h"
 #include "objstack.h"
-main ()
+int main ()
 {
   os_t v;
 
@@ -108,7 +108,7 @@ if test $result = ok -a $start_test_number -le 2; then
 #include <string.h>
 #include "allocate.h"
 #include "objstack.h"
-main ()
+int main ()
 {
   os_t v;
 
@@ -143,11 +143,8 @@ if test $result = ok -a $start_test_number -le 3; then
         cat >$test_file <<'TEST3'
 
 #ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
+#include "config.h"
 #else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_MEMCMP
-#define HAVE_MEMCMP
-#endif
 #endif /* #ifdef HAVE_CONFIG_H */
 
 #include <stdlib.h>
@@ -156,28 +153,7 @@ if test $result = ok -a $start_test_number -le 3; then
 #include "allocate.h"
 #include "objstack.h"
 
-#ifndef HAVE_MEMCMP
-
-static int
-memcmp (const void *mem1, cosnt void *mem2, size_t size)
-{
-  const unsigned char *m1 = mem1;
-  const unsigned char *m2 = mem2;
-
-  while (size > 0)
-    {
-      if (m1 != m2)
-        return (m1 < m2 ? -1 : 1);
-      m1++;
-      m2++;
-      size--;
-    }
-  return 0;
-}
-
-#endif /* #ifndef HAVE_MEMCMP */
-
-main ()
+int main ()
 {
   os_t v;
 
@@ -215,7 +191,7 @@ if test $result = ok -a $start_test_number -le 4; then
 #include <stdlib.h>
 #include "allocate.h"
 #include "objstack.h"
-main ()
+int main ()
 {
   os_t v;
 
@@ -249,39 +225,15 @@ if test $result = ok -a $start_test_number -le 5; then
         cat >$test_file <<'TEST5'
 
 #ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
+#include "config.h"
 #else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_MEMCMP
-#define HAVE_MEMCMP
-#endif
 #endif /* #ifdef HAVE_CONFIG_H */
 
 #include <stdlib.h>
 #include "allocate.h"
 #include "objstack.h"
 
-#ifndef HAVE_MEMCMP
-
-static int
-memcmp (const void *mem1, const void *mem2, size_t size)
-{
-  const unsigned char *m1 = mem1;
-  const unsigned char *m2 = mem2;
-
-  while (size > 0)
-    {
-      if (m1 != m2)
-        return (m1 < m2 ? -1 : 1);
-      m1++;
-      m2++;
-      size--;
-    }
-  return 0;
-}
-
-#endif /* #ifndef HAVE_MEMCMP */
-
-main ()
+int main ()
 {
   os_t v;
   char *str;
@@ -325,7 +277,7 @@ if test $result = ok -a $start_test_number -le 6; then
 #include <stdlib.h>
 #include "allocate.h"
 #include "objstack.h"
-main ()
+int main ()
 {
   os_t v;
 

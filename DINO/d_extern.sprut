@@ -166,7 +166,7 @@ extern void *get_library_search_function (const char *name);
 #if defined(NDEBUG)
 #define ER_mpz_ptr(s) (&ER_gmp_(s).mpz)
 #else
-#define ER_mpz_ptr(s) (ER_gmp_(s), &((_ER_heap_gmp *) s)->gmp_.mpz)
+#define ER_mpz_ptr(s) (&((_ER_heap_gmp *) s)->gmp_.mpz)
 #endif
 
 /* Align of heap objects. */

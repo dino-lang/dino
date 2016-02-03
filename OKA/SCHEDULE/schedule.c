@@ -580,12 +580,12 @@ ge_for_data_ready_list (dependence_graph_node_t node_1,
                         dependence_graph_node_t node_2)
 {
   return (node_1->node_estimation < node_2->node_estimation
-          || node_1->node_estimation == node_2->node_estimation
-          && ((node_1->summary_successors_node_estimation
-               < node_2->summary_successors_node_estimation)
-              || (node_1->summary_successors_node_estimation
-                  == node_2->summary_successors_node_estimation)
-              && (node_1->order_number >= node_2->order_number)));
+          || (node_1->node_estimation == node_2->node_estimation
+	      && ((node_1->summary_successors_node_estimation
+		   < node_2->summary_successors_node_estimation)
+		  || ((node_1->summary_successors_node_estimation
+		       == node_2->summary_successors_node_estimation)
+		      && (node_1->order_number >= node_2->order_number)))));
 }
 
 typedef int (*ge_function_t) (dependence_graph_node_t node_1,
@@ -886,7 +886,7 @@ build_data_dependence_graph (void)
   previous_dependence_graph_node->next_dependence_graph_node = graph_bottom;
   graph_bottom->next_dependence_graph_node = NULL;
   finish_forming_dependence_graph ();
-  finish_resource_history;
+  finish_resource_history ();
 }
 
 /* The following function initiates the scheduler state: builds data

@@ -1,7 +1,7 @@
 #!/bin/sh
 # @configure_input@
 
-# Script to test of allocation package (files `yaep.h', `yaep.cpp',
+# Script to test of allocation package (files `yaep.h', `yaepcpp.C',
 #`sgramm.y').
 #
 #   Copyright (C) 1997-2015 Vladimir Makarov.
@@ -42,8 +42,8 @@ CC_options="@CFLAGS@ @DEFS@ -I. -I$srcdir/"
 CXX='@CXX@'
 YACC='@YACC@'
 CXX_options="@CFLAGS@ @DEFS@ -I. -I$srcdir/"
-source_yaep=$srcdir/yaep.cpp
-source_addfiles1="$srcdir/allocate.cpp $srcdir/vlobject.cpp $srcdir/hashtab.cpp $srcdir/objstack.cpp $srcdir/ticker.cpp"
+source_yaep=$srcdir/yaepcpp.C
+source_addfiles1="$srcdir/allocatecpp.C $srcdir/vlobjectcpp.C $srcdir/hashtabcpp.C $srcdir/objstackcpp.C $srcdir/tickercpp.C"
 source_addfiles="$source_addfiles1 $source_yaep"
 
 GCC=gcc
@@ -55,9 +55,9 @@ temp3_file=_${prefix}_temp3.out
 cmp=cmp
 
 sgramm=sgramm
-addfiles1="${prefix}_allocate.o ${prefix}_vlobject.o ${prefix}_hashtab.o ${prefix}_objstack.o ${prefix}_ticker.o"
-addfiles="$addfiles1 ${prefix}_yaep.o"
-test_file=${prefix}_tyaep.cpp
+addfiles1="${prefix}_allocatecpp.o ${prefix}_vlobjectcpp.o ${prefix}_hashtabcpp.o ${prefix}_objstackcpp.o ${prefix}_tickercpp.o"
+addfiles="$addfiles1 ${prefix}_yaepcpp.o"
+test_file=${prefix}_tyaep.C
 outfile=./${prefix}_a.out
 
 CTEST=__${prefix}_test.c
@@ -87,8 +87,8 @@ else
 fi
 
 for i in $source_addfiles; do
-  echo '      ' $CXX $CXX_options -c $i -o ${prefix}_`basename $i .cpp`.o
-  if $CXX $CXX_options -c $i -o ${prefix}_`basename $i .cpp`.o; then
+  echo '      ' $CXX $CXX_options -c $i -o ${prefix}_`basename $i .C`.o
+  if $CXX $CXX_options -c $i -o ${prefix}_`basename $i .C`.o; then
         result=ok
   else
         echo '***' $script_file: test is failed see file $test_file
@@ -518,7 +518,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main ()
+int main ()
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -636,7 +636,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main ()
+int main ()
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -765,7 +765,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main ()
+int main ()
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -889,7 +889,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main ()
+int main ()
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -1013,7 +1013,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main ()
+int main ()
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -1137,7 +1137,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main ()
+int main ()
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -1249,7 +1249,7 @@ test_read_token (void **attr)
 
 static const char *description = "TERM;\n";
 
-main ()
+int main ()
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -1361,7 +1361,7 @@ test_read_token (void **attr)
 
 static const char *description = "TERM ident; ident : ;\n";
 
-main ()
+int main ()
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -1485,7 +1485,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main ()
+int main ()
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -1609,7 +1609,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main ()
+int main ()
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -1732,7 +1732,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main ()
+int main ()
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -1849,7 +1849,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -1987,7 +1987,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main ()
+int main ()
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -2111,7 +2111,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main ()
+int main ()
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -2236,7 +2236,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main ()
+int main ()
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -2407,7 +2407,7 @@ test_read_token (void **attr)
     return -1;
 }
 
-main ()
+int main ()
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -2577,7 +2577,7 @@ test_read_token (void **attr)
     return -1;
 }
 
-main ()
+int main ()
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -2748,7 +2748,7 @@ test_read_token (void **attr)
     return -1;
 }
 
-main ()
+int main ()
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -2919,7 +2919,7 @@ test_read_token (void **attr)
     return -1;
 }
 
-main ()
+int main ()
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -3089,7 +3089,7 @@ test_read_token (void **attr)
     return -1;
 }
 
-main ()
+int main ()
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -3259,7 +3259,7 @@ test_read_token (void **attr)
     return -1;
 }
 
-main ()
+int main ()
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -3382,7 +3382,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main ()
+int main ()
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -3506,7 +3506,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -3692,7 +3692,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -3873,7 +3873,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -4019,7 +4019,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -4176,7 +4176,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -4319,7 +4319,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -4459,7 +4459,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -4610,7 +4610,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -4744,7 +4744,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -4887,7 +4887,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -5029,7 +5029,7 @@ static const char *description =
 "  | '(' error ')' # 1\n"
   ;
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -5172,7 +5172,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -5333,7 +5333,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -5532,7 +5532,7 @@ static int yyinput();
 #define input yyinput
 #endif
 int yywrap ();
-int comment (void);
+void comment (void);
 void count (void);
 int check_type (void);
 
@@ -5658,7 +5658,7 @@ yywrap()
 	return(1);
 }
 
-int
+void
 comment(void)
 {
 	char c, c1;
@@ -16734,7 +16734,7 @@ static const char *description =
 "                     ;\n"
   ;
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   ticker_t *t;
   int code, ambiguous_p;
@@ -16870,7 +16870,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -17016,7 +17016,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -17223,7 +17223,7 @@ test_read_token (void **attr)
     return -1;
 }
 
-main ()
+int main ()
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -17345,7 +17345,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -17494,7 +17494,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -17645,7 +17645,7 @@ static const char *description =
 "  ;\n"
   ;
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -17784,7 +17784,7 @@ static const char *description =
 "   |\n"
   ;
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   yaep *e;
   struct yaep_tree_node *root;
@@ -17916,7 +17916,7 @@ static const char *description =
 "opt : 'c'                   # optc (-)"
   ;
 
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   yaep *e;
   struct yaep_tree_node *root;

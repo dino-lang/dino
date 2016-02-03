@@ -2,6 +2,9 @@
 #include <string.h>
 #include <math.h>  /* For math functions, cos(), sin(), etc. */
 
+void yyerror (char *);
+int yylex ();
+
 /* Data type for links in the chain of symbols.      */
 struct symrec
 {
@@ -69,13 +72,15 @@ exp:      NUM                { $$ = $1;                         }
 
 %%
 
-main ()
+int init_table ();
+
+int main ()
 {
   init_table ();
   exit (yyparse ());
 }
 
-yyerror (s)  /* Called by yyparse on error */
+void yyerror (s)  /* Called by yyparse on error */
      char *s;
 {
   printf ("%s\n", s);
@@ -101,7 +106,7 @@ struct init arith_fncts[]
 /* The symbol table: a chain of `struct symrec'.  */
 symrec *sym_table = (symrec *)0;
 
-init_table ()  /* puts arithmetic functions in table. */
+int init_table ()  /* puts arithmetic functions in table. */
 {
   int i;
   symrec *ptr;
@@ -141,7 +146,7 @@ getsym (sym_name)
 }
 
 #include <ctype.h>
-yylex ()
+int yylex ()
 {
   int c;
 

@@ -187,8 +187,8 @@ dump_code (BC_node_t infos, int indent)
 	  printf ("l");
 	  break;
 	case BC_NM_ldf:
-	  printf (" op1=%d f=%.*g // %d <- f%g", BC_op1 (bc), BC_f (bc),
-		  FORMAT_DOUBLE_DIGS,  BC_op1 (bc), BC_f (bc));
+	  printf (" op1=%d f=%.*g // %d <- f%g", BC_op1 (bc),
+		  FORMAT_DOUBLE_DIGS, BC_f (bc), BC_op1 (bc), BC_f (bc));
 	  break;
 	case BC_NM_ldtp:
 	  printf (" op1=%d op2=%d // %d <- %s", BC_op1 (bc), BC_op2 (bc),
@@ -575,7 +575,7 @@ dump_code (BC_node_t infos, int indent)
 	    printf (" ret_decl=%d // ident=%s", BC_decl_num (BC_ret_decl (bc)),
 		    BC_ident (BC_ret_decl (bc)));
 	  break;
-	case BC_NM_wait:
+	case BC_NM_waitcond:
 	  printf (" op1=%d pc=%d",
 		  BC_op1 (bc), BC_idn (BC_info (BC_pc (bc))));
 	  break;
@@ -1189,7 +1189,14 @@ get_token (void)
               else if (! long_flag)
 		token_attr.i= a2i (VLO_BEGIN (symbol_text), 10);
 	      else
-		mpz_init_set_str (mpz_attr, VLO_BEGIN (symbol_text), 10);
+		{
+		  mpz_init_set_str (mpz_attr, VLO_BEGIN (symbol_text), 10);
+		  /* the mpz function might change errno if it is ok
+		     because it can use malloc/realloc which might
+		     change errno even in success case.  So clear
+		     errno.  */
+		  errno = 0;
+		}
 	      if (errno)
 		{
 		  d_assert (! long_flag);

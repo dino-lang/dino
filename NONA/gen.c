@@ -37,11 +37,7 @@
 */
 
 #ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_ASSERT_H
-#define HAVE_ASSERT_H
-#endif
+#include "config.h"
 #endif /* #ifdef HAVE_CONFIG_H */
 
 #include <ctype.h>
@@ -53,13 +49,7 @@
 #include "ird.h"
 #include "gen.h"
 
-#ifdef HAVE_ASSERT_H
 #include <assert.h>
-#else
-#ifndef assert
-#define assert(code) do { if (code == 0) abort ();} while (0)
-#endif
-#endif
 
 
 
@@ -1252,14 +1242,14 @@ output_state_struct_class (void)
   output_char (' ', output_file);
   output_string (output_file, NONTERMINAL_ATTRIBUTE_UNION_MEMBER_NAME);
   output_string (output_file, " [");
-  output_decimal_number (output_file, IR_number_of_nonterminals (description));
+  output_decimal_number (output_file, IR_number_of_nonterminals (description) + 1);
   output_string (output_file, "];\n");
   output_string (output_file, "    ");
   output_cost_type_name (output_file);
   output_char (' ', output_file);
   output_string (output_file, COST_UNION_MEMBER_NAME);
   output_string (output_file, " [");
-  output_decimal_number (output_file, IR_number_of_nonterminals (description));
+  output_decimal_number (output_file, IR_number_of_nonterminals (description) + 1);
   output_string (output_file, "];\n");
   output_string (output_file, "  } ");
   output_string (output_file, UNION_STRUCT_STATE_MEMBER_NAME);
@@ -1268,7 +1258,7 @@ output_state_struct_class (void)
   output_string (output_file, "  char ");
   output_string (output_file, PASS_FLAG_STRUCT_STATE_MEMBER_NAME);
   output_string (output_file, " [");
-  output_decimal_number (output_file, IR_number_of_nonterminals (description));
+  output_decimal_number (output_file, IR_number_of_nonterminals (description) + 1);
   output_string (output_file, "];\n");
   /* Output nonterminal rules. */
   output_string (output_file, "  struct\n  {\n");
@@ -2346,10 +2336,13 @@ output_cs_nonterminal_rule_function (void)
   output_title_of_cs_nonterminal_rule_function (output_implementation_file,
                                                 TRUE);
   output_string (output_implementation_file, "\n{\n");
-  output_string (output_implementation_file, "  if (");
-  output_string (output_implementation_file,
-                 CS_NONTERMINAL_RULE_COVER_PARAMETER_NAME);
-  output_string (output_implementation_file, " == NULL)\n    return 0;\n");
+  if (! cpp_flag)
+    {
+      output_string (output_implementation_file, "  if (");
+      output_string (output_implementation_file,
+		     CS_NONTERMINAL_RULE_COVER_PARAMETER_NAME);
+      output_string (output_implementation_file, " == NULL)\n    return 0;\n");
+    }
   output_string (output_implementation_file, "  switch (");
   output_string (output_implementation_file,
                  CS_NONTERMINAL_RULE_NONTERMINAL_PARAMETER_NAME);
@@ -2442,15 +2435,18 @@ output_cs_it_is_axiom_function (void)
   /* Function itself */
   output_title_of_cs_it_is_axiom_function (output_implementation_file, TRUE);
   output_string (output_implementation_file, "\n{\n");
-  output_string (output_implementation_file, "  if (");
-  output_string (output_implementation_file,
-                 CS_IT_IS_AXIOM_COVER_PARAMETER_NAME);
-  output_string (output_implementation_file, " == NULL)\n    {\n      ");
-  output_cs_error_macro_name (output_implementation_file);
-  output_string (output_implementation_file, " (\"");
-  output_name_of_cs_it_is_axiom_function (output_implementation_file);
-  output_string (output_implementation_file, ": incorrect cover\");\n");
-  output_string (output_implementation_file, "      abort ();\n    }\n");
+  if (! cpp_flag)
+    {
+      output_string (output_implementation_file, "  if (");
+      output_string (output_implementation_file,
+		     CS_IT_IS_AXIOM_COVER_PARAMETER_NAME);
+      output_string (output_implementation_file, " == NULL)\n    {\n      ");
+      output_cs_error_macro_name (output_implementation_file);
+      output_string (output_implementation_file, " (\"");
+      output_name_of_cs_it_is_axiom_function (output_implementation_file);
+      output_string (output_implementation_file, ": incorrect cover\");\n");
+      output_string (output_implementation_file, "      abort ();\n    }\n");
+    }
   output_string (output_implementation_file, "  return ");
   if (cpp_flag)
     {
@@ -2624,15 +2620,19 @@ output_cs_traverse_cover_pass_function (int first_pass_flag)
           output_string (output_implementation_file, ";\n");
         }
     }
-  output_string (output_implementation_file, "\n  if (");
-  output_string (output_implementation_file,
-                 CS_TRAVERSE_COVER_FUNCTION_COVER_PARAMETER_NAME);
-  output_string (output_implementation_file, " == NULL)\n    {\n      ");
-  output_cs_error_macro_name (output_implementation_file);
-  output_string (output_implementation_file, " (\"");
-  output_name_of_cs_traverse_cover_function (output_implementation_file);
-  output_string (output_implementation_file, ": incorrect cover\");\n");
-  output_string (output_implementation_file, "      abort ();\n    }\n");
+  output_string (output_implementation_file, "\n");
+  if (! cpp_flag)
+    {
+      output_string (output_implementation_file, "  if (");
+      output_string (output_implementation_file,
+		     CS_TRAVERSE_COVER_FUNCTION_COVER_PARAMETER_NAME);
+      output_string (output_implementation_file, " == NULL)\n    {\n      ");
+      output_cs_error_macro_name (output_implementation_file);
+      output_string (output_implementation_file, " (\"");
+      output_name_of_cs_traverse_cover_function (output_implementation_file);
+      output_string (output_implementation_file, ": incorrect cover\");\n");
+      output_string (output_implementation_file, "      abort ();\n    }\n");
+    }
   if (!first_pass_flag)
     {
       output_string (output_implementation_file, "  if (");
@@ -2795,15 +2795,18 @@ output_cs_traverse_cover_function (void)
   output_title_of_cs_traverse_cover_function (output_implementation_file,
                                               TRUE);
   output_string (output_implementation_file, "\n{\n");
-  output_string (output_implementation_file, "  if (");
-  output_string (output_implementation_file,
-                 CS_TRAVERSE_COVER_FUNCTION_COVER_PARAMETER_NAME);
-  output_string (output_implementation_file, " == NULL)\n    {\n      ");
-  output_cs_error_macro_name (output_implementation_file);
-  output_string (output_implementation_file, " (\"");
-  output_name_of_cs_traverse_cover_function (output_implementation_file);
-  output_string (output_implementation_file, ": incorrect cover\");\n");
-  output_string (output_implementation_file, "      abort ();\n    }\n");
+  if (! cpp_flag)
+    {
+      output_string (output_implementation_file, "  if (");
+      output_string (output_implementation_file,
+		     CS_TRAVERSE_COVER_FUNCTION_COVER_PARAMETER_NAME);
+      output_string (output_implementation_file, " == NULL)\n    {\n      ");
+      output_cs_error_macro_name (output_implementation_file);
+      output_string (output_implementation_file, " (\"");
+      output_name_of_cs_traverse_cover_function (output_implementation_file);
+      output_string (output_implementation_file, ": incorrect cover\");\n");
+      output_string (output_implementation_file, "      abort ();\n    }\n");
+    }
   output_string (output_implementation_file, "  ");
   if (cpp_flag)
     {
@@ -2890,12 +2893,15 @@ output_internal_cs_delete_cover_function (void)
   output_string (output_implementation_file,
                  INTERNAL_CS_DELETE_COVER_VARIABLE_NAME);
   output_string (output_implementation_file, ";\n\n");
-  output_string (output_implementation_file, "  if (");
-  output_string (output_implementation_file, CS_DELETE_COVER_PARAMETER_NAME);
-  output_string (output_implementation_file, " == NULL)\n");
-  output_string (output_implementation_file,
-                 "    /* Corresponding node has been processed. */\n");
-  output_string (output_implementation_file, "    return;\n");
+  if (! cpp_flag)
+    {
+      output_string (output_implementation_file, "  if (");
+      output_string (output_implementation_file, CS_DELETE_COVER_PARAMETER_NAME);
+      output_string (output_implementation_file, " == NULL)\n");
+      output_string (output_implementation_file,
+		     "    /* Corresponding node has been processed. */\n");
+      output_string (output_implementation_file, "    return;\n");
+    }
   output_string (output_implementation_file, "  if (");
   output_string (output_implementation_file, CS_DELETE_COVER_PARAMETER_NAME);
   output_string (output_implementation_file, "->");
@@ -3020,14 +3026,17 @@ output_cs_delete_cover_function (void)
   output_title_of_cs_delete_cover_function (output_implementation_file, FALSE,
                                             TRUE);
   output_string (output_implementation_file, "\n{\n");
-  output_string (output_implementation_file, "  if (");
-  output_string (output_implementation_file, CS_DELETE_COVER_PARAMETER_NAME);
-  output_string (output_implementation_file, " == NULL)\n    {\n      ");
-  output_cs_error_macro_name (output_implementation_file);
-  output_string (output_implementation_file, " (\"");
-  output_name_of_cs_delete_cover_function (output_implementation_file, FALSE);
-  output_string (output_implementation_file, ": incorrect cover\");\n");
-  output_string (output_implementation_file, "      abort ();\n    }\n  ");
+  if (! cpp_flag)
+    {
+      output_string (output_implementation_file, "  if (");
+      output_string (output_implementation_file, CS_DELETE_COVER_PARAMETER_NAME);
+      output_string (output_implementation_file, " == NULL)\n    {\n      ");
+      output_cs_error_macro_name (output_implementation_file);
+      output_string (output_implementation_file, " (\"");
+      output_name_of_cs_delete_cover_function (output_implementation_file, FALSE);
+      output_string (output_implementation_file, ": incorrect cover\");\n");
+      output_string (output_implementation_file, "      abort ();\n    }\n  ");
+    }
   if (cpp_flag)
     {
       output_string (output_implementation_file,

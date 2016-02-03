@@ -44,24 +44,6 @@ extern clock_t clock (void);
 
 /* This page contains functions common for all package functions. */
 
-#ifndef HAVE_MEMCPY
-
-void *
-memcpy (void *to, const void *from, size_t size)
-{
-  char *cto = (char *) to;
-  const char *cfrom = (const char *) from;
-
-  while (size > 0)
-    {
-      *cto++ = *cfrom;
-      size--;
-    }
-  return to;
-}
-
-#endif /* #ifndef HAVE_MEMCPY */
-
 #ifndef HAVE_MEMSET
 
 void *
@@ -78,28 +60,6 @@ memset (void *to, int value, size_t size)
 }
 
 #endif /* #ifndef HAVE_MEMSET */
-
-#ifndef HAVE_MEMCMP
-
-int
-memcmp (const void *mem1, const void *mem2, size_t size)
-{
-  const unsigned char *m1 = mem1;
-  const unsigned char *m2 = mem2;
-
-  while (size > 0)
-    {
-      if (m1 != m2)
-        return (m1 < m2 ? -1 : 1);
-      m1++;
-      m2++;
-      size--;
-    }
-  return 0;
-}
-
-#endif /* #ifndef HAVE_MEMCMP */
-
 
 #ifndef HAVE_MEMMOVE
 
@@ -212,7 +172,7 @@ a2i (const char *str, int base)
   d_assert (base == 8 || base == 10 || base == 16);
   errno = 0;
   d_assert (sizeof (rint_t) <= sizeof (long long int));
-#if defined (HAVE_STRTOLL) && defined (HAVE_STRTOULL)
+#if defined (HAVE_STRTOULL)
   if (base == 10)
     l = strtoll (str, (char **) NULL, base);
   else
@@ -262,7 +222,7 @@ i2a (rint_t number)
   else
     {
       d_assert (sizeof (rint_t) <= sizeof (long long int));
-      sprintf (result, "%lld", number);
+      sprintf (result, "%lld", (long long) number);
     }
   return result;
 }
@@ -317,11 +277,7 @@ mpz2i (mpz_t number)
   if (mpz_fits_slong_p (number))
     return mpz_get_si (number);
   d_assert (sizeof (long long int) >= sizeof (rint_t));
-#ifdef HAVE_STRTOLL
   return strtoll (mpz2a (number, 10, FALSE), (char **) NULL, 10);
-#else
-#error  The system is too old: strtoll is required.
-#endif
 }
 
 void
@@ -334,7 +290,7 @@ i2mpz (mpz_t mpz, rint_t i)
   else
     {
       d_assert (sizeof (rint_t) == sizeof (long long int));
-      sprintf (str, "%lld", i);
+      sprintf (str, "%lld", (long long) i);
       mpz_set_str (mpz, str, 10);
     }
 }
@@ -774,7 +730,7 @@ static void
 initiate_cds (void)
 {
 #ifdef HAVE_ICONV_H
-  const char *utf32 = big_endian_p ? "UTF32BE" : "UTF32LE";
+  const char *utf32 = big_endian_p ? "UTF-32BE" : "UTF-32LE";
 
   curr_encoding_name = UTF8_STRING;
   curr_encoding_type = UTF8_ENC;
@@ -800,7 +756,7 @@ set_conv_descs (const char *encoding_name,
 {
   conv_desc_t bcd, ucd, rucd;
 #ifdef HAVE_ICONV_H
-  const char *utf32 = big_endian_p ? "UTF32BE" : "UTF32LE";
+  const char *utf32 = big_endian_p ? "UTF-32BE" : "UTF-32LE";
   encoding_type_t type = get_encoding_type (encoding_name);
   
   if (type == RAW_ENC)
@@ -1309,7 +1265,7 @@ encode_byte_str_vlo (byte_t *str, conv_desc_t cd, encoding_type_t tp,
 
   if (cd == NO_CONV_DESC)
     {
-      *len = strlen (str);
+      *len = strlen ((const char *) str);
       return (char *) str;
     }
 #ifndef HAVE_ICONV_H
@@ -1327,7 +1283,7 @@ encode_byte_str_vlo (byte_t *str, conv_desc_t cd, encoding_type_t tp,
       *len = i;
       return VLO_BEGIN (*vlo);
     }
-  is = str;
+  is = (char *) str;
   out = (i + 1) * 4; /* longest utf8 is 4 bytes.  */
   VLO_EXPAND (*vlo, out);
   os = VLO_BEGIN (*vlo);
@@ -1447,7 +1403,7 @@ get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd,
   
   d_assert (cd != NO_CONV_DESC);
   /* Fast track for slow iconv.  */
-  if (r < 0 || tp == UTF8_ENC && r < 128 || tp == LATIN1_ENC)
+  if (r < 0 || (tp == UTF8_ENC && r < 128) || tp == LATIN1_ENC)
     return r;
 #ifndef HAVE_ICONV_H
   d_assert (FALSE);
@@ -1543,7 +1499,7 @@ check_encoding_on_ascii (const char *encoding)
     os = out;
     r = iconv (cd, &is, &i, &os, &o);
     iconv_close (cd);
-    if (r >= 0 && i == 0
+    if (r != (size_t) (-1) && i == 0
 	&& sizeof (test) == os - out && strcmp (test, out) == 0)
       return TRUE;
   }
@@ -1732,7 +1688,7 @@ dino_main (int argc, char *argv[], char *envp[])
     }
   if (command_line_program != NULL)
     command_line_program
-      = (ucode_t *) encode_byte_str_vlo ((char *) command_line_program,
+      = (ucode_t *) encode_byte_str_vlo ((byte_t *) command_line_program,
 					 curr_reverse_ucode_cd,
 					 OTHER_ENC,
 					 &command_line_vlo, &len);

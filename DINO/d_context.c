@@ -204,11 +204,11 @@ include_decl (IR_node_t decl)
 static int last_uniq_field_ident_num;
 
 /* Setup FIELD_IDENT_NUMBER for UNIQUE_IDENT.  */
-static int
+static void
 set_field_ident_number (IR_node_t unique_ident)
 {
   if (IR_field_ident_number (unique_ident) >= 0)
-    return IR_field_ident_number (unique_ident);
+    return;
   if (destroy_unique_ident != unique_ident)
     {
       last_uniq_field_ident_num++;
@@ -1196,6 +1196,8 @@ create_pattern_vars (IR_node_t pattern_from, IR_node_t expr, IR_node_t last)
 	  d_assert (IR_repetition_key (elist) == NULL);
 	  last = create_pattern_vars (pattern_from, IR_expr (elist), last);
 	}
+      break;
+    default:
       break;
     }
   return last;
@@ -3451,7 +3453,7 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
    There is no change for local_var.  If DESIGNATOR is not
    correct, generate ERROR_MESSAGE. */
 
-static IR_node_mode_t
+static BC_node_mode_t
 make_designator_lvalue (BC_node_t designator, const char *error_message,
 			int val_p)
 {
@@ -4726,7 +4728,7 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	      (stmt, second_expr_processing (IR_wait_guard_expr (stmt), FALSE,
 					     &result, &temp_vars_num, FALSE,
 					     NULL, NULL, FALSE));
-	    bc = new_bc_code_with_src (BC_NM_wait, stmt);
+	    bc = new_bc_code_with_src (BC_NM_waitcond, stmt);
 	    BC_set_op1 (bc, result);
 	    type_test (IR_wait_guard_expr (stmt), EVT_NUMBER_STRING_MASK,
 		       ERR_invalid_wait_guard_expr_type);

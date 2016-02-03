@@ -36,24 +36,10 @@
 #ifndef __CSPSET__
 #define __CSPSET__
 
-#ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_ASSERT_H
-#define HAVE_ASSERT_H
-#endif
-#endif /* #ifdef HAVE_CONFIG_H */
-
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef HAVE_ASSERT_H
 #include <assert.h>
-#else
-#ifndef assert
-#define assert(code) do { if (code == 0) abort ();} while (0)
-#endif
-#endif
 
 #include "allocate.h"
 #include "spset.h"
@@ -341,8 +327,8 @@ class cspset
   cspset_elem_t *find (cspset_elem_t, int);
   void tune_size (void);
   /* Prevent copy constructor and assignment */
-  cspset (const cspset&) {}
-  cspset& operator=(const cspset&) {}
+  cspset (const cspset&);
+  cspset& operator=(const cspset&);
 };
 
 

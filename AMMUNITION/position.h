@@ -33,10 +33,6 @@
 #ifndef __POSITIONS__
 #define __POSITIONS__
 
-#ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#endif
-
 #ifndef __cplusplus
 
 

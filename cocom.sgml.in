@@ -5,7 +5,7 @@
 
 <title>COCOM tool set
 <author>Vladimir Makarov, <tt>vmakarov@gcc.gnu.org</tt>
-<date>May. 18, 2015
+<date>Feb 28, 2016
 <abstract>
 This document describes COCOM tool set oriented towards the creation
 of compilers, cross-compilers, interpreters, and other language
@@ -98,7 +98,7 @@ Currently there are the following packages:
         Representation for Sparse Sets" by Preston Briggs and Linda
         Torczon.  Memory needed for the set is proportional to maximal
         element value in the set.
-   <tag>spset</tag>
+   <tag>cspset</tag>
         Work with expandable compact sparse sets of numbers.  It has
         very similar interface with `spset'.  The algorithm
         complexities of set operations in practice is the same as for

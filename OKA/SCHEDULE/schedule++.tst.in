@@ -30,13 +30,13 @@
 # it is all ok.
 #
 
-CXX='@CXX@ @CXXFLAGS@ @DEFS@ -I. -I../../AMMUNITION -I@top_srcdir@/AMMUNITION'
+CXX='@CXX@ @CXXFLAGS@ @DEFS@ -I. -I../../AMMUNITION -I@srcdir@/../../AMMUNITION'
 result=fail
 echo ++++++++++ Testing Scheduler for C++ +++++++++++++++++++++++++++++++
 echo ++++++++++Now building pipeline hazards recognizer
 if ../oka -c++ -export @srcdir@/test.oka; then
         echo ++++++++++Now compilation of all scheduler files
-        if $CXX test.cpp @srcdir@/schedule.cpp @srcdir@/schedtst.cpp @top_srcdir@/AMMUNITION/allocate.cpp -o ./a.out; then
+        if $CXX test.cpp @srcdir@/schedule.cpp @srcdir@/schedtst.cpp @srcdir@/../../AMMUNITION/allocatecpp.C -o ./a.out; then
                 echo ++++++++++Now scheduling
                 if ./a.out >_test.res; then
                         if cat >_test1.res <<'EOF' && cmp _test.res _test1.res; then

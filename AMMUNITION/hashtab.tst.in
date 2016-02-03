@@ -69,6 +69,7 @@ done
 if test $result = ok -a $start_test_number -le 1; then
         cat >$test_file <<'TEST1'
 #include <stdlib.h>
+#include <string.h>
 #include "allocate.h"
 #include "hashtab.h"
 
@@ -89,7 +90,7 @@ eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
   return strcmp (el1, el2) == 0;
 }
 
-main ()
+int main ()
 {
   hash_table_t htab;
 
@@ -138,7 +139,7 @@ eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
   return strcmp (el1, el2) == 0;
 }
 
-main ()
+int main ()
 {
   hash_table_t htab;
 
@@ -195,7 +196,7 @@ eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
   return strcmp (el1, el2) == 0;
 }
 
-main ()
+int main ()
 {
   hash_table_t htab;
 
@@ -252,7 +253,7 @@ eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
   return strcmp (el1, el2) == 0;
 }
 
-main ()
+int main ()
 {
   hash_table_t htab;
 
@@ -313,7 +314,7 @@ eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
   return strcmp (el1, el2) == 0;
 }
 
-main ()
+int main ()
 {
   hash_table_t htab;
 
@@ -374,7 +375,7 @@ eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
   return strcmp (el1, el2) == 0;
 }
 
-main ()
+int main ()
 {
   hash_table_t htab;
 
@@ -441,7 +442,7 @@ eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
   return strcmp (el1, el2) == 0;
 }
 
-main ()
+int main ()
 {
   hash_table_t htab;
   int c, ac;

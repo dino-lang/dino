@@ -32,10 +32,6 @@
 #ifndef __ERRORS__
 #define __ERRORS__
 
-#ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#endif
-
 #include "vlobject.h"
 #include "objstack.h"
 #include "position.h"

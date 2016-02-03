@@ -40,11 +40,7 @@
 %{
 
 #ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_ASSERT_H
-#define HAVE_ASSERT_H
-#endif
+#include "config.h"
 #endif /* #ifdef HAVE_CONFIG_H */
 
 #include <ctype.h>
@@ -57,13 +53,7 @@
 #include "tab.h"
 #include "yacc.h"
 
-#ifdef HAVE_ASSERT_H
 #include <assert.h>
-#else
-#ifndef assert
-#define assert(code) do { if (code == 0) abort ();} while (0)
-#endif
-#endif
 
 
 /* The following variables and forward definitions of functions are

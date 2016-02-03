@@ -31,29 +31,11 @@
 #ifndef HAVE_MEMSET
 #define HAVE_MEMSET
 #endif
-#ifndef HAVE_MEMCPY
-#define HAVE_MEMCPY
-#endif
 #ifndef HAVE_MEMMOVE
 #define HAVE_MEMMOVE
 #endif
-#ifndef HAVE_MEMCMP
-#define HAVE_MEMCMP
-#endif
-#ifndef HAVE_ASSERT_H
-#define HAVE_ASSERT_H
-#endif
-#ifndef HAVE_FLOAT_H
-#define HAVE_FLOAT_H
-#endif
-#ifndef HAVE_LIMITS_H
-#define HAVE_LIMITS_H
-#endif
 #ifndef HAVE_TIME_H
 #define HAVE_TIME_H
-#endif
-#ifndef HAVE_ERRNO_H
-#define HAVE_ERRNO_H
 #endif
 #ifndef HAVE_DLFCN_H
 #define HAVE_DLFCN_H
@@ -66,44 +48,9 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <signal.h>
-
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#else
-#ifndef UCHAR_MAX
-#define UCHAR_MAX 255
-#endif
-#ifndef SCHAR_MAX
-#define SCHAR_MAX 127
-#endif
-#ifndef SCHAR_MIN
-#define SCHAR_MIN (-128)
-#endif
-#ifndef UINT_MAX
-#define UINT_MAX (INT_MAX * 2U + 1)
-#endif
-#ifndef INT_MAX
-#define INT_MAX 2147483647
-#endif  
-#ifndef INT_MIN
-#define INT_MIN (-INT_MAX-1)
-#endif
-#endif
-
-#ifdef HAVE_FLOAT_H
 #include <float.h>
-#else
-#define FLT_MAX  3.40282347e+38F         /* IEEE float */
-#define DBL_MAX  1.7976931348623157e+308 /* IEEE double */
-#endif
-
-#ifdef HAVE_ASSERT_H
 #include <assert.h>
-#else
-#ifndef assert
-#define assert(code) do { if (code == 0) abort ();} while (0)
-#endif
-#endif
 
 #define d_assert assert
 
@@ -113,9 +60,7 @@
 #include <unistd.h>
 #endif
 
-#ifdef HAVE_ERRNO_H
 #include <errno.h>
-#endif
 
 #ifndef AIX_DLOPEN
 #ifdef HAVE_DLFCN_H
@@ -182,8 +127,9 @@ static int inline isprint_ascii (int ch) { return ch < 128 && isprint (ch); }
 static int inline
 is_hex_digit (int ch)
 {
-  return ('0' <= ch && ch <= '9'
-	  || 'a' <= (ch) && (ch) <= 'f' || 'A' <= (ch) && (ch) <= 'F');
+  return (('0' <= ch && ch <= '9')
+	  || ('a' <= (ch) && (ch) <= 'f')
+	  || ('A' <= (ch) && (ch) <= 'F'));
 }
 
 /* Functions returning value of digit or hex digit CH. */
@@ -293,6 +239,7 @@ extern char *encode_ucode_str_vlo (ucode_t *str, conv_desc_t cd,
 extern const char *encode_ucode_str_to_raw_vlo (const ucode_t *str, vlo_t *vlo);
 extern ucode_t get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd,
 				      encoding_type_t tp, void *data);
+extern int check_encoding_on_ascii (const char *encoding);
 
 extern void dino_finish (int code);
 
@@ -300,17 +247,9 @@ extern void dino_finish (int code);
 
 #define ENVIRONMENT_PSEUDO_FILE_NAME "<environment>"
 
-#ifndef HAVE_MEMCPY
-extern void *memcpy (void *to, const void *from, size_t size);
-#endif /* #ifndef HAVE_MEMCPY */
-
 #ifndef HAVE_MEMSET
 extern void *memset (void *to, int value, size_t size);
 #endif /* #ifndef HAVE_MEMSET */
-
-#ifndef HAVE_MEMCMP
-extern int memcmp (const void *mem1, const void *mem2, size_t size);
-#endif /* #ifndef HAVE_MEMCMP */
 
 #ifndef HAVE_MEMMOVE
 extern void *memmove (void *s1, const void *s2, size_t n);
@@ -366,7 +305,7 @@ in_ucode_range_p (int uc)
 }
 
 /* length of ucode string STR.  */
-static inline
+static inline int
 ucodestrlen (const ucode_t *s)
 {
   size_t i;

@@ -31,7 +31,7 @@
 */
 
 #ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
+#include "config.h"
 #else /* In this case we are oriented to ANSI C */
 #endif /* #ifdef HAVE_CONFIG_H */
 

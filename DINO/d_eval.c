@@ -343,7 +343,8 @@ load_packed_vector_element (ER_node_t to, ER_node_t vect, rint_t index_val)
       ER_set_l (to, ((ER_node_t *) ER_pack_els (vect)) [index_val]);
       break;
     case ER_NM_type:
-      ER_set_type (to, ((ER_node_mode_t *) ER_pack_els (vect)) [index_val]);
+      ER_set_type
+	(to, (type_val_t) ((ER_node_mode_t *) ER_pack_els (vect)) [index_val]);
       break;
     case ER_NM_vect:
       t = ((ER_node_t *) ER_pack_els (vect)) [index_val];
@@ -441,7 +442,8 @@ store_packed_vector_element (ER_node_t vect, rint_t index_val, ER_node_t val)
       ((ER_node_t *) ER_pack_els (vect)) [index_val] = ER_l (val);
       break;
     case ER_NM_type:
-      ((ER_node_mode_t *) ER_pack_els (vect)) [index_val] = ER_type (val);
+      ((ER_node_mode_t *) ER_pack_els (vect)) [index_val]
+	= (ER_node_mode_t) ER_type (val);
       break;
     case ER_NM_vect:
       set_packed_vect_el (vect, index_val, ER_vect (val));
@@ -860,7 +862,8 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int dim1,
 		  break;
 		case ER_NM_type:
 		  for (i1 = start1; i1 != bound1; i1 += step1)
-		    ((ER_node_mode_t *) pack_els1) [i1] = ER_type (container2);
+		    ((ER_node_mode_t *) pack_els1) [i1]
+		      = (ER_node_mode_t) ER_type (container2);
 		  break;
 		case ER_NM_vect:
 		  v2 = ER_vect (container2);
@@ -1197,7 +1200,7 @@ find_catch_pc (ER_node_t except)
 	    {
 	      const char *message
 		= (ER_pack_vect_el_mode (vect) == ER_NM_byte
-		   ? encode_byte_str_vlo (ER_pack_els (vect),
+		   ? encode_byte_str_vlo ((byte_t *) ER_pack_els (vect),
 					  curr_byte_cd, curr_encoding_type,
 					  &temp_vlobj, &len)
 		   : encode_ucode_str_vlo ((ucode_t *) ER_pack_els (vect),
@@ -3592,7 +3595,7 @@ evaluate_code (void)
       goto_table [BC_NM_leave] = &&l_BC_NM_leave;
       goto_table [BC_NM_fbend] = &&l_BC_NM_fbend;
       goto_table [BC_NM_ret] = &&l_BC_NM_ret;
-      goto_table [BC_NM_wait] = &&l_BC_NM_wait;
+      goto_table [BC_NM_waitcond] = &&l_BC_NM_waitcond;
       goto_table [BC_NM_waitend] = &&l_BC_NM_waitend;
       goto_table [BC_NM_stinc] = &&l_BC_NM_stinc;
       goto_table [BC_NM_stdecm] = &&l_BC_NM_stdecm;
@@ -4703,8 +4706,8 @@ evaluate_code (void)
 	  if (ret (get_op (BC_op1 (cpc))))
 	    return;
 	  BREAK;
-	CASE (BC_NM_wait):
-	  wait (get_op (BC_op1 (cpc)));
+	CASE (BC_NM_waitcond):
+	  waitcond (get_op (BC_op1 (cpc)));
 	  BREAK;
 	CASE (BC_NM_waitend):
 	  waitend ();

@@ -37,19 +37,10 @@
 */
 
 #ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
+#include "config.h"
 #else /* In this case we are oriented to ANSI C */
 #ifndef HAVE_MEMSET
 #define HAVE_MEMSET
-#endif
-#ifndef HAVE_ASSERT_H
-#define HAVE_ASSERT_H
-#endif
-#ifndef HAVE_FLOAT_H
-#define HAVE_FLOAT_H
-#endif
-#ifndef HAVE_LIMITS_H
-#define HAVE_LIMITS_H
 #endif
 #endif /* #ifdef HAVE_CONFIG_H */
 
@@ -70,54 +61,9 @@
 #include "ird.h"
 #include "gen.h"
 
-#ifdef HAVE_FLOAT_H
 #include <float.h>
-#else
-#define DBL_MAX  1.7976931348623157e+308 /* IEEE double */
-#endif
-
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#else
-#ifndef CHAR_BIT
-#define CHAR_BIT 8
-#endif
-#ifndef UCHAR_MAX
-#define UCHAR_MAX 255
-#endif
-#ifndef SCHAR_MAX
-#define SCHAR_MAX 127
-#endif
-#ifndef SCHAR_MIN
-#define SCHAR_MIN (-128)
-#endif
-#ifndef USHRT_MAX
-#define USHRT_MAX 65535
-#endif
-#ifndef SHRT_MAX
-#define SHRT_MAX 32767
-#endif  
-#ifndef SHRT_MIN
-#define SHRT_MIN (-32768)
-#endif
-#ifndef UINT_MAX
-#define UINT_MAX (INT_MAX * 2U + 1)
-#endif
-#ifndef INT_MAX
-#define INT_MAX 2147483647
-#endif  
-#ifndef INT_MIN
-#define INT_MIN (-INT_MAX-1)
-#endif
-#endif
-
-#ifdef HAVE_ASSERT_H
 #include <assert.h>
-#else
-#ifndef assert
-#define assert(code) do { if (code == 0) abort ();} while (0)
-#endif
-#endif
 
 #ifndef HAVE_MEMSET
 
@@ -3960,6 +3906,7 @@ output_transition_table (IR_node_t automaton)
   VLO_CREATE (check_vector, 50000);
   VLO_CREATE (base_vector, 5000);
   VLO_EXPAND (base_vector, VLO_LENGTH (output_states_vector));
+  memset (VLO_BEGIN (base_vector), 0, VLO_LENGTH (output_states_vector));
   VLO_CREATE (transition_vector, 2000);
   max_transition_vector_element_value
     = IR_achieved_states_number (automaton) + 1;
@@ -4060,6 +4007,7 @@ output_is_dead_locked_vector (IR_node_t automaton)
   /* Create base, transition, and check vectors. */
   VLO_CREATE (is_dead_locked_vector, 5000);
   VLO_EXPAND (is_dead_locked_vector, VLO_LENGTH (output_states_vector));
+  memset (VLO_BEGIN (is_dead_locked_vector), 0, VLO_LENGTH (output_states_vector));
   for (current_state_ptr = VLO_BEGIN (output_states_vector);
        (char *) current_state_ptr <= (char *) VLO_END (output_states_vector);
        current_state_ptr++)

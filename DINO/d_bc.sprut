@@ -1144,7 +1144,7 @@ ret :: op1  /* return with result: ret value place */
         ret_decl : decl /* no-null if ident in the return. */
 ;
 throw :: op1;
-wait :: br;
+waitcond :: br;
 waitend :: bcode;
 
 except :: op2 /* except instance and class places */
@@ -2204,7 +2204,7 @@ print_node (FILE *f, BC_node_t bc)
   if (BC_IS_OF_TYPE (bc, BC_NM_check)
       && BC_NODE_MODE (bc) != BC_NM_rmatch
       && BC_NODE_MODE (bc) != BC_NM_rmatchs)
-    fprintf (f, ", (pc_t) 0x%lx", BC_fail_pc (bc));
+    fprintf (f, ", (pc_t) 0x%lx", (unsigned long) BC_fail_pc (bc));
   if (BC_IS_OF_TYPE (bc, BC_NM_br))
     fprintf (f, ")) goto l%d;\n", BC_label_num (BC_info (BC_pc (bc))));
   else if (BC_IS_OF_TYPE (bc, BC_NM_foreach))
@@ -2285,8 +2285,16 @@ traverse_bcode (BC_node_t bc)
 
 #define GEN_DIR "/tmp/"
 #define GEN_FUN_PREFIX "dg_"
-#define CC_OPTIONS  " -O2 -fPIC -shared -fpreprocessed -pipe -g"
-#define CC_OPTIONS2 " -O2 -fPIC -shared -fpreprocessed -pipe -xc -"
+#if defined(__gnu_linux__)
+#define CC_OPTIONS  " -O2 -w -fPIC -shared -fpreprocessed -pipe -g"
+#define CC_OPTIONS2 " -O2 -w -fPIC -shared -fpreprocessed -pipe -xc -"
+#elif defined(__APPLE__)
+#define CC_OPTIONS  " -O2 -w -Wl,-undefined -Wl,dynamic_lookup -bundle -pipe -g"
+#define CC_OPTIONS2 " -O2 -w -Wl,-undefined -Wl,dynamic_lookup -bundle -pipe -xc -"
+#elif defined(__CYGWIN__)
+#define CC_OPTIONS  " -O2 -w -shared -pipe -g"
+#define CC_OPTIONS2 " -O2 -w -shared -pipe -xc - -xnone"
+#endif
 
 static void
 form_fun_name (vlo_t *fun_name, BC_node_t fdecl)
@@ -2307,7 +2315,7 @@ form_fname (vlo_t *fname, BC_node_t fdecl, const char *suffix)
   VLO_ADD_STRING (*fname, GEN_DIR);
   form_fun_name (fname, fdecl);
   VLO_ADD_STRING (*fname, "p");
-  sprintf (str, "%d", (unsigned long) getpid ());
+  sprintf (str, "%lu", (unsigned long) getpid ());
   VLO_ADD_STRING (*fname, str);
   VLO_ADD_STRING (*fname, suffix);
 }
@@ -2349,19 +2357,43 @@ copy_gen_file (FILE *f)
     return FALSE;
   return res;
 }
+
+#if defined(__CYGWIN__)
+static int
+find_dllname (const char *prefix1, const char *prefix2, vlo_t *dllname)
+{
+  FILE *f;
+  
+  VLO_NULLIFY (*dllname);
+  VLO_ADD_STRING (*dllname, prefix1);
+  VLO_ADD_STRING (*dllname, prefix2);
+  VLO_ADD_STRING (*dllname, "cygdino");
+  VLO_ADD_STRING (*dllname, DINO_VERSION_SUFFIX);
+  VLO_ADD_STRING (*dllname, ".dll");
+  f = fopen (VLO_BEGIN (*dllname), "r");
+  if (f == NULL)
+    return FALSE;
+  fclose (f);
+  return TRUE;
+}
+#endif
+
 #endif
 
 void *
 gen_cfblock (BC_node_t fblock)
 {
-#if !defined(HAVE_DLOPEN)
+#if !defined(HAVE_DLOPEN) || !defined (CC_OPTIONS) || !defined (CC_OPTIONS2)
   return NULL;
 #else
   BC_node_t *bc_ptr, info;
   FILE *f;
   vlo_t fname, objname, command, fun_name;
+#if defined(__CYGWIN__)
+  vlo_t dllname;
+#endif
   void *addr;
-  int error_p, tcall_p;
+  int error_p, tcall_p, ret;
 
   VLO_CREATE (fname, 0);
   form_fname (&fname, BC_fdecl (fblock), ".c");
@@ -2379,6 +2411,21 @@ gen_cfblock (BC_node_t fblock)
     }
   VLO_ADD_STRING (command, " -o ");
   VLO_ADD_STRING (command, VLO_BEGIN (objname));
+#if defined(__CYGWIN__)
+  VLO_CREATE (dllname, 0);
+  if (! find_dllname (".libs", "/", &dllname)
+      && ! find_dllname (STANDARD_DINO_BIN_DIRECTORY, "/", &dllname))
+    {
+      VLO_DELETE (dllname);
+      return NULL;
+    }
+  else
+    {
+      VLO_ADD_STRING (command, " ");
+      VLO_ADD_STRING (command, VLO_BEGIN (dllname));
+      VLO_DELETE (dllname);
+    }
+#endif
   if (save_temps_flag)
     f = fopen (VLO_BEGIN (fname), "w");
   else
@@ -2443,7 +2490,8 @@ gen_cfblock (BC_node_t fblock)
 	}
       VLO_DELETE (fbcode);
       error_p = ferror (f) != 0;
-      if (fclose (f))
+      ret = (save_temps_flag ? fclose (f) : pclose (f));
+      if (ret)
 	{
 	  if (! save_temps_flag)
 	    remove (VLO_BEGIN (fname));

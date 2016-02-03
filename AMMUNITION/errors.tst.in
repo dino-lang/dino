@@ -37,7 +37,7 @@ CC='@CC@'
 CC_options='@CFLAGS@ @DEFS@ -I. -I@srcdir@/'
 source_addfiles='@srcdir@/allocate.c @srcdir@/vlobject.c @srcdir@/objstack.c @srcdir@/position.c @srcdir@/errors.c'
 addfiles="${prefix}_allocate.o ${prefix}_vlobject.o ${prefix}_objstack.o ${prefix}_position.o ${prefix}_errors.o"
-test_file=${prefix}_terrors.c
+test_file=${prefix}_ter.ors.c
 temp_file=_${prefix}_temp.out
 temp2_file=_${prefix}_temp2.out
 temp3_file=_${prefix}_temp3.out
@@ -76,7 +76,7 @@ if test $result = ok -a $start_test_number -le 1; then
 #include "allocate.h"
 #include "position.h"
 #include "errors.h"
-main ()
+int main ()
 {
   initiate_positions ();
   initiate_errors (1 /*TRUE*/);
@@ -116,7 +116,7 @@ if test $result = ok -a $start_test_number -le 2; then
 #include "position.h"
 #include "allocate.h"
 #include "errors.h"
-main ()
+int main ()
 {
   initiate_positions ();
   initiate_errors (1 /*TRUE*/);
@@ -160,7 +160,7 @@ if test $result = ok -a $start_test_number -le 3; then
 #include "allocate.h"
 #include "position.h"
 #include "errors.h"
-main ()
+int main ()
 {
   initiate_positions ();
   initiate_errors (1 /*TRUE*/);
@@ -266,6 +266,21 @@ file 2:4:1: system error 1:No error
 1
 OUTPUT3-4
                                 result=ok
+                        elif cat <<'OUTPUT3-5' >$temp3_file && $cmp $temp_file $temp3_file >$temp2_file; then
+error 1
+file 1:6:1: error 2
+In file processed from file 1:6:1:
+file 2:1:1: error 3
+file 2:4:1: error 4
+In file processed from file 2:4:1:, from file 1:6:1:
+file 3:1:1: error 5
+file 3:1: warning 1
+In file processed from file 1:6:1:
+file 2:4:1: system error 1:Undefined error: 0
+6
+1
+OUTPUT3-5
+                                result=ok
 			else
 				cat $temp2_file
                                 result=fail
@@ -285,7 +300,7 @@ if test $result = ok -a $start_test_number -le 4; then
 #include "allocate.h"
 #include "position.h"
 #include "errors.h"
-main ()
+int main ()
 {
   initiate_positions ();
   initiate_errors (1 /*TRUE*/);
@@ -327,7 +342,7 @@ if test $result = ok -a $start_test_number -le 5; then
 #include "allocate.h"
 #include "position.h"
 #include "errors.h"
-main ()
+int main ()
 {
   initiate_positions ();
   initiate_errors (0);
@@ -366,7 +381,7 @@ if test $result = ok -a $start_test_number -le 6; then
 #include "allocate.h"
 #include "position.h"
 #include "errors.h"
-main ()
+int main ()
 {
   initiate_positions ();
   initiate_errors (0);
@@ -407,7 +422,7 @@ if test $result = ok -a $start_test_number -le 7; then
 #include "allocate.h"
 #include "position.h"
 #include "errors.h"
-main ()
+int main ()
 {
   initiate_positions ();
   initiate_errors (0);
@@ -521,6 +536,22 @@ file 3:1:1: error 5
 1
 OUTPUT7-4
                                 result=ok
+                        elif cat <<'OUTPUT7-5' >$temp3_file && $cmp $temp_file $temp3_file >$temp2_file; then
+6
+1
+error 1
+file 1:6:1: error 2
+In file processed from file 1:6:1:
+file 2:1:1: error 3
+file 2:4:1: error 4
+file 2:4:1: system error 1:Undefined error: 0
+In file processed from file 2:4:1:, from file 1:6:1:
+file 3:1: warning 1
+file 3:1:1: error 5
+6
+1
+OUTPUT7-5
+                                result=ok
                         else
 				cat $temp2_file
                                 result=fail
@@ -541,7 +572,7 @@ if test $result = ok -a $start_test_number -le 8; then
 #include "allocate.h"
 #include "position.h"
 #include "errors.h"
-main ()
+int main ()
 {
   initiate_positions ();
   initiate_errors (0);
@@ -657,6 +688,22 @@ file 3:1: warning 1
 file 3:1:1: error 5
 OUTPUT8-4
                                 result=ok
+                        elif cat <<'OUTPUT8-5' >$temp3_file && $cmp $temp_file $temp3_file >$temp2_file; then
+4
+0
+error 1
+file 1:6:1: error 2
+In file processed from file 1:6:1:
+file 2:1:1: error 4
+file 2:1:4: error 3
+5
+1
+file 2:1:1: system error 1:Undefined error: 0
+In file processed from file 2:1:1:, from file 1:6:1:
+file 3:1: warning 1
+file 3:1:1: error 5
+OUTPUT8-5
+                                result=ok
                         else
 				cat $temp2_file
                                 result=fail
@@ -675,7 +722,7 @@ if test $result = ok -a $start_test_number -le 9; then
 #include "allocate.h"
 #include "position.h"
 #include "errors.h"
-main ()
+int main ()
 {
   position_t appended_message_position;
 
@@ -812,6 +859,25 @@ file 3:1: warning 1
 file 1:6:1: appended to warning 1
 file 3:1:1: error 5
 OUTPUT9-4
+                                result=ok
+                        elif cat <<'OUTPUT9-5' >$temp3_file && $cmp $temp_file $temp3_file >$temp2_file; then
+4
+0
+error 1
+file 1:6:1: error 2
+In file processed from file 1:6:1:
+file 2:1:1: error 4
+file 2:1:4: error 3
+file 1:6:1: appended 1 to error 3
+file 1:6:1: appended 2 to error 3
+5
+1
+file 2:1:1: system error 1:Undefined error: 0
+In file processed from file 2:1:1:, from file 1:6:1:
+file 3:1: warning 1
+file 1:6:1: appended to warning 1
+file 3:1:1: error 5
+OUTPUT9-5
                                 result=ok
                         else
 				cat $temp2_file

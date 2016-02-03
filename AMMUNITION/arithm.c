@@ -57,25 +57,13 @@
 
 
 #ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
+#include "config.h"
 #else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_MEMCPY
-#define HAVE_MEMCPY
-#endif
 #ifndef HAVE_MEMSET
 #define HAVE_MEMSET
 #endif
-#ifndef HAVE_MEMCMP
-#define HAVE_MEMCMP
-#endif
 #ifndef HAVE_MEMMOVE
 #define HAVE_MEMMOVE
-#endif
-#ifndef HAVE_ASSERT_H
-#define HAVE_ASSERT_H
-#endif
-#ifndef HAVE_LIMITS_H
-#define HAVE_LIMITS_H
 #endif
 #endif /* #ifdef HAVE_CONFIG_H */
 
@@ -84,48 +72,8 @@
 #include <string.h>
 #include "arithm.h"
 
-#ifdef HAVE_ASSERT_H
 #include <assert.h>
-#else
-#ifndef assert
-#define assert(code) do { if (code == 0) abort ();} while (0)
-#endif
-#endif
-
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#else
-#ifndef CHAR_BIT
-#define CHAR_BIT 8
-#endif
-#ifndef UCHAR_MAX
-#define UCHAR_MAX 255
-#endif
-#ifndef SCHAR_MAX
-#define SCHAR_MAX 127
-#endif
-#ifndef SCHAR_MIN
-#define SCHAR_MIN (-128)
-#endif
-#ifndef USHRT_MAX
-#define USHRT_MAX 65535
-#endif
-#ifndef SHRT_MAX
-#define SHRT_MAX 32767
-#endif  
-#ifndef SHRT_MIN
-#define SHRT_MIN (-32768)
-#endif
-#ifndef UINT_MAX
-#define UINT_MAX (INT_MAX * 2U + 1)
-#endif
-#ifndef INT_MAX
-#define INT_MAX 2147483647
-#endif  
-#ifndef INT_MIN
-#define INT_MIN (-INT_MAX-1)
-#endif
-#endif
 
 
 
@@ -183,24 +131,6 @@ static void (*integer_overflow_reaction) (void)
 
 /* This page contains functions common for all package functions. */
 
-#ifndef HAVE_MEMCPY
-
-static void *
-memcpy (void *to, const void *from, size_t size)
-{
-  char *cto = (char *) to;
-  const char *cfrom = (const char *) from;
-
-  while (size > 0)
-    {
-      *cto++ = *cfrom;
-      size--;
-    }
-  return to;
-}
-
-#endif /* #ifndef HAVE_MEMCPY */
-
 #ifndef HAVE_MEMSET
 
 static void *
@@ -217,28 +147,6 @@ memset (void *to, int value, size_t size)
 }
 
 #endif /* #ifndef HAVE_MEMSET */
-
-#ifndef HAVE_MEMCMP
-
-static int
-memcmp (const void *mem1, const void *mem2, size_t size)
-{
-  const unsigned char *m1 = mem1;
-  const unsigned char *m2 = mem2;
-
-  while (size > 0)
-    {
-      if (m1 != m2)
-        return (m1 < m2 ? -1 : 1);
-      m1++;
-      m2++;
-      size--;
-    }
-  return 0;
-}
-
-#endif /* #ifndef HAVE_MEMCMP */
-
 
 #ifndef HAVE_MEMMOVE
 

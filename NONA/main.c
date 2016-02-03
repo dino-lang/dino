@@ -35,11 +35,8 @@
        some internal errors of file work.  */
 
 #ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
+#include "config.h"
 #else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_ASSERT_H
-#define HAVE_ASSERT_H
-#endif
 #ifndef RETSIGTYPE
 #define RETSIGTYPE void
 #endif
@@ -60,13 +57,7 @@
 #include "anal.h"
 #include "gen.h"
 
-#ifdef HAVE_ASSERT_H
 #include <assert.h>
-#else
-#ifndef assert
-#define assert(code) do { if (code == 0) abort ();} while (0)
-#endif
-#endif
 
 
 /* The following macro value is standard prefix of names of code

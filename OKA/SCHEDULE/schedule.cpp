@@ -671,12 +671,12 @@ int scheduler_state::ge_for_data_ready_list (dependence_graph_node_t node_1,
                                              dependence_graph_node_t node_2)
 {
   return (node_1->node_estimation < node_2->node_estimation
-          || node_1->node_estimation == node_2->node_estimation
-          && ((node_1->summary_successors_node_estimation
-               < node_2->summary_successors_node_estimation)
-              || (node_1->summary_successors_node_estimation
-                  == node_2->summary_successors_node_estimation)
-              && (node_1->order_number >= node_2->order_number)));
+          || (node_1->node_estimation == node_2->node_estimation
+	      && ((node_1->summary_successors_node_estimation
+		   < node_2->summary_successors_node_estimation)
+		  || ((node_1->summary_successors_node_estimation
+		       == node_2->summary_successors_node_estimation)
+		      && (node_1->order_number >= node_2->order_number)))));
 }
 
 /* The following class describes data ready and instruction ready

@@ -3,8 +3,9 @@ AC_INIT(onig, 5.9.6)
 
 AC_CONFIG_MACRO_DIR([m4])
 
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_HEADER(config.h)
+AM_MAINTAINER_MODE
 
 
 dnl default value for RUBYDIR
@@ -89,6 +90,25 @@ int foo(int x, ...) {
 if test "$_cv_stdarg" = yes; then
   AC_DEFINE(HAVE_STDARG_PROTOTYPES,1,[Define if compiler supports stdarg prototypes])
 fi
+
+system=`uname`.`uname -r`
+case $system in
+	Linux*)
+	  LIB_CFLAGS=-static
+          LIB_LDFLAGS=-static
+	  ;;
+	CYGWIN*)
+	  LIB_CFLAGS='-shared'
+          LIB_LDFLAGS='-shared -no-undefined'
+          ;;
+	*)
+	  LIB_CFLAGS=
+          LIB_LDFLAGS=
+	  ;;
+esac
+
+AC_SUBST(LIB_CFLAGS)
+AC_SUBST(LIB_LDFLAGS)
 
 if test "$GCC" = yes; then
   my_save_cflags="$CFLAGS"

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 1997-2015 Vladimir Makarov.
 # 
@@ -42,7 +42,7 @@ patchf=__patch
 if test x`echo -n` != "x-n";then
   NECHO="echo -n"
 else
-  NECHO=
+  NECHO=printf
 fi
 
 cat <<EOF >$ftest
@@ -183,7 +183,7 @@ speed() {
 }
 
 s=`speed`
-if expr $s == 0 >/dev/null;then factor=100;
+if expr $s = 0 >/dev/null;then factor=100;
 elif expr $s '<=' 10 >/dev/null;then factor=10;
 else factor=1; fi
 
@@ -234,12 +234,10 @@ Announce_Test() {
     else
        s=`$NECHO "$*"|sed "s/:  +++++/:/"`
        $NECHO "$s"
-       l=`expr length "$s"`
+       l=${#s}
        while test $l -le 67; do $NECHO " "; l=`expr $l + 1`; done
     fi
 }
-
-TIME="/usr/bin/time -f user%U"
 
 int1000 () {
  echo `awk "BEGIN {printf \"%d\n\", int ($1 * 1000)}"`
@@ -256,13 +254,13 @@ print_time() {
 	echo "   " $s
     else
 	n=$1:
-	$NECHO $n
-	l=`expr length "$n"`
+	$NECHO "$n"
+	l=${#n}
 	while test $l -le 40; do $NECHO " "; l=`expr $l + 1`; done
-	$NECHO $s
-	l=`expr length "$s"`
+	$NECHO "$s"
+	l=${#s}
 	while test $l -le 10; do $NECHO " "; l=`expr $l + 1`; done
-        echo `perc $s $dtime`
+        echo " " `perc $s $dtime`
     fi
 }
 
@@ -277,16 +275,16 @@ print_dino() {
 	echo "   " $s
     else
 	n=DINO:$1
-	$NECHO $n
-	l=`expr length "$n"`
+	$NECHO "$n"
+	l=${#n}
 	while test $l -le 40; do $NECHO " "; l=`expr $l + 1`; done
-	$NECHO $s
-	l=`expr length "$s"`
+	$NECHO "$s"
+	l=${#s}
 	while test $l -le 10; do $NECHO " "; l=`expr $l + 1`; done
-	if test "x$1" = x;then echo base;
+	if test "x$1" = x;then echo " " base;
         elif expr `int1000 $s` '<' `int1000 $dtime` >/dev/null; then
-          dtime=$s; echo new base;
-        else echo `perc $s $dtime`; fi
+          dtime=$s; echo " " new base;
+        else echo " " `perc $s $dtime`; fi
     fi
 }
 
@@ -297,9 +295,9 @@ run_dino() {
   fi
   ok=
   if test "x$1" != x; then
-    if ($TIME $DINO $ftest $rep < $1) >$temp2 2>&1; then ok=y;fi
+    if (time -p $DINO $ftest $rep < $1) >$temp2 2>&1; then ok=y;fi
   else
-    if ($TIME $DINO $ftest $rep < /dev/null) >$temp2 2>&1; then ok=y;fi
+    if (time -p $DINO $ftest $rep < /dev/null) >$temp2 2>&1; then ok=y;fi
   fi
   if test x$ok != x
   then
@@ -321,9 +319,9 @@ run_dino() {
   fi
   ok=
   if test "x$1" != x; then
-    if ($TIME $DINO -O $ftest $rep < $1) >$temp2 2>&1; then ok=y;fi
+    if (time -p $DINO -O $ftest $rep < $1) >$temp2 2>&1; then ok=y;fi
   else
-    if ($TIME $DINO -O $ftest $rep < /dev/null) >$temp2 2>&1; then ok=y;fi
+    if (time -p $DINO -O $ftest $rep < /dev/null) >$temp2 2>&1; then ok=y;fi
   fi
   if test x$ok != x
   then
@@ -369,7 +367,7 @@ my $NUM = $ARGV[0];
 for ($i=0; $i < $NUM;$i++){}
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -381,12 +379,12 @@ for i in xrange (0,num): i
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -398,7 +396,7 @@ num = int(sys.argv[1])
 for i in range (0,num): i
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -411,7 +409,7 @@ proc main {} {
 main
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -419,7 +417,7 @@ if test x$AWK != x; then
 BEGIN {n = ARGV[1]; for (i=0.0; i<n; i=i+1.0);}
 EOF
   title=AWK
-  if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -430,11 +428,11 @@ end
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -446,15 +444,15 @@ end
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -464,7 +462,7 @@ val n = args(0).toInt
 for (i <- 0 to n) {}
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -474,9 +472,9 @@ n = arguments [0];
 for (i=0; i < n;i++);
 EOF
   title=JS
-  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   title="JS -j"
-  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$NODEJS != x; then
@@ -486,7 +484,7 @@ n = process.argv[2];
 for (i=0; i < n;i++);
 EOF
   title=NODEJS
-  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -499,7 +497,7 @@ let _ =
   (loop 0 n)
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$HASKELL != x; then
@@ -517,7 +515,7 @@ loop 1 sum = sum
 loop n sum = loop (n - 1) sum
 EOF
   title=Haskell
-  if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -585,7 +583,7 @@ for my $i (reverse 1..$n) {
 print "$c\n";
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -611,12 +609,12 @@ main()
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -641,7 +639,7 @@ def main():
 main()
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -672,7 +670,7 @@ proc main {} {
 main
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -697,7 +695,7 @@ BEGIN {
 }
 EOF
   title=AWK
-  if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -725,11 +723,11 @@ print(c)
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -758,15 +756,15 @@ puts c
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -783,7 +781,7 @@ for (i <- n to 1 by -1)
 println (c);
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -799,9 +797,9 @@ for (i = n; i > 0; i--)
 print (c);
 EOF
   title=JS
-  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   title="JS -j"
-  if ($TIME $JS -j$ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS -j$ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$NODEJS != x; then
@@ -817,7 +815,7 @@ for (i = n; i > 0; i--)
 console.log (c);
 EOF
   title=NODEJS
-  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -857,7 +855,7 @@ let _ =
   Printf.printf "%d\n" !c
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$HASKELL != x; then
@@ -886,7 +884,7 @@ main = do  args <- getArgs
             _        -> fail "You must enter a number."
 EOF
   title=Haskell
-  if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -969,7 +967,7 @@ for ($i = 0; $i < $N; $i++) {
 print $x . "\n";
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -991,12 +989,12 @@ print x
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -1018,7 +1016,7 @@ while n < N:
 print (x)
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -1041,7 +1039,7 @@ proc main {} {
 puts [main]
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -1063,11 +1061,11 @@ print (x)
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -1091,15 +1089,15 @@ print x
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -1112,7 +1110,7 @@ for (i <- 1 to n) x = fact (12)
 println (x)
 EOF
 title=SCALA
-if ($TIME $SCALA $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+if (time -p $SCALA $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -1131,9 +1129,9 @@ for (i = 0; i < n; i++)
 print (x);
 EOF
 title=JS
-if ($TIME $JS $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+if (time -p $JS $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 title="JS -j"
-if ($TIME $JS -j $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+if (time -p $JS -j $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$NODEJS != x; then
@@ -1152,7 +1150,7 @@ for (i = 0; i < n; i++)
 console.log (x);
 EOF
 title=NODEJS
-if ($TIME $NODEJS $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+if (time -p $NODEJS $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -1168,7 +1166,7 @@ let _ =
   Printf.printf "%d\n" !r
 EOF
 title=OCAML
-if ($TIME $OCAML $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+if (time -p $OCAML $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$HASKELL != x; then
@@ -1188,7 +1186,7 @@ loop 0 n = (0, fact n)
 loop c n = (fact n, snd (loop (c - 1) n))
 EOF
   title=Haskell
-  if ($TIME $HASKELL $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $HASKELL $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -1269,7 +1267,7 @@ for ($i = 0; $i < $N; $i++) {
 }
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -1290,12 +1288,12 @@ for i in xrange (0,N):
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -1316,7 +1314,7 @@ for i in range (0,N):
     print(i, fibnum) 
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -1339,7 +1337,7 @@ proc main {} {
 main
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -1360,11 +1358,11 @@ end
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -1390,15 +1388,15 @@ end
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -1410,7 +1408,7 @@ var x = 0; val n = args(0).toInt
 for (i <- 0 to n - 1) {x = fib (n); println (x)}
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -1428,9 +1426,9 @@ for (i = 0; i < n; i++) {
 }
 EOF
   title=JS
-  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   title="JS -j"
-  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$NODEJS != x; then
@@ -1448,7 +1446,7 @@ for (i = 0; i < n; i++) {
 }
 EOF
   title=NODEJS
-  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -1470,7 +1468,7 @@ let _ =
   Printf.printf "%d\n" (fib n)
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$HASKELL != x; then
@@ -1488,7 +1486,7 @@ main = do
             putStrLn (show (map fib [0..n-1]))
 EOF
   title=Haskell
-  if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -1673,7 +1671,7 @@ while ($NUM--) {
 print "Exceptions: HI=$HI / LO=$LO\n";
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -1742,12 +1740,12 @@ main()
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -1812,7 +1810,7 @@ proc main {} {
 main
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -1874,11 +1872,11 @@ print(string.format("Exceptions: HI=%d / LO=%d", HI, LO))
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -1948,15 +1946,15 @@ print "Exceptions: HI=", $HI, " / LO=", $LO, "\n"
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -2008,7 +2006,7 @@ def main () = {
 main ()
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -2042,7 +2040,7 @@ let _ =
   Printf.printf "Exceptions: HI=%d / LO=%d\n" !hi !lo
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -2218,7 +2216,7 @@ sub main {
 main();
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -2276,12 +2274,12 @@ main()
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -2339,7 +2337,7 @@ def main():
 main()
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -2423,11 +2421,11 @@ main()
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -2491,15 +2489,15 @@ main()
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -2546,7 +2544,7 @@ def main () {
 main()
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -2599,7 +2597,7 @@ let _ =
   print_bool ntog#activate#value
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -2736,7 +2734,7 @@ sub main {
 main();
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -2796,12 +2794,12 @@ main()
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -2861,7 +2859,7 @@ def main():
 main()
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -2949,11 +2947,11 @@ main()
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -3021,15 +3019,15 @@ main()
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -3078,7 +3076,7 @@ def main () {
 main()
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -3122,7 +3120,7 @@ for i = 1 to 8 do Printf.printf "%b\n" ntog#activate#value done;
 for i = 1 to n do ignore (new nth_toggle true 3) done
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -3199,7 +3197,7 @@ if test x$PERL != x; then
   print "$count\n";
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -3224,12 +3222,12 @@ print count
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -3254,7 +3252,7 @@ for iter in range(10):
 print (count)
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -3288,7 +3286,7 @@ puts [main]
 exit 0
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -3318,7 +3316,7 @@ SieveSize=ARGV[1];
 }
 EOF
   title=AWK
-  if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -3344,11 +3342,11 @@ io.write(count, "\n")
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -3375,15 +3373,15 @@ print $count, "\n"
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -3409,7 +3407,7 @@ for (iter <- 0 to 10) {
 println (count)
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -3433,9 +3431,9 @@ for (iter = 0; iter < 10; iter++) {
 print (count);
 EOF
   title=JS
-  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   title="JS -j"
-  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$NODEJS != x; then
@@ -3459,7 +3457,7 @@ for (iter = 0; iter < 10; iter++) {
 console.log (count);
 EOF
   title=NODEJS
-  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -3491,7 +3489,7 @@ let _ =
   Printf.printf "%d\n" !cnt
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$HASKELL != x; then
@@ -3524,7 +3522,7 @@ sieve (h:t) = h : sieve [x| x<-t, x`mod`h /= 0]
 EOF
   echo HASKELL is too slow for this test.
 #  title=Haskell
-#  if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+#  if (time -p $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -3724,7 +3722,7 @@ heapsort($N, @ary);
 printf("%.10f\n", $ary[-1]);
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -3789,12 +3787,12 @@ main()
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -3859,7 +3857,7 @@ def main():
 main()
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -3937,7 +3935,7 @@ proc main {} {
 main
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -3995,7 +3993,7 @@ BEGIN {
 }
 EOF
   title=AWK
-  if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -4065,11 +4063,11 @@ main()
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -4132,15 +4130,15 @@ printf "%.10f\n", ary[N]
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -4204,7 +4202,7 @@ def main () = {
 main ()
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -4267,9 +4265,9 @@ function main (n) {
 main (arguments [0] < 1 ? 1 : arguments [0]);
 EOF
   title=JS
-  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   title="JS -j"
-  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$NODEJS != x; then
@@ -4332,7 +4330,7 @@ function main (n) {
 main (process.argv[2] < 1 ? 1 : process.argv[2]);
 EOF
   title=NODEJS
-  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -4400,7 +4398,7 @@ let _ =
   Printf.printf "%.10f\n" ary.(n)
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$HASKELL != x; then
@@ -4451,7 +4449,7 @@ heapsort = flatten_heap . merge_heaps . map heapify
                      | otherwise = Node b (node_a : heaps_b)
 EOF
   title=Haskell
-  if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -5073,7 +5071,7 @@ printf("skew:               %f\n", $skew);
 printf("kurtosis:           %f\n", $kurtosis);
 EOF
   title=PERL
-  if ($TIME $PERL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -5137,12 +5135,12 @@ main()
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -5206,7 +5204,7 @@ main()
 
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -5269,7 +5267,7 @@ proc main {} {
 main
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -5330,11 +5328,11 @@ io.write(string.format("kurtosis:           %f\n", kurtosis))
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -5402,15 +5400,15 @@ printf("kurtosis:           %f\n", kurtosis)
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $RBX $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -5469,7 +5467,7 @@ def main () = {
 main()
 EOF
   title=SCALA
-if ($TIME $SCALA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+if (time -p $SCALA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -5551,7 +5549,7 @@ let _ =
   Printf.printf "kurtosis:           %f\n" !kurtosis
 EOF
   title=OCAML
-if ($TIME $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+if (time -p $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$HASKELL != x; then
@@ -5631,7 +5629,7 @@ mSort l = ms (split l)
            ms l   = ms (mergepairs l)
 EOF
   title=Haskell
-  if ($TIME $HASKELL $ftest +RTS -K32M -RTS <$input) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $HASKELL $ftest +RTS -K32M -RTS <$input) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -5740,7 +5738,7 @@ gen_random(100.0) while ($N--);
 printf "%.9f\n", gen_random(100.0);
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -5773,12 +5771,12 @@ main()
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -5811,7 +5809,7 @@ def main():
 main()
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -5852,7 +5850,7 @@ proc main {} {
 main
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -5876,7 +5874,7 @@ BEGIN {
 }
 EOF
   title=AWK
-  if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -5904,11 +5902,11 @@ io.write(string.format("%.9f\n", result))
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -5935,15 +5933,15 @@ printf "%.9f\n", result
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -5965,7 +5963,7 @@ for (i <- 1 to n)
 println (gen_random (100.0))
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -5986,9 +5984,9 @@ for (; n; n--)
 print (gen_random (100.0).toFixed(9));
 EOF
   title=JS
-  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   title="JS -j"
-  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$NODEJS != x; then
@@ -6009,7 +6007,7 @@ for (; n; n--)
 console.log (gen_random (100.0).toFixed(9));
 EOF
   title=NODEJS
-  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -6040,7 +6038,7 @@ let _ =
   Printf.printf "%.9f\n" (loop n)
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$HASKELL != x; then
@@ -6064,7 +6062,7 @@ randloop n seed r max = randloop (n-1) newseed newrand max
           ic              = 29573
 EOF
   title=Haskell
-  if ($TIME $HASKELL $ftest +RTS -K1024M -RTS $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $HASKELL $ftest +RTS -K1024M -RTS $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -6175,7 +6173,7 @@ EOF
 echo Perl threads are not implemented on all systems.
 
 #  title=PERL
-##  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+##  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -6232,12 +6230,12 @@ main(int(sys.argv[1]))
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -6294,7 +6292,7 @@ def main(n):
 main(int(sys.argv[1]))
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
@@ -6343,15 +6341,15 @@ main(Integer(ARGV.shift || 1))
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -6368,13 +6366,13 @@ cat <<'EOF' >$ftest
 putln ("hello world");
 EOF
 title=
-($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $DINO $ftest) > $temp2 2>&1 && print_dino "$title" $temp2
+(time -p sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $DINO $ftest) > $temp2 2>&1 && print_dino "$title" $temp2
 
 title=" OPT"
 if test "x$title" != x && test x$DINO_ONLY != x; then
   Announce_Test "+++++          $title:"
 fi
-($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $DINO -O $ftest) > $temp2 2>&1 && print_dino "$title" $temp2
+(time -p sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $DINO -O $ftest) > $temp2 2>&1 && print_dino "$title" $temp2
 
 
 if test x$PERL != x; then
@@ -6384,7 +6382,7 @@ if test x$PERL != x; then
 print "hello world\n";
 EOF
   title=PERL
-  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PERL $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+  (time -p sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PERL $ftest) > $temp2 2>&1 && print_time "$title" $temp2
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -6395,12 +6393,12 @@ print "hello world"
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PYTHON $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+      (time -p sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PYTHON $ftest) > $temp2 2>&1 && print_time "$title" $temp2
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PYPY $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+      (time -p sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PYPY $ftest) > $temp2 2>&1 && print_time "$title" $temp2
   fi
 fi
 
@@ -6411,7 +6409,7 @@ if test x$PYTHON3 != x; then
 print ("hello world")
 EOF
   title=PYTHON3
-  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PYTHON3 $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+  (time -p sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PYTHON3 $ftest) > $temp2 2>&1 && print_time "$title" $temp2
 fi
 
 if test x$TCLSH != x; then
@@ -6421,7 +6419,7 @@ if test x$TCLSH != x; then
 puts "hello world"
 EOF
   title=TCL
-  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $TCLSH $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+  (time -p sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $TCLSH $ftest) > $temp2 2>&1 && print_time "$title" $temp2
 fi
 
 if test x$AWK != x; then
@@ -6431,7 +6429,7 @@ if test x$AWK != x; then
 BEGIN { print "hello world" }
 EOF
   title=AWK
-  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $AWK -f $ftest </dev/null ) > $temp2 2>&1 && print_time "$title" $temp2
+  (time -p sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $AWK -f $ftest </dev/null ) > $temp2 2>&1 && print_time "$title" $temp2
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -6440,11 +6438,11 @@ print ("hello world")
 EOF
   if test x$LUA != x; then
     title=LUA
-    ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $LUA $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+    (time -p sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $LUA $ftest) > $temp2 2>&1 && print_time "$title" $temp2
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $LUAJIT $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+    (time -p sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $LUAJIT $ftest) > $temp2 2>&1 && print_time "$title" $temp2
   fi
 fi
 
@@ -6454,15 +6452,15 @@ puts "hello world"
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $RUBY $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+    (time -p sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $RUBY $ftest) > $temp2 2>&1 && print_time "$title" $temp2
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $JRUBY $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+    (time -p sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $JRUBY $ftest) > $temp2 2>&1 && print_time "$title" $temp2
   fi
   if test x$RBX != x; then
     title=RBX
-    ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $RBX $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+    (time -p sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $RBX $ftest) > $temp2 2>&1 && print_time "$title" $temp2
   fi
 fi
 
@@ -6471,7 +6469,7 @@ if test x$SCALA != x; then
 println ("hello world")
 EOF
   title=SCALA
-  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $SCALA $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+  (time -p sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $SCALA $ftest) > $temp2 2>&1 && print_time "$title" $temp2
 fi
 
 if test x$JS != x; then
@@ -6479,9 +6477,9 @@ if test x$JS != x; then
 print ("hello world");
 EOF
   title=JS
-  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $JS $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+  (time -p sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $JS $ftest) > $temp2 2>&1 && print_time "$title" $temp2
   title="JS -j"
-  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $JS -j $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+  (time -p sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $JS -j $ftest) > $temp2 2>&1 && print_time "$title" $temp2
 fi
 
 if test x$NODEJS != x; then
@@ -6489,7 +6487,7 @@ if test x$NODEJS != x; then
 console.log ("hello world");
 EOF
   title=NODEJS
-  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $NODEJS $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+  (time -p sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $NODEJS $ftest) > $temp2 2>&1 && print_time "$title" $temp2
 fi
 
 if test x$OCAML != x; then
@@ -6502,7 +6500,7 @@ if test x$OCAML != x; then
 let _ = print_endline "hello world"
 EOF
   title=OCAML
-  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $OCAML $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+  (time -p sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $OCAML $ftest) > $temp2 2>&1 && print_time "$title" $temp2
 fi
 
 if test x$HASKELL != x; then
@@ -6510,7 +6508,7 @@ if test x$HASKELL != x; then
 main = putStrLn "Hello, World"
 EOF
   title=Haskell
-  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $HASKELL $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+  (time -p sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $HASKELL $ftest) > $temp2 2>&1 && print_time "$title" $temp2
 fi
 
 fi
@@ -6529,50 +6527,50 @@ run_dino
 if test x$PERL != x; then
   $DINO -c 'putln("$j = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("$i = $j;");' $rep > $ftest
   title=PERL
-  if ($TIME $PERL $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
   $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
 if test x$PYTHON3 != x; then
   $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
   $DINO -c 'putln("set j 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("set i $j");' $rep > $ftest
   title=TCL
-  if ($TIME $TCLSH $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
   $DINO -c 'putln("END {\nj = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j;");' $rep > $ftest
   echo '}' >>$ftest
   title=AWK
-  if ($TIME $AWK -f $ftest </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $AWK -f $ftest </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
   $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -6580,47 +6578,47 @@ if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $RUBY $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $RBX $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
 if test x$SCALA != x; then
-  $NECHO Scala:
+  $NECHO "Scala:"
   echo '  ' Scala can not take even 10000 lines file
 fi
 
 if test x$JS != x; then
   $DINO -c 'putln("var i, j;\nj = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j;");' $rep > $ftest
   title=JS
-  if ($TIME $JS $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $JS $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   title="JS -j"
-  if ($TIME $JS -j $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $JS -j $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$NODEJS != x; then
   $DINO -c 'putln("var i, j;\nj = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j;");' $rep > $ftest
   title=NODEJS
-  if ($TIME $NODEJS $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $NODEJS $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
   $DINO -c 'putln("let j = 1;;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("let i = j;;");' $rep > $ftest
   title=OCAML
-  if ($TIME $OCAML $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $OCAML $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$HASKELL != x; then
   $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
   title=Haskell
-  if ($TIME $HASKELL $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $HASKELL $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 fi
@@ -6688,7 +6686,7 @@ my $ack = Ack(3, $NUM);
 print "Ack(3,$NUM): $ack\n";
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo DINO: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo DINO: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -6712,12 +6710,12 @@ main()
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -6741,7 +6739,7 @@ def main():
 main()
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$TCL != x; then
@@ -6768,7 +6766,7 @@ EOF
   echo AWK is too slow for this test.
 
 #  title=AWK
-##  if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+##  if (time -p $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -6792,12 +6790,12 @@ EOF
 
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -6822,11 +6820,11 @@ NUM = Integer(ARGV.shift || 1)
 print "Ack(3,", NUM, "): ", ack(3, NUM), "\n"
 EOF
 title=RUBY
-if ($TIME $RUBY $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+if (time -p $RUBY $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 title=JRUBY
-if ($TIME $JRUBY $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+if (time -p $JRUBY $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 title=RBX
-if ($TIME $RBX $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+if (time -p $RBX $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -6840,7 +6838,7 @@ val n = args(0).toInt
 println ("Ack(3,", n, "): ", ack (3, n))
 EOF
 title=SCALA
-if ($TIME $SCALA $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+if (time -p $SCALA $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -6855,9 +6853,9 @@ var n = arguments [0] < 1 ? 1 : arguments [0];
 print ("Ack(3,", n, "): ", ack (3, n));
 EOF
 title=JS
-if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+if (time -p $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 title="JS -j"
-if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+if (time -p $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$NODEJS != x; then
@@ -6872,7 +6870,7 @@ var n = process.argv[2] < 1 ? 1 : process.argv[2];
 console.log ("Ack(3,", n, "): ", ack (3, n));
 EOF
 title=NODEJS
-if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+if (time -p $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -6896,7 +6894,7 @@ let _ =
   Printf.printf "Ack(3,%d): %d\n" arg (ack 3 arg)
 EOF
 title=OCAML
-if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+if (time -p $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$HASKELL != x; then
@@ -6914,7 +6912,7 @@ ack m 0 = ack (m-1) 1
 ack m n = ack (m-1) (ack m (n-1))
 EOF
 title=Haskell
-if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+if (time -p $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -7000,7 +6998,7 @@ for my $k (0..999) {
 print "$Y[0] $Y[$last]\n";
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -7025,12 +7023,12 @@ main()
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -7052,7 +7050,7 @@ def main():
 main()
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -7084,7 +7082,7 @@ proc main {} {
 main
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -7111,7 +7109,7 @@ BEGIN {
 }
 EOF
   title=AWK
-  if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -7134,11 +7132,11 @@ io.write (y [1], " ", y [n], "\n");
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -7170,15 +7168,15 @@ puts "#{y[0]} #{y[last]}"
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -7197,7 +7195,7 @@ for (j <- 1 to 1000)
 println (y(0), y(n - 1));
 EOF
 title=SCALA
-if ($TIME $SCALA $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+if (time -p $SCALA $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -7215,9 +7213,9 @@ for (k = 0; k < 1000; k++)
 print (y [0], " ", y [n - 1]);
 EOF
 title=JS
-if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+if (time -p $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 title="JS -j"
-if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+if (time -p $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$NODEJS != x; then
@@ -7235,7 +7233,7 @@ for (k = 0; k < 1000; k++)
 console.log (y [0], " ", y [n - 1]);
 EOF
 title=NODEJS
-if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+if (time -p $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -7264,7 +7262,7 @@ let _ =
   Printf.printf "%d %d\n" y.(0) y.(last)
 EOF
 title=OCAML
-if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+if (time -p $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$HASKELL != x; then
@@ -7296,7 +7294,7 @@ main = do
         ary3 (read n::Int)
 EOF
 title=Haskell
-if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+if (time -p $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -7306,6 +7304,9 @@ if test $start_test_number -le 17; then
 
 ######################################################
 rep=`expr $factor '/' 6`
+if expr $rep '<=' 9 >/dev/null; then
+    rep=10
+fi
 Announce_Test "+++++ Test #17: Count lines/words/chars (N=$rep):  +++++"
 
 cat <<'EOF' >$temp
@@ -7406,7 +7407,7 @@ while (read(STDIN, $_, 4095)) {
 print "$nl $nw $nc\n";
 EOF
   title=PERL
-  if ($TIME $PERL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -7434,12 +7435,12 @@ main()
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -7467,7 +7468,7 @@ def main():
 main()
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -7504,7 +7505,7 @@ proc main {} {
 main
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -7528,7 +7529,7 @@ BEGIN { delete ARGV }
 END { print NR, nw, nc }
 EOF
   title=AWK
-  if ($TIME $AWK -f $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $AWK -f $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -7552,11 +7553,11 @@ io.write(lc, " ", wc, " ", cc, "\n")
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -7580,16 +7581,16 @@ puts "#{nl} #{nw} #{nc}"
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $RBX $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -7612,7 +7613,7 @@ for (line <- Source.stdin.getLines()) {
 println (nl, nw, nc)
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $SCALA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -7659,7 +7660,7 @@ let _ =
   Printf.printf "%d %d %d\n" !nl !nw !nc
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 fi
@@ -7700,9 +7701,18 @@ EOF
 
 
 title=
-$DINO -I$srcdir -L./d_ipcerr.so -L./d_socket.so $ftest $rep > /dev/null &
-  ($TIME $DINO -I$srcdir -L./d_ipcerr.so -L./d_socket.so $ftest $rep client) 2>&1|print_dino
+if uname | fgrep CYGWIN >/dev/null; then
+ipcerr=`ls .libs/d_ipcerr-*.dll`
+socket=`ls .libs/d_socket-*.dll`
+else
+ipcerr=`ls .libs/d_ipcerr-*.so`
+socket=`ls .libs/d_socket-*.so`
+fi
 
+$DINO -I$srcdir -L$ipcerr -L$socket $ftest $rep > /dev/null &
+  (time -p $DINO -I$srcdir -L$ipcerr -L$socket $ftest $rep client) >$temp2 2>&1
+print_dino "" $temp2
+  
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
@@ -7786,7 +7796,7 @@ sub main {
 main();
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -7856,12 +7866,12 @@ main()
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -7931,7 +7941,7 @@ def main():
 main()
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -7982,7 +7992,7 @@ if {[llength $argv] < 2} {
 EOF
   title=TCL
   $TCLSH $ftest $rep&
-  ($TIME $TCLSH $ftest $rep client) 2>&1|fgrep user
+  (time -p $TCLSH $ftest $rep client) 2>&1|fgrep user
 fi
 
 if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
@@ -8031,15 +8041,15 @@ echo_server(Integer(ARGV.shift || 1))
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -8113,7 +8123,7 @@ for (1..$n) {
 print "$hash1{foo_1} $hash1{foo_9999} $hash2{foo_1} $hash2{foo_9999}\n";
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -8140,12 +8150,12 @@ print hash1['foo_1'], hash1['foo_9999'], hash2['foo_1'], hash2['foo_9999']
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -8172,7 +8182,7 @@ for i in range(n):
 print(hash1['foo_1'], hash1['foo_9999'], hash2['foo_1'], hash2['foo_9999'])
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -8199,7 +8209,7 @@ proc main {} {
 main
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -8218,7 +8228,7 @@ BEGIN {
 }
 EOF
   title=AWK
-  if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -8247,11 +8257,11 @@ io.write(string.format("%d %d %d %d\n", hash1["foo_1"], hash1["foo_9999"],
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -8281,15 +8291,15 @@ printf "%d %d %d %d\n",
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -8311,7 +8321,7 @@ println (hash1 ("foo_1"), " ", hash1 ("foo_9999"), " ",
          hash2 ("foo_1"), " ", hash2 ("foo_9999"));
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -8333,9 +8343,9 @@ print (hash1 ["foo_1"], " ", hash1 ["foo_9999"], " ",
        hash2 ["foo_1"], " ", hash2 ["foo_9999"]);
 EOF
   title=JS
-  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   title="JS -j"
-  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$NODEJS != x; then
@@ -8357,7 +8367,7 @@ console.log (hash1 ["foo_1"], " ", hash1 ["foo_9999"], " ",
              hash2 ["foo_1"], " ", hash2 ["foo_9999"]);
 EOF
   title=NODEJS
-  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -8392,7 +8402,7 @@ let _ =
     !(Hashtbl.find hash2 "foo_9999")
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -8546,7 +8556,7 @@ sub test_lists {
 }
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -8596,12 +8606,12 @@ main()
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -8651,7 +8661,7 @@ def main():
 main()
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -8730,7 +8740,7 @@ proc main {args} {
 main
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -8849,11 +8859,11 @@ print(result)
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -8908,15 +8918,15 @@ print result, "\n"
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -8960,7 +8970,7 @@ def main() = {
 main ()
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -9131,7 +9141,7 @@ let _ =
   Printf.printf "%d\n" !result
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$HASKELL != x; then
@@ -9164,7 +9174,7 @@ main = do arg <- getArgs
             _        -> do name <- getProgName; fail ("Usage: " ++ name ++ "number")
 EOF
   title=Haskell
-  if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -9384,7 +9394,7 @@ print "$mm->[0]->[0] $mm->[2]->[3] $mm->[3]->[2] $mm->[4]->[4]\n";
 
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -9444,12 +9454,12 @@ main()
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -9509,7 +9519,7 @@ def main():
 main()
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -9581,7 +9591,7 @@ proc main {} {
 main
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -9638,11 +9648,11 @@ io.write(string.format("%d %d %d %d\n", mm[1][1], mm[3][4], mm[4][3], mm[5][5]))
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -9697,15 +9707,15 @@ puts "#{mm[0][0]} #{mm[2][3]} #{mm[3][2]} #{mm[4][4]}"
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -9757,7 +9767,7 @@ def main () = {
 main ()
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -9808,9 +9818,9 @@ function main (iter) {
 main (arguments [0] < 1 ? 1 : arguments [0]);
 EOF
   title=JS
-  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   title="JS -j"
-  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$NODEJS != x; then
@@ -9861,7 +9871,7 @@ function main (iter) {
 main (process.argv[2] < 1 ? 1 : process.argv[2]);
 EOF
   title=NODEJS
-  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -9915,7 +9925,7 @@ let _ =
   Printf.printf "%d %d %d %d\n" m3.(0).(0) m3.(2).(3) m3.(3).(2) m3.(4).(4)
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -9993,7 +10003,7 @@ while ($a--) {
 print "$x\n";
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo DINO: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo DINO: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -10023,12 +10033,12 @@ main()
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -10058,7 +10068,7 @@ def main():
 main()
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -10096,7 +10106,7 @@ proc main {} {
 main
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -10117,7 +10127,7 @@ BEGIN {
 }
 EOF
   title=AWK
-  if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -10146,11 +10156,11 @@ print(x)
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -10181,15 +10191,15 @@ puts x
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -10207,7 +10217,7 @@ for (i <- 1 to N)
 println (x)
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -10225,9 +10235,9 @@ for (a = 0; a < n; a++)
 print (x);
 EOF
   title=JS
-  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   title="JS -j"
-  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$NODEJS != x; then
@@ -10245,7 +10255,7 @@ for (a = 0; a < n; a++)
 console.log (x);
 EOF
   title=NODEJS
-  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -10269,7 +10279,7 @@ let _ =
   Printf.printf "%d\n" (loopA 0 n)
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$HASKELL != x; then
@@ -10312,7 +10322,7 @@ loopF n x
    | otherwise     = x
 EOF
   title=Haskell
-  if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else cat $temp2; echo $title: FAILED;fi
+  if (time -p $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else cat $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -10437,7 +10447,7 @@ while ($NUM--) {
 }
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -10479,12 +10489,12 @@ main()
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -10526,7 +10536,7 @@ def main():
 main()
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -10559,7 +10569,7 @@ proc main {} {
 main
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -10602,7 +10612,7 @@ END {
 }
 EOF
   title=AWK
-  if ($TIME $AWK -f $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $AWK -f $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -10637,11 +10647,11 @@ end
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -10685,15 +10695,15 @@ end
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -10728,7 +10738,7 @@ for (iter <- 1 to NUM) {
 }
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $SCALA $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 fi
@@ -21502,7 +21512,7 @@ undef($/);
 print join("\n", reverse split(/\n/, <STDIN>)),"\n";
 EOF
   title=PERL
-  if ($TIME $PERL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -21521,12 +21531,12 @@ main()
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -21545,7 +21555,7 @@ def main():
 main()
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -21566,7 +21576,7 @@ proc main {} {
 main
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -21582,7 +21592,7 @@ EOF
   echo AWK might be too slow for this test.
 
 #  title=AWK
-##  if ($TIME $AWK -f $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+##  if (time -p $AWK -f $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -21605,11 +21615,11 @@ end
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -21624,15 +21634,15 @@ print STDIN.readlines().reverse()
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $RBX $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -21645,7 +21655,7 @@ for (line <- Source.stdin.getLines()) B += line
 for (i <- B.length - 1 to 0 by -1) println (B(i))
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $SCALA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -21693,7 +21703,7 @@ let main =
   rev_write [] stack buf length length
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 fi
@@ -21774,7 +21784,7 @@ while ($NUM--) {
 print "Count: $count\n";
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -21805,12 +21815,12 @@ main()
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -21841,7 +21851,7 @@ def main():
 main()
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -21880,7 +21890,7 @@ set count [sieve $NUM]
 puts "Count: $count"
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -21908,7 +21918,7 @@ BEGIN {
 }
 EOF
   title=AWK
-  if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -21946,11 +21956,11 @@ io.write("Count: ", count, "\n")
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -21983,15 +21993,15 @@ print "Count: ", count, "\n"
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -22019,7 +22029,7 @@ def main () = {
 main ()
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -22043,9 +22053,9 @@ function main (n) {
 main (arguments [0] < 1 ? 1 : arguments [0]);
 EOF
   title=JS
-  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   title="JS -j"
-  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$NODEJS != x; then
@@ -22069,7 +22079,7 @@ function main (n) {
 main (process.argv[2] < 1 ? 1 : process.argv[2]);
 EOF
   title=NODEJS
-  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -22108,7 +22118,7 @@ let _ =
   Printf.printf "Count: %d\n" !cnt
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$HASKELL != x; then
@@ -22140,7 +22150,7 @@ sieve [] = []
 sieve (h:t) = h : sieve [x| x<-t, x`mod`h /= 0]
 EOF
    title=Haskell
-   if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+   if (time -p $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -99442,7 +99452,7 @@ while (<STDIN>) {
 }
 EOF
   title=PERL
-  if ($TIME $PERL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -99469,12 +99479,12 @@ main()
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -99501,7 +99511,7 @@ def main():
 main()
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -99530,7 +99540,7 @@ proc main {} {
 main
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -99553,7 +99563,7 @@ EOF
   echo AWK might be too slow for this test.
 
 #  title=AWK
-##  if ($TIME $AWK -f $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+##  if (time -p $AWK -f $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -99579,11 +99589,11 @@ end
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -99610,15 +99620,15 @@ end
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $RBX $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -99642,7 +99652,7 @@ def main () = {
 main ()
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $SCALA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -99663,7 +99673,7 @@ let rec loop () =
 try loop () with End_of_file -> ()
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 fi
@@ -99703,7 +99713,7 @@ print length($str),"\n";
 
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -99725,12 +99735,12 @@ main()
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -99752,7 +99762,7 @@ def main():
 main()
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -99806,11 +99816,11 @@ io.write(string.len(buff:close()), "\n")
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -99830,7 +99840,7 @@ proc main {n} {
 main [lindex $argv 0]
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 # AWK is too slow therefore it is disqualified.
@@ -99858,15 +99868,15 @@ puts str.length
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -99883,7 +99893,7 @@ for (i <- 1 to n)
 println (str.length);
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -99898,9 +99908,9 @@ for (i = 0; i < n; i++)
 print (str.length);
 EOF
   title=JS
-  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   title="JS -j"
-  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$NODEJS != x; then
@@ -99915,7 +99925,7 @@ for (i = 0; i < n; i++)
 console.log (str.length);
 EOF
   title=NODEJS
-  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -99937,7 +99947,7 @@ let _ =
   Printf.printf "%d\n" (Buffer.length buf);
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$HASKELL != x; then
@@ -99953,7 +99963,7 @@ main = do
          _        -> do name <- getProgName; fail ("Usage: " ++ name ++ "number")
 EOF
   title=Haskell
-  if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -101001,7 +101011,7 @@ while (<>) { $tot += $_ }
 print "$tot\n";
 EOF
   title=PERL
-  if ($TIME $PERL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -101021,12 +101031,12 @@ main()
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -101046,7 +101056,7 @@ def main():
 main()
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -101065,7 +101075,7 @@ proc main {} {
 main
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -101077,7 +101087,7 @@ BEGIN { delete ARGV; tot = 0 }
 END { print tot }
 EOF
   title=AWK
-  if ($TIME $AWK -f $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $AWK -f $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -101097,11 +101107,11 @@ print(sum)
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -101121,15 +101131,15 @@ puts count
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $RBX $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -101142,7 +101152,7 @@ for (line <- Source.stdin.getLines())
 println (count)
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $SCALA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -101158,7 +101168,7 @@ let rec loop () = sum := !sum + read_int (); loop ()
 let _ = try loop () with End_of_file -> Printf.printf "%d\n" !sum
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$HASKELL != x; then
@@ -101170,7 +101180,7 @@ main = interact (flip (++) "\n" . show . sum . nums . lines)
        nums  = map (fst . head . readDec)
 EOF
   title=Haskell
-  if ($TIME $HASKELL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $HASKELL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 fi
@@ -103986,7 +103996,7 @@ push(@lines, sprintf("%7d\t%s\n", $c, $w)) while (($w, $c) = each(%count));
 print sort { $b cmp $a } @lines;
 EOF
   title=PERL
-  if ($TIME $PERL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -104035,12 +104045,12 @@ main()
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -104089,7 +104099,7 @@ def main():
 main()
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -104121,7 +104131,7 @@ main
 
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -104150,7 +104160,7 @@ END {
 }
 EOF
   title=AWK
-  if ($TIME $AWK -f $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $AWK -f $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -104191,11 +104201,11 @@ end
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -104221,15 +104231,15 @@ print lines.sort.reverse
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $RBX $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -104258,7 +104268,7 @@ def main () = {
 main ()
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $SCALA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -104305,7 +104315,7 @@ let _ =
   List.iter print_endline (List.sort (fun a b -> compare b a) !out_lines)
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 fi
@@ -104365,7 +104375,7 @@ for ($i = 0; $i < $NUM; $i++) {
 }
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -104382,12 +104392,12 @@ for i in xrange(0,num):
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -104404,7 +104414,7 @@ for i in range(0,num):
    f()
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -104421,7 +104431,7 @@ proc main {} {
 main
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -104435,11 +104445,11 @@ end
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -104455,15 +104465,15 @@ end
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -104475,7 +104485,7 @@ val n = args(0).toInt
 for (i <- 1 to n) f ()
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -104486,9 +104496,9 @@ n = arguments [0];
 for (i = 0; i < n; i++) f();
 EOF
   title=JS
-  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   title="JS -j"
-  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$NODEJS != x; then
@@ -104499,7 +104509,7 @@ n = process.argv[2];
 for (i = 0; i < n; i++) f();
 EOF
   title=NODEJS
-  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -104513,7 +104523,7 @@ let _ =
   for i = 0 to n-1 do f done;
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$HASKELL != x; then
@@ -104534,7 +104544,7 @@ main = do arg <- getArgs
             _        -> do name <- getProgName; fail ("Usage: " ++ name ++ "number")
 EOF
   title=Haskell
-  if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -104589,7 +104599,7 @@ my $N = ($ARGV[0] < 1) ? 1 : $ARGV[0];
 print &tak($N * 3, $N * 2, $N) . "\n";
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -104607,12 +104617,12 @@ print tak(N * 3, N * 2, N)
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -104630,7 +104640,7 @@ N = int(sys.argv[1])
 print (tak(N * 3, N * 2, N))
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -104649,7 +104659,7 @@ set N [lindex $argv 0]
 puts [tak [expr {$N * 3}] [expr {$N * 2}] $N]
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -104667,11 +104677,11 @@ print (tak(N * 3, N * 2, N))
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -104690,15 +104700,15 @@ print tak(N * 3, N * 2, N), "\n"
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -104711,7 +104721,7 @@ val n = args(0).toInt
 println (tak (n * 3, n * 2, n))
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -104726,9 +104736,9 @@ var n = arguments [0];
 print (tak (n * 3, n * 2, n));
 EOF
   title=JS
-  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   title="JS -j"
-  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$NODEJS != x; then
@@ -104743,7 +104753,7 @@ var n = process.argv[2];
 console.log (tak (n * 3, n * 2, n));
 EOF
   title=NODEJS
-  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -104758,7 +104768,7 @@ let _ =
   Printf.printf "%d\n" (tak (n * 3) (n * 2) n)
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$HASKELL != x; then
@@ -104775,7 +104785,7 @@ tak x y z | y >= x = z
           | otherwise = tak (tak (x-1) y z) (tak (y-1) z x) (tak (z-1) x y)
 EOF
 title=Haskell
-if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+if (time -p $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -104834,7 +104844,7 @@ for ($iter = 0; $iter < 10; $iter++) {
 print $count . "\n";
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -104859,12 +104869,12 @@ print count
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -104889,7 +104899,7 @@ for iter in range (10):
 print (count)
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -104923,7 +104933,7 @@ puts [main]
 exit 0
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -104953,7 +104963,7 @@ SieveSize=ARGV[1];
 }
 EOF
   title=AWK
-  if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
@@ -104981,15 +104991,15 @@ print $count, "\n"
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -105015,7 +105025,7 @@ for (iter <- 0 to 10) {
 println (count)
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -105039,9 +105049,9 @@ for (iter = 0; iter < 10; iter++) {
 print (count);
 EOF
   title=JS
-  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   title="JS -j"
-  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$NODEJS != x; then
@@ -105065,7 +105075,7 @@ for (iter = 0; iter < 10; iter++) {
 console.log (count);
 EOF
   title=NODEJS
-  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -105097,7 +105107,7 @@ let _ =
   Printf.printf "%d\n" !cnt
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -105250,7 +105260,7 @@ for ($i=0; $i < $NUM;$i++){
 mmult ($m1, $NUM, $NUM, $m2, $NUM, $NUM);
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -105283,12 +105293,12 @@ mmult (m1,m2)
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -105321,7 +105331,7 @@ for i in range (NUM):
 mmult (m1,m2)
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -105361,7 +105371,7 @@ initm
 mmult $n
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -105405,11 +105415,11 @@ mmult(m1, m2)
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -105449,15 +105459,15 @@ mmult(m1, m2)
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -105496,7 +105506,7 @@ val m2: Array[Array[Int]] = Array.fill(n, n)(1)
 mmult (m1, m2);
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -105540,9 +105550,9 @@ for (i=0; i < n; i++) {
 mmult (m1, m2);
 EOF
   title=JS
-  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   title="JS -j"
-  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$NODEJS != x; then
@@ -105586,7 +105596,7 @@ for (i=0; i < n; i++) {
 mmult (m1, m2);
 EOF
   title=NODEJS
-  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -105617,7 +105627,7 @@ let _ =
   mmult n n m1 m2 m3
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -105704,7 +105714,7 @@ for ($i=0; $i < $NUM;$i++){
 mmult ($m1, $NUM, $NUM, $m2, $NUM, $NUM);
 EOF
   title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -105738,12 +105748,12 @@ mmult (m1, NUM, NUM, m2, NUM, NUM)
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if (time -p $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -105777,7 +105787,7 @@ for i in range (0,NUM):
 mmult (m1, NUM, NUM, m2, NUM, NUM)
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -105817,7 +105827,7 @@ initm
 mmult $n
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if (time -p $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x || test "x$LUAJIT" != x; then
@@ -105861,11 +105871,11 @@ mmult(m1, m2)
 EOF
   if test x$LUA != x; then
     title=LUA
-    if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
   if test "x$LUAJIT" != x; then
     title=LUAJIT
-    if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+    if (time -p $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -105912,15 +105922,15 @@ mmult(m1, m2)
 EOF
   if test x$RUBY != x; then
     title=RUBY
-    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$JRUBY != x; then
     title=JRUBY
-    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
   if test x$RBX != x; then
     title=RBX
-    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+    if (time -p $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -105966,7 +105976,7 @@ val m2 = m1.clone
 mmult (m1, m2)
 EOF
   title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -106010,9 +106020,9 @@ for (i=0; i < n; i++) {
 mmult (m1, m2);
 EOF
   title=JS
-  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   title="JS -j"
-  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$NODEJS != x; then
@@ -106056,7 +106066,7 @@ for (i=0; i < n; i++) {
 mmult (m1, m2);
 EOF
   title=NODEJS
-  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -106097,7 +106107,7 @@ let _ =
   mmult n n m1 m2 m3
 EOF
   title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if (time -p $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi

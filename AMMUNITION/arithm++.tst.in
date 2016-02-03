@@ -2,7 +2,7 @@
 # @configure_input@
 
 #
-# Script to test of arithmetic package (files `arithm.h', `arithm.cpp').
+# Script to test of arithmetic package (files `arithm.h', `arithmcpp.C').
 #
 #   Copyright (C) 1997-2015 Vladimir Makarov.
 #
@@ -34,9 +34,9 @@ script_file=$0
 prefix=`basename $script_file .tst`
 CXX='@CXX@'
 CXX_options='@CXXFLAGS@ @DEFS@ -I. -I@srcdir@/'
-source_addfiles='@srcdir@/arithm.cpp'
-addfiles="${prefix}_arithm.o"
-test_file=${prefix}_tarithm.cpp
+source_addfiles='@srcdir@/arithmcpp.C'
+addfiles="${prefix}_arithmcpp.o"
+test_file=${prefix}_tarithm.C
 outfile=./${prefix}_a.out
 
 if test x$1 = x
@@ -55,8 +55,8 @@ fi
 # Compilation of addfiles
 
 for i in $source_addfiles; do
-  echo '      ' $CXX $CXX_options -c $i -o ${prefix}_`basename $i .cpp`.o
-  if $CXX $CXX_options -c $i -o ${prefix}_`basename $i .cpp`.o; then
+  echo '      ' $CXX $CXX_options -c $i -o ${prefix}_`basename $i .C`.o
+  if $CXX $CXX_options -c $i -o ${prefix}_`basename $i .C`.o; then
         result=ok
   else
         echo '***' $script_file: test is failed see file $test_file
@@ -68,56 +68,12 @@ done
 if test $result = ok -a $start_test_number -le 1; then
         cat >$test_file <<'TEST1'
 
-#ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_LIMITS_H
-#define HAVE_LIMITS_H
-#endif
-#endif /* #ifdef HAVE_CONFIG_H */
-
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "arithm.h"
-
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#else
-#ifndef CHAR_BIT
-#define CHAR_BIT 8
-#endif
-#ifndef UCHAR_MAX
-#define UCHAR_MAX 255
-#endif
-#ifndef SCHAR_MAX
-#define SCHAR_MAX 127
-#endif
-#ifndef SCHAR_MIN
-#define SCHAR_MIN (-128)
-#endif
-#ifndef USHRT_MAX
-#define USHRT_MAX 65535
-#endif
-#ifndef SHRT_MAX
-#define SHRT_MAX 32767
-#endif  
-#ifndef SHRT_MIN
-#define SHRT_MIN (-32768)
-#endif
-#ifndef UINT_MAX
-#define UINT_MAX (INT_MAX * 2U + 1)
-#endif
-#ifndef INT_MAX
-#define INT_MAX 2147483647
-#endif  
-#ifndef INT_MIN
-#define INT_MIN (-INT_MAX-1)
-#endif
-#endif
-
-main()
+int main()
 {
   int i, b;
   char str [20], s[20], d[4], d1[4];
@@ -243,56 +199,12 @@ fi
 if test $result = ok -a $start_test_number -le 2; then
         cat >$test_file <<'TEST2'
 
-#ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_LIMITS_H
-#define HAVE_LIMITS_H
-#endif
-#endif /* #ifdef HAVE_CONFIG_H */
-
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "arithm.h"
-
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#else
-#ifndef CHAR_BIT
-#define CHAR_BIT 8
-#endif
-#ifndef UCHAR_MAX
-#define UCHAR_MAX 255
-#endif
-#ifndef SCHAR_MAX
-#define SCHAR_MAX 127
-#endif
-#ifndef SCHAR_MIN
-#define SCHAR_MIN (-128)
-#endif
-#ifndef USHRT_MAX
-#define USHRT_MAX 65535
-#endif
-#ifndef SHRT_MAX
-#define SHRT_MAX 32767
-#endif  
-#ifndef SHRT_MIN
-#define SHRT_MIN (-32768)
-#endif
-#ifndef UINT_MAX
-#define UINT_MAX (INT_MAX * 2U + 1)
-#endif
-#ifndef INT_MAX
-#define INT_MAX 2147483647
-#endif  
-#ifndef INT_MIN
-#define INT_MIN (-INT_MAX-1)
-#endif
-#endif
-
-main()
+int main()
 {
   int i, b;
   char str [20], s[20], d[4], d1[4];
@@ -374,56 +286,12 @@ fi
 if test $result = ok -a $start_test_number -le 3; then
         cat >$test_file <<'TEST3'
 
-#ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_LIMITS_H
-#define HAVE_LIMITS_H
-#endif
-#endif /* #ifdef HAVE_CONFIG_H */
-
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "arithm.h"
-
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#else
-#ifndef CHAR_BIT
-#define CHAR_BIT 8
-#endif
-#ifndef UCHAR_MAX
-#define UCHAR_MAX 255
-#endif
-#ifndef SCHAR_MAX
-#define SCHAR_MAX 127
-#endif
-#ifndef SCHAR_MIN
-#define SCHAR_MIN (-128)
-#endif
-#ifndef USHRT_MAX
-#define USHRT_MAX 65535
-#endif
-#ifndef SHRT_MAX
-#define SHRT_MAX 32767
-#endif  
-#ifndef SHRT_MIN
-#define SHRT_MIN (-32768)
-#endif
-#ifndef UINT_MAX
-#define UINT_MAX (INT_MAX * 2U + 1)
-#endif
-#ifndef INT_MAX
-#define INT_MAX 2147483647
-#endif  
-#ifndef INT_MIN
-#define INT_MIN (-INT_MAX-1)
-#endif
-#endif
-
-main()
+int main()
 {
   int i;
   char str [20], s[20], d[4], e[4];
@@ -480,56 +348,12 @@ fi
 if test $result = ok -a $start_test_number -le 4; then
         cat >$test_file <<'TEST4'
 
-#ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_LIMITS_H
-#define HAVE_LIMITS_H
-#endif
-#endif /* #ifdef HAVE_CONFIG_H */
-
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "arithm.h"
-
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#else
-#ifndef CHAR_BIT
-#define CHAR_BIT 8
-#endif
-#ifndef UCHAR_MAX
-#define UCHAR_MAX 255
-#endif
-#ifndef SCHAR_MAX
-#define SCHAR_MAX 127
-#endif
-#ifndef SCHAR_MIN
-#define SCHAR_MIN (-128)
-#endif
-#ifndef USHRT_MAX
-#define USHRT_MAX 65535
-#endif
-#ifndef SHRT_MAX
-#define SHRT_MAX 32767
-#endif  
-#ifndef SHRT_MIN
-#define SHRT_MIN (-32768)
-#endif
-#ifndef UINT_MAX
-#define UINT_MAX (INT_MAX * 2U + 1)
-#endif
-#ifndef INT_MAX
-#define INT_MAX 2147483647
-#endif  
-#ifndef INT_MIN
-#define INT_MIN (-INT_MAX-1)
-#endif
-#endif
-
-main()
+int main()
 {
   int i;
   char str [20], s[20], d[4], e[4];
@@ -586,57 +410,12 @@ fi
 if test $result = ok -a $start_test_number -le 5; then
         cat >$test_file <<'TEST5'
 
-#ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_LIMITS_H
-#define HAVE_LIMITS_H
-#endif
-#endif /* #ifdef HAVE_CONFIG_H */
-
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "arithm.h"
-
-
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#else
-#ifndef CHAR_BIT
-#define CHAR_BIT 8
-#endif
-#ifndef UCHAR_MAX
-#define UCHAR_MAX 255
-#endif
-#ifndef SCHAR_MAX
-#define SCHAR_MAX 127
-#endif
-#ifndef SCHAR_MIN
-#define SCHAR_MIN (-128)
-#endif
-#ifndef USHRT_MAX
-#define USHRT_MAX 65535
-#endif
-#ifndef SHRT_MAX
-#define SHRT_MAX 32767
-#endif  
-#ifndef SHRT_MIN
-#define SHRT_MIN (-32768)
-#endif
-#ifndef UINT_MAX
-#define UINT_MAX (INT_MAX * 2U + 1)
-#endif
-#ifndef INT_MAX
-#define INT_MAX 2147483647
-#endif  
-#ifndef INT_MIN
-#define INT_MIN (-INT_MAX-1)
-#endif
-#endif
-
-main()
+int main()
 {
   int i;
   char str [20], s[20], d[4], e[4];
@@ -693,56 +472,12 @@ fi
 if test $result = ok -a $start_test_number -le 6; then
         cat >$test_file <<'TEST6'
 
-#ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_LIMITS_H
-#define HAVE_LIMITS_H
-#endif
-#endif /* #ifdef HAVE_CONFIG_H */
-
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "arithm.h"
-
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#else
-#ifndef CHAR_BIT
-#define CHAR_BIT 8
-#endif
-#ifndef UCHAR_MAX
-#define UCHAR_MAX 255
-#endif
-#ifndef SCHAR_MAX
-#define SCHAR_MAX 127
-#endif
-#ifndef SCHAR_MIN
-#define SCHAR_MIN (-128)
-#endif
-#ifndef USHRT_MAX
-#define USHRT_MAX 65535
-#endif
-#ifndef SHRT_MAX
-#define SHRT_MAX 32767
-#endif  
-#ifndef SHRT_MIN
-#define SHRT_MIN (-32768)
-#endif
-#ifndef UINT_MAX
-#define UINT_MAX (INT_MAX * 2U + 1)
-#endif
-#ifndef INT_MAX
-#define INT_MAX 2147483647
-#endif  
-#ifndef INT_MIN
-#define INT_MIN (-INT_MAX-1)
-#endif
-#endif
-
-main()
+int main()
 {
   int i;
   char str [20], s[20], d[4], e[4];
@@ -797,55 +532,12 @@ fi
 if test $result = ok -a $start_test_number -le 7; then
         cat >$test_file <<'TEST7'
 
-#ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_LIMITS_H
-#define HAVE_LIMITS_H
-#endif
-#endif /* #ifdef HAVE_CONFIG_H */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "arithm.h"
-
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#else
-#ifndef CHAR_BIT
-#define CHAR_BIT 8
-#endif
-#ifndef UCHAR_MAX
-#define UCHAR_MAX 255
-#endif
-#ifndef SCHAR_MAX
-#define SCHAR_MAX 127
-#endif
-#ifndef SCHAR_MIN
-#define SCHAR_MIN (-128)
-#endif
-#ifndef USHRT_MAX
-#define USHRT_MAX 65535
-#endif
-#ifndef SHRT_MAX
-#define SHRT_MAX 32767
-#endif  
-#ifndef SHRT_MIN
-#define SHRT_MIN (-32768)
-#endif
-#ifndef UINT_MAX
-#define UINT_MAX (INT_MAX * 2U + 1)
-#endif
-#ifndef INT_MAX
-#define INT_MAX 2147483647
-#endif  
-#ifndef INT_MIN
-#define INT_MIN (-INT_MAX-1)
-#endif
-#endif
-
-main()
+int main()
 {
   int i;
   char str [20], s[20], d[4], e[4];
@@ -919,56 +611,12 @@ fi
 if test $result = ok -a $start_test_number -le 8; then
         cat >$test_file <<'TEST8'
 
-#ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_LIMITS_H
-#define HAVE_LIMITS_H
-#endif
-#endif /* #ifdef HAVE_CONFIG_H */
-
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "arithm.h"
-
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#else
-#ifndef CHAR_BIT
-#define CHAR_BIT 8
-#endif
-#ifndef UCHAR_MAX
-#define UCHAR_MAX 255
-#endif
-#ifndef SCHAR_MAX
-#define SCHAR_MAX 127
-#endif
-#ifndef SCHAR_MIN
-#define SCHAR_MIN (-128)
-#endif
-#ifndef USHRT_MAX
-#define USHRT_MAX 65535
-#endif
-#ifndef SHRT_MAX
-#define SHRT_MAX 32767
-#endif  
-#ifndef SHRT_MIN
-#define SHRT_MIN (-32768)
-#endif
-#ifndef UINT_MAX
-#define UINT_MAX (INT_MAX * 2U + 1)
-#endif
-#ifndef INT_MAX
-#define INT_MAX 2147483647
-#endif  
-#ifndef INT_MIN
-#define INT_MIN (-INT_MAX-1)
-#endif
-#endif
-
-main()
+int main()
 {
   int i;
   char str [20], s[20], d[4], e[4];
@@ -1030,7 +678,7 @@ if test $result = ok -a $start_test_number -le 9; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   int i;
   char str [20], s[20], d[4], e[4];
@@ -1087,7 +735,7 @@ if test $result = ok -a $start_test_number -le 10; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   int i;
   char str [20], s[20], d[4], e[4];
@@ -1136,7 +784,7 @@ if test $result = ok -a $start_test_number -le 11; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   int i;
   char str [20], s[20], d[4], e[4];
@@ -1185,7 +833,7 @@ if test $result = ok -a $start_test_number -le 12; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d[4];
 
@@ -1240,7 +888,7 @@ if test $result = ok -a $start_test_number -le 13; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d[4];
 
@@ -1320,7 +968,7 @@ if test $result = ok -a $start_test_number -le 14; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d[4];
 
@@ -1374,7 +1022,7 @@ if test $result = ok -a $start_test_number -le 15; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d[4];
 
@@ -1452,7 +1100,7 @@ if test $result = ok -a $start_test_number -le 16; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d[4], e[4];
 
@@ -1490,7 +1138,7 @@ if test $result = ok -a $start_test_number -le 17; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d[4], e[4];
 
@@ -1528,7 +1176,7 @@ if test $result = ok -a $start_test_number -le 18; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d[4], e[4];
 
@@ -1566,7 +1214,7 @@ if test $result = ok -a $start_test_number -le 19; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d[4], e[4];
 
@@ -1604,7 +1252,7 @@ if test $result = ok -a $start_test_number -le 20; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d[4], e[4];
 
@@ -1650,7 +1298,7 @@ if test $result = ok -a $start_test_number -le 21; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d[4], e[4];
 
@@ -1692,7 +1340,7 @@ if test $result = ok -a $start_test_number -le 22; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d[4], e[4];
 
@@ -1738,7 +1386,7 @@ if test $result = ok -a $start_test_number -le 23; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d[4], e[4];
 
@@ -1780,7 +1428,7 @@ if test $result = ok -a $start_test_number -le 24; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d[4], e[4];
 
@@ -1826,7 +1474,7 @@ if test $result = ok -a $start_test_number -le 25; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d[4], e[4];
 
@@ -1868,7 +1516,7 @@ if test $result = ok -a $start_test_number -le 26; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d[4], e[4];
 
@@ -1914,7 +1562,7 @@ if test $result = ok -a $start_test_number -le 27; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d[4], e[4];
 
@@ -1956,7 +1604,7 @@ if test $result = ok -a $start_test_number -le 28; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d[4], g[6];
 
@@ -2000,7 +1648,7 @@ if test $result = ok -a $start_test_number -le 29; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d[4], g[6];
 
@@ -2058,7 +1706,7 @@ if test $result = ok -a $start_test_number -le 30; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d1[4], d2[4];
 
@@ -2112,7 +1760,7 @@ if test $result = ok -a $start_test_number -le 31; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d1[4], d2[4];
 
@@ -2166,7 +1814,7 @@ if test $result = ok -a $start_test_number -le 32; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d1[4], d2[4];
 
@@ -2220,7 +1868,7 @@ if test $result = ok -a $start_test_number -le 33; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d1[4], d2[4];
 
@@ -2274,7 +1922,7 @@ if test $result = ok -a $start_test_number -le 34; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d1[4], d2[4];
 
@@ -2328,7 +1976,7 @@ if test $result = ok -a $start_test_number -le 35; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d1[4], d2[4];
 
@@ -2382,7 +2030,7 @@ if test $result = ok -a $start_test_number -le 36; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d[4];
 
@@ -2427,7 +2075,7 @@ if test $result = ok -a $start_test_number -le 37; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20], d[4];
 
@@ -2470,56 +2118,12 @@ fi
 if test $result = ok -a $start_test_number -le 38; then
         cat >$test_file <<'TEST38'
 
-#ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_LIMITS_H
-#define HAVE_LIMITS_H
-#endif
-#endif /* #ifdef HAVE_CONFIG_H */
-
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "arithm.h"
-
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#else
-#ifndef CHAR_BIT
-#define CHAR_BIT 8
-#endif
-#ifndef UCHAR_MAX
-#define UCHAR_MAX 255
-#endif
-#ifndef SCHAR_MAX
-#define SCHAR_MAX 127
-#endif
-#ifndef SCHAR_MIN
-#define SCHAR_MIN (-128)
-#endif
-#ifndef USHRT_MAX
-#define USHRT_MAX 65535
-#endif
-#ifndef SHRT_MAX
-#define SHRT_MAX 32767
-#endif  
-#ifndef SHRT_MIN
-#define SHRT_MIN (-32768)
-#endif
-#ifndef UINT_MAX
-#define UINT_MAX (INT_MAX * 2U + 1)
-#endif
-#ifndef INT_MAX
-#define INT_MAX 2147483647
-#endif  
-#ifndef INT_MIN
-#define INT_MIN (-INT_MAX-1)
-#endif
-#endif
-
-main()
+int main()
 {
   int i, b;
   char str [20], s[20];
@@ -2635,56 +2239,12 @@ fi
 if test $result = ok -a $start_test_number -le 39; then
         cat >$test_file <<'TEST39'
 
-#ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_LIMITS_H
-#define HAVE_LIMITS_H
-#endif
-#endif /* #ifdef HAVE_CONFIG_H */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "arithm.h"
-
-
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#else
-#ifndef CHAR_BIT
-#define CHAR_BIT 8
-#endif
-#ifndef UCHAR_MAX
-#define UCHAR_MAX 255
-#endif
-#ifndef SCHAR_MAX
-#define SCHAR_MAX 127
-#endif
-#ifndef SCHAR_MIN
-#define SCHAR_MIN (-128)
-#endif
-#ifndef USHRT_MAX
-#define USHRT_MAX 65535
-#endif
-#ifndef SHRT_MAX
-#define SHRT_MAX 32767
-#endif  
-#ifndef SHRT_MIN
-#define SHRT_MIN (-32768)
-#endif
-#ifndef UINT_MAX
-#define UINT_MAX (INT_MAX * 2U + 1)
-#endif
-#ifndef INT_MAX
-#define INT_MAX 2147483647
-#endif  
-#ifndef INT_MIN
-#define INT_MIN (-INT_MAX-1)
-#endif
-#endif
-
-main()
+int main()
 {
   int i, b;
   char str [20], s[20];
@@ -2767,56 +2327,12 @@ fi
 if test $result = ok -a $start_test_number -le 40; then
         cat >$test_file <<'TEST40'
 
-#ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_LIMITS_H
-#define HAVE_LIMITS_H
-#endif
-#endif /* #ifdef HAVE_CONFIG_H */
-
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "arithm.h"
-
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#else
-#ifndef CHAR_BIT
-#define CHAR_BIT 8
-#endif
-#ifndef UCHAR_MAX
-#define UCHAR_MAX 255
-#endif
-#ifndef SCHAR_MAX
-#define SCHAR_MAX 127
-#endif
-#ifndef SCHAR_MIN
-#define SCHAR_MIN (-128)
-#endif
-#ifndef USHRT_MAX
-#define USHRT_MAX 65535
-#endif
-#ifndef SHRT_MAX
-#define SHRT_MAX 32767
-#endif  
-#ifndef SHRT_MIN
-#define SHRT_MIN (-32768)
-#endif
-#ifndef UINT_MAX
-#define UINT_MAX (INT_MAX * 2U + 1)
-#endif
-#ifndef INT_MAX
-#define INT_MAX 2147483647
-#endif  
-#ifndef INT_MIN
-#define INT_MIN (-INT_MAX-1)
-#endif
-#endif
-
-main()
+int main()
 {
   int i;
   char str [20], s[20];
@@ -2874,55 +2390,12 @@ fi
 if test $result = ok -a $start_test_number -le 41; then
         cat >$test_file <<'TEST41'
 
-#ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_LIMITS_H
-#define HAVE_LIMITS_H
-#endif
-#endif /* #ifdef HAVE_CONFIG_H */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "arithm.h"
-
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#else
-#ifndef CHAR_BIT
-#define CHAR_BIT 8
-#endif
-#ifndef UCHAR_MAX
-#define UCHAR_MAX 255
-#endif
-#ifndef SCHAR_MAX
-#define SCHAR_MAX 127
-#endif
-#ifndef SCHAR_MIN
-#define SCHAR_MIN (-128)
-#endif
-#ifndef USHRT_MAX
-#define USHRT_MAX 65535
-#endif
-#ifndef SHRT_MAX
-#define SHRT_MAX 32767
-#endif  
-#ifndef SHRT_MIN
-#define SHRT_MIN (-32768)
-#endif
-#ifndef UINT_MAX
-#define UINT_MAX (INT_MAX * 2U + 1)
-#endif
-#ifndef INT_MAX
-#define INT_MAX 2147483647
-#endif  
-#ifndef INT_MIN
-#define INT_MIN (-INT_MAX-1)
-#endif
-#endif
-
-main()
+int main()
 {
   int i;
   char str [20], s[20];
@@ -2980,56 +2453,12 @@ fi
 if test $result = ok -a $start_test_number -le 42; then
         cat >$test_file <<'TEST42'
 
-#ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_LIMITS_H
-#define HAVE_LIMITS_H
-#endif
-#endif /* #ifdef HAVE_CONFIG_H */
-
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "arithm.h"
-
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#else
-#ifndef CHAR_BIT
-#define CHAR_BIT 8
-#endif
-#ifndef UCHAR_MAX
-#define UCHAR_MAX 255
-#endif
-#ifndef SCHAR_MAX
-#define SCHAR_MAX 127
-#endif
-#ifndef SCHAR_MIN
-#define SCHAR_MIN (-128)
-#endif
-#ifndef USHRT_MAX
-#define USHRT_MAX 65535
-#endif
-#ifndef SHRT_MAX
-#define SHRT_MAX 32767
-#endif  
-#ifndef SHRT_MIN
-#define SHRT_MIN (-32768)
-#endif
-#ifndef UINT_MAX
-#define UINT_MAX (INT_MAX * 2U + 1)
-#endif
-#ifndef INT_MAX
-#define INT_MAX 2147483647
-#endif  
-#ifndef INT_MIN
-#define INT_MIN (-INT_MAX-1)
-#endif
-#endif
-
-main()
+int main()
 {
   int i;
   char str [20], s[20];
@@ -3087,55 +2516,12 @@ fi
 if test $result = ok -a $start_test_number -le 43; then
         cat >$test_file <<'TEST43'
 
-#ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_LIMITS_H
-#define HAVE_LIMITS_H
-#endif
-#endif /* #ifdef HAVE_CONFIG_H */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "arithm.h"
-
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#else
-#ifndef CHAR_BIT
-#define CHAR_BIT 8
-#endif
-#ifndef UCHAR_MAX
-#define UCHAR_MAX 255
-#endif
-#ifndef SCHAR_MAX
-#define SCHAR_MAX 127
-#endif
-#ifndef SCHAR_MIN
-#define SCHAR_MIN (-128)
-#endif
-#ifndef USHRT_MAX
-#define USHRT_MAX 65535
-#endif
-#ifndef SHRT_MAX
-#define SHRT_MAX 32767
-#endif  
-#ifndef SHRT_MIN
-#define SHRT_MIN (-32768)
-#endif
-#ifndef UINT_MAX
-#define UINT_MAX (INT_MAX * 2U + 1)
-#endif
-#ifndef INT_MAX
-#define INT_MAX 2147483647
-#endif  
-#ifndef INT_MIN
-#define INT_MIN (-INT_MAX-1)
-#endif
-#endif
-
-main()
+int main()
 {
   int i;
   char str [20], s[20];
@@ -3191,55 +2577,12 @@ fi
 if test $result = ok -a $start_test_number -le 44; then
         cat >$test_file <<'TEST44'
 
-#ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_LIMITS_H
-#define HAVE_LIMITS_H
-#endif
-#endif /* #ifdef HAVE_CONFIG_H */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "arithm.h"
-
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#else
-#ifndef CHAR_BIT
-#define CHAR_BIT 8
-#endif
-#ifndef UCHAR_MAX
-#define UCHAR_MAX 255
-#endif
-#ifndef SCHAR_MAX
-#define SCHAR_MAX 127
-#endif
-#ifndef SCHAR_MIN
-#define SCHAR_MIN (-128)
-#endif
-#ifndef USHRT_MAX
-#define USHRT_MAX 65535
-#endif
-#ifndef SHRT_MAX
-#define SHRT_MAX 32767
-#endif  
-#ifndef SHRT_MIN
-#define SHRT_MIN (-32768)
-#endif
-#ifndef UINT_MAX
-#define UINT_MAX (INT_MAX * 2U + 1)
-#endif
-#ifndef INT_MAX
-#define INT_MAX 2147483647
-#endif  
-#ifndef INT_MIN
-#define INT_MIN (-INT_MAX-1)
-#endif
-#endif
-
-main()
+int main()
 {
   int i;
   char str [20], s[20];
@@ -3314,55 +2657,12 @@ fi
 if test $result = ok -a $start_test_number -le 45; then
         cat >$test_file <<'TEST45'
 
-#ifdef HAVE_CONFIG_H
-#include "cocom-config.h"
-#else /* In this case we are oriented to ANSI C */
-#ifndef HAVE_LIMITS_H
-#define HAVE_LIMITS_H
-#endif
-#endif /* #ifdef HAVE_CONFIG_H */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "arithm.h"
-
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#else
-#ifndef CHAR_BIT
-#define CHAR_BIT 8
-#endif
-#ifndef UCHAR_MAX
-#define UCHAR_MAX 255
-#endif
-#ifndef SCHAR_MAX
-#define SCHAR_MAX 127
-#endif
-#ifndef SCHAR_MIN
-#define SCHAR_MIN (-128)
-#endif
-#ifndef USHRT_MAX
-#define USHRT_MAX 65535
-#endif
-#ifndef SHRT_MAX
-#define SHRT_MAX 32767
-#endif  
-#ifndef SHRT_MIN
-#define SHRT_MIN (-32768)
-#endif
-#ifndef UINT_MAX
-#define UINT_MAX (INT_MAX * 2U + 1)
-#endif
-#ifndef INT_MAX
-#define INT_MAX 2147483647
-#endif  
-#ifndef INT_MIN
-#define INT_MIN (-INT_MAX-1)
-#endif
-#endif
-
-main()
+int main()
 {
   int i;
   char str [20], s[20];
@@ -3425,7 +2725,7 @@ if test $result = ok -a $start_test_number -le 46; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   int i;
   char str [20], s[20];
@@ -3483,7 +2783,7 @@ if test $result = ok -a $start_test_number -le 47; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   int i;
   char str [20], s[20];
@@ -3533,7 +2833,7 @@ if test $result = ok -a $start_test_number -le 48; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   int i;
   char str [20], s[20];
@@ -3583,7 +2883,7 @@ if test $result = ok -a $start_test_number -le 49; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   unsint<4> d;
@@ -3639,7 +2939,7 @@ if test $result = ok -a $start_test_number -le 50; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   sint<4> d;
@@ -3720,7 +3020,7 @@ if test $result = ok -a $start_test_number -le 51; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   unsint<4> d;
@@ -3775,7 +3075,7 @@ if test $result = ok -a $start_test_number -le 52; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   sint<4> d;
@@ -3854,7 +3154,7 @@ if test $result = ok -a $start_test_number -le 53; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   sint<4> d, e;
@@ -3893,7 +3193,7 @@ if test $result = ok -a $start_test_number -le 54; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   unsint<4> d,e;
@@ -3932,7 +3232,7 @@ if test $result = ok -a $start_test_number -le 55; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   sint<4> d, e;
@@ -3972,7 +3272,7 @@ if test $result = ok -a $start_test_number -le 56; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   unsint<4> d, e;
@@ -4012,7 +3312,7 @@ if test $result = ok -a $start_test_number -le 57; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   sint<4> d, e;
@@ -4059,7 +3359,7 @@ if test $result = ok -a $start_test_number -le 58; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   unsint<4> d, e;
@@ -4102,7 +3402,7 @@ if test $result = ok -a $start_test_number -le 59; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   sint<4> d, e;
@@ -4149,7 +3449,7 @@ if test $result = ok -a $start_test_number -le 60; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   unsint<4> d, e;
@@ -4192,7 +3492,7 @@ if test $result = ok -a $start_test_number -le 61; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   sint<4> d, e;
@@ -4239,7 +3539,7 @@ if test $result = ok -a $start_test_number -le 62; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   unsint<4> d, e;
@@ -4282,7 +3582,7 @@ if test $result = ok -a $start_test_number -le 63; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   sint<4> d, e;
@@ -4329,7 +3629,7 @@ if test $result = ok -a $start_test_number -le 64; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   unsint<4> d, e;
@@ -4372,7 +3672,7 @@ if test $result = ok -a $start_test_number -le 65; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   unsint<2> c;
@@ -4419,7 +3719,7 @@ if test $result = ok -a $start_test_number -le 66; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   sint<2> c;
@@ -4480,7 +3780,7 @@ if test $result = ok -a $start_test_number -le 67; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   unsint<4> d1, d2;
@@ -4535,7 +3835,7 @@ if test $result = ok -a $start_test_number -le 68; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   sint<4> d1, d2;
@@ -4590,7 +3890,7 @@ if test $result = ok -a $start_test_number -le 69; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   unsint<4> d1, d2;
@@ -4645,7 +3945,7 @@ if test $result = ok -a $start_test_number -le 70; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   sint<4> d1, d2;
@@ -4700,7 +4000,7 @@ if test $result = ok -a $start_test_number -le 71; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   unsint<4> d1, d2;
@@ -4755,7 +4055,7 @@ if test $result = ok -a $start_test_number -le 72; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   sint<4> d1, d2;
@@ -4810,7 +4110,7 @@ if test $result = ok -a $start_test_number -le 73; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   unsint<4> d;
@@ -4856,7 +4156,7 @@ if test $result = ok -a $start_test_number -le 74; then
 #include <string.h>
 #include "arithm.h"
 
-main()
+int main()
 {
   char s[20];
   sint<4> d;

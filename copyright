@@ -1,0 +1,17 @@
+Interpreter of the programming language DINO and COCOM toolset
+
+Copyright: Vladimir Makarov <vmakarov@gcc.gnu.org>
+
+1998-12-07
+
+The home page of COCOM is at: 
+https://github.com/dino-lang/dino
+
+The entire code base may be distributed under the terms of the GNU
+General Public License (GPL) version 2, which appears immediately below.
+Alternatively, all of the source code as any code derived from that
+code may instead be distributed under the GNU Lesser General Public
+License (LGPL), at the choice of the distributor. The complete text of
+the LGPL appears at the bottom of this file.
+
+See files COPYING and COPYING.LIB

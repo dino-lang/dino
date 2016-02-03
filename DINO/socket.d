@@ -98,7 +98,7 @@ final class __socket_package () {
     return s;
   }
 
-  priv extern _sread (), _swrite (), _recvfrom (), _sendto (), _accept (),
+  priv extern _dsread (), _dswrite (), _recvfrom (), _sendto (), _accept (),
     _stream_client (), _dgram_client (), _stream_server (), _dgram_server (),
     _close_socket ();
 
@@ -115,13 +115,13 @@ final class __socket_package () {
         throw socket_optype_except ();
       else if (len < 0)
         throw socket_opvalue_except ();
-      var str = _sread (sfd, len);
+      var str = _dsread (sfd, len);
       if (str == nil)
         generate_socket_exception ();
       return str;
     }
     fun write (str) {
-      var nb = _swrite (sfd, str);
+      var nb = _dswrite (sfd, str);
       if (nb == nil)
         generate_socket_exception ();
       return nb;
