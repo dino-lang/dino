@@ -2258,7 +2258,7 @@ traverse_bcode (BC_node_t bc)
 #define CC_OPTIONS2 " -O2 -w -Wl,-undefined -Wl,dynamic_lookup -bundle -pipe -xc -"
 #elif defined(__CYGWIN__)
 #define CC_OPTIONS  " -O2 -w -shared -pipe -g"
-#define CC_OPTIONS2 " -O2 -w -shared -pipe -xc -"
+#define CC_OPTIONS2 " -O2 -w -shared -pipe -xc - -xnone"
 #endif
 
 static void
@@ -2325,12 +2325,13 @@ copy_gen_file (FILE *f)
 
 #if defined(__CYGWIN__)
 static int
-find_dllname (const char *prefix, vlo_t *dllname)
+find_dllname (const char *prefix1, const char *prefix2, vlo_t *dllname)
 {
   FILE *f;
   
   VLO_NULLIFY (*dllname);
-  VLO_ADD_STRING (*dllname, prefix);
+  VLO_ADD_STRING (*dllname, prefix1);
+  VLO_ADD_STRING (*dllname, prefix2);
   VLO_ADD_STRING (*dllname, "cygdino");
   VLO_ADD_STRING (*dllname, DINO_VERSION_SUFFIX);
   VLO_ADD_STRING (*dllname, ".dll");
@@ -2377,8 +2378,8 @@ gen_cfblock (BC_node_t fblock)
   VLO_ADD_STRING (command, VLO_BEGIN (objname));
 #if defined(__CYGWIN__)
   VLO_CREATE (dllname, 0);
-  if (! find_dllname (".libs/", &dllname)
-      && ! find_dllname (STANDARD_DINO_BIN_DIRECTORY, &dllname))
+  if (! find_dllname (".libs", "/", &dllname)
+      && ! find_dllname (STANDARD_DINO_BIN_DIRECTORY, "/", &dllname))
     {
       VLO_DELETE (dllname);
       return NULL;

@@ -1,5 +1,11 @@
 2016-02-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/d_bc.sprut (CC_OPTIONS2): Add -xnone.
+	(find_dllname): Add parameter.
+	(gen_cfblock): Add "/" after standard library.
+
+2016-02-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/Makefile.in: Update.
 
 2016-02-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
