@@ -1,3 +1,10 @@
+2016-02-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/conifgure.ac (DINO_MODULE_SUFFIX): Add version.
+	* DINO/Makefile.am (mpi_lib, ieee_lib, ipcerr_lib, socket_lib):
+	Remove dot.
+	* DINO/{configure, Makefile.in}: Update.
+
 2016-02-01  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/configure.ac (DINO_MODULE_SUFFIX): New.

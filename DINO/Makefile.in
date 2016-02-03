@@ -422,10 +422,10 @@ libdino_la_SOURCES = d_dino.h d_errors.h d_common.h d_built.h d_yacc.h d_runtab.
 
 nodist_libdino_la_SOURCES = d_yacc.c d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_extern.h
 module_suffix = @DINO_MODULE_SUFFIX@
-mpi_lib = d_mpi.$(module_suffix)
-ieee_lib = d_ieee.$(module_suffix)
-ipcerr_lib = d_ipcerr.$(module_suffix)
-socket_lib = d_socket.$(module_suffix)
+mpi_lib = d_mpi$(module_suffix)
+ieee_lib = d_ieee$(module_suffix)
+ipcerr_lib = d_ipcerr$(module_suffix)
+socket_lib = d_socket$(module_suffix)
 DINO_EXTERN_LIBS_PATH = \"$(mpi_lib):$(ieee_lib):$(ipcerr_lib):$(socket_lib)\"
 libdino_la_CFLAGS = -I$(srcdir)/../ONIGURUMA -I$(srcdir)/../AMMUNITION\
         	    @DINO_LIB_CFLAGS@ -DDINO_VERSION=$(VERSION) -DCC='"$(CC)"'\
