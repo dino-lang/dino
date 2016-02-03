@@ -1,3 +1,12 @@
+2016-02-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Makefile.am (version_suffix, full_suffix): New.
+	(libdino_la_CFLAGS): Transfer version_suffix as
+	DINO_VERSION_SUFFIX.
+	(test-installed): New entry.
+	* DINO/configure.ac (DINO_VERSION_SUFFIX): New.
+	* DINO/{configure, Makefile.in}: Update.
+
 2016-02-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/conifgure.ac (DINO_MODULE_SUFFIX): Add version.

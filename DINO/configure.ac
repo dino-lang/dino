@@ -12,36 +12,37 @@ AC_CONFIG_SRCDIR([d_main.c])
 AM_MAINTAINER_MODE
 
 DINO_MOD_LDFLAGS=
+DINO_VERSION_SUFFIX="-$VERSION"
+DINO_MODULE_SUFFIX=".so"
 system=`uname`.`uname -r`
 case $system in
 	Linux*)
 	  DINO_LIB_CFLAGS='-static'
           DINO_LIB_LDFLAGS='-static'
-	  DINO_MODULE_SUFFIX="-$VERSION.so"
 	  ;;
 	Darwin*)
 	  DINO_LIB_CFLAGS='-shared'
           DINO_LIB_LDFLAGS='-shared ../AMMUNITION/libcocom.la ../ONIGURUMA/libonig.la'
 	  CFLAGS="`echo $CFLAGS` -I/usr/include -I/usr/local/include -L/usr/lib -L/usr/local/lib"
-	  DINO_MODULE_SUFFIX="-$VERSION.so"
           ;;
 	CYGWIN*)
 	  DINO_LIB_CFLAGS='-shared'
           DINO_LIB_LDFLAGS='-shared ../AMMUNITION/libcocom.la ../ONIGURUMA/libonig.la -no-undefined'
 	  DINO_MOD_LDFLAGS='libdino.la -no-undefined'
 	  CFLAGS="`echo $CFLAGS` -I/usr/include -I/usr/local/include -L/usr/lib -L/usr/local/lib"
-	  DINO_MODULE_SUFFIX="-`echo $VERSION|sed 's/\./-/'`.dll"
+	  DINO_VERSION_SUFFIX="-`echo $VERSION|sed 's/\./-/'`"
+	  DINO_MODULE_SUFFIX=".dll"
           ;;
 	*)
 	  DINO_LIB_CFLAGS=-static
           DINO_LIB_LDFLAGS=-static 
-	  DINO_MODULE_SUFFIX="-$VERSION.so"
 	  ;;
 esac
 
 AC_SUBST(DINO_LIB_CFLAGS)
 AC_SUBST(DINO_LIB_LDFLAGS)
 AC_SUBST(DINO_MOD_LDFLAGS)
+AC_SUBST(DINO_VERSION_SUFFIX)
 AC_SUBST(DINO_MODULE_SUFFIX)
 
 # Checks for programs.

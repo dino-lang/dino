@@ -9,17 +9,20 @@ libdino_la_SOURCES = d_dino.h d_errors.h d_common.h d_built.h d_yacc.h d_runtab.
 		     d_eval.c d_dino.c
 nodist_libdino_la_SOURCES = d_yacc.c d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_extern.h
 CC = @CC@
+version_suffix=@DINO_VERSION_SUFFIX@
 module_suffix=@DINO_MODULE_SUFFIX@
-mpi_lib=d_mpi$(module_suffix)
-ieee_lib=d_ieee$(module_suffix)
-ipcerr_lib=d_ipcerr$(module_suffix)
-socket_lib=d_socket$(module_suffix)
+full_suffix=$(version_suffix)$(module_suffix)
+mpi_lib=d_mpi$(full_suffix)
+ieee_lib=d_ieee$(full_suffix)
+ipcerr_lib=d_ipcerr$(full_suffix)
+socket_lib=d_socket$(full_suffix)
 DINO_EXTERN_LIBS_PATH=\"$(mpi_lib):$(ieee_lib):$(ipcerr_lib):$(socket_lib)\"
 libdino_la_CFLAGS = -I$(srcdir)/../ONIGURUMA -I$(srcdir)/../AMMUNITION\
         	    @DINO_LIB_CFLAGS@ -DDINO_VERSION=$(VERSION) -DCC='"$(CC)"'\
 		    -DSTANDARD_DINO_INCLUDE_DIRECTORY='"$(includedir)"'\
 		    -DSTANDARD_DINO_EXTERN_LIBS=$(DINO_EXTERN_LIBS_PATH)\
-		    -DSTANDARD_DINO_LIB_DIRECTORY='"$(libdir)"'
+		    -DSTANDARD_DINO_LIB_DIRECTORY='"$(libdir)"'\
+		    -DDINO_VERSION_SUFFIX='"$(version_suffix)"'
 libdino_la_LDFLAGS = @DINO_LIB_LDFLAGS@ -release $(VERSION)
 bin_PROGRAMS = dino
 dino_SOURCES = d_main.c
@@ -185,3 +188,11 @@ doc :
 	dvips -o $(srcdir)/dino.ps $(srcdir)/dino.dvi
 	ps2pdf $(srcdir)/dino.ps $(srcdir)/dino.pdf
 
+# Test installed DINO
+test-installed:
+	(mkdir __t && cd __t \
+	 && $(bindir)/dino$(EXEEXT) -c 'include "mpi"; var m = mpis.from_string(1, "10");' \
+	 && cd .. && rm -rf __t)
+	(mkdir __t && cd __t \
+	 && $(bindir)/dino$(EXEEXT) -s -c 'fun f !jit {} f();' 2>&1 | fgrep 'their calls - 1' \
+	 && cd .. && rm -rf __t)
