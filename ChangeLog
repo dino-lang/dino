@@ -1,5 +1,14 @@
 2016-02-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/Makefile.am (libdino_la_CFLAGS): Add
+	-DSTANDARD_DINO_BIN_DIRECTORY.
+	* DINO/d_bc.sprut (CC_OPTIONS, CC_OPTIONS2): Remove dll for
+	CYGWIN.
+	(find_dllname): New.
+	(gen_cfblock): Use it add dll for CYGWIN.
+
+2016-02-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/Makefile.am (version_suffix, full_suffix): New.
 	(libdino_la_CFLAGS): Transfer version_suffix as
 	DINO_VERSION_SUFFIX.

@@ -2257,8 +2257,8 @@ traverse_bcode (BC_node_t bc)
 #define CC_OPTIONS  " -O2 -w -Wl,-undefined -Wl,dynamic_lookup -bundle -pipe -g"
 #define CC_OPTIONS2 " -O2 -w -Wl,-undefined -Wl,dynamic_lookup -bundle -pipe -xc -"
 #elif defined(__CYGWIN__)
-#define CC_OPTIONS  " -O2 -w -shared -pipe -g .libs/cygdino-0-97.dll"
-#define CC_OPTIONS2 " -O2 -w -shared -pipe .libs/cygdino-0-97.dll -xc -"
+#define CC_OPTIONS  " -O2 -w -shared -pipe -g"
+#define CC_OPTIONS2 " -O2 -w -shared -pipe -xc -"
 #endif
 
 static void
@@ -2322,6 +2322,26 @@ copy_gen_file (FILE *f)
     return FALSE;
   return res;
 }
+
+#if defined(__CYGWIN__)
+static int
+find_dllname (const char *prefix, vlo_t *dllname)
+{
+  FILE *f;
+  
+  VLO_NULLIFY (*dllname);
+  VLO_ADD_STRING (*dllname, prefix);
+  VLO_ADD_STRING (*dllname, "cygdino");
+  VLO_ADD_STRING (*dllname, DINO_VERSION_SUFFIX);
+  VLO_ADD_STRING (*dllname, ".dll");
+  f = fopen (VLO_BEGIN (*dllname), "r");
+  if (f == NULL)
+    return FALSE;
+  fclose (f);
+  return TRUE;
+}
+#endif
+
 #endif
 
 void *
@@ -2333,6 +2353,9 @@ gen_cfblock (BC_node_t fblock)
   BC_node_t *bc_ptr, info;
   FILE *f;
   vlo_t fname, objname, command, fun_name;
+#if defined(__CYGWIN__)
+  vlo_t dllname;
+#endif
   void *addr;
   int error_p, tcall_p, ret;
 
@@ -2352,6 +2375,21 @@ gen_cfblock (BC_node_t fblock)
     }
   VLO_ADD_STRING (command, " -o ");
   VLO_ADD_STRING (command, VLO_BEGIN (objname));
+#if defined(__CYGWIN__)
+  VLO_CREATE (dllname, 0);
+  if (! find_dllname (".libs/", &dllname)
+      && ! find_dllname (STANDARD_DINO_BIN_DIRECTORY, &dllname))
+    {
+      VLO_DELETE (dllname);
+      return NULL;
+    }
+  else
+    {
+      VLO_ADD_STRING (command, " ");
+      VLO_ADD_STRING (command, VLO_BEGIN (dllname));
+      VLO_DELETE (dllname);
+    }
+#endif
   if (save_temps_flag)
     f = fopen (VLO_BEGIN (fname), "w");
   else
