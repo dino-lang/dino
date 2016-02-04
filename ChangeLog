@@ -879,7 +879,7 @@
 	(read_bc_program): Process the new fields.
 	* DINO/d_bcn.shilka (ofun, oclass, ovfld, lovfld, lovfldv): New.
 	(omcall, omicall, omicall): New.
-	* DINO/d_context.c (first_expr_processing): ???Set up and propagate
+	* DINO/d_context.c (first_expr_processing): Set up and propagate
 	decl for period op component.
 	(find_expose_designator_decl, create_expose_decl): New.
 	(first_block_passing): Process expose-clause.
