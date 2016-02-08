@@ -96,8 +96,6 @@ char ERR_no_public_declaration_in_object []
   = "no public declaration `%s' in the object";
 char ERR_non_object_in_expose_clause []
   = "non object in exposing object internals";
-char ERR_expose_clause_inside_referring_object []
-  = "expose-clause inside refering object `%s'";
 char ERR_non_object_in_use_qual_ident []
   = "%s is not an object in qualified identifier of use-clause";
 char ERR_use_before_definition [] = "use `%s' before defined fun or class";

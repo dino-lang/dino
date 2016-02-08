@@ -654,7 +654,12 @@ internal_inside_call (const char **message_ptr, ER_node_t where, ER_node_t what,
       *message_ptr = DERR_parameter_type;
       return 0;
     }
-  if (ER_IS_OF_TYPE (where, ER_NM_code))
+  if (ER_IS_OF_TYPE (where, ER_NM_stack))
+    {
+      code_2_context = ER_stack (where);
+      code_2 = ER_block_node (code_context);
+    }
+  else if (ER_IS_OF_TYPE (where, ER_NM_code))
     {
       code_2 = ID_TO_CODE (ER_code_id (where));
       code_2_context = ER_code_context (where);

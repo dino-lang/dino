@@ -62,8 +62,8 @@ static hint_val_t get_hint (IR_node_t);
 
 static IR_node_t merge_additional_stmts (IR_node_t);
 
-static void process_obj_header (IR_node_t);
-static IR_node_t process_obj_block (IR_node_t, IR_node_t, access_val_t);
+static IR_node_t process_obj_header (IR_node_t);
+static IR_node_t process_obj_block (IR_node_t, IR_node_t, IR_node_t, access_val_t);
 static IR_node_t process_fun_start (IR_node_t, int, access_val_t);
 static IR_node_t create_except_class (IR_node_t before_list, IR_node_t expr);
 static IR_node_t create_catch_block (position_t pos);
@@ -1133,12 +1133,12 @@ declaration : access VAL {$<access>$ = $1;} set_flag
 		  $$ = $1;
 		}
             /* Access is flattened out to resolve conflicts on OBJ.  */
-            | OBJ IDENT { process_obj_header ($2); }
-                block {$$ = process_obj_block ($2, $4, DEFAULT_ACCESS);}
-            | PRIV OBJ IDENT { process_obj_header ($3); }
-                block {$$ = process_obj_block ($3, $5, PRIVATE_ACCESS);}
-            | PUB OBJ IDENT { process_obj_header ($3); }
-                block {$$ = process_obj_block ($3, $5, PUBLIC_ACCESS);}
+            | OBJ IDENT { $<pointer>$ = process_obj_header ($2); }
+                block {$$ = process_obj_block ($2, $<pointer>3, $4, DEFAULT_ACCESS);}
+            | PRIV OBJ IDENT { $<pointer>$ = process_obj_header ($3); }
+                block {$$ = process_obj_block ($3, $<pointer>4, $5, PRIVATE_ACCESS);}
+            | PUB OBJ IDENT { $<pointer>$ = process_obj_header ($3); }
+                block {$$ = process_obj_block ($3, $<pointer>4, $5, PUBLIC_ACCESS);}
             | INCLUDE STRING {$<flag>$ = $<flag>0;} end_simple_stmt
                 {
 		  $<pointer>$ = $2;
@@ -1796,28 +1796,35 @@ merge_additional_stmts (IR_node_t list)
   return res;
 }
 
-static void
+static IR_node_t
 process_obj_header (IR_node_t ident)
 {
-  IR_node_t class_def;
+  IR_node_t unique_ident, class_ident, class_def;
   
   class_def = create_node_with_pos (IR_NM_class, IR_pos (ident));
   IR_set_final_flag (class_def, TRUE);
-  process_header (TRUE, class_def, ident);
+  VLO_NULLIFY (temp_scanner_vlo);
+  VLO_ADD_STRING (temp_scanner_vlo, "$");
+  VLO_ADD_STRING (temp_scanner_vlo, IR_ident_string (IR_unique_ident (ident)));
+  unique_ident = create_unique_ident_node (VLO_BEGIN (temp_scanner_vlo));
+  class_ident = create_node_with_pos (IR_NM_ident, IR_pos (ident));
+  IR_set_unique_ident (class_ident, unique_ident);
+  process_header (TRUE, class_def, class_ident);
+  return class_ident;
 }
 
 static IR_node_t
-process_obj_block (IR_node_t origin_ident, IR_node_t block_stmts,
-		   access_val_t access)
+process_obj_block (IR_node_t ident, IR_node_t class_ident,
+		   IR_node_t block_stmts, access_val_t access)
 {
   IR_node_t val, expr;
-  IR_node_t block = current_scope, ident = IR_copy_node (origin_ident);
+  IR_node_t block = current_scope;
   
   IR_set_block_stmts (block, uncycle_stmt_list (block_stmts));
   IR_set_friend_list (block, uncycle_friend_list (IR_friend_list (block)));
   current_scope = IR_block_scope (block);
   expr = create_node_with_pos (IR_NM_class_fun_thread_call, source_position);
-  IR_set_fun_expr (expr, origin_ident);
+  IR_set_fun_expr (expr, class_ident);
   IR_set_actuals (expr, NULL);
   val = process_var_decl (access, ident, TRUE, block,
 			  expr, IR_pos (ident), IR_NM_var_assign);

@@ -43,7 +43,7 @@ obj mpis {
       throw mpi_size_except ();
   }
   priv fun check (op) {
-    if (type (op) != obj || !inside (op, mpis))
+    if (type (op) != obj || !inside (op, mpi))
       throw mpi_type_except();
   }
   priv fun check2 (op1, op2) {

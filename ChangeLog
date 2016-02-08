@@ -1,3 +1,22 @@
+2016-02-08  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_bc.sprut (LANG_CNAME, IO_CNAME, SYS_CNAME, MATH_CNAME): New.
+	(RE_CNAME, YAEP_CNAME): Ditto.
+	(bc_decl_entry bc_decls_table): Use them for object classes.
+	* DINO/d_bcio.c (get_token): Permit start $ in identifier.
+	* DINO/d_func.c (internal_inside_call): Permit stack for where.
+	* DINO/d_yacc.y (process_obj_header): Return class ident.
+	(process_obj_block): Accept class identifier.
+	(declaration): Pass class identifier.
+	* DINO/dino.tst.in (409): Accept object.
+	(883, 884): Undeclared ident for expose inside object.
+	(899): New.
+	* DINO/mpi.d (check): Use mpi instead of mpis.
+	* DINO/d_errors.[ch] (ERR_expose_clause_inside_referring_object):
+	Remove.
+	* DINO/d_context.c (find_expose_designator_decl): Remove error,
+	make an assert.
+
 2016-02-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* README.md: Change release date.
@@ -18,7 +37,7 @@
 	use-clause.
 	(get_bcode_decl): Process expose decl.
 	(second_expr_processing): Use result for expose decl ident.
-	* DINO/d_eval.c (evaluate_program): Don;t call initiate_vars.
+	* DINO/d_eval.c (evaluate_program): Don't call initiate_vars.
 	(initiate_vars): Move to ...
 	* DINO/d_func.c: ... here.
 	(split_call, put_call, putln_call, print_call, println_call): Use

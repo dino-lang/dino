@@ -22145,20 +22145,20 @@ if test $result = ok -a $start_test_number -le 409; then
 	echo test 409
         cat >$test_file <<'TEST409'
 class c {}
-inside (c, c());
+putln (inside (c, c()));
 TEST409
-        echo '      ' "$DINO $test_file 2>$stderr"
+        echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
-                result=fail
-        else
-                echo '      ' $CMP - $stderr
-                if cat >$ftemp2 <<'OUTPUT409' && $CMP $stderr $ftemp2; then
-test.d:2:8: run time error - invalid parameter type of `inside'
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT409' && $CMP $stdout $ftemp2; then
+1
 OUTPUT409
                         result=ok
                 else
                         result=fail
                 fi
+        else
+                result=fail
         fi
 fi
 
@@ -50572,7 +50572,7 @@ TEST883
         else
                 echo '      ' $CMP $ftemp2 $stderr
                 if cat >$ftemp2 <<'OUTPUT883' && $CMP $stderr $ftemp2; then
-test.d:3:10: expose-clause inside refering object `o'
+test.d:3:10: undeclared identifier `o'
 OUTPUT883
 			result=ok
                 else
@@ -50596,7 +50596,7 @@ TEST884
         else
                 echo '      ' $CMP $ftemp2 $stderr
                 if cat >$ftemp2 <<'OUTPUT884' && $CMP $stderr $ftemp2; then
-test.d:3:10: expose-clause inside refering object `o'
+test.d:3:10: undeclared identifier `o'
 OUTPUT884
 			result=ok
                 else
@@ -50946,6 +50946,29 @@ OUTPUT898
                 fi
         else
                 result=fail
+        fi
+fi
+
+# Test 899.
+if test $result = ok -a $start_test_number -le 899; then
+	echo test 899:  Use of object name inside the object
+        cat >$test_file <<'TEST899'
+obj o {
+  o;
+}
+TEST899
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT899' && $CMP $stderr $ftemp2; then
+test.d:2:3: undeclared identifier `o'
+OUTPUT899
+			result=ok
+                else
+                        result=fail
+                fi
         fi
 fi
 

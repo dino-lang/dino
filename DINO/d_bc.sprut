@@ -80,6 +80,8 @@ typedef void (*implementation_fun_t) (int pars_number);
 extern BC_node_t first_program_bc;
 
 /* Lang space: */
+#define LANG_CNAME "$lang"
+
 #define LANG_NAME "lang"
 extern BC_node_t lang_bc_decl;
 
@@ -268,6 +270,8 @@ extern BC_node_t transpose_bc_decl;
 
 
 /* IO space: */
+#define IO_CNAME "$io"
+
 #define IO_NAME "io"
 extern BC_node_t io_bc_decl;
 
@@ -489,6 +493,8 @@ extern BC_node_t fomode_bc_decl;
 
 
 /* Sys space: */
+#define SYS_CNAME "$sys"
+
 #define SYS_NAME "sys"
 extern BC_node_t sys_bc_decl;
 
@@ -698,6 +704,8 @@ extern BC_node_t process_errno_bc_decl;
 
 
 /* Math space: */
+#define MATH_CNAME "$math"
+
 #define MATH_NAME "math"
 extern BC_node_t math_bc_decl;
 
@@ -739,6 +747,8 @@ extern BC_node_t atan2_bc_decl;
 
 
 /* Re space: */
+#define RE_CNAME "$re"
+
 #define RE_NAME "re"
 extern BC_node_t re_bc_decl;
 
@@ -765,6 +775,8 @@ extern BC_node_t split_regex_bc_decl;
 
 
 /* Parser space: */
+#define YAEP_CNAME "$yaep"
+
 #define YAEP_NAME "yaep"
 extern BC_node_t yaep_bc_decl;
 
@@ -1794,7 +1806,7 @@ struct bc_decl_entry
 static struct bc_decl_entry bc_decls_table [] =
 {
   /* Lang space: */
-  {&lang_bc_decl, LANG_NAME, NULL, NULL},
+  {&lang_bc_decl, LANG_CNAME, NULL, NULL},
   {&except_bc_decl, EXCEPT_NAME, &lang_bc_decl, NULL},
   {&error_bc_decl, ERROR_NAME, &lang_bc_decl, NULL},
   {&msg_bc_decl, MSG_NAME, &error_bc_decl, NULL},
@@ -1861,7 +1873,7 @@ static struct bc_decl_entry bc_decls_table [] =
   {&lang_bc_decl, LANG_NAME, NULL, NULL}, /* this is for object vdecl */
 
   /* IO space: */
-  {&io_bc_decl, IO_NAME, NULL, NULL},
+  {&io_bc_decl, IO_CNAME, NULL, NULL},
   {&invinput_bc_decl, INVINPUT_NAME, &io_bc_decl, NULL},
   {&invfmt_bc_decl, INVFMT_NAME, &io_bc_decl, NULL},
   {&eof_bc_decl, EOF_NAME, &io_bc_decl, NULL},
@@ -1937,7 +1949,7 @@ static struct bc_decl_entry bc_decls_table [] =
   {&io_bc_decl, IO_NAME, NULL, NULL}, /* for object vdecl  */
 
   /* Sys space: */
-  {&sys_bc_decl, SYS_NAME, NULL, NULL},
+  {&sys_bc_decl, SYS_CNAME, NULL, NULL},
   {&signal_bc_decl, SIGNAL_NAME, &sys_bc_decl, NULL},
   {&sigint_bc_decl, SIGINT_NAME, &sys_bc_decl, NULL},
   {&sigill_bc_decl, SIGILL_NAME, &sys_bc_decl, NULL},
@@ -2006,7 +2018,7 @@ static struct bc_decl_entry bc_decls_table [] =
   {&sys_bc_decl, SYS_NAME, NULL, NULL}, /* for object vdecl */
 
   /* Math space: */
-  {&math_bc_decl, MATH_NAME, NULL, NULL},
+  {&math_bc_decl, MATH_CNAME, NULL, NULL},
   {&max_bc_decl, MAX_NAME, &math_bc_decl, max_call},
   {&min_bc_decl, MIN_NAME, &math_bc_decl, min_call},
   {&srand_bc_decl, SRAND_NAME, &math_bc_decl, srand_call},
@@ -2022,7 +2034,7 @@ static struct bc_decl_entry bc_decls_table [] =
   {&math_bc_decl, MATH_NAME, NULL, NULL}, /* for object vdecl */
 
   /* Regexp space: */
-  {&re_bc_decl, RE_NAME, NULL, NULL},
+  {&re_bc_decl, RE_CNAME, NULL, NULL},
   {&invregex_bc_decl, INVREGEX_NAME, &re_bc_decl, NULL},
   {&match_bc_decl, MATCH_NAME, &re_bc_decl, match_call},
   {&gmatch_bc_decl, GMATCH_NAME, &re_bc_decl, gmatch_call},
@@ -2033,7 +2045,7 @@ static struct bc_decl_entry bc_decls_table [] =
   {&re_bc_decl, RE_NAME, NULL, NULL}, /* for object vdecl */
 
   /* Parser space: */
-  {&yaep_bc_decl, YAEP_NAME, NULL, NULL},
+  {&yaep_bc_decl, YAEP_CNAME, NULL, NULL},
   {&invparser_bc_decl, INVPARSER_NAME, &yaep_bc_decl, NULL},
   {&invgrammar_bc_decl, INVGRAMMAR_NAME, &yaep_bc_decl, NULL},
   {&invtoken_bc_decl, INVTOKEN_NAME, &yaep_bc_decl, NULL},

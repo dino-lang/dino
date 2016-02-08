@@ -1109,7 +1109,9 @@ get_token (void)
 	      }
           }
         default:
-          if (isalpha_ascii (input_char) || input_char == '_' )
+	  /* We permit idents starting with prefix '$' too.  */
+          if (isalpha_ascii (input_char)
+	      || input_char == '_' || input_char == '$')
             {
 	      curr_token_position = current_position;
               /* Ident recognition. */

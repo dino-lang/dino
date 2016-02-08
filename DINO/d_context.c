@@ -530,17 +530,14 @@ find_expose_designator_decl (IR_node_t des, IR_node_t *top_object_class)
       /* It is a sequence (class; block; obj var) and we did not
 	 process obj var yet.  It means the expose-clause inside the
 	 block.  */
-      else if (IR_IS_OF_TYPE (decl, IR_NM_class)
-	       && (block_stmt = IR_next_stmt (decl)) != NULL
-	       && IR_IS_OF_TYPE (block_stmt, IR_NM_block)
-	       && (var_stmt = IR_next_stmt (block_stmt)) != NULL
-	       && IR_IS_OF_TYPE (var_stmt, IR_NM_var)
-	       && IR_obj_block (var_stmt) == block_stmt)
-	{
-	  cont_err (IR_pos (des), ERR_expose_clause_inside_referring_object,
-		    IR_ident_string (IR_unique_ident (des)));
-	  decl = NULL;
-	}
+      else
+	d_assert (! (IR_IS_OF_TYPE (decl, IR_NM_class)
+		     && IR_next_stmt (decl) != NULL
+		     && IR_IS_OF_TYPE (IR_next_stmt (decl), IR_NM_block)
+		     && IR_next_stmt (IR_next_stmt (decl)) != NULL
+		     && IR_IS_OF_TYPE (IR_next_stmt (IR_next_stmt (decl)), IR_NM_var)
+		     && (IR_obj_block (IR_next_stmt (IR_next_stmt (decl)))
+			 == IR_next_stmt (decl))));
       return decl;
     }
 
