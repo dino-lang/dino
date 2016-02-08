@@ -4997,7 +4997,7 @@ fun main {
   }
   average_deviation /= n;
   variance /= (n - 1);
-  standard_deviation = sqrt (variance);
+  standard_deviation = math.sqrt (variance);
   
   if (variance > 0.0) {
     skew /= (n * variance * standard_deviation);
@@ -7349,7 +7349,7 @@ try {
   for (;;) {
     ln = getln ();
     nc += #ln + 1;
-    v = split (ln);
+    v = re.split (ln);
     l = #v;
     nw += (#v [l - 1] == 0 ? l - 1 : l);
     nl++;
@@ -7370,7 +7370,7 @@ fun main !jit {
     for (;;) {
       ln = getln ();
       nc += #ln + 1;
-      v = split (ln);
+      v = re.split (ln);
       l = #v;
       nw += (#v [l - 1] == 0 ? l - 1 : l);
       nl++;
@@ -7682,7 +7682,7 @@ if (#argv < 2) {
     for (;;) {
       str = cl.read (64); l+= #str; cl.write (str);
     }
-  } catch (socket_eof_except) {
+  } catch (sockets.socket_eof_except) {
     putln ("i got ", l, " bytes");
   }
 } else {
@@ -10374,6 +10374,7 @@ foo 214) 222 2222 bar
 EOF
 
 cat <<'EOF' >$ftest
+expose re.*;
 fun main {
   var n = (argv [0] < 1) ? 1 : int (argv [0]);
   var ln, lno = 0, phones = [];
@@ -103952,7 +103953,7 @@ fun main {
   for (;;)
     try {
       ln = tolower (getln ());
-      v = split (ln, rw);
+      v = re.split (ln, rw);
       for (i = 0; i < #v; i++)
         try {
           word = v [i];

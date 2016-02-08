@@ -1,3 +1,49 @@
+2016-02-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* README.md: Change release date.
+	* DINO/d_ir.sprut (ENVIRONMENT): Create spaces lang, io, sys,
+	math, re, yaep.  Expose lang and io.
+	* DINO/d_bc.sprut (bc_decls_table): Rearrange definitions.  Use
+	the obj contexts.  Put entries for objs twice.
+	(LANG_NAME, lang_bc_decl): New.
+	(IO_NAME, io_bc_decl): New.
+	(SYS_NAME, sys_bc_decl): New.
+	(MATH_NAME, math_bc_decl): New.
+	(RE_NAME, re_bc_decl): New.
+	(YAEP_NAME, yaep_bc_decl): New.
+	* DINO/d_run.sprut (get_obj_stack): New.
+	* DINO/d_yacc.y (process_obj_block): Use source_position instead
+	of actual_parameters_construction_pos.
+	* DINO/d_context.c (first_block_passing): Process expose decl fore
+	use-clause.
+	(get_bcode_decl): Process expose decl.
+	(second_expr_processing): Use result for expose decl ident.
+	* DINO/d_eval.c (evaluate_program): Don;t call initiate_vars.
+	(initiate_vars): Move to ...
+	* DINO/d_func.c: ... here.
+	(split_call, put_call, putln_call, print_call, println_call): Use
+	get_obj_stack to access the standard obj items.
+	(get_call, getln_call, getf_call, scan_call, scanln_call): Ditto.
+	(putf_call, strtime_calll, tree_to_heap): Ditto.
+	(init_call): Ditto.  Call initiate_vars.
+	* DINO/d_gen.c (common_omicall): Assign to stack.
+	* DINO/d_heap.c (expand_uppest_stack): Remove assert for cprocess.
+	(activate_given_process): Add param.  Define curr_thread depending
+	on param value.
+	(block_cprocess, delete_cprocess): Pass the param.
+	(delete_cprocess_during_exception, initiate_processes): Ditto.
+	* DINO/d_minimize.d: Use re.match, sys.system, and sys.time.
+	* DINO/dino.tst.in: Use obj prefixes or expose where necessary.
+	(898): New test for object use.
+	* DINO/ieee.d: Use obj and move excpetions inside the obj.
+	* DINO/ipcerr.d: Ditto.
+	* DINO/mpi.d: Ditto.
+	* DINO/socket.d: Ditto.
+	* DINO/compare.tst (statistics): Use math.sqrt.
+	(words count): Use re.split.
+	(echo): Use sockets.socket_eof_except.
+	(regexp): Use "expose re.*;".
+
 2016-02-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_bc.sprut (CC_OPTIONS2): Add -xnone.

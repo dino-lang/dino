@@ -1564,7 +1564,7 @@ fi
 if test $result = ok -a $start_test_number -le 42; then
 	echo test 42
         cat >$test_file <<'TEST42'
-println (system ("echo test"));
+println (sys.system ("echo test"));
 TEST42
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -11607,6 +11607,7 @@ fi
 if test $result = ok -a $start_test_number -le 44; then
 	echo test 44
         cat >$test_file <<'TEST44'
+expose math.cos;
 println (cos (3.14));
 println (cos ("3.14"));
 println (cos (3));
@@ -11634,6 +11635,7 @@ fi
 if test $result = ok -a $start_test_number -le 45; then
 	echo test 45
         cat >$test_file <<'TEST45'
+expose math.sin;
 println (sin (3.14));
 println (sin ("3.14"));
 println (sin (3));
@@ -11661,6 +11663,7 @@ fi
 if test $result = ok -a $start_test_number -le 46; then
 	echo test 46
         cat >$test_file <<'TEST46'
+expose math.atan2;
 println (atan2 (3.14, 0));
 println (atan2 ("3.14", 0));
 println (atan2 (3, 0));
@@ -12873,6 +12876,7 @@ fi
 if test $result = ok -a $start_test_number -le 72; then
 	echo test 72
         cat >$test_file <<'TEST72'
+expose re.match;
 println (match ("aaa", "baaab"));
 println (match ("(a)(a)(a)", "baaab"));
 println (match ("aba", "baaab"));                 // no matching
@@ -12912,6 +12916,7 @@ fi
 if test $result = ok -a $start_test_number -le 73; then
 	echo test 73
         cat >$test_file <<'TEST73'
+expose re.*;
 println (split ("aaa bbb ccc	ddd"));
 println (split ("aaa bbb ccc	ddd", split_regex));
 println (split ("aaa   bbb   ccc	  ddd"));
@@ -12955,6 +12960,7 @@ fi
 if test $result = ok -a $start_test_number -le 74; then
 	echo test 74
         cat >$test_file <<'TEST74'
+expose re.*;
 putln (sub ("aa", "abaabbaaaa", "11"));
 putln (gsub ("aa", "abaabbaaaa", "11"), "\n");
 
@@ -13034,13 +13040,13 @@ println (sort (readdir ("__tempdir"), cmpv));
 
 try {
 println (readdir ("abracadabra"));
-} catch (enoent) {
+} catch (sys.enoent) {
   putln ("abracadabra: no such directory");
 }
 
 try {
 println (readdir (1000022));
-} catch (enoent) {
+} catch (sys.enoent) {
   putln ("1000022: no such directory");
 }
 TEST75
@@ -13229,7 +13235,7 @@ if test $result = ok -a $start_test_number -le 81; then
 for (var i = 0; i < 10; i++)
 try {
   var i = 0 / 0;
-} catch (sigfpe) {
+} catch (sys.sigfpe) {
   putln ("got it: ", e.msg);
 }
 TEST81
@@ -13265,7 +13271,7 @@ fi
 if test $result = ok -a $start_test_number -le 82; then
 	echo test 82
         cat >$test_file <<'TEST82'
-match ("[a", "");
+re.match ("[a", "");
 TEST82
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -13273,7 +13279,7 @@ TEST82
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT82' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time Oniguruma error in `match' - premature end of char-class
+test.d:1:10: run time Oniguruma error in `match' - premature end of char-class
 OUTPUT82
                         result=ok
                 else
@@ -13286,7 +13292,7 @@ fi
 if test $result = ok -a $start_test_number -le 83; then
 	echo test 83
         cat >$test_file <<'TEST83'
-match ("[z-a]", "");
+re.match ("[z-a]", "");
 TEST83
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -13294,7 +13300,7 @@ TEST83
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT83' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time Oniguruma error in `match' - empty range in char class
+test.d:1:10: run time Oniguruma error in `match' - empty range in char class
 OUTPUT83
                         result=ok
                 else
@@ -13307,7 +13313,7 @@ fi
 if test $result = ok -a $start_test_number -le 84; then
 	echo test 84
         cat >$test_file <<'TEST84'
-match ("[[:foo:]]", "");
+re.match ("[[:foo:]]", "");
 TEST84
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -13315,7 +13321,7 @@ TEST84
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT84' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time Oniguruma error in `match' - invalid POSIX bracket type
+test.d:1:10: run time Oniguruma error in `match' - invalid POSIX bracket type
 OUTPUT84
                         result=ok
                 else
@@ -13328,7 +13334,7 @@ fi
 if test $result = ok -a $start_test_number -le 85; then
 	echo test 85
         cat >$test_file <<'TEST85'
-match ("(a", "");
+re.match ("(a", "");
 TEST85
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -13336,7 +13342,7 @@ TEST85
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT85' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time Oniguruma error in `match' - end pattern with unmatched parenthesis
+test.d:1:10: run time Oniguruma error in `match' - end pattern with unmatched parenthesis
 OUTPUT85
                         result=ok
                 else
@@ -13349,7 +13355,7 @@ fi
 if test $result = ok -a $start_test_number -le 86; then
 	echo test 86
         cat >$test_file <<'TEST86'
-match ("(a)\\2", "");
+re.match ("(a)\\2", "");
 TEST86
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -13357,7 +13363,7 @@ TEST86
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT86' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time Oniguruma error in `match' - invalid backref number/name
+test.d:1:10: run time Oniguruma error in `match' - invalid backref number/name
 OUTPUT86
                         result=ok
                 else
@@ -13370,7 +13376,7 @@ fi
 if test $result = ok -a $start_test_number -le 87; then
 	echo test 87
         cat >$test_file <<'TEST87'
-match ("a\\", "");
+re.match ("a\\", "");
 TEST87
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -13378,7 +13384,7 @@ TEST87
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT87' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time Oniguruma error in `match' - end pattern at escape
+test.d:1:10: run time Oniguruma error in `match' - end pattern at escape
 OUTPUT87
                         result=ok
                 else
@@ -13863,7 +13869,7 @@ fi
 if test $result = ok -a $start_test_number -le 106; then
 	echo test 106
         cat >$test_file <<'TEST106'
-putln (time ());
+putln (sys.time ());
 TEST106
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -13882,7 +13888,7 @@ fi
 if test $result = ok -a $start_test_number -le 107; then
 	echo test 107
         cat >$test_file <<'TEST107'
-time (10);
+sys.time (10);
 TEST107
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -13890,7 +13896,7 @@ TEST107
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT107' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - unexpected number of parameters for `time'
+test.d:1:10: run time error - unexpected number of parameters for `time'
 OUTPUT107
                         result=ok
                 else
@@ -13903,7 +13909,7 @@ fi
 if test $result = ok -a $start_test_number -le 108; then
 	echo test 108
         cat >$test_file <<'TEST108'
-strtime (10, nil, nil);
+sys.strtime (10, nil, nil);
 TEST108
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -13911,7 +13917,7 @@ TEST108
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT108' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - unexpected number of parameters for `strtime'
+test.d:1:13: run time error - unexpected number of parameters for `strtime'
 OUTPUT108
                         result=ok
                 else
@@ -13924,7 +13930,7 @@ fi
 if test $result = ok -a $start_test_number -le 109; then
 	echo test 109
         cat >$test_file <<'TEST109'
-strtime (nil);
+sys.strtime (nil);
 TEST109
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -13932,7 +13938,7 @@ TEST109
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT109' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid parameter type of `strtime'
+test.d:1:13: run time error - invalid parameter type of `strtime'
 OUTPUT109
                         result=ok
                 else
@@ -13945,7 +13951,7 @@ fi
 if test $result = ok -a $start_test_number -le 110; then
 	echo test 110
         cat >$test_file <<'TEST110'
-strtime (10, nil);
+sys.strtime (10, nil);
 TEST110
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -13953,7 +13959,7 @@ TEST110
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT110' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid parameter type of `strtime'
+test.d:1:13: run time error - invalid parameter type of `strtime'
 OUTPUT110
                         result=ok
                 else
@@ -13966,8 +13972,8 @@ fi
 if test $result = ok -a $start_test_number -le 111; then
 	echo test 111
         cat >$test_file <<'TEST111'
-time_format = nil;
-strtime ();
+sys.time_format = nil;
+sys.strtime ();
 TEST111
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -13975,7 +13981,7 @@ TEST111
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT111' && $CMP $stderr $ftemp2; then
-test.d:2:9: run time error - bad value of environment variable `time_format'
+test.d:2:13: run time error - bad value of environment variable `time_format'
 OUTPUT111
                         result=ok
                 else
@@ -13988,6 +13994,7 @@ fi
 if test $result = ok -a $start_test_number -le 112; then
 	echo test 112
         cat >$test_file <<'TEST112'
+expose sys.*;
 put (strtime ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa "));
 put (strtime ("%Y ", time()));
 put (strtime (time_format, time()));
@@ -14014,7 +14021,7 @@ fi
 if test $result = ok -a $start_test_number -le 113; then
 	echo test 113
         cat >$test_file <<'TEST113'
-clock (nil);
+sys.clock (nil);
 TEST113
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -14022,7 +14029,7 @@ TEST113
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT113' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - unexpected number of parameters for `clock'
+test.d:1:11: run time error - unexpected number of parameters for `clock'
 OUTPUT113
                         result=ok
                 else
@@ -14035,7 +14042,7 @@ fi
 if test $result = ok -a $start_test_number -le 114; then
 	echo test 114
         cat >$test_file <<'TEST114'
-putln (clock ());
+putln (sys.clock ());
 TEST114
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -14054,8 +14061,8 @@ fi
 if test $result = ok -a $start_test_number -le 115; then
 	echo test 115
         cat >$test_file <<'TEST115'
-split_regex = nil;
-println (split ("aaa bbb ccc	ddd"));
+re.split_regex = nil;
+println (re.split ("aaa bbb ccc	ddd"));
 TEST115
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -14063,7 +14070,7 @@ TEST115
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT115' && $CMP $stderr $ftemp2; then
-test.d:2:16: run time error - bad value of environment variable `split_regex'
+test.d:2:19: run time error - bad value of environment variable `split_regex'
 OUTPUT115
                         result=ok
                 else
@@ -14548,6 +14555,7 @@ fi
 if test $result = ok -a $start_test_number -le 129; then
 	echo test 129
         cat >$test_file <<'TEST129'
+expose sys.*;
 putln (getpid (), " ", getun (), " ", geteun (), " ", getgn (), " ", getegn ());
 TEST129
         echo '      ' $DINO $test_file "2>$stderr"
@@ -14580,7 +14588,7 @@ fi
 if test $result = ok -a $start_test_number -le 130; then
 	echo test 130
         cat >$test_file <<'TEST130'
-getpid (1);
+sys.getpid (1);
 TEST130
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -14588,7 +14596,7 @@ TEST130
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT130' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - unexpected number of parameters for `getpid'
+test.d:1:12: run time error - unexpected number of parameters for `getpid'
 OUTPUT130
                         result=ok
                 else
@@ -14601,7 +14609,7 @@ fi
 if test $result = ok -a $start_test_number -le 130; then
 	echo test 131
         cat >$test_file <<'TEST131'
-getppid (1);
+sys.getppid (1);
 TEST131
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -14609,7 +14617,7 @@ TEST131
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT131' && $CMP $stderr $ftemp2; then
-test.d:1:1: undeclared identifier `getppid'
+test.d:1:4: no public declaration `getppid' in the object
 OUTPUT131
                         result=ok
                 else
@@ -14622,7 +14630,7 @@ fi
 if test $result = ok -a $start_test_number -le 132; then
 	echo test 132
         cat >$test_file <<'TEST132'
-getun (1);
+sys.getun (1);
 TEST132
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -14630,7 +14638,7 @@ TEST132
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT132' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - unexpected number of parameters for `getun'
+test.d:1:11: run time error - unexpected number of parameters for `getun'
 OUTPUT132
                         result=ok
                 else
@@ -14643,7 +14651,7 @@ fi
 if test $result = ok -a $start_test_number -le 133; then
 	echo test 133
         cat >$test_file <<'TEST133'
-geteun (1);
+sys.geteun (1);
 TEST133
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -14651,7 +14659,7 @@ TEST133
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT133' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - unexpected number of parameters for `geteun'
+test.d:1:12: run time error - unexpected number of parameters for `geteun'
 OUTPUT133
                         result=ok
                 else
@@ -14664,7 +14672,7 @@ fi
 if test $result = ok -a $start_test_number -le 134; then
 	echo test 134
         cat >$test_file <<'TEST134'
-getgn (1);
+sys.getgn (1);
 TEST134
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -14672,7 +14680,7 @@ TEST134
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT134' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - unexpected number of parameters for `getgn'
+test.d:1:11: run time error - unexpected number of parameters for `getgn'
 OUTPUT134
                         result=ok
                 else
@@ -14685,7 +14693,7 @@ fi
 if test $result = ok -a $start_test_number -le 135; then
 	echo test 135
         cat >$test_file <<'TEST135'
-getegn (1);
+sys.getegn (1);
 TEST135
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -14693,7 +14701,7 @@ TEST135
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT135' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - unexpected number of parameters for `getegn'
+test.d:1:12: run time error - unexpected number of parameters for `getegn'
 OUTPUT135
                         result=ok
                 else
@@ -14796,7 +14804,7 @@ fi
 if test $result = ok -a $start_test_number -le 140; then
 	echo test 140
         cat >$test_file <<'TEST140'
-println (getgroups ());
+println (sys.getgroups ());
 TEST140
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -14816,7 +14824,7 @@ fi
 if test $result = ok -a $start_test_number -le 141; then
 	echo test 141
         cat >$test_file <<'TEST141'
-getgroups (nil);
+sys.getgroups (nil);
 TEST141
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -14824,7 +14832,7 @@ TEST141
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT141' && $CMP $stderr $ftemp2; then
-test.d:1:11: run time error - unexpected number of parameters for `getgroups'
+test.d:1:15: run time error - unexpected number of parameters for `getgroups'
 OUTPUT141
                         result=ok
                 else
@@ -17947,7 +17955,7 @@ putln (mpis.ge (mpi1, mpi2));
 
 try {
   mpis.multiply (mpis.multiply (mpi1, mpi2), mpis.multiply (mpi1, mpi2));
-} catch (mpi_overflow_except) {
+} catch (mpis.mpi_overflow_except) {
   putln ("got overflow 1");
 }
 mpis.mpi_ignore_overflow = 1;
@@ -17957,7 +17965,7 @@ mpis.mpi_ignore_overflow = 0;
 mpi2 = mpis.from_string(2, "300");
 try {
   mpis.change_size (mpi2, 1);
-} catch (mpi_overflow_except) {
+} catch (mpis.mpi_overflow_except) {
   putln ("got overflow 2");
 }
 mpis.mpi_ignore_overflow = 1;
@@ -17971,7 +17979,7 @@ putln (mpis.unsigned_to_string (mpis.unsigned_add (mpi1, mpi2)));
 putln (mpis.unsigned_to_string (mpis.unsigned_subtract (mpi1, mpi2)));
 try {
   putln (mpis.unsigned_to_string (mpis.unsigned_subtract (mpi2, mpi1)));
-} catch (mpi_overflow_except) {
+} catch (mpis.mpi_overflow_except) {
   putln ("got overflow 3");
 }
 mpis.mpi_ignore_overflow = 1;
@@ -17990,7 +17998,7 @@ putln (mpis.unsigned_ge (mpi1, mpi2));
 
 try {
   mpis.unsigned_multiply (mpis.unsigned_multiply (mpi1, mpi2), mpis.unsigned_multiply (mpi1, mpi2));
-} catch (mpi_overflow_except) {
+} catch (mpis.mpi_overflow_except) {
   putln ("got overflow 4");
 }
 mpis.mpi_ignore_overflow = 1;
@@ -18000,7 +18008,7 @@ mpis.mpi_ignore_overflow = 0;
 mpi2 = mpis.unsigned_from_string(2, "300");
 try {
   mpis.unsigned_change_size (mpi2, 1);
-} catch (mpi_overflow_except) {
+} catch (mpis.mpi_overflow_except) {
   putln ("got overflow 5");
 }
 mpis.mpi_ignore_overflow = 1;
@@ -18024,7 +18032,7 @@ putln (mpis.gt (mpi1, mpi2));
 putln (mpis.ge (mpi1, mpi2));
 try {
   mpis.multiply (mpis.multiply (mpi1, mpi2), mpis.multiply (mpi1, mpi2));
-} catch (mpi_overflow_except) {
+} catch (mpis.mpi_overflow_except) {
   putln ("got overflow 6");
 }
 mpis.mpi_ignore_overflow = 1;
@@ -18033,7 +18041,7 @@ putln ("ovfw=", mpis.mpi_overflow);
 mpis.mpi_ignore_overflow = 0;
 try {
   mpis.change_size (mpi2, 2);
-} catch (mpi_overflow_except) {
+} catch (mpis.mpi_overflow_except) {
   putln ("got overflow 7");
 }
 mpis.mpi_ignore_overflow = 1;
@@ -18047,7 +18055,7 @@ putln (mpis.unsigned_to_string (mpis.unsigned_add (mpi1, mpi2)));
 putln (mpis.unsigned_to_string (mpis.unsigned_subtract (mpi1, mpi2)));
 try {
   putln (mpis.unsigned_to_string (mpis.unsigned_subtract (mpi2, mpi1)));
-} catch (mpi_overflow_except) {
+} catch (mpis.mpi_overflow_except) {
   putln ("got overflow 8");
 }
 mpis.mpi_ignore_overflow = 1;
@@ -18065,7 +18073,7 @@ putln (mpis.unsigned_gt (mpi1, mpi2));
 putln (mpis.unsigned_ge (mpi1, mpi2));
 try {
   mpis.unsigned_multiply (mpis.unsigned_multiply (mpi1, mpi2), mpis.unsigned_multiply (mpi1, mpi2));
-} catch (mpi_overflow_except) {
+} catch (mpis.mpi_overflow_except) {
   putln ("got overflow 9");
 }
 mpis.mpi_ignore_overflow = 1;
@@ -18074,7 +18082,7 @@ putln ("ovfw=", mpis.mpi_overflow);
 mpis.mpi_ignore_overflow = 0;
 try {
   mpis.unsigned_change_size (mpi2, 2);
-} catch (mpi_overflow_except) {
+} catch (mpis.mpi_overflow_except) {
   putln ("got overflow 10");
 }
 mpis.mpi_ignore_overflow = 1;
@@ -18468,7 +18476,7 @@ fi
 if test $result = ok -a $start_test_number -le 267; then
 	echo test 267
         cat >$test_file <<'TEST267'
-atan2 (10);
+math.atan2 (10);
 TEST267
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -18476,7 +18484,7 @@ TEST267
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT267' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - unexpected number of parameters for `atan2'
+test.d:1:12: run time error - unexpected number of parameters for `atan2'
 OUTPUT267
                         result=ok
                 else
@@ -18489,7 +18497,7 @@ fi
 if test $result = ok -a $start_test_number -le 268; then
 	echo test 268
         cat >$test_file <<'TEST268'
-atan2 (tab [], 10);
+math.atan2 (tab [], 10);
 TEST268
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -18497,7 +18505,7 @@ TEST268
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT268' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid parameter type of `atan2'
+test.d:1:12: run time error - invalid parameter type of `atan2'
 OUTPUT268
                         result=ok
                 else
@@ -18510,7 +18518,7 @@ fi
 if test $result = ok -a $start_test_number -le 269; then
 	echo test 269
         cat >$test_file <<'TEST269'
-atan2 (10, 10, 10);
+math.atan2 (10, 10, 10);
 TEST269
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -18518,7 +18526,7 @@ TEST269
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT269' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - unexpected number of parameters for `atan2'
+test.d:1:12: run time error - unexpected number of parameters for `atan2'
 OUTPUT269
                         result=ok
                 else
@@ -18531,7 +18539,7 @@ fi
 if test $result = ok -a $start_test_number -le 270; then
 	echo test 270
         cat >$test_file <<'TEST270'
-atan2 ();
+math.atan2 ();
 TEST270
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -18539,7 +18547,7 @@ TEST270
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT270' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - unexpected number of parameters for `atan2'
+test.d:1:12: run time error - unexpected number of parameters for `atan2'
 OUTPUT270
                         result=ok
                 else
@@ -18608,7 +18616,7 @@ fi
 if test $result = ok -a $start_test_number -le 273; then
 	echo test 273
         cat >$test_file <<'TEST273'
-cos ();
+math.cos ();
 TEST273
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -18616,7 +18624,7 @@ TEST273
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT273' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - unexpected number of parameters for `cos'
+test.d:1:10: run time error - unexpected number of parameters for `cos'
 OUTPUT273
                         result=ok
                 else
@@ -18629,7 +18637,7 @@ fi
 if test $result = ok -a $start_test_number -le 274; then
 	echo test 274
         cat >$test_file <<'TEST274'
-cos (tab []);
+math.cos (tab []);
 TEST274
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -18637,7 +18645,7 @@ TEST274
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT274' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - invalid parameter type of `cos'
+test.d:1:10: run time error - invalid parameter type of `cos'
 OUTPUT274
                         result=ok
                 else
@@ -19403,7 +19411,7 @@ fi
 if test $result = ok -a $start_test_number -le 308; then
 	echo test 308
         cat >$test_file <<'TEST308'
-match ("");
+re.match ("");
 TEST308
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -19411,7 +19419,7 @@ TEST308
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT308' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - unexpected number of parameters for `match'
+test.d:1:10: run time error - unexpected number of parameters for `match'
 OUTPUT308
                         result=ok
                 else
@@ -19424,7 +19432,7 @@ fi
 if test $result = ok -a $start_test_number -le 309; then
 	echo test 309
         cat >$test_file <<'TEST309'
-match (nil, 10);
+re.match (nil, 10);
 TEST309
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -19432,7 +19440,7 @@ TEST309
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT309' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid parameter type of `match'
+test.d:1:10: run time error - invalid parameter type of `match'
 OUTPUT309
                         result=ok
                 else
@@ -19445,7 +19453,7 @@ fi
 if test $result = ok -a $start_test_number -le 310; then
 	echo test 310
         cat >$test_file <<'TEST310'
-match ("", nil);
+re.match ("", nil);
 TEST310
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -19453,7 +19461,7 @@ TEST310
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT310' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid parameter type of `match'
+test.d:1:10: run time error - invalid parameter type of `match'
 OUTPUT310
                         result=ok
                 else
@@ -19586,7 +19594,7 @@ fi
 if test $result = ok -a $start_test_number -le 316; then
 	echo test 316
         cat >$test_file <<'TEST316'
-rand (10);
+math.rand (10);
 TEST316
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -19594,7 +19602,7 @@ TEST316
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT316' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - unexpected number of parameters for `rand'
+test.d:1:11: run time error - unexpected number of parameters for `rand'
 OUTPUT316
                         result=ok
                 else
@@ -19607,7 +19615,7 @@ fi
 if test $result = ok -a $start_test_number -le 317; then
 	echo test 317
         cat >$test_file <<'TEST317'
-rand (10, 10);
+math.rand (10, 10);
 TEST317
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -19615,7 +19623,7 @@ TEST317
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT317' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - unexpected number of parameters for `rand'
+test.d:1:11: run time error - unexpected number of parameters for `rand'
 OUTPUT317
                         result=ok
                 else
@@ -19866,7 +19874,7 @@ fi
 if test $result = ok -a $start_test_number -le 328; then
 	echo test 328
         cat >$test_file <<'TEST328'
-sin ();
+math.sin ();
 TEST328
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -19874,7 +19882,7 @@ TEST328
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT328' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - unexpected number of parameters for `sin'
+test.d:1:10: run time error - unexpected number of parameters for `sin'
 OUTPUT328
                         result=ok
                 else
@@ -19887,7 +19895,7 @@ fi
 if test $result = ok -a $start_test_number -le 329; then
 	echo test 329
         cat >$test_file <<'TEST329'
-sin (tab []);
+math.sin (tab []);
 TEST329
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -19895,7 +19903,7 @@ TEST329
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT329' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - invalid parameter type of `sin'
+test.d:1:10: run time error - invalid parameter type of `sin'
 OUTPUT329
                         result=ok
                 else
@@ -19908,7 +19916,7 @@ fi
 if test $result = ok -a $start_test_number -le 330; then
 	echo test 330
         cat >$test_file <<'TEST330'
-split ("a", "A", "A");
+re.split ("a", "A", "A");
 TEST330
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -19916,7 +19924,7 @@ TEST330
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT330' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - unexpected number of parameters for `split'
+test.d:1:10: run time error - unexpected number of parameters for `split'
 OUTPUT330
                         result=ok
                 else
@@ -19929,7 +19937,7 @@ fi
 if test $result = ok -a $start_test_number -le 331; then
 	echo test 331
         cat >$test_file <<'TEST331'
-split ();
+re.split ();
 TEST331
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -19937,7 +19945,7 @@ TEST331
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT331' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - unexpected number of parameters for `split'
+test.d:1:10: run time error - unexpected number of parameters for `split'
 OUTPUT331
                         result=ok
                 else
@@ -19950,7 +19958,7 @@ fi
 if test $result = ok -a $start_test_number -le 332; then
 	echo test 332
         cat >$test_file <<'TEST332'
-split ("aaa", nil);
+re.split ("aaa", nil);
 TEST332
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -19958,7 +19966,7 @@ TEST332
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT332' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid parameter type of `split'
+test.d:1:10: run time error - invalid parameter type of `split'
 OUTPUT332
                         result=ok
                 else
@@ -19971,7 +19979,7 @@ fi
 if test $result = ok -a $start_test_number -le 333; then
 	echo test 333
         cat >$test_file <<'TEST333'
-split (nil);
+re.split (nil);
 TEST333
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -19979,7 +19987,7 @@ TEST333
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT333' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid parameter type of `split'
+test.d:1:10: run time error - invalid parameter type of `split'
 OUTPUT333
                         result=ok
                 else
@@ -19992,7 +20000,7 @@ fi
 if test $result = ok -a $start_test_number -le 334; then
 	echo test 334
         cat >$test_file <<'TEST334'
-srand (10, 10);
+math.srand (10, 10);
 TEST334
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -20000,7 +20008,7 @@ TEST334
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT334' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - unexpected number of parameters for `srand'
+test.d:1:12: run time error - unexpected number of parameters for `srand'
 OUTPUT334
                         result=ok
                 else
@@ -20013,7 +20021,7 @@ fi
 if test $result = ok -a $start_test_number -le 335; then
 	echo test 335
         cat >$test_file <<'TEST335'
-srand (tab []);
+math.srand (tab []);
 TEST335
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -20021,7 +20029,7 @@ TEST335
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT335' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid parameter type of `srand'
+test.d:1:12: run time error - invalid parameter type of `srand'
 OUTPUT335
                         result=ok
                 else
@@ -20034,7 +20042,7 @@ fi
 if test $result = ok -a $start_test_number -le 336; then
 	echo test 336
         cat >$test_file <<'TEST336'
-sub ();
+re.sub ();
 TEST336
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -20042,7 +20050,7 @@ TEST336
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT336' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - unexpected number of parameters for `sub'
+test.d:1:8: run time error - unexpected number of parameters for `sub'
 OUTPUT336
                         result=ok
                 else
@@ -20055,7 +20063,7 @@ fi
 if test $result = ok -a $start_test_number -le 337; then
 	echo test 337
         cat >$test_file <<'TEST337'
-sub ("", "", "", "");
+re.sub ("", "", "", "");
 TEST337
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -20063,7 +20071,7 @@ TEST337
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT337' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - unexpected number of parameters for `sub'
+test.d:1:8: run time error - unexpected number of parameters for `sub'
 OUTPUT337
                         result=ok
                 else
@@ -20076,7 +20084,7 @@ fi
 if test $result = ok -a $start_test_number -le 338; then
 	echo test 338
         cat >$test_file <<'TEST338'
-sub (nil, "", "");
+re.sub (nil, "", "");
 TEST338
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -20084,7 +20092,7 @@ TEST338
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT338' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - invalid parameter type of `sub'
+test.d:1:8: run time error - invalid parameter type of `sub'
 OUTPUT338
                         result=ok
                 else
@@ -20097,7 +20105,7 @@ fi
 if test $result = ok -a $start_test_number -le 339; then
 	echo test 339
         cat >$test_file <<'TEST339'
-sub (nil, "", "");
+re.sub (nil, "", "");
 TEST339
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -20105,7 +20113,7 @@ TEST339
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT339' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - invalid parameter type of `sub'
+test.d:1:8: run time error - invalid parameter type of `sub'
 OUTPUT339
                         result=ok
                 else
@@ -20118,7 +20126,7 @@ fi
 if test $result = ok -a $start_test_number -le 340; then
 	echo test 340
         cat >$test_file <<'TEST340'
-putln (system (10));
+putln (sys.system (10));
 TEST340
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -20126,7 +20134,7 @@ TEST340
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT340' && $CMP $stderr $ftemp2; then
-test.d:1:15: run time error - invalid parameter type of `system'
+test.d:1:19: run time error - invalid parameter type of `system'
 OUTPUT340
                         result=ok
                 else
@@ -20139,7 +20147,7 @@ fi
 if test $result = ok -a $start_test_number -le 341; then
 	echo test 341
         cat >$test_file <<'TEST341'
-putln (system ());
+putln (sys.system ());
 TEST341
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -20147,7 +20155,7 @@ TEST341
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT341' && $CMP $stderr $ftemp2; then
-test.d:1:15: run time error - unexpected number of parameters for `system'
+test.d:1:19: run time error - unexpected number of parameters for `system'
 OUTPUT341
                         result=ok
                 else
@@ -20802,7 +20810,7 @@ fi
 if test $result = ok -a $start_test_number -le 358; then
 	echo test 358
         cat >$test_file <<'TEST358'
-putln (log (-1.0));
+putln (math.log (-1.0));
 TEST358
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -20810,11 +20818,11 @@ TEST358
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT358' && $CMP $stderr $ftemp2; then
-test.d:1:12: system error - domain error: `log'
+test.d:1:17: system error - domain error: `log'
 OUTPUT358
                         result=ok
                 elif cat >$ftemp2 <<'OUTPUT358a' && $CMP $stderr $ftemp2; then
-test.d:1:12: system error - result too big (small): `log'
+test.d:1:17: system error - result too big (small): `log'
 OUTPUT358a
                         result=ok
                 else
@@ -20827,7 +20835,7 @@ fi
 if test $result = ok -a $start_test_number -le 359; then
 	echo test 359
         cat >$test_file <<'TEST359'
-putln (pow (-10, 1000));
+putln (math.pow (-10, 1000));
 TEST359
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -20835,7 +20843,7 @@ TEST359
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT359' && $CMP $stderr $ftemp2; then
-test.d:1:12: system error - result too big (small): `pow'
+test.d:1:17: system error - result too big (small): `pow'
 OUTPUT359
                         result=ok
                 else
@@ -20848,7 +20856,7 @@ fi
 if test $result = ok -a $start_test_number -le 360; then
 	echo test 360
         cat >$test_file <<'TEST360'
-putln (sqrt (-10.0));
+putln (math.sqrt (-10.0));
 TEST360
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -20856,11 +20864,11 @@ TEST360
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT360' && $CMP $stderr $ftemp2; then
-test.d:1:13: system error - domain error: `sqrt'
+test.d:1:18: system error - domain error: `sqrt'
 OUTPUT360
                         result=ok
                 elif cat >$ftemp2 <<'OUTPUT360a' && $CMP $stderr $ftemp2; then
-test.d:1:13: system error - result too big (small): `sqrt'
+test.d:1:18: system error - result too big (small): `sqrt'
 OUTPUT360a
                         result=ok
                 else
@@ -20873,23 +20881,23 @@ fi
 if test $result = ok -a $start_test_number -le 361; then
 	echo test 361
         cat >$test_file <<'TEST361'
-putln (rand ());
-putln (rand ());
-srand ();
-putln (rand ());
-putln (rand ());
-srand ();
-putln (rand ());
-putln (rand ());
-srand (10);
-putln (rand ());
-putln (rand ());
-srand (10.0);
-putln (rand ());
-putln (rand ());
-srand ("10.0");
-putln (rand ());
-putln (rand ());
+putln (math.rand ());
+putln (math.rand ());
+math.srand ();
+putln (math.rand ());
+putln (math.rand ());
+math.srand ();
+putln (math.rand ());
+putln (math.rand ());
+math.srand (10);
+putln (math.rand ());
+putln (math.rand ());
+math.srand (10.0);
+putln (math.rand ());
+putln (math.rand ());
+math.srand ("10.0");
+putln (math.rand ());
+putln (math.rand ());
 TEST361
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -21220,7 +21228,7 @@ for (;;)
     ln = getln ();
     if (ln == "")
       continue;
-    a = split (ln, "[^[:alnum:]]");
+    a = re.split (ln, "[^[:alnum:]]");
     for (i = 0; i < #a; i++)
       if (#a[i] != 0)
         voc [a[i]] = (a[i] in voc ? voc [a[i]] + 1 : 1);
@@ -21783,13 +21791,13 @@ fi
 if test $result = ok -a $start_test_number -le 394; then
 	echo test 394
         cat >$test_file <<'TEST394'
-putln (max (1.5, 2));
-putln (min (1.5, 2));
-putln (max (1.5, 2, "3.0"));
-putln (min (1.5, 2, "3.0"));
-putln (min (1.5, 2, 'a'));
-putln (max (1.5, 2, 'a'));
-putln (min (1.5, 2, 'a'));
+putln (math.max (1.5, 2));
+putln (math.min (1.5, 2));
+putln (math.max (1.5, 2, "3.0"));
+putln (math.min (1.5, 2, "3.0"));
+putln (math.min (1.5, 2, 'a'));
+putln (math.max (1.5, 2, 'a'));
+putln (math.min (1.5, 2, 'a'));
 TEST394
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -21816,7 +21824,7 @@ fi
 if test $result = ok -a $start_test_number -le 395; then
 	echo test 395
         cat >$test_file <<'TEST395'
-max (1);
+math.max (1);
 TEST395
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -21824,7 +21832,7 @@ TEST395
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT395' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - unexpected number of parameters for `max'
+test.d:1:10: run time error - unexpected number of parameters for `max'
 OUTPUT395
                         result=ok
                 else
@@ -21837,7 +21845,7 @@ fi
 if test $result = ok -a $start_test_number -le 396; then
 	echo test 396
         cat >$test_file <<'TEST396'
-min (1);
+math.min (1);
 TEST396
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -21845,7 +21853,7 @@ TEST396
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT396' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - unexpected number of parameters for `min'
+test.d:1:10: run time error - unexpected number of parameters for `min'
 OUTPUT396
                         result=ok
                 else
@@ -21858,7 +21866,7 @@ fi
 if test $result = ok -a $start_test_number -le 397; then
 	echo test 397
         cat >$test_file <<'TEST397'
-max ();
+math.max ();
 TEST397
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -21866,7 +21874,7 @@ TEST397
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT397' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - unexpected number of parameters for `max'
+test.d:1:10: run time error - unexpected number of parameters for `max'
 OUTPUT397
                         result=ok
                 else
@@ -21879,7 +21887,7 @@ fi
 if test $result = ok -a $start_test_number -le 398; then
 	echo test 398
         cat >$test_file <<'TEST398'
-min ();
+math.min ();
 TEST398
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -21887,7 +21895,7 @@ TEST398
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT398' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - unexpected number of parameters for `min'
+test.d:1:10: run time error - unexpected number of parameters for `min'
 OUTPUT398
                         result=ok
                 else
@@ -21900,7 +21908,7 @@ fi
 if test $result = ok -a $start_test_number -le 399; then
 	echo test 399
         cat >$test_file <<'TEST399'
-max (nil, nil);
+math.max (nil, nil);
 TEST399
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -21908,7 +21916,7 @@ TEST399
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT399' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - invalid parameter type of `max'
+test.d:1:10: run time error - invalid parameter type of `max'
 OUTPUT399
                         result=ok
                 else
@@ -21921,7 +21929,7 @@ fi
 if test $result = ok -a $start_test_number -le 400; then
 	echo test 400
         cat >$test_file <<'TEST400'
-min (nil, nil);
+math.min (nil, nil);
 TEST400
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -21929,7 +21937,7 @@ TEST400
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT400' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - invalid parameter type of `min'
+test.d:1:10: run time error - invalid parameter type of `min'
 OUTPUT400
                         result=ok
                 else
@@ -22166,6 +22174,7 @@ var g = "E : E '+' T # plus (0 2)\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
 
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -22253,7 +22262,7 @@ var g = "E : E '+' T # plus (0 2)\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -22306,7 +22315,7 @@ var g = "E : E '+' T # plus (0 2)\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -22396,7 +22405,7 @@ var g = "TERM 1\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -22452,7 +22461,7 @@ var g = "TERM;\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -22507,7 +22516,7 @@ var g = "TERM ident=10 i=10;\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -22555,7 +22564,7 @@ if test $result = ok -a $start_test_number -le 416; then
 	echo test 416: No rules.
         cat >$test_file <<'TEST416'
 var g = "TERM ident=10;\n";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -22611,7 +22620,7 @@ var g = "TERM ident=10;\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -22665,7 +22674,7 @@ var g = "E : E '+' T # plus (0 2)\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -22719,7 +22728,7 @@ var g = "E : E '+' T # plus (0 0)\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -22768,7 +22777,7 @@ if test $result = ok -a $start_test_number -le 420; then
         cat >$test_file <<'TEST420'
 var g = "E : 'a' E\n\
            | E '+'";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -22822,7 +22831,7 @@ var g = "E : A O O\n\
          A : O O N\n\
          N : O E E O\n\
          O :\n";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -22876,7 +22885,7 @@ var g = "E : E '+' T # plus (0 2)\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -22931,7 +22940,7 @@ var g = "E : E '+' T # plus (0 2)\n\
          G : 'a'       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -22986,7 +22995,7 @@ var g = "TERM error=10;\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -23039,7 +23048,7 @@ var g = "E : E '+' T # plus (0 2)\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -23116,7 +23125,7 @@ var g = "E : E '+' T # plus (0 2)\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1\n\
            | '(' error ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -23199,7 +23208,7 @@ var g = "E : E '+' T # plus (0 2)\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1\n\
            | '(' error ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -23279,7 +23288,7 @@ var g = "E : E '+' E # plus (0 2)\n\
            | E '*' E # mult (0 2)\n\
            | 'a' # 0\n\
            | '(' E ')' # 1\n";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -23364,7 +23373,7 @@ var g = "E : E '+' E # plus (0 2)\n\
            | E '*' E # mult (0 2)\n\
            | 'a' # 0\n\
            | '(' E ')' # 1\n";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -23482,7 +23491,7 @@ var g = "E : E '+' E # plus (0 2)\n\
            | E '*' E # mult (0 2)\n\
            | 'a' # 0\n\
            | '(' E ')' # 1\n";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -23557,7 +23566,7 @@ var g = "E : E '+' E # plus (0 2)\n\
            | 'a' # 0\n\
            | '(' E ')' # 1\n\
            | '(' error ')' # 1\n";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -23638,7 +23647,7 @@ var g = "E : E '+' E # plus (0 2)\n\
            | 'a' # 0\n\
            | '(' E ')' # 1\n\
            | '(' error ')' # 1\n";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -23730,7 +23739,7 @@ var g = "E : E '+' T # plus (0 2)\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1\n\
            | '(' error ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -23817,7 +23826,7 @@ var g = "E : E '+' T # plus (0 2)\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1\n\
            | '(' error ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -23904,7 +23913,7 @@ var g = "E : E '+' E # plus (0 2)\n\
            | 'c' # 0\n\
            | 'd' # 0\n\
            | '(' E ')' # 1\n";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -24029,7 +24038,7 @@ var g = "E : E '+' E # plus (0 2)\n\
            | 'c' # 0\n\
            | 'd' # 0\n\
            | '(' E ')' # 1\n";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -24219,7 +24228,7 @@ var g = "E : E '+' T # plus (0 2)\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -24323,7 +24332,7 @@ var g = "E : E '+' T # plus (0 2)\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -24449,7 +24458,7 @@ var g = "E : E '+' T # plus (0 2)\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -24501,7 +24510,7 @@ var g = "E : E '+' T # plus (0 2)\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -24553,7 +24562,7 @@ var g = "E : E '+' T # plus (0 2)\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -24606,7 +24615,7 @@ var g = "E : E '+' T # plus (0 2)\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -24660,7 +24669,7 @@ var g = "E : E '+' T # plus (0 2)\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -24716,7 +24725,7 @@ var g = "E : E '+' T # plus (0 2)\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -24772,7 +24781,7 @@ var g = "E : E '+' T # plus (0 2)\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -24828,7 +24837,7 @@ var g = "E : E '+' T # plus (0 2)\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -24884,7 +24893,7 @@ var g = "E : E '+' T # plus (0 2)\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -24940,7 +24949,7 @@ var g = "E : E '+' T # plus (0 2)\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -24996,7 +25005,7 @@ var g = "E : E '+' T # plus (0 2)\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -25055,7 +25064,7 @@ var g = "E : E '+' T # plus (0 2)\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -25255,7 +25264,7 @@ try {
   var s3 = ieees.single ();
   put (s1.to_string (), " / ", s3.to_string (), " ...");
   s1.divide (s3);
-} catch (ieee_zero_division_except) {
+} catch (ieees.ieee_zero_division_except) {
   putln ("  got zero_division");
 }
 
@@ -25273,7 +25282,7 @@ try {
   var s3 = ieees.single ("3");
   put (s1.to_string (), " / ", s3.to_string (), " ...");
   s1.divide (s3);
-} catch (ieee_imprecise_result_except) {
+} catch (ieees.ieee_imprecise_result_except) {
   putln ("  got imprecise result");
 }
 
@@ -25292,7 +25301,7 @@ try {
   s3.pmax ();
   put (s3.to_string (), " + ", s3.to_string (), " ...");
   s3.add (s3);
-} catch (ieee_overflow_except) {
+} catch (ieees.ieee_overflow_except) {
   putln ("  got overflow");
 }
 
@@ -25312,7 +25321,7 @@ try {
   s3.pmin ();
   put (s3.to_string (), " / 10 ...");
   s3.divide (ieees.single ("10"));
-} catch (ieee_underflow_except) {
+} catch (ieees.ieee_underflow_except) {
   putln ("  got underflow");
 }
 
@@ -25331,7 +25340,7 @@ try {
   var s3 = ieees.single ("SNaN");
   put (s3.to_string (), " + ", s3.to_string (), " ...");
   s3.add (s3);
-} catch (ieee_invalid_operation_except) {
+} catch (ieees.ieee_invalid_operation_except) {
   putln ("  got invalid operation");
 }
 
@@ -25349,7 +25358,7 @@ try {
   var s3 = ieees.single ("QNaN");
   put (s3.to_string (), " + ", s3.to_string (), " ...");
   s3.add (s3);
-} catch (ieee_reserved_operand_except) {
+} catch (ieees.ieee_reserved_operand_except) {
   putln ("  got reserved operand");
 }
 
@@ -25432,7 +25441,7 @@ putln (s3.to_string (), " + ", s1.to_string (), " = ",
 
 try {
   ieees.set_round (6);
-} catch (ieee_round_value_except) {
+} catch (ieees.ieee_round_value_except) {
   putln ("  got invalid round value");
 }
 
@@ -25521,7 +25530,7 @@ try {
   var d3 = ieees.double ();
   put (d1.to_string (), " / ", d3.to_string (), " ...");
   d1.divide (d3);
-} catch (ieee_zero_division_except) {
+} catch (ieees.ieee_zero_division_except) {
   putln ("  got zero_division");
 }
 
@@ -25539,7 +25548,7 @@ try {
   var d3 = ieees.double ("3");
   put (d1.to_string (), " / ", d3.to_string (), " ...");
   d1.divide (d3);
-} catch (ieee_imprecise_result_except) {
+} catch (ieees.ieee_imprecise_result_except) {
   putln ("  got imprecise result");
 }
 
@@ -25558,7 +25567,7 @@ try {
   d3.pmax ();
   put (d3.to_string (), " + ", d3.to_string (), " ...");
   d3.add (d3);
-} catch (ieee_overflow_except) {
+} catch (ieees.ieee_overflow_except) {
   putln ("  got overflow");
 }
 
@@ -25578,7 +25587,7 @@ try {
   d3.pmin ();
   put (d3.to_string (), " / 10 ...");
   d3.divide (ieees.double ("10"));
-} catch (ieee_underflow_except) {
+} catch (ieees.ieee_underflow_except) {
   putln ("  got underflow");
 }
 
@@ -25597,7 +25606,7 @@ try {
   var d3 = ieees.double ("SNaN");
   put (d3.to_string (), " + ", d3.to_string (), " ...");
   d3.add (d3);
-} catch (ieee_invalid_operation_except) {
+} catch (ieees.ieee_invalid_operation_except) {
   putln ("  got invalid operation");
 }
 
@@ -25615,7 +25624,7 @@ try {
   var d3 = ieees.double ("QNaN");
   put (d3.to_string (), " + ", d3.to_string (), " ...");
   d3.add (d3);
-} catch (ieee_reserved_operand_except) {
+} catch (ieees.ieee_reserved_operand_except) {
   putln ("  got reserved operand");
 }
 
@@ -25698,7 +25707,7 @@ putln (d3.to_string (), " + ", d1.to_string (), " = ",
 
 try {
   ieees.set_round (6);
-} catch (ieee_round_value_except) {
+} catch (ieees.ieee_round_value_except) {
   putln ("  got invalid round value");
 }
 
@@ -25787,7 +25796,7 @@ try {
   var q3 = ieees.quad ();
   put (q1.to_string (), " / ", q3.to_string (), " ...");
   q1.divide (q3);
-} catch (ieee_zero_division_except) {
+} catch (ieees.ieee_zero_division_except) {
   putln ("  got zero_division");
 }
 
@@ -25805,7 +25814,7 @@ try {
   var q3 = ieees.quad ("3");
   put (q1.to_string (), " / ", q3.to_string (), " ...");
   q1.divide (q3);
-} catch (ieee_imprecise_result_except) {
+} catch (ieees.ieee_imprecise_result_except) {
   putln ("  got imprecise result");
 }
 
@@ -25824,7 +25833,7 @@ try {
   q3.pmax ();
   put (q3.to_string (), " + ", q3.to_string (), " ...");
   q3.add (q3);
-} catch (ieee_overflow_except) {
+} catch (ieees.ieee_overflow_except) {
   putln ("  got overflow");
 }
 
@@ -25844,7 +25853,7 @@ try {
   q3.pmin ();
   put (q3.to_string (), " / 10 ...");
   q3.divide (ieees.quad ("10"));
-} catch (ieee_underflow_except) {
+} catch (ieees.ieee_underflow_except) {
   putln ("  got underflow");
 }
 
@@ -25863,7 +25872,7 @@ try {
   var q3 = ieees.quad ("SNaN");
   put (q3.to_string (), " + ", q3.to_string (), " ...");
   q3.add (q3);
-} catch (ieee_invalid_operation_except) {
+} catch (ieees.ieee_invalid_operation_except) {
   putln ("  got invalid operation");
 }
 
@@ -25881,7 +25890,7 @@ try {
   var q3 = ieees.quad ("QNaN");
   put (q3.to_string (), " + ", q3.to_string (), " ...");
   q3.add (q3);
-} catch (ieee_reserved_operand_except) {
+} catch (ieees.ieee_reserved_operand_except) {
   putln ("  got reserved operand");
 }
 
@@ -25964,7 +25973,7 @@ putln (q3.to_string (), " + ", q1.to_string (), " = ",
 
 try {
   ieees.set_round (6);
-} catch (ieee_round_value_except) {
+} catch (ieees.ieee_round_value_except) {
   putln ("  got invalid round value");
 }
 
@@ -26426,7 +26435,7 @@ fi
 if test $result = ok -a $start_test_number -le 454; then
 	echo test 454
         cat >$test_file <<'TEST454'
-println (gmatch ("aa", "aaaaa"));
+println (re.gmatch ("aa", "aaaaa"));
 TEST454
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -26447,7 +26456,7 @@ fi
 if test $result = ok -a $start_test_number -le 455; then
 	echo test 455
         cat >$test_file <<'TEST455'
-println (gmatch ("aa", "aaaaa", 1));
+println (re.gmatch ("aa", "aaaaa", 1));
 TEST455
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -26470,7 +26479,7 @@ if test $result = ok -a $start_test_number -le 456; then
         cat >$test_file <<'TEST456'
 var i;
 for (i = 0; i < 300000; i++)
-  gmatch ("aa", "aaaaa", 1);
+  re.gmatch ("aa", "aaaaa", 1);
 TEST456
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -26490,13 +26499,13 @@ fi
 if test $result = ok -a $start_test_number -le 457; then
 	echo test 457
         cat >$test_file <<'TEST457'
-gmatch ("aa", "aaaaa", nil);
+re.gmatch ("aa", "aaaaa", nil);
 TEST457
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=fail
         elif $SCMP $stderr - <<'TEST457-1'; then
-test.d:1:8: run time error - invalid parameter type of `gmatch'
+test.d:1:11: run time error - invalid parameter type of `gmatch'
 TEST457-1
                 result=ok
         else
@@ -26508,13 +26517,13 @@ fi
 if test $result = ok -a $start_test_number -le 458; then
 	echo test 458
         cat >$test_file <<'TEST458'
-gmatch ("aa");
+re.gmatch ("aa");
 TEST458
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=fail
         elif $SCMP $stderr - <<'TEST458-1'; then
-test.d:1:8: run time error - unexpected number of parameters for `gmatch'
+test.d:1:11: run time error - unexpected number of parameters for `gmatch'
 TEST458-1
                 result=ok
         else
@@ -26526,13 +26535,13 @@ fi
 if test $result = ok -a $start_test_number -le 459; then
 	echo test 459
         cat >$test_file <<'TEST459'
-gmatch ("[aa", "aa");
+re.gmatch ("[aa", "aa");
 TEST459
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=fail
         elif $SCMP $stderr - <<'TEST459-1'; then
-test.d:1:8: run time Oniguruma error in `gmatch' - premature end of char-class
+test.d:1:11: run time Oniguruma error in `gmatch' - premature end of char-class
 TEST459-1
                 result=ok
         else
@@ -26544,13 +26553,13 @@ fi
 if test $result = ok -a $start_test_number -le 460; then
 	echo test 460
         cat >$test_file <<'TEST460'
-gmatch (nil, "aa");
+re.gmatch (nil, "aa");
 TEST460
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=fail
         elif $SCMP $stderr - <<'TEST460-1'; then
-test.d:1:8: run time error - invalid parameter type of `gmatch'
+test.d:1:11: run time error - invalid parameter type of `gmatch'
 TEST460-1
                 result=ok
         else
@@ -26562,13 +26571,13 @@ fi
 if test $result = ok -a $start_test_number -le 461; then
 	echo test 461
         cat >$test_file <<'TEST461'
-gmatch ("aa", nil);
+re.gmatch ("aa", nil);
 TEST461
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=fail
         elif $SCMP $stderr - <<'TEST461-1'; then
-test.d:1:8: run time error - invalid parameter type of `gmatch'
+test.d:1:11: run time error - invalid parameter type of `gmatch'
 TEST461-1
                 result=ok
         else
@@ -27305,7 +27314,7 @@ var g = "E : E '+' T # plus (0 2)\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1\n\
            | '(' error ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -27363,7 +27372,7 @@ var g = "E : E '+' T # plus (0 2)\n\
            | F       # 0\n\
          F : 'a' # 0\n\
            | '(' E ')' # 1";
-
+expose yaep.*;
 var p = parser ();
 
 class tok (code) { use token former code; var order;}
@@ -27448,7 +27457,7 @@ fi
 if test $result = ok -a $start_test_number -le 492; then
 	echo test 492: More parameter exception.
         cat >$test_file <<'TEST492'
-var p = parser ();
+var p = yaep.parser ();
 p.set_lookahead ("0");
 p.set_debug ("0");
 p.set_lookahead (nil);
@@ -27595,7 +27604,7 @@ var str, s = sockets.stream_client ("time.ien.it", 13);
 str = "";
 try {
   for (;;) {str @= s.read (20);}
-} catch (socket_eof_except) {
+} catch (sockets.socket_eof_except) {
 }
 
 putln (str);
@@ -29117,6 +29126,7 @@ TEST506d
 /****************************************************************************
 ** This is the translator for the source code.                             **
 ****************************************************************************/
+expose yaep.*;
 class tok (code) { // For encoding of identifiers, etc.
   use token former code;
   var value, type0, line_num, char_num;
@@ -29310,6 +29320,7 @@ TEST506f
  ** block needs to do is analyze args and determine the parameters to    **
  ** this method.                                                         **
  *************************************************************************/
+expose sys.*, yaep.*;
 fun parse_file (program_file, debug_level, verbose_flag) {
   if (verbose_flag) putln ("& Entering parsing phase.");
   var token_vector; // To save typing.
@@ -32143,7 +32154,7 @@ fun ItemCheck (tree) {
 }
 
 var N = int (#argv < 1 ? 0 : argv [0]);
-var mindepth = 4, maxdepth = max (N, mindepth + 2);
+var mindepth = 4, maxdepth = math.max (N, mindepth + 2);
 var stretchdepth = maxdepth + 1, stretchtree = BottomUpTree (0, stretchdepth);
 
 putf ("stretch tree of depth %d\t  check: %d\n", stretchdepth,
@@ -33056,7 +33067,7 @@ fun advance (bodies, dt) {
     for (j = i + 1; j < #bodies; j++) {
       var bj = bodies [j];
       var dx = bix - bj.x, dy = biy - bj.y, dz = biz - bj.z;
-      var distance = sqrt (dx * dx + dy * dy + dz * dz);
+      var distance = math.sqrt (dx * dx + dy * dy + dz * dz);
       var mag = dt / (distance * distance * distance);
       var bim = bimass * mag, bjm = bj.mass * mag;
       
@@ -33083,7 +33094,7 @@ fun energy (bodies) {
     for (j = i + 1; j < #bodies; j++) {
       var bj = bodies [j];
       var dx = bi.x - bj.x, dy = bi.y - bj.y, dz = bi.z - bj.z;
-      var distance = sqrt (dx * dx + dy * dy + dz * dz);
+      var distance = math.sqrt (dx * dx + dy * dy + dz * dz);
 
       e = e - ((bim * bj.mass) / distance);
     }
@@ -33147,7 +33158,7 @@ fun nsieve (m) {
   return count;
 }
 
-var i, m, n = max (2, int (#argv < 1 ? 1 : argv [0]));
+var i, m, n = math.max (2, int (#argv < 1 ? 1 : argv [0]));
 
 for (i = 0; i <= 2; i++) {
   m = (1 << (n - i)) * 10000; putf ("Primes up to %8d %8d\n", m, nsieve (m));
@@ -33189,7 +33200,7 @@ fun nsieve (m) {
 }
 
 
-var i, m, N = max (2, int (#argv < 1 ? 1 : argv [0]));
+var i, m, N = math.max (2, int (#argv < 1 ? 1 : argv [0]));
 
 for (i = 0; i <= 2; i++) {
   m = (1 << (N - i)) * 10000;
@@ -33387,7 +33398,7 @@ if test $result = ok -a $start_test_number -le 566; then
         cat >$test_file <<'TEST567'
 var c, i, v, seq = getf (), ilen = #seq;
 
-seq = gsub (">[^\n]+\n|\n", seq, "");
+seq = re.gsub (">[^\n]+\n|\n", seq, "");
 
 var clen = #seq;
 var variants = ["agggtaaa|tttaccct", "[cgt]gggtaaa|tttaccc[acg]",
@@ -33397,7 +33408,7 @@ var variants = ["agggtaaa|tttaccct", "[cgt]gggtaaa|tttaccc[acg]",
 		"agggtaa[cgt]|[acg]ttaccct"];
 
 for (i = 0; i < #variants; i++) {
-  v = gmatch (variants [i], seq);
+  v = re.gmatch (variants [i], seq);
   putln (variants [i], " ", v == nil ? 0 : #v / 2);
 }
 
@@ -33408,7 +33419,7 @@ var subst = tab [
 ];
 
 for (c in subst)
-  seq = gsub (c, seq, subst [c]);
+  seq = re.gsub (c, seq, subst [c]);
 
 putln ("\n", ilen, "\n", clen, "\n", #seq);
 TEST567
@@ -34025,7 +34036,7 @@ var i, u = [n : 1.0], v = [n : 0.0], vBv = 0.0, vv = 0.0;
 for (i = 0; i < 10; i++) { v = AtAv (n, u); u = AtAv (n, v); }
 for (i = 0; i < n; i++) { vBv += u [i] * v [i]; vv += v [i] * v [i]; }
 
-putf ("%0.9f\n", sqrt (vBv / vv));
+putf ("%0.9f\n", math.sqrt (vBv / vv));
 TEST569
         echo '      ' $DINO $test_file 200 "2>$stderr"
         if $DINO $test_file 200 2>$stderr >$stdout; then
@@ -42797,6 +42808,7 @@ fi
 if test $result = ok -a $start_test_number -le 665; then
 	echo test 665: string to number conversion
         cat >$test_file <<'TEST665'
+expose sys.syserror;
 println (" -010L " + 0);
 println (" +0x10 " + 0);
 try {println (" +09 " + 0);} catch (optype) {putln ("optypes");}
@@ -42834,6 +42846,7 @@ fi
 if test $result = ok -a $start_test_number -le 666; then
 	echo test 666: Long min/max and sort
         cat >$test_file <<'TEST666'
+expose math.*;
 println (min (10L, 1, -2l));
 println (max (10L, 1, -2l));
 println (min (10L, -5, -2l));
@@ -45357,7 +45370,7 @@ fun advance (bodies, dt) !jit {
     b = bodies[i];
     for (j = i + 1; j <= lim; j++) {
       b2 = bodies[j]; dx = b.x - b2.x; dy = b.y - b2.y; dz = b.z - b2.z;
-      distance = sqrt (dx * dx + dy * dy + dz * dz);
+      distance = math.sqrt (dx * dx + dy * dy + dz * dz);
       mag = dt / (distance * distance * distance);
       b.vx -= dx * b2.mass * mag; b.vy -= dy * b2.mass * mag; b.vz -= dz * b2.mass * mag;
       b2.vx += dx * b.mass * mag; b2.vy += dy * b.mass * mag; b2.vz += dz * b.mass * mag;
@@ -45380,7 +45393,7 @@ fun energy (bodies) {
     for (j = i + 1; j < nbodies; j++) {
       b2 = bodies[j];
       dx = b.x - b2.x; dy = b.y - b2.y; dz = b.z - b2.z;
-      distance = sqrt (dx * dx + dy * dy + dz * dz);
+      distance = math.sqrt (dx * dx + dy * dy + dz * dz);
       e -= (b.mass * b2.mass) / distance;
     }
   }
@@ -45482,7 +45495,7 @@ fun advance (bodies, dt) !jit {
     bx = b.x; by = b.y; bz = b.z; bvx = b.vx; bvy = b.vy; bvz = b.vz;
     for (j = i + 1; j <= lim; j++) {
       b2 = bodies[j]; dx = bx - b2.x; dy = by - b2.y; dz = bz - b2.z;
-      distance2 = dx * dx + dy * dy + dz * dz; distance = sqrt (distance2);
+      distance2 = dx * dx + dy * dy + dz * dz; distance = math.sqrt (distance2);
       mag = dt / (distance2 * distance);
       mass2 = b2.mass; mmag2 = -mass2 * mag;
       bvx += dx * mmag2; bvy += dy * mmag2; bvz += dz * mmag2;
@@ -45508,7 +45521,7 @@ fun energy (bodies) {
     for (j = i + 1; j < nbodies; j++) {
       b2 = bodies[j];
       dx = b.x - b2.x; dy = b.y - b2.y; dz = b.z - b2.z;
-      distance = sqrt (dx * dx + dy * dy + dz * dz);
+      distance = math.sqrt (dx * dx + dy * dy + dz * dz);
       e -= (b.mass * b2.mass) / distance;
     }
   }
@@ -48703,7 +48716,7 @@ fi
 if test $result = ok -a $start_test_number -le 817; then
 	echo test 817: Empty field split
         cat >$test_file <<'TEST817'
-println (split ("0000;<control>;Cc;0;BN;;;;;N;NULL;;;;", ";"));
+println (re.split ("0000;<control>;Cc;0;BN;;;;;N;NULL;;;;", ";"));
 TEST817
         echo '      ' $DINO '-O' $test_file "2>$stderr"
         if $DINO -O $test_file 2>$stderr >$stdout; then
@@ -48724,7 +48737,7 @@ fi
 if test $result = ok -a $start_test_number -le 818; then
 	echo test 818: Empty regex for gmatch
         cat >$test_file <<'TEST818'
-println (gmatch ("", "abcd", 1));
+println (re.gmatch ("", "abcd", 1));
 TEST818
         echo '      ' $DINO '-O' $test_file "2>$stderr"
         if $DINO -O $test_file 2>$stderr >$stdout; then
@@ -48745,8 +48758,8 @@ fi
 if test $result = ok -a $start_test_number -le 819; then
 	echo test 819: Empty regex for sub
         cat >$test_file <<'TEST819'
-println (sub ("", "abcd", "12"));
-println (gsub ("", "abcd", "12"));
+println (re.sub ("", "abcd", "12"));
+println (re.gsub ("", "abcd", "12"));
 TEST819
         echo '      ' $DINO '-O' $test_file "2>$stderr"
         if $DINO -O $test_file 2>$stderr >$stdout; then
@@ -48768,8 +48781,8 @@ fi
 if test $result = ok -a $start_test_number -le 820; then
 	echo test 820: Empty sub-matching for sub
         cat >$test_file <<'TEST820'
-println (gsub ("(a)|(b)", "abcd", "\\1"));
-println (gsub ("(a)|(b)", "abcd", "\\2"));
+println (re.gsub ("(a)|(b)", "abcd", "\\1"));
+println (re.gsub ("(a)|(b)", "abcd", "\\2"));
 TEST820
         echo '      ' $DINO '-O' $test_file "2>$stderr"
         if $DINO -O $test_file 2>$stderr >$stdout; then
@@ -49543,6 +49556,7 @@ fi
 if test $result = ok -a $start_test_number -le 852; then
 	echo test 852: Regex Characters
         cat >$test_file <<'TEST852'
+expose re.match;
 println (match (`\y`, "y"));	// => [0, 1]
 println (match (`\t`, "\\t"));	// => nil   
 println (match (`\t`, "\t"));	// => [0, 1]
@@ -49599,6 +49613,7 @@ fi
 if test $result = ok -a $start_test_number -le 853; then
 	echo test 853: Regex character types
         cat >$test_file <<'TEST853'
+expose re.match;
 println (match (`.`, "a"));	// => [0, 1]
 println (match (`.`, "\n"));	// => nil   
 println (match (`\w`, "abc_"));	// => [0, 1]
@@ -49671,6 +49686,7 @@ fi
 if test $result = ok -a $start_test_number -le 854; then
 	echo test 854: Regex Properties
         cat >$test_file <<'TEST854'
+expose re.match;
 println (match (`\p{Alpha}`, "a"));	// => [0, 1] 
 println (match (`\p{Alpha}`, "б"));	// => [0, 1] 
 println (match (`\p{Alpha}`, ";"));	// => nil    
@@ -49715,6 +49731,7 @@ fi
 if test $result = ok -a $start_test_number -le 855; then
 	echo test 855: Regex anchors
         cat >$test_file <<'TEST855'
+expose re.match;
 println (match (`^a`, "a"));		// =>     [0, 1]
 println (match (`b^a`, "a"));		// =>     nil   
 println (match (`b^a`, "b\na"));	// => nil   	
@@ -49775,6 +49792,7 @@ fi
 if test $result = ok -a $start_test_number -le 856; then
 	echo test 856: Regex groups
         cat >$test_file <<'TEST856'
+expose re.match;
 println (match (`(?#comment).`, ";"));	// =>      [0, 1]	    
 println (match (`ab`, "Ab"));		// => 	     nil	    
 println (match (`(?i)ab`, "Ab"));	// => 	     [0, 2]	    
@@ -49835,6 +49853,7 @@ fi
 if test $result = ok -a $start_test_number -le 857; then
 	echo test 857: Regex subexp call
         cat >$test_file <<'TEST857'
+expose re.match;
 println (match (`(?<prefix>cd)\g<prefix>`, "cdcd"));	// => [0, 4, 2, 4]
 println (match (`(?<p>a|b\g<p>c)`, "bbbaccc")); // => [0, 7, 0, 7]
 TEST857
@@ -49859,6 +49878,7 @@ fi
 if test $result = ok -a $start_test_number -le 858; then
 	echo test 858: Regex Qualifiers
         cat >$test_file <<'TEST858'
+expose re.match;
 println (match (`.?foo`, "xfooxxxxfoo"));       // => [0, 4]
 println (match (`.*foo`, "xfooxxxxfoo"));	// => [0, 11]
 println (match (`.+foo`, "xfooxxxxfoo"));	// => [0, 11]
@@ -49915,6 +49935,7 @@ fi
 if test $result = ok -a $start_test_number -le 859; then
 	echo test 859: Regex char classes
         cat >$test_file <<'TEST859'
+expose re.match;
 println (match (`[[:alpha:]]`, "a"));	// => [0, 1]
 println (match (`[^[:alpha:]]`, "a"));	// => nil
 println (match (`[[:^alpha:]]`, "б"));	// => nil
@@ -49945,6 +49966,7 @@ fi
 if test $result = ok -a $start_test_number -le 860; then
 	echo test 860: Regex back refs
         cat >$test_file <<'TEST860'
+expose re.match;
 println (match (`(a)\1`, "aa"));	// => [0, 2, 0, 1]
 println (match (`(a)\k<1>`, "aa"));	// => [0, 2, 0, 1]
 println (match (`(a)\k'1'`, "aa"));	// => nil
@@ -49985,6 +50007,7 @@ fi
 if test $result = ok -a $start_test_number -le 861; then
 	echo test 861: Regex lookahead
         cat >$test_file <<'TEST861'
+expose re.match;
 println (match (`(?=bcd)bc`, "aabcd"));	// => [2, 4]
 println (match (`(?=bce)bc`, "aabcd"));	// => nil
 println (match (`(?!bce)bc`, "aabc"));	// => [2, 4]
@@ -50017,6 +50040,7 @@ fi
 if test $result = ok -a $start_test_number -le 862; then
 	echo test 862: A bug in Dino interface to ONIGURUMA
         cat >$test_file <<'TEST862'
+expose re.match;
 println (match ("\\p{alpha}", "a"));
 TEST862
         echo '      ' $DINO '-O' $test_file "2>$stderr"
@@ -50025,7 +50049,7 @@ TEST862
         else
                 echo '      ' $CMP $ftemp2 $stderr
                 if cat >$ftemp2 <<'OUTPUT850' && $CMP $stderr $ftemp2; then
-test.d:1:16: run time Oniguruma error in `match' - invalid character property name {alpha}
+test.d:2:16: run time Oniguruma error in `match' - invalid character property name {alpha}
 OUTPUT850
 			result=ok
                 else
@@ -50057,6 +50081,7 @@ fi
 if test $result = ok -a $start_test_number -le 864; then
 	echo test 864: Regex backspace
         cat >$test_file <<'TEST864'
+expose re.match;
 println (match (`\b`, "\x08"));
 println (match (`[\b]`, "\x08"));
 TEST864
@@ -50085,7 +50110,7 @@ var i;
 println (try (i = 5/0));
 println (try (i = 5/1, except));
 println (try (i = 5/0;, except));
-println (try (i = 5/0;, sigfpe));
+println (try (i = 5/0;, sys.sigfpe));
 println (try (return 10));
 TEST865
         echo '      ' $DINO '-O' $test_file "2>$stderr"
@@ -50471,7 +50496,7 @@ TEST880
         echo '      ' $DINO '-d' $test_file "2>$stderr"
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' fgrep omcall $stdout
-                if expr `fgrep omcall $stdout | wc -l` == 1 > /dev/null; then
+                if expr `fgrep omcall $stdout | fgrep '(f)' | wc -l` == 1 > /dev/null; then
                         result=ok
                 else
                         result=fail
@@ -50891,6 +50916,30 @@ TEST897
                 if cat >$ftemp2 <<'OUTPUT897' && $CMP $stdout $ftemp2; then
 hello, 42
 OUTPUT897
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 898.
+if test $result = ok -a $start_test_number -le 898; then
+	echo test 898: Exposed identifier in use
+        cat >$test_file <<'TEST898'
+obj o { class c (p) {fun pr {putln ("hello, ", p);} } }
+expose o.c;
+class s (p) {use c former p;}
+s (42).pr ();
+TEST898
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT898' && $CMP $stdout $ftemp2; then
+hello, 42
+OUTPUT898
                         result=ok
                 else
                         result=fail

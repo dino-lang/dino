@@ -24,18 +24,18 @@
 
 include "ipcerr";
 
-class socket_except () {use except;}
-class socket_optype_except () {use socket_except;}
-class socket_opvalue_except () {use socket_except;}
-class socket_eof_except () {use socket_except;}
+obj sockets {
+  class socket_except () {use except;}
+  class socket_optype_except () {use socket_except;}
+  class socket_opvalue_except () {use socket_except;}
+  class socket_eof_except () {use socket_except;}
 
-class socket_error (msg = nil) {use error former msg;}
-class socket_invalid_address_error (msg = nil) {use socket_error former msg;}
-class socket_host_not_found_error (msg = nil) {use socket_error former msg;}
-class socket_no_address_error (msg = nil) {use socket_error former msg;}
-class socket_no_recovery_error (msg = nil) {use socket_error former msg;}
+  class socket_error (msg = nil) {use error former msg;}
+  class socket_invalid_address_error (msg = nil) {use socket_error former msg;}
+  class socket_host_not_found_error (msg = nil) {use socket_error former msg;}
+  class socket_no_address_error (msg = nil) {use socket_error former msg;}
+  class socket_no_recovery_error (msg = nil) {use socket_error former msg;}
 
-final class __socket_package () {
   priv extern _socket_errno, _socket_invalid_address, _socket_host_not_found,
     _socket_no_address, _socket_no_recovery, _socket_try_again, _socket_eof,
     _gethostinfo (), _getservbyport (), _getservbyname (),
@@ -53,7 +53,7 @@ final class __socket_package () {
       throw socket_no_address_error ("does not have an IP address");
     else if (_socket_errno == _socket_no_recovery)
       throw socket_no_recovery_error ("non-recoverable name server error");
-    else __process_errno__ ("generate_socket_exception");
+    else sys.__process_errno__ ("generate_socket_exception");
   }
 
   // If you change it, change code of _gethostinfo too.
@@ -232,5 +232,3 @@ final class __socket_package () {
 
   _socket_init ();
 }
-
-var sockets = __socket_package ();

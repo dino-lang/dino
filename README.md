@@ -1,6 +1,6 @@
 # Programming language Dino and its implementation
 ## Vladimir Makarov, vmakarov@gcc.gnu.org
-## Oct, 2015
+## Feb, 2016
 
 # Description Layout
 * Introduction to Dino
@@ -24,7 +24,7 @@
     * Was used in russian computer game company ANIMATEK as a simple
       scripting language for describing dinosaurus movements
 * 1998, 2002, 2007 : Major language and implementation revisions
-* The next major release is planed to be done in winter of 2015/2016.
+* The next major release is planed to be done in spring of 2016.
   * This document describes the current state of Dino language
     and implementation. The document will be changed as the current
     Dino state is changing.

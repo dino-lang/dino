@@ -4897,85 +4897,6 @@ evaluate_code (void)
     }
 }
 
-static void
-initiate_vars (void)
-{
-  ER_node_t var;
-  ER_node_t vect, tab, string, string2;
-  ER_node_t entry;
-  val_t key;
-  int i, j;
-  
-  /* Set argv. */
-  if (program_arguments_number == 0)
-    vect = create_empty_vector ();
-  else
-    {
-      vect = create_unpack_vector (program_arguments_number);
-      for (i = 0; i < program_arguments_number; i++)
-	{
-	  string = create_string (program_arguments [i]);
-	  var = IVAL (ER_unpack_els (vect), i);
-	  ER_SET_MODE (var, ER_NM_vect);
-	  set_vect_dim (var, string, 0);
-	}
-    }
-  d_assert (BC_decl_scope (argv_bc_decl) == ER_block_node (cstack));
-  var = IVAL (ER_stack_vars (cstack), BC_var_num (argv_bc_decl));
-  ER_SET_MODE (var, ER_NM_vect);
-  set_vect_dim (var, vect, 0);
-  ER_set_immutable (vect, TRUE);
-  /* Set env. */
-  for (i = 0; program_environment [i] != NULL; i++)
-    ;
-  tab = create_tab (i);
-  for (i = 0; program_environment [i] != NULL; i++)
-    {
-      for (j = 0; program_environment [i][j] != '\0'; j++)
-	if (program_environment [i][j] == '=')
-	  break;
-      if (program_environment [i][j] == '\0')
-	eval_error (invenv_bc_decl, no_position, DERR_environment_corrupted);
-      program_environment [i][j] = '\0';
-      string = create_string (program_environment [i]);
-      program_environment [i][j] = '=';
-      string2 = create_string (program_environment [i] + j + 1);
-      ER_SET_MODE ((ER_node_t) &key, ER_NM_vect);
-      set_vect_dim ((ER_node_t) &key, string, 0);
-      entry = find_tab_el (tab, (ER_node_t) &key, TRUE);
-      d_assert (ER_NODE_MODE (tab) != ER_NM_heap_redir);
-      if (ER_NODE_MODE (entry) != ER_NM_empty_el)
-	eval_error (invenv_bc_decl, no_position, DERR_environment_corrupted);
-      ER_SET_MODE (entry, ER_NM_vect);
-      set_vect_dim (entry, string, 0);
-      make_immutable (entry);
-      var = (ER_node_t) ((char *) entry + sizeof (val_t));
-      ER_SET_MODE (var, ER_NM_vect);
-      set_vect_dim (var, string2, 0);
-   }
-  d_assert (BC_decl_scope (env_bc_decl) == ER_block_node (cstack));
-  var = IVAL (ER_stack_vars (cstack), BC_var_num (env_bc_decl));
-  ER_SET_MODE (var, ER_NM_tab);
-  ER_set_tab (var, tab);
-  ER_set_immutable (tab, TRUE);
-  /* Set version */
-  d_assert (BC_decl_scope (version_bc_decl) == ER_block_node (cstack));
-  var = IVAL (ER_stack_vars (cstack), BC_var_num (version_bc_decl));
-  ER_SET_MODE (var, ER_NM_float);
-  ER_set_f (var, DINO_VERSION);
-  /* Set main_thread, curr_thread */
-  d_assert (BC_decl_scope (main_thread_bc_decl) == ER_block_node (cstack));
-  var = IVAL (ER_stack_vars (cstack),
-	      BC_var_num (main_thread_bc_decl));
-  ER_SET_MODE (var, ER_NM_process);
-  ER_set_process (var, cprocess);
-  d_assert (BC_decl_scope (curr_thread_bc_decl) == ER_block_node (cstack));
-  var = IVAL (ER_stack_vars (cstack),
-	      BC_var_num (curr_thread_bc_decl));
-  ER_SET_MODE (var, ER_NM_process);
-  ER_set_process (var, cprocess);
-}
-
 #ifdef __GNUC__
 static void restart_eval (void) __attribute__ ((noreturn));
 #endif
@@ -5086,9 +5007,6 @@ evaluate_program (pc_t start_pc, int init_p, int last_p)
       sync_flag = FALSE;
       create_uppest_stack (cpc);
       initiate_processes (cpc);
-      /* Initialized standard variables.  It should be after
-	 initiate_process to set up main thread var.  */
-      initiate_vars ();
 #ifndef NO_PROFILE
       if (profile_flag)
 	{

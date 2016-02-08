@@ -1692,6 +1692,9 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 		    err_p = TRUE;
 		  }
 	      }
+	    if (decl != NULL && IR_IS_OF_TYPE (decl, IR_NM_expose_decl))
+	      decl = IR_decl_in_object (decl);
+
 	    if (decl == NULL)
 	      {
 		if (! err_p)
@@ -2239,6 +2242,8 @@ get_bcode_decl (IR_node_t decl)
   d_assert (decl != NULL);
   if ((bc_decl = IR_bc_decl (decl)) != NULL)
     return bc_decl;
+  if (IR_IS_OF_TYPE (decl, IR_NM_expose_decl))
+    decl = IR_decl_in_object (decl);
   scope = IR_scope (decl);
   if (IR_NODE_MODE (decl) == IR_NM_var)
     {
@@ -2699,6 +2704,8 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 		BC_set_op1 (bc, -1);
 		*curr_temp_vars_num = temp_vars_num;
 	      }
+	    else if (result != NULL && *result != not_defined_result)
+	      BC_set_op1 (bc, *result);
 	    else
 	      {
 		BC_set_op1 (bc, res);

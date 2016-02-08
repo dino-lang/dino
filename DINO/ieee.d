@@ -24,28 +24,22 @@
 
 include "mpi";
 
-class ieee_except () {use except;}
-class ieee_optype_except () {use ieee_except;}
-class ieee_opvalue_except () {use ieee_except;}
-class ieee_round_value_except () {use ieee_except;}
-class ieee_invalid_operation_except () {use ieee_except;}
-class ieee_reserved_operand_except () {use ieee_except;}
-class ieee_overflow_except () {use ieee_except;}
-class ieee_underflow_except () {use ieee_except;}
-class ieee_imprecise_result_except () {use ieee_except;}
-class ieee_zero_division_except () {use ieee_except;}
-
-final class __ieee_package;
-
-var ieees = __ieee_package ();
-
-// Only one instance of the class should be. Do not call the class.
-// Use only instance `ieees' (see below).
-final class __ieee_package () {
+obj ieees {
   var ignore_excepts = 0;
 
+  class ieee_except () {use except;}
+  class ieee_optype_except () {use ieee_except;}
+  class ieee_opvalue_except () {use ieee_except;}
+  class ieee_round_value_except () {use ieee_except;}
+  class ieee_invalid_operation_except () {use ieee_except;}
+  class ieee_reserved_operand_except () {use ieee_except;}
+  class ieee_overflow_except () {use ieee_except;}
+  class ieee_underflow_except () {use ieee_except;}
+  class ieee_imprecise_result_except () {use ieee_except;}
+  class ieee_zero_division_except () {use ieee_except;}
+
   priv fun check_mpi (op) {
-    if (type (op) != obj || !inside (op, mpi_package))
+    if (type (op) != obj || !inside (op, mpis))
       throw ieee_optype_except ();
   }
 
@@ -133,7 +127,7 @@ final class __ieee_package () {
     friend double, quad;
 
     pub fun check (op) {
-      if (type (op) != obj || !inside (op, ieees.single))
+      if (type (op) != obj || !inside (op, single))
         throw ieee_optype_except ();
     }
 
@@ -299,7 +293,7 @@ final class __ieee_package () {
     friend single, quad;
 
     priv fun check (op) {
-      if (type (op) != obj || !inside (op, ieees.double))
+      if (type (op) != obj || !inside (op, double))
         throw ieee_optype_except ();
     }
 
@@ -465,7 +459,7 @@ final class __ieee_package () {
     friend single, double;
 
     priv fun check (op) {
-      if (type (op) != obj || !inside (op, ieees.quad))
+      if (type (op) != obj || !inside (op, quad))
         throw ieee_optype_except ();
     }
 
@@ -626,4 +620,3 @@ final class __ieee_package () {
 
   reset ();
 }
-

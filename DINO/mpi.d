@@ -22,19 +22,19 @@
 
 */
 
-class mpi_except () {use except;}
-class mpi_type_except () {use mpi_except;}
-class mpi_size_except () {use mpi_except;}
-class mpi_base_except () {use mpi_except;}
-class mpi_unequal_size_except () {use mpi_except;}
-class mpi_overflow_except () {use mpi_except;}
-
-final class mpi_package () {
+obj mpis {
   // if you change the value, please change it in mpi.c and check
   // maximal value in arithm.c.
   val max_mpi_size = 128;
   var mpi_ignore_overflow = 0;
   
+  class mpi_except () {use except;}
+  class mpi_type_except () {use mpi_except;}
+  class mpi_size_except () {use mpi_except;}
+  class mpi_base_except () {use mpi_except;}
+  class mpi_unequal_size_except () {use mpi_except;}
+  class mpi_overflow_except () {use mpi_except;}
+
   final class mpi (val size) { // The order of vars is important for mpi.c
     priv var value;
     if (type (size) != int)
@@ -43,7 +43,7 @@ final class mpi_package () {
       throw mpi_size_except ();
   }
   priv fun check (op) {
-    if (type (op) != obj || !inside (op, mpi_package))
+    if (type (op) != obj || !inside (op, mpis))
       throw mpi_type_except();
   }
   priv fun check2 (op1, op2) {
@@ -281,5 +281,3 @@ final class mpi_package () {
     return unsigned_from_based_string (size, string, 10);
   }
 }
-
-var mpis = mpi_package ();

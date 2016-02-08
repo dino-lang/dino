@@ -1653,10 +1653,7 @@ expand_uppest_stack (void)
   int vars_num, tvars_num, new_all_block_vars;
   ER_node_t stack;
   
-  d_assert
-    (cstack == uppest_stack
-     && cprocess == ER_process (IVAL (ER_stack_vars (cstack),
-				      BC_var_num (main_thread_bc_decl))));
+  d_assert (cstack == uppest_stack);
   block_node = ER_block_node (uppest_stack);
   vars_num = BC_vars_num (block_node);
   d_assert (previous_uppest_stack_vars_num <= vars_num);
@@ -2922,7 +2919,7 @@ create_process (pc_t start_process_pc, BC_node_t block, ER_node_t fun_context)
 }
 
 static void
-activate_given_process (ER_node_t process)
+activate_given_process (ER_node_t process, int first_p)
 {
   ER_node_t var;
 
@@ -2956,17 +2953,21 @@ activate_given_process (ER_node_t process)
   current_cached_container_tick++;
 #endif
   ER_set_process_status (cprocess, PS_READY);
-  var = IVAL (ER_stack_vars (uppest_stack), BC_var_num (curr_thread_bc_decl));
-  ER_SET_MODE (var, ER_NM_process);
-  ER_set_process (var, cprocess);
+  if (! first_p)
+    {
+      var = IVAL (ER_stack_vars (get_obj_stack (lang_bc_decl)),
+		  BC_var_num (curr_thread_bc_decl));
+      ER_SET_MODE (var, ER_NM_process);
+      ER_set_process (var, cprocess);
+    }
 }
 
 /* It is important for block_cprocess that the search of process for
    activation starts with process after cprocess. */
 static void
-activate_process (void)
+activate_process (int first_p)
 {
-  activate_given_process (ER_next (cprocess));
+  activate_given_process (ER_next (cprocess), first_p);
   if (first_process_not_started == cprocess)
     eval_error (deadlock_bc_decl, get_cpos (), DERR_deadlock);
   executed_stmts_count = -process_quantum; /* start new quantum */
@@ -3006,7 +3007,7 @@ block_cprocess (pc_t first_resume_pc, int wait_stmt_flag)
 	  first_process_not_started = NULL;
 	}
     }
-  activate_process ();
+  activate_process (FALSE);
 }
 
 void
@@ -3020,7 +3021,7 @@ delete_cprocess (void)
       ER_set_prev (ER_next (cprocess), ER_prev (cprocess));
       ER_set_next (ER_prev (cprocess), ER_next (cprocess));
       cprocess = ER_prev (cprocess);
-      activate_process ();
+      activate_process (FALSE);
     }
 }
 
@@ -3035,7 +3036,7 @@ delete_cprocess_during_exception (void)
       first_process_not_started = NULL;
       ER_set_prev (ER_next (cprocess), ER_prev (cprocess));
       ER_set_next (ER_prev (cprocess), ER_next (cprocess));
-      activate_given_process (ER_father (cprocess));
+      activate_given_process (ER_father (cprocess), FALSE);
       return TRUE;
     }
 }
@@ -3056,7 +3057,7 @@ initiate_processes (pc_t start_pc)
   executed_stmts_count = -process_quantum;
   cprocess = create_process (start_pc, NULL, NULL);
   first_process_not_started = NULL;
-  activate_process ();
+  activate_process (TRUE);
 }
 
 

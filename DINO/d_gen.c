@@ -1761,6 +1761,7 @@ common_omicall (ER_node_t op1, int op2n, ER_node_t op3,
   BC_node_t fblock;
 
   d_assert (ER_NODE_MODE (op3) == ER_NM_stack);
+  stack = ER_stack (op3);
   ctop = IVAL (op1, -1);
   fblock = BC_mfblock (cpc);
   process_imm_fun_call ((val_t *) op1, fblock, stack,

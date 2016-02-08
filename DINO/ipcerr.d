@@ -22,41 +22,41 @@
 
 */
 
-class ipc_syserror {use syserror;}
-class ipc_eaddrinuse_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_eaddrnotavail_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_eafnosupport_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_ealready_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_econnaborted_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_econnrefused_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_econnreset_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_edestaddrreq_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_ehostdown_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_ehostunreach_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_einprogress_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_eisconn_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_emsgsize_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_enetdown_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_enetreset_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_enetunreach_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_enobufs_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_enoprotoopt_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_enosr_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_enotconn_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_enotsock_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_eopnotsupp_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_epfnosupport_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_eprotonosupport_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_eprototype_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_eremoterelease_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_eshutdown_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_esocktnosupport_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_etimedout_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_etoomanyrefs_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_ewouldblock_syserror (msg = nil) {use ipc_syserror former msg;}
-class ipc_eos_specific_syserror (msg = nil) {use ipc_syserror former msg;}
+obj ipc_errs {
+  class ipc_syserror {use sys.syserror;}
+  class ipc_eaddrinuse_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_eaddrnotavail_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_eafnosupport_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_ealready_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_econnaborted_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_econnrefused_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_econnreset_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_edestaddrreq_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_ehostdown_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_ehostunreach_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_einprogress_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_eisconn_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_emsgsize_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_enetdown_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_enetreset_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_enetunreach_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_enobufs_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_enoprotoopt_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_enosr_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_enotconn_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_enotsock_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_eopnotsupp_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_epfnosupport_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_eprotonosupport_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_eprototype_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_eremoterelease_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_eshutdown_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_esocktnosupport_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_etimedout_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_etoomanyrefs_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_ewouldblock_syserror (msg = nil) {use ipc_syserror former msg;}
+  class ipc_eos_specific_syserror (msg = nil) {use ipc_syserror former msg;}
 
-class ipc_err () {
   priv extern _eaddrinuse_no, _eaddrnotavail_no, _eafnosupport_no,
     _ealready_no, _econnaborted_no, _econnrefused_no, _econnreset_no,
     _edestaddrreq_no, _ehostdown_no, _ehostunreach_no, _einprogress_no,
@@ -153,7 +153,4 @@ class ipc_err () {
     for (i = 0; i < #_eos_specific_nos; i++)
       n2e [_eos_specific_nos [i]]
 	 = ipc_eos_specific_syserror (_eos_specific_msgs [i]);
-//  println (n2e);
 }
-
-var ipc_errs = ipc_err ();

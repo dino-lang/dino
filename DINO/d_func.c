@@ -1406,11 +1406,13 @@ split_call (int pars_number)
     }
   else
     {
+      ER_node_t re_stack = get_obj_stack (re_bc_decl);
+      
       str_ucode_p = ER_pack_vect_el_mode (ER_vect (ctop)) == ER_NM_char;
-      split_var = IVAL (ER_stack_vars (uppest_stack),
+      split_var = IVAL (ER_stack_vars (re_stack),
 			BC_var_num (split_regex_bc_decl));
       to_vect_string_conversion (split_var, NULL, NULL);
-      split_var = IVAL (ER_stack_vars (uppest_stack),
+      split_var = IVAL (ER_stack_vars (re_stack),
 			BC_var_num (split_regex_bc_decl));
       if (ER_NODE_MODE (split_var) == ER_NM_vect
 	  && ER_NODE_MODE (ER_vect (split_var)) == ER_NM_heap_pack_vect
@@ -2322,7 +2324,7 @@ place_file_instance (FILE *f, ER_node_t result)
   conv_desc_t byte_cd, ucode_cd, reverse_ucode_cd;
   encoding_type_t tp;
 
-  instance = create_class_stack (file_bc_decl, uppest_stack,
+  instance = create_class_stack (file_bc_decl, get_obj_stack (io_bc_decl),
 				 (val_t *) result, 0, TRUE);
   ER_SET_MODE (result, ER_NM_stack);
   ER_set_stack (result, instance);
@@ -3320,7 +3322,7 @@ void
 put_call (int pars_number)
 {
   conv_desc_t byte_cd, ucode_cd;
-  ER_node_t file_instance = ER_stack (IVAL (ER_stack_vars (uppest_stack),
+  ER_node_t file_instance = ER_stack (IVAL (ER_stack_vars (get_obj_stack (io_bc_decl)),
 					    BC_var_num (stdout_bc_decl)));
   
   get_file_output_cds (file_instance, &byte_cd, &ucode_cd);
@@ -3332,7 +3334,7 @@ void
 putln_call (int pars_number)
 {
   conv_desc_t byte_cd, ucode_cd;
-  ER_node_t file_instance = ER_stack (IVAL (ER_stack_vars (uppest_stack),
+  ER_node_t file_instance = ER_stack (IVAL (ER_stack_vars (get_obj_stack (io_bc_decl)),
 					    BC_var_num (stdout_bc_decl)));
   
   get_file_output_cds (file_instance, &byte_cd, &ucode_cd);
@@ -3400,7 +3402,7 @@ void
 print_call (int pars_number)
 {
   conv_desc_t byte_cd, ucode_cd;
-  ER_node_t file_instance = ER_stack (IVAL (ER_stack_vars (uppest_stack),
+  ER_node_t file_instance = ER_stack (IVAL (ER_stack_vars (get_obj_stack (io_bc_decl)),
 					    BC_var_num (stdout_bc_decl)));
 
   get_file_output_cds (file_instance, &byte_cd, &ucode_cd);
@@ -3412,7 +3414,7 @@ void
 println_call (int pars_number)
 {
   conv_desc_t byte_cd, ucode_cd;
-  ER_node_t file_instance = ER_stack (IVAL (ER_stack_vars (uppest_stack),
+  ER_node_t file_instance = ER_stack (IVAL (ER_stack_vars (get_obj_stack (io_bc_decl)),
 					    BC_var_num (stdout_bc_decl)));
 
   get_file_output_cds (file_instance, &byte_cd, &ucode_cd);
@@ -3588,7 +3590,7 @@ get_call (int pars_number)
   if (pars_number != 0)
     eval_error (parnumber_bc_decl,
 		call_pos (), DERR_parameters_number, GET_NAME);
-  file_instance = ER_stack (IVAL (ER_stack_vars (uppest_stack),
+  file_instance = ER_stack (IVAL (ER_stack_vars (get_obj_stack (io_bc_decl)),
 				  BC_var_num (stdin_bc_decl)));
   general_get_call (stdin, get_file_unget_char_ptr (file_instance), FALSE,
 		    get_file_input_cd (file_instance),
@@ -3603,7 +3605,7 @@ getln_call (int pars_number)
   if (pars_number != 0)
     eval_error (parnumber_bc_decl,
 		call_pos (), DERR_parameters_number, GETLN_NAME);
-  file_instance = ER_stack (IVAL (ER_stack_vars (uppest_stack),
+  file_instance = ER_stack (IVAL (ER_stack_vars (get_obj_stack (io_bc_decl)),
 				  BC_var_num (stdin_bc_decl)));
   general_get_ln_file_call (stdin, get_file_unget_char_ptr (file_instance),
 			    FALSE, TRUE, FALSE,
@@ -3628,7 +3630,7 @@ getf_call (int pars_number)
 		    DERR_parameter_type, GETF_NAME);
       flag = ER_i (ctop);
     }
-  file_instance = ER_stack (IVAL (ER_stack_vars (uppest_stack),
+  file_instance = ER_stack (IVAL (ER_stack_vars (get_obj_stack (io_bc_decl)),
 				  BC_var_num (stdin_bc_decl)));
   general_get_ln_file_call (stdin, get_file_unget_char_ptr (file_instance),
 			    FALSE, FALSE, flag != 0,
@@ -4194,7 +4196,7 @@ scan_call (int pars_number)
   if (pars_number != 0)
     eval_error (parnumber_bc_decl,
 		call_pos (), DERR_parameters_number, SCAN_NAME);
-  file_instance = ER_stack (IVAL (ER_stack_vars (uppest_stack),
+  file_instance = ER_stack (IVAL (ER_stack_vars (get_obj_stack (io_bc_decl)),
 				  BC_var_num (stdin_bc_decl)));
   general_scan_call (stdin, get_file_unget_char_ptr (file_instance),
 		     get_file_input_cd (file_instance),
@@ -4209,7 +4211,7 @@ scanln_call (int pars_number)
   if (pars_number != 0)
     eval_error (parnumber_bc_decl,
 		call_pos (), DERR_parameters_number, SCANLN_NAME);
-  file_instance = ER_stack (IVAL (ER_stack_vars (uppest_stack),
+  file_instance = ER_stack (IVAL (ER_stack_vars (get_obj_stack (io_bc_decl)),
 				  BC_var_num (stdin_bc_decl)));
   general_scan_call (stdin, get_file_unget_char_ptr (file_instance),
 		     get_file_input_cd (file_instance),
@@ -4306,7 +4308,7 @@ void
 putf_call (int pars_number)
 {
   conv_desc_t byte_cd, ucode_cd;
-  ER_node_t file_instance = ER_stack (IVAL (ER_stack_vars (uppest_stack),
+  ER_node_t file_instance = ER_stack (IVAL (ER_stack_vars (get_obj_stack (io_bc_decl)),
 					    BC_var_num (stdout_bc_decl)));
   
   get_file_output_cds (file_instance, &byte_cd, &ucode_cd);
@@ -5154,7 +5156,7 @@ strtime_call (int pars_number)
     }
   else
     {
-      format_var = IVAL (ER_stack_vars (uppest_stack),
+      format_var = IVAL (ER_stack_vars (get_obj_stack (sys_bc_decl)),
 			 BC_var_num (time_format_bc_decl));
       to_vect_string_conversion (format_var, NULL, NULL);
       if (ER_NODE_MODE (format_var) == ER_NM_vect
@@ -5989,21 +5991,105 @@ get_file_encoding_call (int pars_number)
 		create_string (get_file_encoding_name (file_instance)), 0);
 }
 
+static void
+initiate_vars (void)
+{
+  ER_node_t var;
+  ER_node_t vect, tab, string, string2;
+  ER_node_t entry;
+  ER_node_t ostack;
+  val_t key;
+  int i, j;
+  
+  ostack = get_obj_stack (lang_bc_decl);
+  /* Set argv. */
+  if (program_arguments_number == 0)
+    vect = create_empty_vector ();
+  else
+    {
+      vect = create_unpack_vector (program_arguments_number);
+      for (i = 0; i < program_arguments_number; i++)
+	{
+	  string = create_string (program_arguments [i]);
+	  var = IVAL (ER_unpack_els (vect), i);
+	  ER_SET_MODE (var, ER_NM_vect);
+	  set_vect_dim (var, string, 0);
+	}
+    }
+  d_assert (BC_decl_scope (argv_bc_decl) == ER_block_node (ostack));
+  var = IVAL (ER_stack_vars (ostack), BC_var_num (argv_bc_decl));
+  ER_SET_MODE (var, ER_NM_vect);
+  set_vect_dim (var, vect, 0);
+  ER_set_immutable (vect, TRUE);
+  /* Set env. */
+  for (i = 0; program_environment [i] != NULL; i++)
+    ;
+  tab = create_tab (i);
+  for (i = 0; program_environment [i] != NULL; i++)
+    {
+      for (j = 0; program_environment [i][j] != '\0'; j++)
+	if (program_environment [i][j] == '=')
+	  break;
+      if (program_environment [i][j] == '\0')
+	eval_error (invenv_bc_decl, no_position, DERR_environment_corrupted);
+      program_environment [i][j] = '\0';
+      string = create_string (program_environment [i]);
+      program_environment [i][j] = '=';
+      string2 = create_string (program_environment [i] + j + 1);
+      ER_SET_MODE ((ER_node_t) &key, ER_NM_vect);
+      set_vect_dim ((ER_node_t) &key, string, 0);
+      entry = find_tab_el (tab, (ER_node_t) &key, TRUE);
+      d_assert (ER_NODE_MODE (tab) != ER_NM_heap_redir);
+      if (ER_NODE_MODE (entry) != ER_NM_empty_el)
+	eval_error (invenv_bc_decl, no_position, DERR_environment_corrupted);
+      ER_SET_MODE (entry, ER_NM_vect);
+      set_vect_dim (entry, string, 0);
+      make_immutable (entry);
+      var = (ER_node_t) ((char *) entry + sizeof (val_t));
+      ER_SET_MODE (var, ER_NM_vect);
+      set_vect_dim (var, string2, 0);
+   }
+  d_assert (BC_decl_scope (env_bc_decl) == ER_block_node (ostack));
+  var = IVAL (ER_stack_vars (ostack), BC_var_num (env_bc_decl));
+  ER_SET_MODE (var, ER_NM_tab);
+  ER_set_tab (var, tab);
+  ER_set_immutable (tab, TRUE);
+  /* Set version */
+  d_assert (BC_decl_scope (version_bc_decl) == ER_block_node (ostack));
+  var = IVAL (ER_stack_vars (ostack), BC_var_num (version_bc_decl));
+  ER_SET_MODE (var, ER_NM_float);
+  ER_set_f (var, DINO_VERSION);
+  /* Set main_thread, curr_thread */
+  d_assert (BC_decl_scope (main_thread_bc_decl) == ER_block_node (ostack));
+  var = IVAL (ER_stack_vars (ostack),
+	      BC_var_num (main_thread_bc_decl));
+  ER_SET_MODE (var, ER_NM_process);
+  ER_set_process (var, cprocess);
+  d_assert (BC_decl_scope (curr_thread_bc_decl) == ER_block_node (ostack));
+  var = IVAL (ER_stack_vars (ostack),
+	      BC_var_num (curr_thread_bc_decl));
+  ER_SET_MODE (var, ER_NM_process);
+  ER_set_process (var, cprocess);
+}
+
 /* This function is a trick to fullfil initiations after execution of
    stmts before __init__ call. */
 void
 init_call (int pars_number)
 {
-  ER_node_t var;
+  ER_node_t var, ostack;
 
-  d_assert (pars_number == 0);
   /* ------ Initiations after execution of stmts before __init__ ----- */
+  d_assert (pars_number == 0);
+  /* Initialized standard variables.  */
+  initiate_vars ();
   /* Set stdin, stdout, stderr. */
-  var = IVAL (ER_stack_vars (cstack), BC_var_num (stdin_bc_decl));
+  ostack = get_obj_stack (io_bc_decl);
+  var = IVAL (ER_stack_vars (ostack), BC_var_num (stdin_bc_decl));
   place_file_instance (stdin, var);
-  var = IVAL (ER_stack_vars (cstack), BC_var_num (stdout_bc_decl));
+  var = IVAL (ER_stack_vars (ostack), BC_var_num (stdout_bc_decl));
   place_file_instance (stdout, var);
-  var = IVAL (ER_stack_vars (cstack), BC_var_num (stderr_bc_decl));
+  var = IVAL (ER_stack_vars (ostack), BC_var_num (stderr_bc_decl));
   place_file_instance (stderr, var);
   /* ----- End of the initiations ----- */
   /* Place the result instead of the function. */
@@ -6635,7 +6721,7 @@ tree_to_heap (struct yaep_tree_node *root)
     {
     case YAEP_NIL:
     case YAEP_ERROR:
-      var = IVAL (ER_stack_vars (uppest_stack),
+      var = IVAL (ER_stack_vars (get_obj_stack (yaep_bc_decl)),
 		  BC_var_num (root->type == YAEP_NIL
 			      ? nil_anode_bc_decl : error_anode_bc_decl));
       d_assert (ER_NODE_MODE (var) == ER_NM_stack);
@@ -6651,7 +6737,7 @@ tree_to_heap (struct yaep_tree_node *root)
 		== ER_NM_heap_stack);
       ER_set_stack (ctop, root->val.term.attr);
       DECR_CTOP (2);
-      res = create_class_stack (anode_bc_decl, uppest_stack,
+      res = create_class_stack (anode_bc_decl, get_obj_stack (yaep_bc_decl),
 				(val_t *) IVAL (ctop, 1), 2, TRUE);
       break;
     case YAEP_ANODE:
@@ -6666,7 +6752,7 @@ tree_to_heap (struct yaep_tree_node *root)
       ER_SET_MODE (ctop, ER_NM_vect);
       set_vect_dim (ctop, vect, 0);
       DECR_CTOP (2);
-      res = create_class_stack (anode_bc_decl, uppest_stack,
+      res = create_class_stack (anode_bc_decl, get_obj_stack (yaep_bc_decl),
 				(val_t *) IVAL (ctop, 1), 2, TRUE);
       break;
     case YAEP_ALT:
@@ -6681,7 +6767,7 @@ tree_to_heap (struct yaep_tree_node *root)
       ER_SET_MODE (ctop, ER_NM_vect);
       set_vect_dim (ctop, vect, 0);
       DECR_CTOP (2);
-      res = create_class_stack (anode_bc_decl, uppest_stack,
+      res = create_class_stack (anode_bc_decl, get_obj_stack (yaep_bc_decl),
 				(val_t *) IVAL (ctop, 1), 2, TRUE);
       break;
     default:

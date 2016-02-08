@@ -253,12 +253,97 @@ extern IR_node_t destroy_unique_ident;
   ((v) == NULL ? v : IR_unique_ident (v))
 
 /* The following macro value is standard environment which is parsed
-   before the program. The last character must be a space for correct
-   parsing.  The last character of the string *should* be \n.  That is
-   important for correct work OF REPL. */
+   before the program. The last character of the string *should* be
+   \n.  That is important for correct work OF REPL. */
 #define ENVIRONMENT \
-  "class except {}\n"\
-  " class error (msg = nil) {use except;}\n"\
+  "obj lang { // Work with standard data type and related exceptions\n"\
+  "\n"\
+  "  class except {}\n"\
+  "   class error (msg = nil) {use except;}\n"\
+  "    class invop (msg = nil) {use error former msg;}\n"\
+  "     class optype (msg = nil) {use invop former msg;}\n"\
+  "     class opvalue (msg = nil) {use invop former msg;}\n"\
+  "    class invindex (msg = nil) {use error former msg;}\n"\
+  "     class indextype (msg = nil) {use invindex former msg;}\n"\
+  "     class indexvalue (msg = nil) {use invindex former msg;}\n"\
+  "     class indexop (msg = nil) {use invindex former msg;}\n"\
+  "    class invslice (msg = nil) {use error former msg;}\n"\
+  "     class slicetype (msg = nil) {use invslice former msg;}\n"\
+  "     class sliceform (msg = nil) {use invslice former msg;}\n"\
+  "    class invector (msg = nil) {use error former msg;}\n"\
+  "     class veclen (msg = nil) {use invector former msg;}\n"\
+  "     class vecform (msg = nil) {use invector former msg;}\n"\
+  "     class matrixform (msg = nil) {use invector former msg;}\n"\
+  "    class invkey (msg = nil) {use error former msg;}\n"\
+  "     class keyvalue (msg = nil) {use invkey former msg;}\n"\
+  "     class keyop (msg = nil) {use invkey former msg;}\n"\
+  "\n"\
+  "    class invcall (msg = nil) {use error former msg;}\n"\
+  "     class abstrcall (msg = nil) {use invcall former msg;}\n"\
+  "     class callop (msg = nil) {use invcall former msg;}\n"\
+  "     class partype (msg = nil) {use invcall former msg;}\n"\
+  "     class parvalue (msg = nil) {use invcall former msg;}\n"\
+  "     class parnumber (msg = nil) {use invcall former msg;}\n"\
+  "     class syncthreadcall (msg = nil) {use invcall former msg;}\n"\
+  "     class internal (msg = nil) {use invcall former msg;}\n"\
+  "     class invresult (msg = nil) {use invcall former msg;}\n"\
+  "    class invaccess (msg = nil) {use error former msg;}\n"\
+  "     class accessop (msg = nil) {use invaccess former msg;}\n"\
+  "     class accessvalue (msg = nil) {use invaccess former msg;}\n"\
+  "     class immutable (msg = nil) {use invaccess former msg;}\n"\
+  "     class patternmatch (msg = nil) {use invaccess former msg;}\n"\
+  "    class deadlock (msg = nil) {use error former msg;}\n"\
+  "    class syncwait (msg = nil) {use error former msg;}\n"\
+  "\n"\
+  "  val version, main_thread, curr_thread;\n"\
+  "  var argv, env;\n"\
+  "  fun tolower {} fun toupper {} fun translit {}\n"\
+  "  fun eltype {} fun keys {}\n"\
+  "  fun closure {} fun context {} fun inside {} fun isa {}\n"\
+  "  fun subv {} fun cmpv {} fun del {} fun ins {}  fun insv {}\n"\
+  "  fun rev {}\n"\
+  "  fun fold {} fun filter {} fun map {}\n"\
+  "  fun sort {}\n"\
+  "  fun transpose {}\n"\
+  "  fun gc {} fun exit {}\n"\
+  "}\n"\
+  "expose lang.*;\n"\
+  "\n"\
+  "obj io {\n"\
+  "  class invinput (msg = nil) {use invcall former msg;}\n"\
+  "  class invfmt (msg = nil) {use invcall former msg;}\n"\
+  "  class eof (msg = nil) {use invcall former msg;}\n"\
+  "   class invencoding (msg = nil) {use invcall former msg;}\n"\
+  "\n"\
+  "  // Do not place any code inside file (it is only for internal purposes)\n"\
+  "  final class file {\n"\
+  "    priv var file_ptr, unget_char, file_icd, file_byte_ocd;\n"\
+  "    priv var file_ucode_ocd, file_encoding, file_encoding_type;\n"\
+  "    throw lang.callop (\"File can be created only by functions open or popen\");\n"\
+  "  }\n"\
+  "  val stdin, stdout, stderr;\n"\
+  "  fun rename {} fun remove {} fun mkdir {} fun rmdir {}\n"\
+  "  fun getcwd {} fun chdir {}\n"\
+  "  fun chumod {} fun chgmod {} fun chomod {} fun isatty {}\n"\
+  "  fun open {} fun close {} fun flush {} fun popen {} fun pclose {}\n"\
+  "  fun tell {} fun seek {}\n"\
+  "  fun put {} fun putln {} fun fput {} fun fputln {} fun sput {} fun sputln {}\n"\
+  "  fun putf {} fun fputf {} fun sputf {}\n"\
+  "  fun print {} fun println {}\n"\
+  "  fun fprint {} fun fprintln {} fun sprint {} fun sprintln {}\n"\
+  "  fun get {} fun getln {} fun getf {} fun fget {} fun fgetln {} fun fgetf {}\n"\
+  "  fun scan {} fun scanln {} fun fscan {} fun fscanln {}\n"\
+  "  fun set_encoding {} fun get_encoding {}\n"\
+  "  fun set_file_encoding {} fun get_file_encoding {}\n"\
+  "  fun readdir {} fun ftype {}\n"\
+  "  fun fuidn {} fun fgrpn {} fun fsize {}\n"\
+  "  fun fatime {} fun fmtime {} fun fctime {}\n"\
+  "  fun fumode {} fun fgmode {} fun fomode {}\n"\
+  "}\n"\
+  "expose io.*;\n"\
+  "\n"\
+  "obj sys { // work with external environment and related exceptions\n"\
+  "\n"\
   "  class signal (msg = nil) {use error former msg;}\n"\
   "   class sigint (msg = nil) {use signal former msg;}\n"\
   "   class sigill (msg = nil) {use signal former msg;}\n"\
@@ -266,36 +351,9 @@ extern IR_node_t destroy_unique_ident;
   "   class sigfpe (msg = nil) {use signal former msg;}\n"\
   "   class sigterm (msg = nil) {use signal former msg;}\n"\
   "   class sigsegv (msg = nil) {use signal former msg;}\n"\
+  "\n"\
   "  class invenv (msg = nil) {use error former msg;}\n"\
-  "  class invop (msg = nil) {use error former msg;}\n"\
-  "   class optype (msg = nil) {use invop former msg;}\n"\
-  "   class opvalue (msg = nil) {use invop former msg;}\n"\
-  "  class invindex (msg = nil) {use error former msg;}\n"\
-  "   class indextype (msg = nil) {use invindex former msg;}\n"\
-  "   class indexvalue (msg = nil) {use invindex former msg;}\n"\
-  "   class indexop (msg = nil) {use invindex former msg;}\n"\
-  "  class invslice (msg = nil) {use error former msg;}\n"\
-  "   class slicetype (msg = nil) {use invslice former msg;}\n"\
-  "   class sliceform (msg = nil) {use invslice former msg;}\n"\
-  "  class invector (msg = nil) {use error former msg;}\n"\
-  "   class veclen (msg = nil) {use invector former msg;}\n"\
-  "   class vecform (msg = nil) {use invector former msg;}\n"\
-  "   class matrixform (msg = nil) {use invector former msg;}\n"\
-  "  class invkey (msg = nil) {use error former msg;}\n"\
-  "   class keyvalue (msg = nil) {use invkey former msg;}\n"\
-  "   class keyop (msg = nil) {use invkey former msg;}\n"\
-  "  class invcall (msg = nil) {use error former msg;}\n"\
-  "   class abstrcall (msg = nil) {use invcall former msg;}\n"\
-  "   class callop (msg = nil) {use invcall former msg;}\n"\
-  "   class partype (msg = nil) {use invcall former msg;}\n"\
-  "   class parvalue (msg = nil) {use invcall former msg;}\n"\
-  "   class invresult (msg = nil) {use invcall former msg;}\n"\
-  "   class invinput (msg = nil) {use invcall former msg;}\n"\
-  "   class invfmt (msg = nil) {use invcall former msg;}\n"\
-  "   class invencoding (msg = nil) {use invcall former msg;}\n"\
-  "   class eof (msg = nil) {use invcall former msg;}\n"\
-  "   class parnumber (msg = nil) {use invcall former msg;}\n"\
-  "   class syncthreadcall (msg = nil) {use invcall former msg;}\n"\
+  "\n"\
   "   class syserror (msg = nil) {use invcall former msg;}\n"\
   "    class eaccess (msg = nil) {use syserror former msg;}\n"\
   "    class eagain (msg = nil) {use syserror former msg;}\n"\
@@ -333,128 +391,94 @@ extern IR_node_t destroy_unique_ident;
   "    class espipe (msg = nil) {use syserror former msg;}\n"\
   "    class esrch (msg = nil) {use syserror former msg;}\n"\
   "    class exdev (msg = nil) {use syserror former msg;}\n"\
-  "   class systemcall (msg = nil) {use invcall former msg;}\n"\
-  "    class noshell (msg = nil) {use systemcall former msg;}\n"\
-  "    class systemfail (msg = nil) {use systemcall former msg;}\n"\
-  "   class invregex (msg = nil) {use invcall former msg;}\n"\
-  "   class invparser (msg = nil) {use invcall former msg;}\n"\
-  "    class invgrammar (msg = nil) {use invparser former msg;}\n"\
-  "    class invtoken (msg = nil) {use invparser former msg;}\n"\
-  "    class pmemory (msg = nil) {use invparser former msg;}\n"\
+  "\n"\
   "   class invextern (msg = nil) {use invcall former msg;}\n"\
   "    class noextern (msg = nil) {use invextern former msg;}\n"\
   "    class libclose (msg = nil) {use invextern former msg;}\n"\
   "    class noexternsupp (msg = nil) {use invextern former msg;}\n"\
+  "\n"\
   "   class invenvar (msg = nil) {use invcall former msg;}\n"\
-  "   class internal (msg = nil) {use invcall former msg;}\n"\
-  "  class invaccess (msg = nil) {use error former msg;}\n"\
-  "   class accessop (msg = nil) {use invaccess former msg;}\n"\
-  "   class accessvalue (msg = nil) {use invaccess former msg;}\n"\
-  "   class immutable (msg = nil) {use invaccess former msg;}\n"\
-  "   class patternmatch (msg = nil) {use invaccess former msg;}\n"\
-  "  class deadlock (msg = nil) {use error former msg;}\n"\
-  "  class syncwait (msg = nil) {use error former msg;}\n"\
-  "var argv, env; val version, main_thread, curr_thread;\n"\
-  "class anode (name, transl) {}\n"\
-  "class token (code) {}\n"\
-  "if (0) {var t; t.msg; t.code;} // mark some fields\n"\
-  "val nil_anode = anode (\"$nil\", nil);\n"\
-  "val error_anode = anode (\"$error\", nil);\n"\
-  "final class parser \n"\
-  "{\n"\
-  "  var ambiguous_p;\n"\
-  "  priv var grammar;\n"\
   "\n"\
-  "  priv fun int_earley_parse_grammar {} priv fun int_earley_set_debug_level {}\n"\
-  "  priv fun int_earley_set_one_parse_flag {}\n"\
-  "  priv fun int_earley_set_lookahead_level {}\n"\
-  "  priv fun int_earley_set_cost_flag {}\n"\
-  "  priv fun int_earley_set_error_recovery_flag {}\n"\
-  "  priv fun int_earley_set_recovery_match {} priv fun int_earley_parse {}\n"\
-  "  priv fun int_earley_create_grammar {}\n"\
+  "   class systemcall (msg = nil) {use invcall former msg;}\n"\
+  "    class noshell (msg = nil) {use systemcall former msg;}\n"\
+  "    class systemfail (msg = nil) {use systemcall former msg;}\n"\
   "\n"\
-  "  fun set_grammar (descr, strict_p) {\n"\
-  "    int_earley_parse_grammar (grammar, strict_p, descr);\n"\
-  "  }\n"\
-  "  fun set_debug (level) {\n"\
-  "    return int_earley_set_debug_level (grammar, level);\n"\
-  "  }\n"\
-  "  fun set_one_parse (flag) {\n"\
-  "    return int_earley_set_one_parse_flag (grammar, flag);\n"\
-  "  }\n"\
-  "  fun set_lookahead (flag) {\n"\
-  "    return int_earley_set_lookahead_level (grammar, flag);\n"\
-  "  }\n"\
-  "  fun set_cost (flag) {\n"\
-  "    return int_earley_set_cost_flag (grammar, flag);\n"\
-  "  }\n"\
-  "  fun set_recovery (flag) {\n"\
-  "    return int_earley_set_error_recovery_flag (grammar, flag);\n"\
-  "  }\n"\
-  "  fun set_recovery_match (n_toks) {\n"\
-  "    return int_earley_set_recovery_match (grammar, n_toks);\n"\
-  "  }\n"\
-  "  fun parse (tokens, error_fun) {\n"\
-  "    var __i; // Trick to guarantee temp. vars to call error_fun\n"\
-  "    __i = 1 ^ 2 & (3 ^ 4 & (5 ^ 6 & (7 ^ 8 & (9 ^ 10 & (11 ^ 12 & 13)))));\n"\
-  "    return int_earley_parse (grammar, tokens, error_fun);\n"\
-  "  }\n"\
-  "\n"\
-  "  grammar = int_earley_create_grammar ();\n"\
+  "  var time_format = \"%a %b %d %H:%M:%S %Z %Y\";\n"\
+  "  fun getpid {} fun getun {} fun geteun {}\n"\
+  "  fun getgn {} fun getegn {} fun getgroups {}\n"\
+  "  fun system {}\n"\
+  "  fun time {} fun strtime {} fun clock {}\n"\
+  "  fun __process_errno__ {} \n"\
   "}\n"\
-  "// Do not place any code inside file (it is only for internal purposes)\n"\
-  "final class file {\n"\
-  "  priv var file_ptr, unget_char, file_icd, file_byte_ocd;\n"\
-  "  priv var file_ucode_ocd, file_encoding, file_encoding_type;\n"\
-  "  throw callop\n"\
-  "    (\"File can be created only by functions open or popen\");}\n"\
-  "val stdin;\n"\
-  "val stdout;\n"\
-  "val stderr;\n"\
-  "fun max {} fun min {}\n"\
-  "fun tolower {} fun toupper {} fun translit {}\n"\
-  "fun eltype {}\n"\
-  "fun keys {}\n"\
-  "fun closure {} fun context {} fun inside {} fun isa {}\n"\
-  "fun subv {} fun cmpv {} fun del {} fun ins {}  fun insv {}\n"\
-  "fun rev {} fun sort {}\n"\
-  "fun sqrt {} fun exp {} fun log {} fun log10 {} fun pow {} \n"\
-  "fun sin {} fun cos {} fun atan2 {} \n"\
-  "fun match {} fun gmatch {} fun sub {} fun gsub {}\n"\
-  "fun split {} var split_regex = \"[ \t]+\";\n"\
-  "fun srand {} fun rand {} \n"\
-  "fun __process_errno__ {} \n"\
-  "fun readdir {} fun ftype {}\n"\
-  "fun fuidn {} fun fgrpn {} fun fsize {}\n"\
-  "fun fatime {} fun fmtime {} fun fctime {}\n"\
-  "fun fumode {} fun fgmode {} fun fomode {}\n"\
-  "fun time {}\n"\
-  "fun strtime {} var time_format = \"%a %b %d %H:%M:%S %Z %Y\";\n"\
-  "fun clock {}\n"\
-  "fun gc {} \n"\
-  "fun rename {} fun remove {}\n"\
-  "fun mkdir {} fun rmdir {}\n"\
-  "fun getcwd {} fun chdir {}\n"\
-  "fun chumod {} fun chgmod {} fun chomod {} fun isatty {}\n"\
-  "fun open {} fun close {} fun flush {}\n"\
-  "fun popen {} fun pclose {}\n"\
-  "fun tell {} fun seek {}\n"\
-  "fun put {} fun putln {}\n"\
-  "fun fput {} fun fputln {} fun sput {} fun sputln {}\n"\
-  "fun putf {} fun fputf {} fun sputf {}\n"\
-  "fun print {} fun println {}\n"\
-  "fun fprint {} fun fprintln {} fun sprint {} fun sprintln {}\n"\
-  "fun get {} fun getln {} fun getf {}\n"\
-  "fun fget {} fun fgetln {} fun fgetf {}\n"\
-  "fun scan {} fun scanln {} fun fscan {} fun fscanln {}\n"\
-  "fun getpid {} fun getun {} fun geteun {}\n"\
-  "fun getgn {} fun getegn {} fun getgroups {}\n"\
-  "fun system {}\n"\
-  "fun exit {}\n"\
-  "fun fold {} fun filter {} fun map {}\n"\
-  "fun transpose {}\n"\
-  "fun set_encoding {} fun get_encoding {}\n"\
-  "fun set_file_encoding {} fun get_file_encoding {}\n"\
+  "\n"\
+  "obj math { // Mathematical functions\n"\
+  "  fun max {} fun min {} fun srand {} fun rand {}\n"\
+  "  fun sqrt {} fun exp {} fun log {} fun log10 {} fun pow {} \n"\
+  "  fun sin {} fun cos {} fun atan2 {} \n"\
+  "}\n"\
+  "\n"\
+  "obj re { // work with regexp\n"\
+  "  class invregex (msg = nil) {use invcall former msg;}\n"\
+  "\n"\
+  "  fun match {} fun gmatch {} fun sub {} fun gsub {}\n"\
+  "  fun split {} var split_regex = \"[ \t]+\";\n"\
+  "}\n"\
+  "\n"\
+  "obj yaep { // work with yet another earley parser\n"\
+  "  class invparser (msg = nil) {use invcall former msg;}\n"\
+  "   class invgrammar (msg = nil) {use invparser former msg;}\n"\
+  "   class invtoken (msg = nil) {use invparser former msg;}\n"\
+  "   class pmemory (msg = nil) {use invparser former msg;}\n"\
+  "\n"\
+  "  class anode (name, transl) {}\n"\
+  "  class token (code) {}\n"\
+  "  if (0) {var t; t.msg; t.code;} // mark some fields\n"\
+  "  val nil_anode = anode (\"$nil\", nil);\n"\
+  "  val error_anode = anode (\"$error\", nil);\n"\
+  "  final class parser {\n"\
+  "    var ambiguous_p;\n"\
+  "    priv var grammar;\n"\
+  "\n"\
+  "    priv fun int_earley_parse_grammar {} priv fun int_earley_set_debug_level {}\n"\
+  "    priv fun int_earley_set_one_parse_flag {}\n"\
+  "    priv fun int_earley_set_lookahead_level {}\n"\
+  "    priv fun int_earley_set_cost_flag {}\n"\
+  "    priv fun int_earley_set_error_recovery_flag {}\n"\
+  "    priv fun int_earley_set_recovery_match {} priv fun int_earley_parse {}\n"\
+  "    priv fun int_earley_create_grammar {}\n"\
+  "\n"\
+  "    fun set_grammar (descr, strict_p) {\n"\
+  "      int_earley_parse_grammar (grammar, strict_p, descr);\n"\
+  "    }\n"\
+  "    fun set_debug (level) {\n"\
+  "      return int_earley_set_debug_level (grammar, level);\n"\
+  "    }\n"\
+  "    fun set_one_parse (flag) {\n"\
+  "      return int_earley_set_one_parse_flag (grammar, flag);\n"\
+  "    }\n"\
+  "    fun set_lookahead (flag) {\n"\
+  "      return int_earley_set_lookahead_level (grammar, flag);\n"\
+  "    }\n"\
+  "    fun set_cost (flag) {\n"\
+  "      return int_earley_set_cost_flag (grammar, flag);\n"\
+  "    }\n"\
+  "    fun set_recovery (flag) {\n"\
+  "      return int_earley_set_error_recovery_flag (grammar, flag);\n"\
+  "    }\n"\
+  "    fun set_recovery_match (n_toks) {\n"\
+  "      return int_earley_set_recovery_match (grammar, n_toks);\n"\
+  "    }\n"\
+  "    fun parse (tokens, error_fun) {\n"\
+  "      var __i; // Trick to guarantee temp. vars to call error_fun\n"\
+  "      __i = 1 ^ 2 & (3 ^ 4 & (5 ^ 6 & (7 ^ 8 & (9 ^ 10 & (11 ^ 12 & 13)))));\n"\
+  "      return int_earley_parse (grammar, tokens, error_fun);\n"\
+  "    }\n"\
+  "\n"\
+  "    grammar = int_earley_create_grammar ();\n"\
+  "  }\n"\
+  "}\n"\
+  "\n"\
+  "expose lang.*, io.*;\n"\
   "fun __init__ {} __init__();\n"
 }
 

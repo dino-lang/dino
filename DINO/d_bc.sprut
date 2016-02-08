@@ -79,6 +79,10 @@ typedef void (*implementation_fun_t) (int pars_number);
 
 extern BC_node_t first_program_bc;
 
+/* Lang space: */
+#define LANG_NAME "lang"
+extern BC_node_t lang_bc_decl;
+
 #define EXCEPT_NAME "except"
 extern BC_node_t except_bc_decl;
 
@@ -87,30 +91,6 @@ extern BC_node_t error_bc_decl;
 
 #define MSG_NAME "msg"
 extern BC_node_t msg_bc_decl;
-
-#define SIGNAL_NAME "signal"
-extern BC_node_t signal_bc_decl;
-
-#define SIGINT_NAME "sigint"
-extern BC_node_t sigint_bc_decl;
-
-#define SIGILL_NAME "sigill"
-extern BC_node_t sigill_bc_decl;
-
-#define SIGABRT_NAME "sigabrt"
-extern BC_node_t sigabrt_bc_decl;
-
-#define SIGFPE_NAME "sigfpe"
-extern BC_node_t sigfpe_bc_decl;
-
-#define SIGTERM_NAME "sigterm"
-extern BC_node_t sigterm_bc_decl;
-
-#define SIGSEGV_NAME "sigsegv"
-extern BC_node_t sigsegv_bc_decl;
-
-#define INVENV_NAME "invenv"
-extern BC_node_t invenv_bc_decl;
 
 #define INVOP_NAME "invop"
 extern BC_node_t invop_bc_decl;
@@ -178,179 +158,17 @@ extern BC_node_t partype_bc_decl;
 #define PARVALUE_NAME "parvalue"
 extern BC_node_t parvalue_bc_decl;
 
-#define INVRESULT_NAME "invresult"
-extern BC_node_t invresult_bc_decl;
-
-#define INVINPUT_NAME "invinput"
-extern BC_node_t invinput_bc_decl;
-
-#define INVFMT_NAME "invfmt"
-extern BC_node_t invfmt_bc_decl;
-
-#define INVENCODING_NAME "invencoding"
-extern BC_node_t invencoding_bc_decl;
-
-#define EOF_NAME "eof"
-extern BC_node_t eof_bc_decl;
-
 #define PARNUMBER_NAME "parnumber"
 extern BC_node_t parnumber_bc_decl;
 
 #define SYNCTHREADCALL_NAME "syncthreadcall"
 extern BC_node_t syncthreadcall_bc_decl;
 
-#define SYSERROR_NAME "syserror"
-extern BC_node_t syserror_bc_decl;
-
-#define EACCESS_NAME "eaccess"
-extern BC_node_t eaccess_bc_decl;
-
-#define EAGAIN_NAME "eagain"
-extern BC_node_t eagain_bc_decl;
-
-#define EBADF_NAME "ebadf"
-extern BC_node_t ebadf_bc_decl;
-
-#define EBUSY_NAME "ebusy"
-extern BC_node_t ebusy_bc_decl;
-
-#define ECHILD_NAME "echild"
-extern BC_node_t echild_bc_decl;
-
-#define EDEADLK_NAME "edeadlk"
-extern BC_node_t edeadlk_bc_decl;
-
-#define EDOM_NAME "edom"
-extern BC_node_t edom_bc_decl;
-
-#define EEXIST_NAME "eexist"
-extern BC_node_t eexist_bc_decl;
-
-#define EFAULT_NAME "efault"
-extern BC_node_t efault_bc_decl;
-
-#define EFBIG_NAME "efbig"
-extern BC_node_t efbig_bc_decl;
-
-#define EINTR_NAME "eintr"
-extern BC_node_t eintr_bc_decl;
-
-#define EINVAL_NAME "einval"
-extern BC_node_t einval_bc_decl;
-
-#define EIO_NAME "eio"
-extern BC_node_t eio_bc_decl;
-
-#define EISDIR_NAME "eisdir"
-extern BC_node_t eisdir_bc_decl;
-
-#define EMFILE_NAME "emfile"
-extern BC_node_t emfile_bc_decl;
-
-#define EMLINK_NAME "emlink"
-extern BC_node_t emlink_bc_decl;
-
-#define ENAMETOOLONG_NAME "enametoolong"
-extern BC_node_t enametoolong_bc_decl;
-
-#define ENFILE_NAME "enfile"
-extern BC_node_t enfile_bc_decl;
-
-#define ENODEV_NAME "enodev"
-extern BC_node_t enodev_bc_decl;
-
-#define ENOENT_NAME "enoent"
-extern BC_node_t enoent_bc_decl;
-
-#define ENOEXEC_NAME "enoexec"
-extern BC_node_t enoexec_bc_decl;
-
-#define ENOLCK_NAME "enolck"
-extern BC_node_t enolck_bc_decl;
-
-#define ENOMEM_NAME "enomem"
-extern BC_node_t enomem_bc_decl;
-
-#define ENOSPC_NAME "enospc"
-extern BC_node_t enospc_bc_decl;
-
-#define ENOSYS_NAME "enosys"
-extern BC_node_t enosys_bc_decl;
-
-#define ENOTDIR_NAME "enotdir"
-extern BC_node_t enotdir_bc_decl;
-
-#define ENOTEMPTY_NAME "enotempty"
-extern BC_node_t enotempty_bc_decl;
-
-#define ENOTTY_NAME "enotty"
-extern BC_node_t enotty_bc_decl;
-
-#define ENXIO_NAME "enxio"
-extern BC_node_t enxio_bc_decl;
-
-#define EPERM_NAME "eperm"
-extern BC_node_t eperm_bc_decl;
-
-#define EPIPE_NAME "epipe"
-extern BC_node_t epipe_bc_decl;
-
-#define ERANGE_NAME "erange"
-extern BC_node_t erange_bc_decl;
-
-#define EROFS_NAME "erofs"
-extern BC_node_t erofs_bc_decl;
-
-#define ESPIPE_NAME "espipe"
-extern BC_node_t espipe_bc_decl;
-
-#define ESRCH_NAME "esrch"
-extern BC_node_t esrch_bc_decl;
-
-#define EXDEV_NAME "exdev"
-extern BC_node_t exdev_bc_decl;
-
-#define SYSTEMCALL_NAME "systemcall"
-extern BC_node_t systemcall_bc_decl;
-
-#define NOSHELL_NAME "noshell"
-extern BC_node_t noshell_bc_decl;
-
-#define SYSTEMFAIL_NAME "systemfail"
-extern BC_node_t systemfail_bc_decl;
-
-#define INVREGEX_NAME "invregex"
-extern BC_node_t invregex_bc_decl;
-
-#define INVPARSER_NAME "invparser"
-extern BC_node_t invparser_bc_decl;
-
-#define INVGRAMMAR_NAME "invgrammar"
-extern BC_node_t invgrammar_bc_decl;
-
-#define INVTOKEN_NAME "invtoken"
-extern BC_node_t invtoken_bc_decl;
-
-#define PMEMORY_NAME "pmemory"
-extern BC_node_t pmemory_bc_decl;
-
-#define INVEXTERN_NAME "invextern"
-extern BC_node_t invextern_bc_decl;
-
-#define NOEXTERN_NAME "noextern"
-extern BC_node_t noextern_bc_decl;
-
-#define LIBCLOSE_NAME "libclose"
-extern BC_node_t libclose_bc_decl;
-
-#define NOEXTERNSUPP_NAME "noexternsupp"
-extern BC_node_t noexternsupp_bc_decl;
-
-#define INVENVAR_NAME "invenvar"
-extern BC_node_t invenvar_bc_decl;
-
 #define INTERNAL_NAME "internal"
 extern BC_node_t internal_bc_decl;
+
+#define INVRESULT_NAME "invresult"
+extern BC_node_t invresult_bc_decl;
 
 #define INVACCESS_NAME "invaccess"
 extern BC_node_t invaccess_bc_decl;
@@ -373,12 +191,6 @@ extern BC_node_t deadlock_bc_decl;
 #define SYNCWAIT_NAME "syncwait"
 extern BC_node_t syncwait_bc_decl;
 
-#define ARGV_NAME "argv"
-extern BC_node_t argv_bc_decl;
-
-#define ENV_NAME "env"
-extern BC_node_t env_bc_decl;
-
 #define VERSION_NAME "version"
 extern BC_node_t version_bc_decl;
 
@@ -388,93 +200,11 @@ extern BC_node_t main_thread_bc_decl;
 #define CURR_THREAD_NAME "curr_thread"
 extern BC_node_t curr_thread_bc_decl;
 
-#define ANODE_NAME "anode"
-extern BC_node_t anode_bc_decl;
+#define ARGV_NAME "argv"
+extern BC_node_t argv_bc_decl;
 
-#define TOKEN_NAME "token"
-extern BC_node_t token_bc_decl;
-
-#define CODE_NAME "code"
-extern BC_node_t code_bc_decl;
-
-#define NIL_ANODE_NAME "nil_anode"
-extern BC_node_t nil_anode_bc_decl;
-
-#define ERROR_ANODE_NAME "error_anode"
-extern BC_node_t error_anode_bc_decl;
-
-#define PARSER_NAME "parser"
-extern BC_node_t parser_bc_decl;
-
-#define AMBIGUOUS_P_NAME "ambiguous_p"
-extern BC_node_t ambiguous_p_bc_decl;
-
-#define INT_EARLEY_PARSE_GRAMMAR_NAME "int_earley_parse_grammar"
-extern BC_node_t int_earley_parse_grammar_bc_decl;
-
-#define INT_EARLEY_SET_DEBUG_LEVEL_NAME "int_earley_set_debug_level"
-extern BC_node_t int_earley_set_debug_level_bc_decl;
-
-#define INT_EARLEY_SET_ONE_PARSE_FLAG_NAME "int_earley_set_one_parse_flag"
-extern BC_node_t int_earley_set_one_parse_flag_bc_decl;
-
-#define INT_EARLEY_SET_LOOKAHEAD_LEVEL_NAME "int_earley_set_lookahead_level"
-extern BC_node_t int_earley_set_lookahead_level_bc_decl;
-
-#define INT_EARLEY_SET_COST_FLAG_NAME "int_earley_set_cost_flag"
-extern BC_node_t int_earley_set_cost_flag_bc_decl;
-
-#define INT_EARLEY_SET_ERROR_RECOVERY_FLAG_NAME \
-  "int_earley_set_error_recovery_flag"
-extern BC_node_t int_earley_set_error_recovery_flag_bc_decl;
-
-#define INT_EARLEY_SET_RECOVERY_MATCH_NAME "int_earley_set_recovery_match"
-extern BC_node_t int_earley_set_recovery_match_bc_decl;
-
-#define INT_EARLEY_PARSE_NAME "int_earley_parse"
-extern BC_node_t int_earley_parse_bc_decl;
-
-#define INT_EARLEY_CREATE_GRAMMAR_NAME "int_earley_create_grammar"
-extern BC_node_t int_earley_create_grammar_bc_decl;
-
-#define FILE_NAME "file"
-extern BC_node_t file_bc_decl;
-
-#define FILE_PTR_NAME "file_ptr"
-extern BC_node_t file_ptr_bc_decl;
-
-#define UNGET_CHAR_NAME "unget_char"
-extern BC_node_t unget_char_bc_decl;
-
-#define FILE_ICD_NAME "file_icd"
-extern BC_node_t file_icd_bc_decl;
-
-#define FILE_BYTE_OCD_NAME "file_byte_ocd"
-extern BC_node_t file_byte_ocd_bc_decl;
-
-#define FILE_UCODE_OCD_NAME "file_ucode_ocd"
-extern BC_node_t file_ucode_ocd_bc_decl;
-
-#define FILE_ENCODING_NAME "file_encoding"
-extern BC_node_t file_encoding_bc_decl;
-
-#define FILE_ENCODING_TYPE_NAME "file_encoding_type"
-extern BC_node_t file_encoding_type_bc_decl;
-
-#define STDIN_NAME "stdin"
-extern BC_node_t stdin_bc_decl;
-
-#define STDOUT_NAME "stdout"
-extern BC_node_t stdout_bc_decl;
-
-#define STDERR_NAME "stderr"
-extern BC_node_t stderr_bc_decl;
-
-#define MAX_NAME "max"
-extern BC_node_t max_bc_decl;
-
-#define MIN_NAME "min"
-extern BC_node_t min_bc_decl;
+#define ENV_NAME "env"
+extern BC_node_t env_bc_decl;
 
 #define TOLOWER_NAME "tolower"
 extern BC_node_t tolower_bc_decl;
@@ -521,107 +251,70 @@ extern BC_node_t insv_bc_decl;
 #define REV_NAME "rev"
 extern BC_node_t rev_bc_decl;
 
+#define FOLD_NAME "fold"
+extern BC_node_t fold_bc_decl;
+
+#define FILTER_NAME "filter"
+extern BC_node_t filter_bc_decl;
+
+#define MAP_NAME "map"
+extern BC_node_t map_bc_decl;
+
 #define SORT_NAME "sort"
 extern BC_node_t sort_bc_decl;
 
-#define SQRT_NAME "sqrt"
-extern BC_node_t sqrt_bc_decl;
+#define TRANSPOSE_NAME "transpose"
+extern BC_node_t transpose_bc_decl;
 
-#define EXP_NAME "exp"
-extern BC_node_t exp_bc_decl;
 
-#define LOG_NAME "log"
-extern BC_node_t log_bc_decl;
+/* IO space: */
+#define IO_NAME "io"
+extern BC_node_t io_bc_decl;
 
-#define LOG10_NAME "log10"
-extern BC_node_t log10_bc_decl;
+#define INVINPUT_NAME "invinput"
+extern BC_node_t invinput_bc_decl;
 
-#define POW_NAME "pow"
-extern BC_node_t pow_bc_decl;
+#define INVFMT_NAME "invfmt"
+extern BC_node_t invfmt_bc_decl;
 
-#define SIN_NAME "sin"
-extern BC_node_t sin_bc_decl;
+#define EOF_NAME "eof"
+extern BC_node_t eof_bc_decl;
 
-#define COS_NAME "cos"
-extern BC_node_t cos_bc_decl;
+#define INVENCODING_NAME "invencoding"
+extern BC_node_t invencoding_bc_decl;
 
-#define ATAN2_NAME "atan2"
-extern BC_node_t atan2_bc_decl;
+#define FILE_NAME "file"
+extern BC_node_t file_bc_decl;
 
-#define MATCH_NAME "match"
-extern BC_node_t match_bc_decl;
+#define FILE_PTR_NAME "file_ptr"
+extern BC_node_t file_ptr_bc_decl;
 
-#define GMATCH_NAME "gmatch"
-extern BC_node_t gmatch_bc_decl;
+#define UNGET_CHAR_NAME "unget_char"
+extern BC_node_t unget_char_bc_decl;
 
-#define SUB_NAME "sub"
-extern BC_node_t sub_bc_decl;
+#define FILE_ICD_NAME "file_icd"
+extern BC_node_t file_icd_bc_decl;
 
-#define GSUB_NAME "gsub"
-extern BC_node_t gsub_bc_decl;
+#define FILE_BYTE_OCD_NAME "file_byte_ocd"
+extern BC_node_t file_byte_ocd_bc_decl;
 
-#define SPLIT_NAME "split"
-extern BC_node_t split_bc_decl;
+#define FILE_UCODE_OCD_NAME "file_ucode_ocd"
+extern BC_node_t file_ucode_ocd_bc_decl;
 
-#define SPLIT_REGEX_NAME "split_regex"
-extern BC_node_t split_regex_bc_decl;
+#define FILE_ENCODING_NAME "file_encoding"
+extern BC_node_t file_encoding_bc_decl;
 
-#define SRAND_NAME "srand"
-extern BC_node_t srand_bc_decl;
+#define FILE_ENCODING_TYPE_NAME "file_encoding_type"
+extern BC_node_t file_encoding_type_bc_decl;
 
-#define RAND_NAME "rand"
-extern BC_node_t rand_bc_decl;
+#define STDIN_NAME "stdin"
+extern BC_node_t stdin_bc_decl;
 
-#define PROCESS_ERRNO_NAME "__process_errno__"
-extern BC_node_t process_errno_bc_decl;
+#define STDOUT_NAME "stdout"
+extern BC_node_t stdout_bc_decl;
 
-#define READDIR_NAME "readdir"
-extern BC_node_t readdir_bc_decl;
-
-#define FTYPE_NAME "ftype"
-extern BC_node_t ftype_bc_decl;
-
-#define FUIDN_NAME "fuidn"
-extern BC_node_t fun_bc_decl;
-
-#define FGRPN_NAME "fgrpn"
-extern BC_node_t fgrpn_bc_decl;
-
-#define FSIZE_NAME "fsize"
-extern BC_node_t fsize_bc_decl;
-
-#define FATIME_NAME "fatime"
-extern BC_node_t fatime_bc_decl;
-
-#define FMTIME_NAME "fmtime"
-extern BC_node_t fmtime_bc_decl;
-
-#define FCTIME_NAME "fctime"
-extern BC_node_t fctime_bc_decl;
-
-#define FUMODE_NAME "fumode"
-extern BC_node_t fumode_bc_decl;
-
-#define FGMODE_NAME "fgmode"
-extern BC_node_t fgmode_bc_decl;
-
-#define FOMODE_NAME "fomode"
-extern BC_node_t fomode_bc_decl;
-
-#define TIME_NAME "time"
-extern BC_node_t time_bc_decl;
-
-#define STRTIME_NAME "strtime"
-extern BC_node_t strtime_bc_decl;
-
-#define TIME_FORMAT_NAME "time_format"
-extern BC_node_t time_format_bc_decl;
-
-#define CLOCK_NAME "clock"
-extern BC_node_t clock_bc_decl;
-
-#define GC_NAME "gc"
-extern BC_node_t gc_bc_decl;
+#define STDERR_NAME "stderr"
+extern BC_node_t stderr_bc_decl;
 
 #define RENAME_NAME "rename"
 extern BC_node_t rename_bc_decl;
@@ -749,6 +442,218 @@ extern BC_node_t fscan_bc_decl;
 #define FSCANLN_NAME "fscanln"
 extern BC_node_t fscanln_bc_decl;
 
+#define SET_ENCODING_NAME "set_encoding"
+extern BC_node_t set_encoding_bc_decl;
+
+#define GET_ENCODING_NAME "get_encoding"
+extern BC_node_t get_encoding_bc_decl;
+
+#define SET_FILE_ENCODING_NAME "set_file_encoding"
+extern BC_node_t set_file_encoding_bc_decl;
+
+#define GET_FILE_ENCODING_NAME "get_file_encoding"
+extern BC_node_t get_file_encoding_bc_decl;
+
+#define READDIR_NAME "readdir"
+extern BC_node_t readdir_bc_decl;
+
+#define FTYPE_NAME "ftype"
+extern BC_node_t ftype_bc_decl;
+
+#define FUIDN_NAME "fuidn"
+extern BC_node_t fun_bc_decl;
+
+#define FGRPN_NAME "fgrpn"
+extern BC_node_t fgrpn_bc_decl;
+
+#define FSIZE_NAME "fsize"
+extern BC_node_t fsize_bc_decl;
+
+#define FATIME_NAME "fatime"
+extern BC_node_t fatime_bc_decl;
+
+#define FMTIME_NAME "fmtime"
+extern BC_node_t fmtime_bc_decl;
+
+#define FCTIME_NAME "fctime"
+extern BC_node_t fctime_bc_decl;
+
+#define FUMODE_NAME "fumode"
+extern BC_node_t fumode_bc_decl;
+
+#define FGMODE_NAME "fgmode"
+extern BC_node_t fgmode_bc_decl;
+
+#define FOMODE_NAME "fomode"
+extern BC_node_t fomode_bc_decl;
+
+
+/* Sys space: */
+#define SYS_NAME "sys"
+extern BC_node_t sys_bc_decl;
+
+#define SIGNAL_NAME "signal"
+extern BC_node_t signal_bc_decl;
+
+#define SIGINT_NAME "sigint"
+extern BC_node_t sigint_bc_decl;
+
+#define SIGILL_NAME "sigill"
+extern BC_node_t sigill_bc_decl;
+
+#define SIGABRT_NAME "sigabrt"
+extern BC_node_t sigabrt_bc_decl;
+
+#define SIGFPE_NAME "sigfpe"
+extern BC_node_t sigfpe_bc_decl;
+
+#define SIGTERM_NAME "sigterm"
+extern BC_node_t sigterm_bc_decl;
+
+#define SIGSEGV_NAME "sigsegv"
+extern BC_node_t sigsegv_bc_decl;
+
+#define INVENV_NAME "invenv"
+extern BC_node_t invenv_bc_decl;
+
+#define SYSERROR_NAME "syserror"
+extern BC_node_t syserror_bc_decl;
+
+#define EACCESS_NAME "eaccess"
+extern BC_node_t eaccess_bc_decl;
+
+#define EAGAIN_NAME "eagain"
+extern BC_node_t eagain_bc_decl;
+
+#define EBADF_NAME "ebadf"
+extern BC_node_t ebadf_bc_decl;
+
+#define EBUSY_NAME "ebusy"
+extern BC_node_t ebusy_bc_decl;
+
+#define ECHILD_NAME "echild"
+extern BC_node_t echild_bc_decl;
+
+#define EDEADLK_NAME "edeadlk"
+extern BC_node_t edeadlk_bc_decl;
+
+#define EDOM_NAME "edom"
+extern BC_node_t edom_bc_decl;
+
+#define EEXIST_NAME "eexist"
+extern BC_node_t eexist_bc_decl;
+
+#define EFAULT_NAME "efault"
+extern BC_node_t efault_bc_decl;
+
+#define EFBIG_NAME "efbig"
+extern BC_node_t efbig_bc_decl;
+
+#define EINTR_NAME "eintr"
+extern BC_node_t eintr_bc_decl;
+
+#define EINVAL_NAME "einval"
+extern BC_node_t einval_bc_decl;
+
+#define EIO_NAME "eio"
+extern BC_node_t eio_bc_decl;
+
+#define EISDIR_NAME "eisdir"
+extern BC_node_t eisdir_bc_decl;
+
+#define EMFILE_NAME "emfile"
+extern BC_node_t emfile_bc_decl;
+
+#define EMLINK_NAME "emlink"
+extern BC_node_t emlink_bc_decl;
+
+#define ENAMETOOLONG_NAME "enametoolong"
+extern BC_node_t enametoolong_bc_decl;
+
+#define ENFILE_NAME "enfile"
+extern BC_node_t enfile_bc_decl;
+
+#define ENODEV_NAME "enodev"
+extern BC_node_t enodev_bc_decl;
+
+#define ENOENT_NAME "enoent"
+extern BC_node_t enoent_bc_decl;
+
+#define ENOEXEC_NAME "enoexec"
+extern BC_node_t enoexec_bc_decl;
+
+#define ENOLCK_NAME "enolck"
+extern BC_node_t enolck_bc_decl;
+
+#define ENOMEM_NAME "enomem"
+extern BC_node_t enomem_bc_decl;
+
+#define ENOSPC_NAME "enospc"
+extern BC_node_t enospc_bc_decl;
+
+#define ENOSYS_NAME "enosys"
+extern BC_node_t enosys_bc_decl;
+
+#define ENOTDIR_NAME "enotdir"
+extern BC_node_t enotdir_bc_decl;
+
+#define ENOTEMPTY_NAME "enotempty"
+extern BC_node_t enotempty_bc_decl;
+
+#define ENOTTY_NAME "enotty"
+extern BC_node_t enotty_bc_decl;
+
+#define ENXIO_NAME "enxio"
+extern BC_node_t enxio_bc_decl;
+
+#define EPERM_NAME "eperm"
+extern BC_node_t eperm_bc_decl;
+
+#define EPIPE_NAME "epipe"
+extern BC_node_t epipe_bc_decl;
+
+#define ERANGE_NAME "erange"
+extern BC_node_t erange_bc_decl;
+
+#define EROFS_NAME "erofs"
+extern BC_node_t erofs_bc_decl;
+
+#define ESPIPE_NAME "espipe"
+extern BC_node_t espipe_bc_decl;
+
+#define ESRCH_NAME "esrch"
+extern BC_node_t esrch_bc_decl;
+
+#define EXDEV_NAME "exdev"
+extern BC_node_t exdev_bc_decl;
+
+#define INVEXTERN_NAME "invextern"
+extern BC_node_t invextern_bc_decl;
+
+#define NOEXTERN_NAME "noextern"
+extern BC_node_t noextern_bc_decl;
+
+#define LIBCLOSE_NAME "libclose"
+extern BC_node_t libclose_bc_decl;
+
+#define NOEXTERNSUPP_NAME "noexternsupp"
+extern BC_node_t noexternsupp_bc_decl;
+
+#define INVENVAR_NAME "invenvar"
+extern BC_node_t invenvar_bc_decl;
+
+#define SYSTEMCALL_NAME "systemcall"
+extern BC_node_t systemcall_bc_decl;
+
+#define NOSHELL_NAME "noshell"
+extern BC_node_t noshell_bc_decl;
+
+#define SYSTEMFAIL_NAME "systemfail"
+extern BC_node_t systemfail_bc_decl;
+
+#define TIME_FORMAT_NAME "time_format"
+extern BC_node_t time_format_bc_decl;
+
 #define GETPID_NAME "getpid"
 extern BC_node_t getpid_bc_decl;
 
@@ -776,29 +681,154 @@ extern BC_node_t system_bc_decl;
 #define EXIT_NAME "exit"
 extern BC_node_t exit_bc_decl;
 
-#define FOLD_NAME "fold"
-extern BC_node_t fold_bc_decl;
+#define TIME_NAME "time"
+extern BC_node_t time_bc_decl;
 
-#define FILTER_NAME "filter"
-extern BC_node_t filter_bc_decl;
+#define STRTIME_NAME "strtime"
+extern BC_node_t strtime_bc_decl;
 
-#define MAP_NAME "map"
-extern BC_node_t map_bc_decl;
+#define CLOCK_NAME "clock"
+extern BC_node_t clock_bc_decl;
 
-#define TRANSPOSE_NAME "transpose"
-extern BC_node_t transpose_bc_decl;
+#define GC_NAME "gc"
+extern BC_node_t gc_bc_decl;
 
-#define SET_ENCODING_NAME "set_encoding"
-extern BC_node_t set_encoding_bc_decl;
+#define PROCESS_ERRNO_NAME "__process_errno__"
+extern BC_node_t process_errno_bc_decl;
 
-#define GET_ENCODING_NAME "get_encoding"
-extern BC_node_t get_encoding_bc_decl;
 
-#define SET_FILE_ENCODING_NAME "set_file_encoding"
-extern BC_node_t set_file_encoding_bc_decl;
+/* Math space: */
+#define MATH_NAME "math"
+extern BC_node_t math_bc_decl;
 
-#define GET_FILE_ENCODING_NAME "get_file_encoding"
-extern BC_node_t get_file_encoding_bc_decl;
+#define MAX_NAME "max"
+extern BC_node_t max_bc_decl;
+
+#define MIN_NAME "min"
+extern BC_node_t min_bc_decl;
+
+#define SRAND_NAME "srand"
+extern BC_node_t srand_bc_decl;
+
+#define RAND_NAME "rand"
+extern BC_node_t rand_bc_decl;
+
+#define SQRT_NAME "sqrt"
+extern BC_node_t sqrt_bc_decl;
+
+#define EXP_NAME "exp"
+extern BC_node_t exp_bc_decl;
+
+#define LOG_NAME "log"
+extern BC_node_t log_bc_decl;
+
+#define LOG10_NAME "log10"
+extern BC_node_t log10_bc_decl;
+
+#define POW_NAME "pow"
+extern BC_node_t pow_bc_decl;
+
+#define SIN_NAME "sin"
+extern BC_node_t sin_bc_decl;
+
+#define COS_NAME "cos"
+extern BC_node_t cos_bc_decl;
+
+#define ATAN2_NAME "atan2"
+extern BC_node_t atan2_bc_decl;
+
+
+/* Re space: */
+#define RE_NAME "re"
+extern BC_node_t re_bc_decl;
+
+#define INVREGEX_NAME "invregex"
+extern BC_node_t invregex_bc_decl;
+
+#define MATCH_NAME "match"
+extern BC_node_t match_bc_decl;
+
+#define GMATCH_NAME "gmatch"
+extern BC_node_t gmatch_bc_decl;
+
+#define SUB_NAME "sub"
+extern BC_node_t sub_bc_decl;
+
+#define GSUB_NAME "gsub"
+extern BC_node_t gsub_bc_decl;
+
+#define SPLIT_NAME "split"
+extern BC_node_t split_bc_decl;
+
+#define SPLIT_REGEX_NAME "split_regex"
+extern BC_node_t split_regex_bc_decl;
+
+
+/* Parser space: */
+#define YAEP_NAME "yaep"
+extern BC_node_t yaep_bc_decl;
+
+#define INVPARSER_NAME "invparser"
+extern BC_node_t invparser_bc_decl;
+
+#define INVGRAMMAR_NAME "invgrammar"
+extern BC_node_t invgrammar_bc_decl;
+
+#define INVTOKEN_NAME "invtoken"
+extern BC_node_t invtoken_bc_decl;
+
+#define PMEMORY_NAME "pmemory"
+extern BC_node_t pmemory_bc_decl;
+
+#define ANODE_NAME "anode"
+extern BC_node_t anode_bc_decl;
+
+#define TOKEN_NAME "token"
+extern BC_node_t token_bc_decl;
+
+#define CODE_NAME "code"
+extern BC_node_t code_bc_decl;
+
+#define NIL_ANODE_NAME "nil_anode"
+extern BC_node_t nil_anode_bc_decl;
+
+#define ERROR_ANODE_NAME "error_anode"
+extern BC_node_t error_anode_bc_decl;
+
+#define PARSER_NAME "parser"
+extern BC_node_t parser_bc_decl;
+
+#define AMBIGUOUS_P_NAME "ambiguous_p"
+extern BC_node_t ambiguous_p_bc_decl;
+
+#define INT_EARLEY_PARSE_GRAMMAR_NAME "int_earley_parse_grammar"
+extern BC_node_t int_earley_parse_grammar_bc_decl;
+
+#define INT_EARLEY_SET_DEBUG_LEVEL_NAME "int_earley_set_debug_level"
+extern BC_node_t int_earley_set_debug_level_bc_decl;
+
+#define INT_EARLEY_SET_ONE_PARSE_FLAG_NAME "int_earley_set_one_parse_flag"
+extern BC_node_t int_earley_set_one_parse_flag_bc_decl;
+
+#define INT_EARLEY_SET_LOOKAHEAD_LEVEL_NAME "int_earley_set_lookahead_level"
+extern BC_node_t int_earley_set_lookahead_level_bc_decl;
+
+#define INT_EARLEY_SET_COST_FLAG_NAME "int_earley_set_cost_flag"
+extern BC_node_t int_earley_set_cost_flag_bc_decl;
+
+#define INT_EARLEY_SET_ERROR_RECOVERY_FLAG_NAME \
+  "int_earley_set_error_recovery_flag"
+extern BC_node_t int_earley_set_error_recovery_flag_bc_decl;
+
+#define INT_EARLEY_SET_RECOVERY_MATCH_NAME "int_earley_set_recovery_match"
+extern BC_node_t int_earley_set_recovery_match_bc_decl;
+
+#define INT_EARLEY_PARSE_NAME "int_earley_parse"
+extern BC_node_t int_earley_parse_bc_decl;
+
+#define INT_EARLEY_CREATE_GRAMMAR_NAME "int_earley_create_grammar"
+extern BC_node_t int_earley_create_grammar_bc_decl;
+
 
 #define INIT_NAME "__init__"
 extern BC_node_t init_bc_decl;
@@ -1495,17 +1525,11 @@ enumerate_infoed_bcode (BC_node_t block, int *curr_idn, int *curr_decl_num)
 }
 
 /* See comments for ENVIRONMENT. */
+/* Lang space: */
+BC_node_t lang_bc_decl;
 BC_node_t except_bc_decl;
 BC_node_t error_bc_decl;
 BC_node_t msg_bc_decl;
-BC_node_t signal_bc_decl;
-BC_node_t sigint_bc_decl;
-BC_node_t sigill_bc_decl;
-BC_node_t sigabrt_bc_decl;
-BC_node_t sigfpe_bc_decl;
-BC_node_t sigterm_bc_decl;
-BC_node_t sigsegv_bc_decl;
-BC_node_t invenv_bc_decl;
 BC_node_t invop_bc_decl;
 BC_node_t optype_bc_decl;
 BC_node_t opvalue_bc_decl;
@@ -1528,64 +1552,10 @@ BC_node_t abstrcall_bc_decl;
 BC_node_t callop_bc_decl;
 BC_node_t partype_bc_decl;
 BC_node_t parvalue_bc_decl;
-BC_node_t invresult_bc_decl;
-BC_node_t invinput_bc_decl;
-BC_node_t invfmt_bc_decl;
-BC_node_t invencoding_bc_decl;
-BC_node_t eof_bc_decl;
 BC_node_t parnumber_bc_decl;
 BC_node_t syncthreadcall_bc_decl;
-BC_node_t syserror_bc_decl;
-BC_node_t eaccess_bc_decl;
-BC_node_t eagain_bc_decl;
-BC_node_t ebadf_bc_decl;
-BC_node_t ebusy_bc_decl;
-BC_node_t echild_bc_decl;
-BC_node_t edeadlk_bc_decl;
-BC_node_t edom_bc_decl;
-BC_node_t eexist_bc_decl;
-BC_node_t efault_bc_decl;
-BC_node_t efbig_bc_decl;
-BC_node_t eintr_bc_decl;
-BC_node_t einval_bc_decl;
-BC_node_t eio_bc_decl;
-BC_node_t eisdir_bc_decl;
-BC_node_t emfile_bc_decl;
-BC_node_t emlink_bc_decl;
-BC_node_t enametoolong_bc_decl;
-BC_node_t enfile_bc_decl;
-BC_node_t enodev_bc_decl;
-BC_node_t enoent_bc_decl;
-BC_node_t enoexec_bc_decl;
-BC_node_t enolck_bc_decl;
-BC_node_t enomem_bc_decl;
-BC_node_t enospc_bc_decl;
-BC_node_t enosys_bc_decl;
-BC_node_t enotdir_bc_decl;
-BC_node_t enotempty_bc_decl;
-BC_node_t enotty_bc_decl;
-BC_node_t enxio_bc_decl;
-BC_node_t eperm_bc_decl;
-BC_node_t epipe_bc_decl;
-BC_node_t erange_bc_decl;
-BC_node_t erofs_bc_decl;
-BC_node_t espipe_bc_decl;
-BC_node_t esrch_bc_decl;
-BC_node_t exdev_bc_decl;
-BC_node_t invextern_bc_decl;
-BC_node_t noextern_bc_decl;
-BC_node_t libclose_bc_decl;
-BC_node_t noexternsupp_bc_decl;
-BC_node_t invenvar_bc_decl;
 BC_node_t internal_bc_decl;
-BC_node_t systemcall_bc_decl;
-BC_node_t noshell_bc_decl;
-BC_node_t systemfail_bc_decl;
-BC_node_t invregex_bc_decl;
-BC_node_t invparser_bc_decl;
-BC_node_t invgrammar_bc_decl;
-BC_node_t invtoken_bc_decl;
-BC_node_t pmemory_bc_decl;
+BC_node_t invresult_bc_decl;
 BC_node_t invaccess_bc_decl;
 BC_node_t accessop_bc_decl;
 BC_node_t accessvalue_bc_decl;
@@ -1593,40 +1563,11 @@ BC_node_t immutable_bc_decl;
 BC_node_t patternmatch_bc_decl;
 BC_node_t deadlock_bc_decl;
 BC_node_t syncwait_bc_decl;
-BC_node_t argv_bc_decl;
-BC_node_t env_bc_decl;
 BC_node_t version_bc_decl;
 BC_node_t main_thread_bc_decl;
 BC_node_t curr_thread_bc_decl;
-BC_node_t anode_bc_decl;
-BC_node_t token_bc_decl;
-BC_node_t code_bc_decl;
-BC_node_t nil_anode_bc_decl;
-BC_node_t error_anode_bc_decl;
-BC_node_t parser_bc_decl;
-BC_node_t ambiguous_p_bc_decl;
-BC_node_t int_earley_parse_grammar_bc_decl;
-BC_node_t int_earley_set_debug_level_bc_decl;
-BC_node_t int_earley_set_one_parse_flag_bc_decl;
-BC_node_t int_earley_set_lookahead_level_bc_decl;
-BC_node_t int_earley_set_cost_flag_bc_decl;
-BC_node_t int_earley_set_error_recovery_flag_bc_decl;
-BC_node_t int_earley_set_recovery_match_bc_decl;
-BC_node_t int_earley_parse_bc_decl;
-BC_node_t int_earley_create_grammar_bc_decl;
-BC_node_t file_bc_decl;
-BC_node_t file_ptr_bc_decl;
-BC_node_t unget_char_bc_decl;
-BC_node_t file_icd_bc_decl;
-BC_node_t file_byte_ocd_bc_decl;
-BC_node_t file_ucode_ocd_bc_decl;
-BC_node_t file_encoding_bc_decl;
-BC_node_t file_encoding_type_bc_decl;
-BC_node_t stdin_bc_decl;
-BC_node_t stdout_bc_decl;
-BC_node_t stderr_bc_decl;
-BC_node_t min_bc_decl;
-BC_node_t max_bc_decl;
+BC_node_t argv_bc_decl;
+BC_node_t env_bc_decl;
 BC_node_t tolower_bc_decl;
 BC_node_t toupper_bc_decl;
 BC_node_t translit_bc_decl;
@@ -1642,40 +1583,30 @@ BC_node_t del_bc_decl;
 BC_node_t ins_bc_decl;
 BC_node_t insv_bc_decl;
 BC_node_t rev_bc_decl;
+BC_node_t fold_bc_decl;
+BC_node_t filter_bc_decl;
+BC_node_t map_bc_decl;
 BC_node_t sort_bc_decl;
-BC_node_t sqrt_bc_decl;
-BC_node_t exp_bc_decl;
-BC_node_t log_bc_decl;
-BC_node_t log10_bc_decl;
-BC_node_t pow_bc_decl;
-BC_node_t sin_bc_decl;
-BC_node_t cos_bc_decl;
-BC_node_t atan2_bc_decl;
-BC_node_t match_bc_decl;
-BC_node_t gmatch_bc_decl;
-BC_node_t sub_bc_decl;
-BC_node_t gsub_bc_decl;
-BC_node_t split_bc_decl;
-BC_node_t split_regex_bc_decl;
-BC_node_t srand_bc_decl;
-BC_node_t rand_bc_decl;
-BC_node_t process_errno_bc_decl;
-BC_node_t readdir_bc_decl;
-BC_node_t ftype_bc_decl;
-BC_node_t fuidn_bc_decl;
-BC_node_t fgrpn_bc_decl;
-BC_node_t fsize_bc_decl;
-BC_node_t fatime_bc_decl;
-BC_node_t fmtime_bc_decl;
-BC_node_t fctime_bc_decl;
-BC_node_t fumode_bc_decl;
-BC_node_t fgmode_bc_decl;
-BC_node_t fomode_bc_decl;
-BC_node_t time_bc_decl;
-BC_node_t strtime_bc_decl;
-BC_node_t time_format_bc_decl;
-BC_node_t clock_bc_decl;
+BC_node_t transpose_bc_decl;
 BC_node_t gc_bc_decl;
+BC_node_t exit_bc_decl;
+/* IO space: */
+BC_node_t io_bc_decl;
+BC_node_t invinput_bc_decl;
+BC_node_t invfmt_bc_decl;
+BC_node_t eof_bc_decl;
+BC_node_t invencoding_bc_decl;
+BC_node_t file_bc_decl;
+BC_node_t file_ptr_bc_decl;
+BC_node_t unget_char_bc_decl;
+BC_node_t file_icd_bc_decl;
+BC_node_t file_byte_ocd_bc_decl;
+BC_node_t file_ucode_ocd_bc_decl;
+BC_node_t file_encoding_bc_decl;
+BC_node_t file_encoding_type_bc_decl;
+BC_node_t stdin_bc_decl;
+BC_node_t stdout_bc_decl;
+BC_node_t stderr_bc_decl;
 BC_node_t rename_bc_decl;
 BC_node_t remove_bc_decl;
 BC_node_t mkdir_bc_decl;
@@ -1718,6 +1649,77 @@ BC_node_t scan_bc_decl;
 BC_node_t scanln_bc_decl;
 BC_node_t fscan_bc_decl;
 BC_node_t fscanln_bc_decl;
+BC_node_t set_encoding_bc_decl;
+BC_node_t get_encoding_bc_decl;
+BC_node_t set_file_encoding_bc_decl;
+BC_node_t get_file_encoding_bc_decl;
+BC_node_t readdir_bc_decl;
+BC_node_t ftype_bc_decl;
+BC_node_t fuidn_bc_decl;
+BC_node_t fgrpn_bc_decl;
+BC_node_t fsize_bc_decl;
+BC_node_t fatime_bc_decl;
+BC_node_t fmtime_bc_decl;
+BC_node_t fctime_bc_decl;
+BC_node_t fumode_bc_decl;
+BC_node_t fgmode_bc_decl;
+BC_node_t fomode_bc_decl;
+/* Sys space: */
+BC_node_t sys_bc_decl;
+BC_node_t signal_bc_decl;
+BC_node_t sigint_bc_decl;
+BC_node_t sigill_bc_decl;
+BC_node_t sigabrt_bc_decl;
+BC_node_t sigfpe_bc_decl;
+BC_node_t sigterm_bc_decl;
+BC_node_t sigsegv_bc_decl;
+BC_node_t invenv_bc_decl;
+BC_node_t syserror_bc_decl;
+BC_node_t eaccess_bc_decl;
+BC_node_t eagain_bc_decl;
+BC_node_t ebadf_bc_decl;
+BC_node_t ebusy_bc_decl;
+BC_node_t echild_bc_decl;
+BC_node_t edeadlk_bc_decl;
+BC_node_t edom_bc_decl;
+BC_node_t eexist_bc_decl;
+BC_node_t efault_bc_decl;
+BC_node_t efbig_bc_decl;
+BC_node_t eintr_bc_decl;
+BC_node_t einval_bc_decl;
+BC_node_t eio_bc_decl;
+BC_node_t eisdir_bc_decl;
+BC_node_t emfile_bc_decl;
+BC_node_t emlink_bc_decl;
+BC_node_t enametoolong_bc_decl;
+BC_node_t enfile_bc_decl;
+BC_node_t enodev_bc_decl;
+BC_node_t enoent_bc_decl;
+BC_node_t enoexec_bc_decl;
+BC_node_t enolck_bc_decl;
+BC_node_t enomem_bc_decl;
+BC_node_t enospc_bc_decl;
+BC_node_t enosys_bc_decl;
+BC_node_t enotdir_bc_decl;
+BC_node_t enotempty_bc_decl;
+BC_node_t enotty_bc_decl;
+BC_node_t enxio_bc_decl;
+BC_node_t eperm_bc_decl;
+BC_node_t epipe_bc_decl;
+BC_node_t erange_bc_decl;
+BC_node_t erofs_bc_decl;
+BC_node_t espipe_bc_decl;
+BC_node_t esrch_bc_decl;
+BC_node_t exdev_bc_decl;
+BC_node_t invextern_bc_decl;
+BC_node_t noextern_bc_decl;
+BC_node_t libclose_bc_decl;
+BC_node_t noexternsupp_bc_decl;
+BC_node_t invenvar_bc_decl;
+BC_node_t systemcall_bc_decl;
+BC_node_t noshell_bc_decl;
+BC_node_t systemfail_bc_decl;
+BC_node_t time_format_bc_decl;
 BC_node_t getpid_bc_decl;
 BC_node_t getpgid_bc_decl;
 BC_node_t getun_bc_decl;
@@ -1726,15 +1728,55 @@ BC_node_t getgn_bc_decl;
 BC_node_t getegn_bc_decl;
 BC_node_t getgroups_bc_decl;
 BC_node_t system_bc_decl;
-BC_node_t exit_bc_decl;
-BC_node_t fold_bc_decl;
-BC_node_t filter_bc_decl;
-BC_node_t map_bc_decl;
-BC_node_t transpose_bc_decl;
-BC_node_t set_encoding_bc_decl;
-BC_node_t get_encoding_bc_decl;
-BC_node_t set_file_encoding_bc_decl;
-BC_node_t get_file_encoding_bc_decl;
+BC_node_t time_bc_decl;
+BC_node_t strtime_bc_decl;
+BC_node_t clock_bc_decl;
+BC_node_t process_errno_bc_decl;
+/* Math space: */
+BC_node_t math_bc_decl;
+BC_node_t max_bc_decl;
+BC_node_t min_bc_decl;
+BC_node_t srand_bc_decl;
+BC_node_t rand_bc_decl;
+BC_node_t sqrt_bc_decl;
+BC_node_t exp_bc_decl;
+BC_node_t log_bc_decl;
+BC_node_t log10_bc_decl;
+BC_node_t pow_bc_decl;
+BC_node_t sin_bc_decl;
+BC_node_t cos_bc_decl;
+BC_node_t atan2_bc_decl;
+/* Regexp space: */
+BC_node_t re_bc_decl;
+BC_node_t invregex_bc_decl;
+BC_node_t match_bc_decl;
+BC_node_t gmatch_bc_decl;
+BC_node_t sub_bc_decl;
+BC_node_t gsub_bc_decl;
+BC_node_t split_bc_decl;
+BC_node_t split_regex_bc_decl;
+/* Parser space: */
+BC_node_t yaep_bc_decl;
+BC_node_t invparser_bc_decl;
+BC_node_t invgrammar_bc_decl;
+BC_node_t invtoken_bc_decl;
+BC_node_t pmemory_bc_decl;
+BC_node_t anode_bc_decl;
+BC_node_t token_bc_decl;
+BC_node_t code_bc_decl;
+BC_node_t nil_anode_bc_decl;
+BC_node_t error_anode_bc_decl;
+BC_node_t parser_bc_decl;
+BC_node_t ambiguous_p_bc_decl;
+BC_node_t int_earley_parse_grammar_bc_decl;
+BC_node_t int_earley_set_debug_level_bc_decl;
+BC_node_t int_earley_set_one_parse_flag_bc_decl;
+BC_node_t int_earley_set_lookahead_level_bc_decl;
+BC_node_t int_earley_set_cost_flag_bc_decl;
+BC_node_t int_earley_set_error_recovery_flag_bc_decl;
+BC_node_t int_earley_set_recovery_match_bc_decl;
+BC_node_t int_earley_parse_bc_decl;
+BC_node_t int_earley_create_grammar_bc_decl;
 BC_node_t init_bc_decl;
 
 struct bc_decl_entry
@@ -1751,115 +1793,257 @@ struct bc_decl_entry
    corrupted byte code message.  */
 static struct bc_decl_entry bc_decls_table [] =
 {
-  {&except_bc_decl, EXCEPT_NAME, NULL, NULL},
-  {&error_bc_decl, ERROR_NAME, NULL, NULL},
+  /* Lang space: */
+  {&lang_bc_decl, LANG_NAME, NULL, NULL},
+  {&except_bc_decl, EXCEPT_NAME, &lang_bc_decl, NULL},
+  {&error_bc_decl, ERROR_NAME, &lang_bc_decl, NULL},
   {&msg_bc_decl, MSG_NAME, &error_bc_decl, NULL},
-  {&signal_bc_decl, SIGNAL_NAME, NULL, NULL},
-  {&sigint_bc_decl, SIGINT_NAME, NULL, NULL},
-  {&sigill_bc_decl, SIGILL_NAME, NULL, NULL},
-  {&sigabrt_bc_decl, SIGABRT_NAME, NULL, NULL},
-  {&sigfpe_bc_decl, SIGFPE_NAME, NULL, NULL},
-  {&sigterm_bc_decl, SIGTERM_NAME, NULL, NULL},
-  {&sigsegv_bc_decl, SIGSEGV_NAME, NULL, NULL},
-  {&invenv_bc_decl, INVENV_NAME, NULL, NULL},
-  {&invop_bc_decl, INVOP_NAME, NULL, NULL},
-  {&optype_bc_decl, OPTYPE_NAME, NULL, NULL},
-  {&opvalue_bc_decl, OPVALUE_NAME, NULL, NULL},
-  {&invindex_bc_decl, INVINDEX_NAME, NULL, NULL},
-  {&indextype_bc_decl, INDEXTYPE_NAME, NULL, NULL},
-  {&indexvalue_bc_decl, INDEXVALUE_NAME, NULL, NULL},
-  {&indexop_bc_decl, INDEXOP_NAME, NULL, NULL},
-  {&invslice_bc_decl, INVSLICE_NAME, NULL, NULL},
-  {&slicetype_bc_decl, SLICETYPE_NAME, NULL, NULL},
-  {&sliceform_bc_decl, SLICEFORM_NAME, NULL, NULL},
-  {&invector_bc_decl, INVECTOR_NAME, NULL, NULL},
-  {&veclen_bc_decl, VECLEN_NAME, NULL, NULL},
-  {&vecform_bc_decl, VECVALUE_NAME, NULL, NULL},
-  {&matrixform_bc_decl, MATRIXVALUE_NAME, NULL, NULL},
-  {&invkey_bc_decl, INVKEY_NAME, NULL, NULL},
-  {&keyvalue_bc_decl, KEYVALUE_NAME, NULL, NULL},
-  {&keyop_bc_decl, KEYOP_NAME, NULL, NULL},
-  {&invcall_bc_decl, INVCALL_NAME, NULL, NULL},
-  {&abstrcall_bc_decl, ABSTRCALL_NAME, NULL, NULL},
-  {&callop_bc_decl, CALLOP_NAME, NULL, NULL},
-  {&partype_bc_decl, PARTYPE_NAME, NULL, NULL},
-  {&parvalue_bc_decl, PARVALUE_NAME, NULL, NULL},
-  {&invresult_bc_decl, INVRESULT_NAME, NULL, NULL},
-  {&invinput_bc_decl, INVINPUT_NAME, NULL, NULL},
-  {&invfmt_bc_decl, INVFMT_NAME, NULL, NULL},
-  {&invencoding_bc_decl, INVENCODING_NAME, NULL, NULL},
-  {&eof_bc_decl, EOF_NAME, NULL, NULL},
-  {&parnumber_bc_decl, PARNUMBER_NAME, NULL, NULL},
-  {&syncthreadcall_bc_decl, SYNCTHREADCALL_NAME, NULL, NULL},
-  {&syserror_bc_decl, SYSERROR_NAME, NULL, NULL},
-  {&eaccess_bc_decl, EACCESS_NAME, NULL, NULL},
-  {&eagain_bc_decl, EAGAIN_NAME, NULL, NULL},
-  {&ebadf_bc_decl, EBADF_NAME, NULL, NULL},
-  {&ebusy_bc_decl, EBUSY_NAME, NULL, NULL},
-  {&echild_bc_decl, ECHILD_NAME, NULL, NULL},
-  {&edeadlk_bc_decl, EDEADLK_NAME, NULL, NULL},
-  {&edom_bc_decl, EDOM_NAME, NULL, NULL},
-  {&eexist_bc_decl, EEXIST_NAME, NULL, NULL},
-  {&efault_bc_decl, EFAULT_NAME, NULL, NULL},
-  {&efbig_bc_decl, EFBIG_NAME, NULL, NULL},
-  {&eintr_bc_decl, EINTR_NAME, NULL, NULL},
-  {&einval_bc_decl, EINVAL_NAME, NULL, NULL},
-  {&eio_bc_decl, EIO_NAME, NULL, NULL},
-  {&eisdir_bc_decl, EISDIR_NAME, NULL, NULL},
-  {&emfile_bc_decl, EMFILE_NAME, NULL, NULL},
-  {&emlink_bc_decl, EMLINK_NAME, NULL, NULL},
-  {&enametoolong_bc_decl, ENAMETOOLONG_NAME, NULL, NULL},
-  {&enfile_bc_decl, ENFILE_NAME, NULL, NULL},
-  {&enodev_bc_decl, ENODEV_NAME, NULL, NULL},
-  {&enoent_bc_decl, ENOENT_NAME, NULL, NULL},
-  {&enoexec_bc_decl, ENOEXEC_NAME, NULL, NULL},
-  {&enolck_bc_decl, ENOLCK_NAME, NULL, NULL},
-  {&enomem_bc_decl, ENOMEM_NAME, NULL, NULL},
-  {&enospc_bc_decl, ENOSPC_NAME, NULL, NULL},
-  {&enosys_bc_decl, ENOSYS_NAME, NULL, NULL},
-  {&enotdir_bc_decl, ENOTDIR_NAME, NULL, NULL},
-  {&enotempty_bc_decl, ENOTEMPTY_NAME, NULL, NULL},
-  {&enotty_bc_decl, ENOTTY_NAME, NULL, NULL},
-  {&enxio_bc_decl, ENXIO_NAME, NULL, NULL},
-  {&eperm_bc_decl, EPERM_NAME, NULL, NULL},
-  {&epipe_bc_decl, EPIPE_NAME, NULL, NULL},
-  {&erange_bc_decl, ERANGE_NAME, NULL, NULL},
-  {&erofs_bc_decl, EROFS_NAME, NULL, NULL},
-  {&espipe_bc_decl, ESPIPE_NAME, NULL, NULL},
-  {&esrch_bc_decl, ESRCH_NAME, NULL, NULL},
-  {&exdev_bc_decl, EXDEV_NAME, NULL, NULL},
-  {&systemcall_bc_decl, SYSTEMCALL_NAME, NULL, NULL},
-  {&noshell_bc_decl, NOSHELL_NAME, NULL, NULL},
-  {&systemfail_bc_decl, SYSTEMFAIL_NAME, NULL, NULL},
-  {&invregex_bc_decl, INVREGEX_NAME, NULL, NULL},
-  {&invparser_bc_decl, INVPARSER_NAME, NULL, NULL},
-  {&invgrammar_bc_decl, INVGRAMMAR_NAME, NULL, NULL},
-  {&invtoken_bc_decl, INVTOKEN_NAME, NULL, NULL},
-  {&pmemory_bc_decl, PMEMORY_NAME, NULL, NULL},
-  {&invextern_bc_decl, INVEXTERN_NAME, NULL, NULL},
-  {&noextern_bc_decl, NOEXTERN_NAME, NULL, NULL},
-  {&libclose_bc_decl, LIBCLOSE_NAME, NULL, NULL},
-  {&noexternsupp_bc_decl, NOEXTERNSUPP_NAME, NULL, NULL},
-  {&invenvar_bc_decl, INVENVAR_NAME, NULL, NULL},
-  {&internal_bc_decl, INTERNAL_NAME, NULL, NULL},
-  {&invaccess_bc_decl, INVACCESS_NAME, NULL, NULL},
-  {&accessop_bc_decl, ACCESSOP_NAME, NULL, NULL},
-  {&accessvalue_bc_decl, ACCESSVALUE_NAME, NULL, NULL},
-  {&immutable_bc_decl, IMMUTABLE_NAME, NULL, NULL},
-  {&patternmatch_bc_decl, PATTERNMATCH_NAME, NULL, NULL},
-  {&deadlock_bc_decl, DEADLOCK_NAME, NULL, NULL},
-  {&syncwait_bc_decl, SYNCWAIT_NAME, NULL, NULL},
-  {&argv_bc_decl, ARGV_NAME, NULL, NULL},
-  {&env_bc_decl, ENV_NAME, NULL, NULL},
-  {&version_bc_decl, VERSION_NAME, NULL, NULL},
-  {&main_thread_bc_decl, MAIN_THREAD_NAME, NULL, NULL},
-  {&curr_thread_bc_decl, CURR_THREAD_NAME, NULL, NULL},
-  {&anode_bc_decl, ANODE_NAME, NULL, NULL},
-  {&token_bc_decl, TOKEN_NAME, NULL, NULL},
+  {&invop_bc_decl, INVOP_NAME, &lang_bc_decl, NULL},
+  {&optype_bc_decl, OPTYPE_NAME, &lang_bc_decl, NULL},
+  {&opvalue_bc_decl, OPVALUE_NAME, &lang_bc_decl, NULL},
+  {&invindex_bc_decl, INVINDEX_NAME, &lang_bc_decl, NULL},
+  {&indextype_bc_decl, INDEXTYPE_NAME, &lang_bc_decl, NULL},
+  {&indexvalue_bc_decl, INDEXVALUE_NAME, &lang_bc_decl, NULL},
+  {&indexop_bc_decl, INDEXOP_NAME, &lang_bc_decl, NULL},
+  {&invslice_bc_decl, INVSLICE_NAME, &lang_bc_decl, NULL},
+  {&slicetype_bc_decl, SLICETYPE_NAME, &lang_bc_decl, NULL},
+  {&sliceform_bc_decl, SLICEFORM_NAME, &lang_bc_decl, NULL},
+  {&invector_bc_decl, INVECTOR_NAME, &lang_bc_decl, NULL},
+  {&veclen_bc_decl, VECLEN_NAME, &lang_bc_decl, NULL},
+  {&vecform_bc_decl, VECVALUE_NAME, &lang_bc_decl, NULL},
+  {&matrixform_bc_decl, MATRIXVALUE_NAME, &lang_bc_decl, NULL},
+  {&invkey_bc_decl, INVKEY_NAME, &lang_bc_decl, NULL},
+  {&keyvalue_bc_decl, KEYVALUE_NAME, &lang_bc_decl, NULL},
+  {&keyop_bc_decl, KEYOP_NAME, &lang_bc_decl, NULL},
+  {&invcall_bc_decl, INVCALL_NAME, &lang_bc_decl, NULL},
+  {&abstrcall_bc_decl, ABSTRCALL_NAME, &lang_bc_decl, NULL},
+  {&callop_bc_decl, CALLOP_NAME, &lang_bc_decl, NULL},
+  {&partype_bc_decl, PARTYPE_NAME, &lang_bc_decl, NULL},
+  {&parvalue_bc_decl, PARVALUE_NAME, &lang_bc_decl, NULL},
+  {&parnumber_bc_decl, PARNUMBER_NAME, &lang_bc_decl, NULL},
+  {&syncthreadcall_bc_decl, SYNCTHREADCALL_NAME, &lang_bc_decl, NULL},
+  {&internal_bc_decl, INTERNAL_NAME, &lang_bc_decl, NULL},
+  {&invresult_bc_decl, INVRESULT_NAME, &lang_bc_decl, NULL},
+  {&invaccess_bc_decl, INVACCESS_NAME, &lang_bc_decl, NULL},
+  {&accessop_bc_decl, ACCESSOP_NAME, &lang_bc_decl, NULL},
+  {&accessvalue_bc_decl, ACCESSVALUE_NAME, &lang_bc_decl, NULL},
+  {&immutable_bc_decl, IMMUTABLE_NAME, &lang_bc_decl, NULL},
+  {&patternmatch_bc_decl, PATTERNMATCH_NAME, &lang_bc_decl, NULL},
+  {&deadlock_bc_decl, DEADLOCK_NAME, &lang_bc_decl, NULL},
+  {&syncwait_bc_decl, SYNCWAIT_NAME, &lang_bc_decl, NULL},
+  {&version_bc_decl, VERSION_NAME, &lang_bc_decl, NULL},
+  {&main_thread_bc_decl, MAIN_THREAD_NAME, &lang_bc_decl, NULL},
+  {&curr_thread_bc_decl, CURR_THREAD_NAME, &lang_bc_decl, NULL},
+  {&argv_bc_decl, ARGV_NAME, &lang_bc_decl, NULL},
+  {&env_bc_decl, ENV_NAME, &lang_bc_decl, NULL},
+  {&tolower_bc_decl, TOLOWER_NAME, &lang_bc_decl, tolower_call},
+  {&toupper_bc_decl, TOUPPER_NAME, &lang_bc_decl, toupper_call},
+  {&translit_bc_decl, TRANSLIT_NAME, &lang_bc_decl, translit_call},
+  {&eltype_bc_decl, ELTYPE_NAME, &lang_bc_decl, eltype_call},
+  {&keys_bc_decl, KEYS_NAME, &lang_bc_decl, keys_call},
+  {&closure_bc_decl, CLOSURE_NAME, &lang_bc_decl, closure_call},
+  {&context_bc_decl, CONTEXT_NAME, &lang_bc_decl, context_call},
+  {&inside_bc_decl, INSIDE_NAME, &lang_bc_decl, inside_call},
+  {&isa_bc_decl, ISA_NAME, &lang_bc_decl, isa_call},
+  {&subv_bc_decl, SUBV_NAME, &lang_bc_decl, subv_call},
+  {&cmpv_bc_decl, CMPV_NAME, &lang_bc_decl, cmpv_call},
+  {&del_bc_decl, DEL_NAME, &lang_bc_decl, del_call},
+  {&ins_bc_decl, INS_NAME, &lang_bc_decl, ins_call},
+  {&insv_bc_decl, INSV_NAME, &lang_bc_decl, insv_call},
+  {&rev_bc_decl, REV_NAME, &lang_bc_decl, rev_call},
+  {&fold_bc_decl, FOLD_NAME, &lang_bc_decl, fold_call},
+  {&filter_bc_decl, FILTER_NAME, &lang_bc_decl, filter_call},
+  {&map_bc_decl, MAP_NAME, &lang_bc_decl, map_call},
+  {&sort_bc_decl, SORT_NAME, &lang_bc_decl, sort_call},
+  {&transpose_bc_decl, TRANSPOSE_NAME, &lang_bc_decl, transpose_call},
+  {&gc_bc_decl, GC_NAME, &lang_bc_decl, gc_call},
+  {&exit_bc_decl, EXIT_NAME, &lang_bc_decl, exit_call},
+  {&lang_bc_decl, LANG_NAME, NULL, NULL}, /* this is for object vdecl */
+
+  /* IO space: */
+  {&io_bc_decl, IO_NAME, NULL, NULL},
+  {&invinput_bc_decl, INVINPUT_NAME, &io_bc_decl, NULL},
+  {&invfmt_bc_decl, INVFMT_NAME, &io_bc_decl, NULL},
+  {&eof_bc_decl, EOF_NAME, &io_bc_decl, NULL},
+  {&invencoding_bc_decl, INVENCODING_NAME, &io_bc_decl, NULL},
+  {&file_bc_decl, FILE_NAME, &io_bc_decl, NULL},
+  {&file_ptr_bc_decl, FILE_PTR_NAME, &file_bc_decl, NULL},
+  {&unget_char_bc_decl, UNGET_CHAR_NAME, &file_bc_decl, NULL},
+  {&file_icd_bc_decl, FILE_ICD_NAME, &file_bc_decl, NULL},
+  {&file_byte_ocd_bc_decl, FILE_BYTE_OCD_NAME, &file_bc_decl, NULL},
+  {&file_ucode_ocd_bc_decl, FILE_UCODE_OCD_NAME, &file_bc_decl, NULL},
+  {&file_encoding_bc_decl, FILE_ENCODING_NAME, &file_bc_decl, NULL},
+  {&file_encoding_type_bc_decl, FILE_ENCODING_TYPE_NAME, &file_bc_decl, NULL},
+  {&stdin_bc_decl, STDIN_NAME, &io_bc_decl, NULL},
+  {&stdout_bc_decl, STDOUT_NAME, &io_bc_decl, NULL},
+  {&stderr_bc_decl, STDERR_NAME, &io_bc_decl, NULL},
+  {&rename_bc_decl, RENAME_NAME, &io_bc_decl, rename_call},
+  {&remove_bc_decl, REMOVE_NAME, &io_bc_decl, remove_call},
+  {&mkdir_bc_decl, MKDIR_NAME, &io_bc_decl, mkdir_call},
+  {&rmdir_bc_decl, RMDIR_NAME, &io_bc_decl, rmdir_call},
+  {&getcwd_bc_decl, GETCWD_NAME, &io_bc_decl, getcwd_call},
+  {&chdir_bc_decl, CHDIR_NAME, &io_bc_decl, chdir_call},
+  {&chumod_bc_decl, CHUMOD_NAME, &io_bc_decl, chumod_call},
+  {&chgmod_bc_decl, CHGMOD_NAME, &io_bc_decl, chgmod_call},
+  {&chomod_bc_decl, CHOMOD_NAME, &io_bc_decl, chomod_call},
+  {&isatty_bc_decl, ISATTY_NAME, &io_bc_decl, isatty_call},
+  {&open_bc_decl, OPEN_NAME, &io_bc_decl, open_call},
+  {&close_bc_decl, CLOSE_NAME, &io_bc_decl, close_call},
+  {&flush_bc_decl, FLUSH_NAME, &io_bc_decl, flush_call},
+  {&popen_bc_decl, POPEN_NAME, &io_bc_decl, popen_call},
+  {&pclose_bc_decl, PCLOSE_NAME, &io_bc_decl, pclose_call},
+  {&tell_bc_decl, TELL_NAME, &io_bc_decl, tell_call},
+  {&seek_bc_decl, SEEK_NAME, &io_bc_decl, seek_call},
+  {&put_bc_decl, PUT_NAME, &io_bc_decl, put_call},
+  {&putln_bc_decl, PUTLN_NAME, &io_bc_decl, putln_call},
+  {&fput_bc_decl, FPUT_NAME, &io_bc_decl, fput_call},
+  {&fputln_bc_decl, FPUTLN_NAME, &io_bc_decl, fputln_call},
+  {&sput_bc_decl, SPUT_NAME, &io_bc_decl, sput_call},
+  {&sputln_bc_decl, SPUTLN_NAME, &io_bc_decl, sputln_call},
+  {&putf_bc_decl, PUTF_NAME, &io_bc_decl, putf_call},
+  {&fputf_bc_decl, FPUTF_NAME, &io_bc_decl, fputf_call},
+  {&sputf_bc_decl, SPUTF_NAME, &io_bc_decl, sputf_call},
+  {&print_bc_decl, PRINT_NAME, &io_bc_decl, print_call},
+  {&println_bc_decl, PRINTLN_NAME, &io_bc_decl, println_call},
+  {&fprint_bc_decl, FPRINT_NAME, &io_bc_decl, fprint_call},
+  {&fprintln_bc_decl, FPRINTLN_NAME, &io_bc_decl, fprintln_call},
+  {&sprint_bc_decl, SPRINT_NAME, &io_bc_decl, sprint_call},
+  {&sprintln_bc_decl, SPRINTLN_NAME, &io_bc_decl, sprintln_call},
+  {&get_bc_decl, GET_NAME, &io_bc_decl, get_call},
+  {&getln_bc_decl, GETLN_NAME, &io_bc_decl, getln_call},
+  {&getf_bc_decl, GETF_NAME, &io_bc_decl, getf_call},
+  {&fget_bc_decl, FGET_NAME, &io_bc_decl, fget_call},
+  {&fgetln_bc_decl, FGETLN_NAME, &io_bc_decl, fgetln_call},
+  {&fgetf_bc_decl, FGETF_NAME, &io_bc_decl, fgetf_call},
+  {&scan_bc_decl, SCAN_NAME, &io_bc_decl, scan_call},
+  {&scanln_bc_decl, SCANLN_NAME, &io_bc_decl, scanln_call},
+  {&fscan_bc_decl, FSCAN_NAME, &io_bc_decl, fscan_call},
+  {&fscanln_bc_decl, FSCANLN_NAME, &io_bc_decl, fscanln_call},
+  {&set_encoding_bc_decl, SET_ENCODING_NAME, &io_bc_decl, set_encoding_call},
+  {&get_encoding_bc_decl, GET_ENCODING_NAME, &io_bc_decl, get_encoding_call},
+  {&set_file_encoding_bc_decl, SET_FILE_ENCODING_NAME, &io_bc_decl, set_file_encoding_call},
+  {&get_file_encoding_bc_decl, GET_FILE_ENCODING_NAME, &io_bc_decl, get_file_encoding_call},
+  {&readdir_bc_decl, READDIR_NAME, &io_bc_decl, readdir_call},
+  {&ftype_bc_decl, FTYPE_NAME, &io_bc_decl, ftype_call},
+  {&fuidn_bc_decl, FUIDN_NAME, &io_bc_decl, fuidn_call},
+  {&fgrpn_bc_decl, FGRPN_NAME, &io_bc_decl, fgrpn_call},
+  {&fsize_bc_decl, FSIZE_NAME, &io_bc_decl, fsize_call},
+  {&fatime_bc_decl, FATIME_NAME, &io_bc_decl, fatime_call},
+  {&fmtime_bc_decl, FMTIME_NAME, &io_bc_decl, fmtime_call},
+  {&fctime_bc_decl, FCTIME_NAME, &io_bc_decl, fctime_call},
+  {&fumode_bc_decl, FUMODE_NAME, &io_bc_decl, fumode_call},
+  {&fgmode_bc_decl, FGMODE_NAME, &io_bc_decl, fgmode_call},
+  {&fomode_bc_decl, FOMODE_NAME, &io_bc_decl, fomode_call},
+  {&io_bc_decl, IO_NAME, NULL, NULL}, /* for object vdecl  */
+
+  /* Sys space: */
+  {&sys_bc_decl, SYS_NAME, NULL, NULL},
+  {&signal_bc_decl, SIGNAL_NAME, &sys_bc_decl, NULL},
+  {&sigint_bc_decl, SIGINT_NAME, &sys_bc_decl, NULL},
+  {&sigill_bc_decl, SIGILL_NAME, &sys_bc_decl, NULL},
+  {&sigabrt_bc_decl, SIGABRT_NAME, &sys_bc_decl, NULL},
+  {&sigfpe_bc_decl, SIGFPE_NAME, &sys_bc_decl, NULL},
+  {&sigterm_bc_decl, SIGTERM_NAME, &sys_bc_decl, NULL},
+  {&sigsegv_bc_decl, SIGSEGV_NAME, &sys_bc_decl, NULL},
+  {&invenv_bc_decl, INVENV_NAME, &sys_bc_decl, NULL},
+  {&syserror_bc_decl, SYSERROR_NAME, &sys_bc_decl, NULL},
+  {&eaccess_bc_decl, EACCESS_NAME, &sys_bc_decl, NULL},
+  {&eagain_bc_decl, EAGAIN_NAME, &sys_bc_decl, NULL},
+  {&ebadf_bc_decl, EBADF_NAME, &sys_bc_decl, NULL},
+  {&ebusy_bc_decl, EBUSY_NAME, &sys_bc_decl, NULL},
+  {&echild_bc_decl, ECHILD_NAME, &sys_bc_decl, NULL},
+  {&edeadlk_bc_decl, EDEADLK_NAME, &sys_bc_decl, NULL},
+  {&edom_bc_decl, EDOM_NAME, &sys_bc_decl, NULL},
+  {&eexist_bc_decl, EEXIST_NAME, &sys_bc_decl, NULL},
+  {&efault_bc_decl, EFAULT_NAME, &sys_bc_decl, NULL},
+  {&efbig_bc_decl, EFBIG_NAME, &sys_bc_decl, NULL},
+  {&eintr_bc_decl, EINTR_NAME, &sys_bc_decl, NULL},
+  {&einval_bc_decl, EINVAL_NAME, &sys_bc_decl, NULL},
+  {&eio_bc_decl, EIO_NAME, &sys_bc_decl, NULL},
+  {&eisdir_bc_decl, EISDIR_NAME, &sys_bc_decl, NULL},
+  {&emfile_bc_decl, EMFILE_NAME, &sys_bc_decl, NULL},
+  {&emlink_bc_decl, EMLINK_NAME, &sys_bc_decl, NULL},
+  {&enametoolong_bc_decl, ENAMETOOLONG_NAME, &sys_bc_decl, NULL},
+  {&enfile_bc_decl, ENFILE_NAME, &sys_bc_decl, NULL},
+  {&enodev_bc_decl, ENODEV_NAME, &sys_bc_decl, NULL},
+  {&enoent_bc_decl, ENOENT_NAME, &sys_bc_decl, NULL},
+  {&enoexec_bc_decl, ENOEXEC_NAME, &sys_bc_decl, NULL},
+  {&enolck_bc_decl, ENOLCK_NAME, &sys_bc_decl, NULL},
+  {&enomem_bc_decl, ENOMEM_NAME, &sys_bc_decl, NULL},
+  {&enospc_bc_decl, ENOSPC_NAME, &sys_bc_decl, NULL},
+  {&enosys_bc_decl, ENOSYS_NAME, &sys_bc_decl, NULL},
+  {&enotdir_bc_decl, ENOTDIR_NAME, &sys_bc_decl, NULL},
+  {&enotempty_bc_decl, ENOTEMPTY_NAME, &sys_bc_decl, NULL},
+  {&enotty_bc_decl, ENOTTY_NAME, &sys_bc_decl, NULL},
+  {&enxio_bc_decl, ENXIO_NAME, &sys_bc_decl, NULL},
+  {&eperm_bc_decl, EPERM_NAME, &sys_bc_decl, NULL},
+  {&epipe_bc_decl, EPIPE_NAME, &sys_bc_decl, NULL},
+  {&erange_bc_decl, ERANGE_NAME, &sys_bc_decl, NULL},
+  {&erofs_bc_decl, EROFS_NAME, &sys_bc_decl, NULL},
+  {&espipe_bc_decl, ESPIPE_NAME, &sys_bc_decl, NULL},
+  {&esrch_bc_decl, ESRCH_NAME, &sys_bc_decl, NULL},
+  {&exdev_bc_decl, EXDEV_NAME, &sys_bc_decl, NULL},
+  {&invextern_bc_decl, INVEXTERN_NAME, &sys_bc_decl, NULL},
+  {&noextern_bc_decl, NOEXTERN_NAME, &sys_bc_decl, NULL},
+  {&libclose_bc_decl, LIBCLOSE_NAME, &sys_bc_decl, NULL},
+  {&noexternsupp_bc_decl, NOEXTERNSUPP_NAME, &sys_bc_decl, NULL},
+  {&invenvar_bc_decl, INVENVAR_NAME, &sys_bc_decl, NULL},
+  {&systemcall_bc_decl, SYSTEMCALL_NAME, &sys_bc_decl, NULL},
+  {&noshell_bc_decl, NOSHELL_NAME, &sys_bc_decl, NULL},
+  {&systemfail_bc_decl, SYSTEMFAIL_NAME, &sys_bc_decl, NULL},
+  {&time_format_bc_decl, TIME_FORMAT_NAME, &sys_bc_decl, NULL},
+  {&getpid_bc_decl, GETPID_NAME, &sys_bc_decl, getpid_call},
+  {&getun_bc_decl, GETUN_NAME, &sys_bc_decl, getun_call},
+  {&geteun_bc_decl, GETEUN_NAME, &sys_bc_decl, geteun_call},
+  {&getgn_bc_decl, GETGN_NAME, &sys_bc_decl, getgn_call},
+  {&getegn_bc_decl, GETEGN_NAME, &sys_bc_decl, getegn_call},
+  {&getgroups_bc_decl, GETGROUPS_NAME, &sys_bc_decl, getgroups_call},
+  {&system_bc_decl, SYSTEM_NAME, &sys_bc_decl, system_call},
+  {&time_bc_decl, TIME_NAME, &sys_bc_decl, time_call},
+  {&strtime_bc_decl, STRTIME_NAME, &sys_bc_decl, strtime_call},
+  {&clock_bc_decl, CLOCK_NAME, &sys_bc_decl, clock_call},
+  {&process_errno_bc_decl, PROCESS_ERRNO_NAME, &sys_bc_decl, process_errno_call},
+  {&sys_bc_decl, SYS_NAME, NULL, NULL}, /* for object vdecl */
+
+  /* Math space: */
+  {&math_bc_decl, MATH_NAME, NULL, NULL},
+  {&max_bc_decl, MAX_NAME, &math_bc_decl, max_call},
+  {&min_bc_decl, MIN_NAME, &math_bc_decl, min_call},
+  {&srand_bc_decl, SRAND_NAME, &math_bc_decl, srand_call},
+  {&rand_bc_decl, RAND_NAME, &math_bc_decl, rand_call},
+  {&sqrt_bc_decl, SQRT_NAME, &math_bc_decl, sqrt_call},
+  {&exp_bc_decl, EXP_NAME, &math_bc_decl, exp_call},
+  {&log_bc_decl, LOG_NAME, &math_bc_decl, log_call},
+  {&log10_bc_decl, LOG10_NAME, &math_bc_decl, log10_call},
+  {&pow_bc_decl, POW_NAME, &math_bc_decl, pow_call},
+  {&sin_bc_decl, SIN_NAME, &math_bc_decl, sin_call},
+  {&cos_bc_decl, COS_NAME, &math_bc_decl, cos_call},
+  {&atan2_bc_decl, ATAN2_NAME, &math_bc_decl, atan2_call},
+  {&math_bc_decl, MATH_NAME, NULL, NULL}, /* for object vdecl */
+
+  /* Regexp space: */
+  {&re_bc_decl, RE_NAME, NULL, NULL},
+  {&invregex_bc_decl, INVREGEX_NAME, &re_bc_decl, NULL},
+  {&match_bc_decl, MATCH_NAME, &re_bc_decl, match_call},
+  {&gmatch_bc_decl, GMATCH_NAME, &re_bc_decl, gmatch_call},
+  {&sub_bc_decl, SUB_NAME, &re_bc_decl, sub_call},
+  {&gsub_bc_decl, GSUB_NAME, &re_bc_decl, gsub_call},
+  {&split_bc_decl, SPLIT_NAME, &re_bc_decl, split_call},
+  {&split_regex_bc_decl, SPLIT_REGEX_NAME, &re_bc_decl, NULL},
+  {&re_bc_decl, RE_NAME, NULL, NULL}, /* for object vdecl */
+
+  /* Parser space: */
+  {&yaep_bc_decl, YAEP_NAME, NULL, NULL},
+  {&invparser_bc_decl, INVPARSER_NAME, &yaep_bc_decl, NULL},
+  {&invgrammar_bc_decl, INVGRAMMAR_NAME, &yaep_bc_decl, NULL},
+  {&invtoken_bc_decl, INVTOKEN_NAME, &yaep_bc_decl, NULL},
+  {&pmemory_bc_decl, PMEMORY_NAME, &yaep_bc_decl, NULL},
+  {&anode_bc_decl, ANODE_NAME, &yaep_bc_decl, NULL},
+  {&token_bc_decl, TOKEN_NAME, &yaep_bc_decl, NULL},
   {&code_bc_decl, CODE_NAME, &token_bc_decl, NULL},
-  {&nil_anode_bc_decl, NIL_ANODE_NAME, NULL, NULL},
-  {&error_anode_bc_decl, ERROR_ANODE_NAME, NULL, NULL},
-  {&parser_bc_decl, PARSER_NAME, NULL, NULL},
+  {&nil_anode_bc_decl, NIL_ANODE_NAME, &yaep_bc_decl, NULL},
+  {&error_anode_bc_decl, ERROR_ANODE_NAME, &yaep_bc_decl, NULL},
+  {&parser_bc_decl, PARSER_NAME, &yaep_bc_decl, NULL},
   {&ambiguous_p_bc_decl, AMBIGUOUS_P_NAME, &parser_bc_decl, NULL},
   {&int_earley_parse_grammar_bc_decl, INT_EARLEY_PARSE_GRAMMAR_NAME,
    &parser_bc_decl, int_earley_parse_grammar},
@@ -1880,126 +2064,8 @@ static struct bc_decl_entry bc_decls_table [] =
    &parser_bc_decl, int_earley_parse},
   {&int_earley_create_grammar_bc_decl, INT_EARLEY_CREATE_GRAMMAR_NAME,
    &parser_bc_decl, int_earley_create_grammar},
-  {&file_bc_decl, FILE_NAME, NULL, NULL},
-  {&file_ptr_bc_decl, FILE_PTR_NAME, &file_bc_decl, NULL},
-  {&unget_char_bc_decl, UNGET_CHAR_NAME, &file_bc_decl, NULL},
-  {&file_icd_bc_decl, FILE_ICD_NAME, &file_bc_decl, NULL},
-  {&file_byte_ocd_bc_decl, FILE_BYTE_OCD_NAME, &file_bc_decl, NULL},
-  {&file_ucode_ocd_bc_decl, FILE_UCODE_OCD_NAME, &file_bc_decl, NULL},
-  {&file_encoding_bc_decl, FILE_ENCODING_NAME, &file_bc_decl, NULL},
-  {&file_encoding_type_bc_decl, FILE_ENCODING_TYPE_NAME, &file_bc_decl, NULL},
-  {&stdin_bc_decl, STDIN_NAME, NULL, NULL},
-  {&stdout_bc_decl, STDOUT_NAME, NULL, NULL},
-  {&stderr_bc_decl, STDERR_NAME, NULL, NULL},
-  {&max_bc_decl, MAX_NAME, NULL, max_call},
-  {&min_bc_decl, MIN_NAME, NULL, min_call},
-  {&tolower_bc_decl, TOLOWER_NAME, NULL, tolower_call},
-  {&toupper_bc_decl, TOUPPER_NAME, NULL, toupper_call},
-  {&translit_bc_decl, TRANSLIT_NAME, NULL, translit_call},
-  {&eltype_bc_decl, ELTYPE_NAME, NULL, eltype_call},
-  {&keys_bc_decl, KEYS_NAME, NULL, keys_call},
-  {&closure_bc_decl, CLOSURE_NAME, NULL, closure_call},
-  {&context_bc_decl, CONTEXT_NAME, NULL, context_call},
-  {&inside_bc_decl, INSIDE_NAME, NULL, inside_call},
-  {&isa_bc_decl, ISA_NAME, NULL, isa_call},
-  {&subv_bc_decl, SUBV_NAME, NULL, subv_call},
-  {&cmpv_bc_decl, CMPV_NAME, NULL, cmpv_call},
-  {&del_bc_decl, DEL_NAME, NULL, del_call},
-  {&ins_bc_decl, INS_NAME, NULL, ins_call},
-  {&insv_bc_decl, INSV_NAME, NULL, insv_call},
-  {&rev_bc_decl, REV_NAME, NULL, rev_call},
-  {&sort_bc_decl, SORT_NAME, NULL, sort_call},
-  {&sqrt_bc_decl, SQRT_NAME, NULL, sqrt_call},
-  {&exp_bc_decl, EXP_NAME, NULL, exp_call},
-  {&log_bc_decl, LOG_NAME, NULL, log_call},
-  {&log10_bc_decl, LOG10_NAME, NULL, log10_call},
-  {&pow_bc_decl, POW_NAME, NULL, pow_call},
-  {&sin_bc_decl, SIN_NAME, NULL, sin_call},
-  {&cos_bc_decl, COS_NAME, NULL, cos_call},
-  {&atan2_bc_decl, ATAN2_NAME, NULL, atan2_call},
-  {&match_bc_decl, MATCH_NAME, NULL, match_call},
-  {&gmatch_bc_decl, GMATCH_NAME, NULL, gmatch_call},
-  {&sub_bc_decl, SUB_NAME, NULL, sub_call},
-  {&gsub_bc_decl, GSUB_NAME, NULL, gsub_call},
-  {&split_bc_decl, SPLIT_NAME, NULL, split_call},
-  {&split_regex_bc_decl, SPLIT_REGEX_NAME, NULL, NULL},
-  {&srand_bc_decl, SRAND_NAME, NULL, srand_call},
-  {&rand_bc_decl, RAND_NAME, NULL, rand_call},
-  {&process_errno_bc_decl, PROCESS_ERRNO_NAME, NULL, process_errno_call},
-  {&readdir_bc_decl, READDIR_NAME, NULL, readdir_call},
-  {&ftype_bc_decl, FTYPE_NAME, NULL, ftype_call},
-  {&fuidn_bc_decl, FUIDN_NAME, NULL, fuidn_call},
-  {&fgrpn_bc_decl, FGRPN_NAME, NULL, fgrpn_call},
-  {&fsize_bc_decl, FSIZE_NAME, NULL, fsize_call},
-  {&fatime_bc_decl, FATIME_NAME, NULL, fatime_call},
-  {&fmtime_bc_decl, FMTIME_NAME, NULL, fmtime_call},
-  {&fctime_bc_decl, FCTIME_NAME, NULL, fctime_call},
-  {&fumode_bc_decl, FUMODE_NAME, NULL, fumode_call},
-  {&fgmode_bc_decl, FGMODE_NAME, NULL, fgmode_call},
-  {&fomode_bc_decl, FOMODE_NAME, NULL, fomode_call},
-  {&time_bc_decl, TIME_NAME, NULL, time_call},
-  {&strtime_bc_decl, STRTIME_NAME, NULL, strtime_call},
-  {&time_format_bc_decl, TIME_FORMAT_NAME, NULL, NULL},
-  {&clock_bc_decl, CLOCK_NAME, NULL, clock_call},
-  {&gc_bc_decl, GC_NAME, NULL, gc_call},
-  {&rename_bc_decl, RENAME_NAME, NULL, rename_call},
-  {&remove_bc_decl, REMOVE_NAME, NULL, remove_call},
-  {&mkdir_bc_decl, MKDIR_NAME, NULL, mkdir_call},
-  {&rmdir_bc_decl, RMDIR_NAME, NULL, rmdir_call},
-  {&getcwd_bc_decl, GETCWD_NAME, NULL, getcwd_call},
-  {&chdir_bc_decl, CHDIR_NAME, NULL, chdir_call},
-  {&chumod_bc_decl, CHUMOD_NAME, NULL, chumod_call},
-  {&chgmod_bc_decl, CHGMOD_NAME, NULL, chgmod_call},
-  {&chomod_bc_decl, CHOMOD_NAME, NULL, chomod_call},
-  {&isatty_bc_decl, ISATTY_NAME, NULL, isatty_call},
-  {&open_bc_decl, OPEN_NAME, NULL, open_call},
-  {&close_bc_decl, CLOSE_NAME, NULL, close_call},
-  {&flush_bc_decl, FLUSH_NAME, NULL, flush_call},
-  {&popen_bc_decl, POPEN_NAME, NULL, popen_call},
-  {&pclose_bc_decl, PCLOSE_NAME, NULL, pclose_call},
-  {&tell_bc_decl, TELL_NAME, NULL, tell_call},
-  {&seek_bc_decl, SEEK_NAME, NULL, seek_call},
-  {&put_bc_decl, PUT_NAME, NULL, put_call},
-  {&putln_bc_decl, PUTLN_NAME, NULL, putln_call},
-  {&fput_bc_decl, FPUT_NAME, NULL, fput_call},
-  {&fputln_bc_decl, FPUTLN_NAME, NULL, fputln_call},
-  {&sput_bc_decl, SPUT_NAME, NULL, sput_call},
-  {&sputln_bc_decl, SPUTLN_NAME, NULL, sputln_call},
-  {&putf_bc_decl, PUTF_NAME, NULL, putf_call},
-  {&fputf_bc_decl, FPUTF_NAME, NULL, fputf_call},
-  {&sputf_bc_decl, SPUTF_NAME, NULL, sputf_call},
-  {&print_bc_decl, PRINT_NAME, NULL, print_call},
-  {&println_bc_decl, PRINTLN_NAME, NULL, println_call},
-  {&fprint_bc_decl, FPRINT_NAME, NULL, fprint_call},
-  {&fprintln_bc_decl, FPRINTLN_NAME, NULL, fprintln_call},
-  {&sprint_bc_decl, SPRINT_NAME, NULL, sprint_call},
-  {&sprintln_bc_decl, SPRINTLN_NAME, NULL, sprintln_call},
-  {&get_bc_decl, GET_NAME, NULL, get_call},
-  {&getln_bc_decl, GETLN_NAME, NULL, getln_call},
-  {&getf_bc_decl, GETF_NAME, NULL, getf_call},
-  {&fget_bc_decl, FGET_NAME, NULL, fget_call},
-  {&fgetln_bc_decl, FGETLN_NAME, NULL, fgetln_call},
-  {&fgetf_bc_decl, FGETF_NAME, NULL, fgetf_call},
-  {&scan_bc_decl, SCAN_NAME, NULL, scan_call},
-  {&scanln_bc_decl, SCANLN_NAME, NULL, scanln_call},
-  {&fscan_bc_decl, FSCAN_NAME, NULL, fscan_call},
-  {&fscanln_bc_decl, FSCANLN_NAME, NULL, fscanln_call},
-  {&getpid_bc_decl, GETPID_NAME, NULL, getpid_call},
-  {&getun_bc_decl, GETUN_NAME, NULL, getun_call},
-  {&geteun_bc_decl, GETEUN_NAME, NULL, geteun_call},
-  {&getgn_bc_decl, GETGN_NAME, NULL, getgn_call},
-  {&getegn_bc_decl, GETEGN_NAME, NULL, getegn_call},
-  {&getgroups_bc_decl, GETGROUPS_NAME, NULL, getgroups_call},
-  {&system_bc_decl, SYSTEM_NAME, NULL, system_call},
-  {&exit_bc_decl, EXIT_NAME, NULL, exit_call},
-  {&fold_bc_decl, FOLD_NAME, NULL, fold_call},
-  {&filter_bc_decl, FILTER_NAME, NULL, filter_call},
-  {&map_bc_decl, MAP_NAME, NULL, map_call},
-  {&transpose_bc_decl, TRANSPOSE_NAME, NULL, transpose_call},
-  {&set_encoding_bc_decl, SET_ENCODING_NAME, NULL, set_encoding_call},
-  {&get_encoding_bc_decl, GET_ENCODING_NAME, NULL, get_encoding_call},
-  {&set_file_encoding_bc_decl, SET_FILE_ENCODING_NAME, NULL, set_file_encoding_call},
-  {&get_file_encoding_bc_decl, GET_FILE_ENCODING_NAME, NULL, get_file_encoding_call},
+  {&yaep_bc_decl, YAEP_NAME, NULL, NULL}, /* for object vdecl */
+
   {&init_bc_decl, INIT_NAME, NULL, init_call}
 };
 

@@ -380,6 +380,15 @@ heap_push_without_profile_update (BC_node_t block_node, ER_node_t context,
   setup_new_cstack (stack, vars_num, offset);
 }
 
+static ER_node_t do_always_inline
+get_obj_stack (BC_node_t obj_var_decl)
+{
+  ER_node_t var = IVAL (ER_stack_vars (uppest_stack), BC_var_num (obj_var_decl));
+
+  d_assert (ER_NODE_MODE (var) == ER_NM_stack);
+  return ER_stack (var);
+}
+
 }
 
 %%

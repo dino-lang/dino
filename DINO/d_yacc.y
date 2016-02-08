@@ -1816,8 +1816,7 @@ process_obj_block (IR_node_t origin_ident, IR_node_t block_stmts,
   IR_set_block_stmts (block, uncycle_stmt_list (block_stmts));
   IR_set_friend_list (block, uncycle_friend_list (IR_friend_list (block)));
   current_scope = IR_block_scope (block);
-  expr = create_node_with_pos (IR_NM_class_fun_thread_call,
-			       actual_parameters_construction_pos);
+  expr = create_node_with_pos (IR_NM_class_fun_thread_call, source_position);
   IR_set_fun_expr (expr, origin_ident);
   IR_set_actuals (expr, NULL);
   val = process_var_decl (access, ident, TRUE, block,

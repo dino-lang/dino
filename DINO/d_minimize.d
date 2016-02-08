@@ -19,7 +19,7 @@ fun get_decl (end, n, def = nil) {
       if (end != begin)
         curr++;
       if (def == nil && curr == n
-          || def != nil && match ("\\A[^{]*" @ def, code[begin + 1:end+1]) != nil)
+          || def != nil && re.match ("\\A[^{]*" @ def, code[begin + 1:end+1]) != nil)
         return [begin + 1, end];
       if (code[i] == '}')
         level++;
@@ -31,7 +31,7 @@ fun get_decl (end, n, def = nil) {
 if (#argv != 1) {fputln (stderr, "Usage: <c-compiler> < in > out"); exit (0);}
 val CC = argv[0];
 code = new getf ();
-val start_time = time ();
+val start_time = sys.time ();
 
 // Find start of the code we should not change:
 var start_invariant = get_decl (#code - 1, 1, "find_context_by_scope");
@@ -56,8 +56,8 @@ for (var end = start_invariant[0] - 1;;) {
     fput (test, code[0:pos[0]], code[pos[1]+1:]); // Put all but decls found above
     close (test);
     var before = all / dot_factor;
-    if (system (CC @ " -S -Werror=implicit-function-declaration -Werror=implicit-int -Wfatal-errors "
-                @ tfname @ " 2>/dev/null")) {
+    if (sys.system (CC @ " -S -Werror=implicit-function-declaration -Werror=implicit-int -Wfatal-errors "
+                    @ tfname @ " 2>/dev/null")) {
       if (n != 1) n /= factor; // Fail: decrease searched decls number
       else {
         all++;
@@ -85,6 +85,6 @@ for (var end = start_invariant[0] - 1;;) {
 fputln (stderr);
 remove (tfname);
 try (remove (tfnbase @ "s"), except);
-fputln (stderr, ncomps, " compilations for ", time () - start_time,
+fputln (stderr, ncomps, " compilations for ", sys.time () - start_time,
 	" sec: Removed ", removed, " decls out of ", all);
 putln (code); // Output the result
