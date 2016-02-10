@@ -221,8 +221,8 @@ letters are considered to be distinct.
 			      | "..." | Keyword
 
           Keyword = "_" | "break" | "case" | "catch" | "char" | "class"
-                  | "continue" | "else" | "extern" | "final" | "float"
-                  | "for" | "former" | "friend" | "fun" | "hide"
+                  | "continue" | "else" | "expose" | "extern" | "final"
+                  | "float" | "for" | "former" | "friend" | "fun" | "hide"
                   | "hideblock" | "if" | "in" | "int" | "later" | "long"
                   | "new" | "nil" | "obj" | "pmatch" | "priv"
                   | "process" | "pub" | "return" | "rmatch" | "tab"
@@ -714,10 +714,11 @@ These rules are necessary for correct <em>duck-typing</em> or class
 <sect1>Singleton Object
 <p>
 Sometimes it is usefull to guarantee that there is only single object
-(<em>singleton object</em>) of a class.  Although it can be achieved
-by creating of object of an anonymous class (see section "Anonymous
-Functions and Classes") and assigning it to a variable declared
-as <tt>val</tt>, Dino has a special declaration for singleton object:
+(called <em>singleton object</em>) of a class.  Although it can be
+achieved by creating of object of an anonymous class (see section
+"Anonymous Functions and Classes") and assigning it to a variable
+declared as <tt>val</tt>, Dino has a special declaration for singleton
+object:
 <tscreen><verb>
         SingletonObject = [pub | priv] obj IDENT block
 </verb></tscreen>
@@ -729,7 +730,50 @@ public and private.  Example of singleton object declaration:
            priv obj coord {
              val x = 0, y = 10;
            }
+</verb></tscreen> 
+<p>
+You can not refers to object by its name inside the object as the
+declaration actually occurs after the object block.
+
+<sect1>Expose-clause
+<p>
+Signleton object declarations can be accessed through designator
+with <tt>.</tt> -- see <em>Designators</em>.  Sometimes it can be too
+verbose.  Expose-clause can make access to public object declarations
+more concise by introducing declarations on the clause place which are
+actually aliases to the corresponding object declarations.
+<tscreen><verb>
+          ExposeClause = expose ExposeItem { "," ExposeItem }
+
+          ExposeItem = QualIdent ["(" IDENT ")"] | QaulIdent ".*"
+
+          QualIdent = IDENT {"." IDENT}
 </verb></tscreen>
+<p>
+You can expose one declaration by using QualIdent with optional alias
+identfier in parentheses.  If the alias is not given, the declaration
+name will be used for the alias.  Qualident designates declaration
+which can be described in signleton object or nested singleton
+objects.
+<p>
+You also can expose all public declarations of a signleton object by
+their identifiers.  In this case, you need to add <tt>.*</tt> after
+the qualident designating the corresponding object.
+<p>
+It is a good practise to put all package declarations in a singleton
+object which in this case behaves as name <em>spaces</em> or modules
+in other programming langiages.
+<p>
+  Example of use-clauses:
+<tscreen><verb>
+          expose sys.system (shell), math.*;
+          shell ("echo sin:" @ sin (31.4) @ "cos: " @ cos (3.14));
+</verb></tscreen>
+<p>
+In the above example, we make system from singleton
+object <tt>sys</tt> accessible through identifier <tt>shell</tt> and
+all public declaration from singleton object <tt>math</tt> including
+<tt>sin</tt> and <tt>cos</tt> accessible by their identifiers.
 
 <sect>Expressions
 <p>
@@ -4627,6 +4671,7 @@ Declaration = VarDeclarations
             | FuncClassDeclaration
             | SingletonObject
             | ForwardDeclaration
+            | ExposeClause
             | UseClause
             | IncludeDeclaration
 
@@ -4669,6 +4714,12 @@ FormalParameters =
 ParList = Par { "," Par}
 
 Par = [pub | priv] [val | var] IDENT [ "=" Expr]
+
+ExposeClause = expose ExposeItem { "," ExposeItem }
+
+ExposeItem = QualIdent ["(" IDENT ")"] | QaulIdent ".*"
+
+QualIdent = IDENT {"." IDENT}
 
 UseClause = use IDENT { UseItemClause }
 

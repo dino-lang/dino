@@ -159,6 +159,7 @@ Declaration = VarDeclarations
             | FuncClassDeclaration
             | SingletonObject
             | ForwardDeclaration
+            | ExposeClause
             | UseClause
             | IncludeDeclaration
 
@@ -201,6 +202,12 @@ FormalParameters =
 ParList = Par { "," Par}
 
 Par = [pub | priv] [val | var] IDENT [ "=" Expr]
+
+ExposeClause = expose ExposeItem { "," ExposeItem }
+
+ExposeItem = QualIdent ["(" IDENT ")"] | QaulIdent ".*"
+
+QualIdent = IDENT {"." IDENT}
 
 UseClause = use IDENT { UseItemClause }
 

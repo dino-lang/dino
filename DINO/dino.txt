@@ -18,6 +18,7 @@
      4.3 Functions and Classes
      4.4 Use Clause
      4.5 Singleton Object
+     4.6 Expose-clause
 
   5. Expressions
      5.1 Types and Values
@@ -333,8 +334,8 @@
                                      | "..." | Keyword
 
                  Keyword = "_" | "break" | "case" | "catch" | "char" | "class"
-                         | "continue" | "else" | "extern" | "final" | "float"
-                         | "for" | "former" | "friend" | "fun" | "hide"
+                         | "continue" | "else" | "expose" | "extern" | "final"
+                         | "float" | "for" | "former" | "friend" | "fun" | "hide"
                          | "hideblock" | "if" | "in" | "int" | "later" | "long"
                          | "new" | "nil" | "obj" | "pmatch" | "priv"
                          | "process" | "pub" | "return" | "rmatch" | "tab"
@@ -870,10 +871,10 @@
   4.5.  Singleton Object
 
   Sometimes it is usefull to guarantee that there is only single object
-  (singleton object) of a class. Although it can be achieved by creating
-  of object of an anonymous class (see section "Anonymous Functions and
-  Classes") and assigning it to a variable declared as val, Dino has a
-  special declaration for singleton object:
+  (called singleton object) of a class. Although it can be achieved by
+  creating of object of an anonymous class (see section "Anonymous
+  Functions and Classes") and assigning it to a variable declared as
+  val, Dino has a special declaration for singleton object:
 
 
                SingletonObject = [pub | priv] obj IDENT block
@@ -890,6 +891,53 @@
                   }
 
 
+
+  You can not refers to object by its name inside the object as the
+  declaration actually occurs after the object block.
+
+  4.6.  Expose-clause
+
+  Signleton object declarations can be accessed through designator with
+  . -- see Designators. Sometimes it can be too verbose. Expose-clause
+  can make access to public object declarations more concise by
+  introducing declarations on the clause place which are actually
+  aliases to the corresponding object declarations.
+
+
+                 ExposeClause = expose ExposeItem { "," ExposeItem }
+
+                 ExposeItem = QualIdent ["(" IDENT ")"] | QaulIdent ".*"
+
+                 QualIdent = IDENT {"." IDENT}
+
+
+
+  You can expose one declaration by using QualIdent with optional alias
+  identfier in parentheses. If the alias is not given, the declaration
+  name will be used for the alias. Qualident designates declaration
+  which can be described in signleton object or nested singleton
+  objects.
+
+  You also can expose all public declarations of a signleton object by
+  their identifiers. In this case, you need to add .* after the
+  qualident designating the corresponding object.
+
+  It is a good practise to put all package declarations in a singleton
+  object which in this case behaves as name spaces or modules in other
+  programming langiages.
+
+  Example of use-clauses:
+
+
+                 expose sys.system (shell), math.*;
+                 shell ("echo sin:" @ sin (31.4) @ "cos: " @ cos (3.14));
+
+
+
+  In the above example, we make system from singleton object sys
+  accessible through identifier shell and all public declaration from
+  singleton object math including sin and cos accessible by their
+  identifiers.
 
   5.  Expressions
 
@@ -5039,6 +5087,7 @@
                    | FuncClassDeclaration
                    | SingletonObject
                    | ForwardDeclaration
+                   | ExposeClause
                    | UseClause
                    | IncludeDeclaration
 
@@ -5081,6 +5130,12 @@
        ParList = Par { "," Par}
 
        Par = [pub | priv] [val | var] IDENT [ "=" Expr]
+
+       ExposeClause = expose ExposeItem { "," ExposeItem }
+
+       ExposeItem = QualIdent ["(" IDENT ")"] | QaulIdent ".*"
+
+       QualIdent = IDENT {"." IDENT}
 
        UseClause = use IDENT { UseItemClause }
 

@@ -1,5 +1,13 @@
 2016-02-09  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/dino.sgml.in (singleton object): Describe place of
+	declarations.
+	(expose-clause): New.
+	* DINO/dino.{dvi, ps, pdf, html, info, txt}: Update.
+	* DINO/dino-{3, 4, 10}.html: Ditto.
+
+2016-02-09  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* README.md: Add future directions.
 	* AMMUNITION/README: Change email address.
 	* DINO/README: Ditto.

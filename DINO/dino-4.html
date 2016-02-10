@@ -529,10 +529,11 @@ These rules are necessary for correct <EM>duck-typing</EM> or class
 </H2>
 
 <P>Sometimes it is usefull to guarantee that there is only single object
-(<EM>singleton object</EM>) of a class.  Although it can be achieved
-by creating of object of an anonymous class (see section "Anonymous
-Functions and Classes") and assigning it to a variable declared
-as <CODE>val</CODE>, Dino has a special declaration for singleton object:
+(called <EM>singleton object</EM>) of a class.  Although it can be
+achieved by creating of object of an anonymous class (see section
+"Anonymous Functions and Classes") and assigning it to a variable
+declared as <CODE>val</CODE>, Dino has a special declaration for singleton
+object:
 <BLOCKQUOTE><CODE>
 <PRE>
         SingletonObject = [pub | priv] obj IDENT block
@@ -549,7 +550,51 @@ public and private.  Example of singleton object declaration:
            }
 </PRE>
 </CODE></BLOCKQUOTE>
+ </P>
+<P>You can not refers to object by its name inside the object as the
+declaration actually occurs after the object block.</P>
+
+<H2><A NAME="ss4.6">4.6</A> <A HREF="dino.html#toc4.6">Expose-clause</A>
+</H2>
+
+<P>Signleton object declarations can be accessed through designator
+with <CODE>.</CODE> -- see <EM>Designators</EM>.  Sometimes it can be too
+verbose.  Expose-clause can make access to public object declarations
+more concise by introducing declarations on the clause place which are
+actually aliases to the corresponding object declarations.
+<BLOCKQUOTE><CODE>
+<PRE>
+          ExposeClause = expose ExposeItem { "," ExposeItem }
+
+          ExposeItem = QualIdent ["(" IDENT ")"] | QaulIdent ".*"
+
+          QualIdent = IDENT {"." IDENT}
+</PRE>
+</CODE></BLOCKQUOTE>
 </P>
+<P>You can expose one declaration by using QualIdent with optional alias
+identfier in parentheses.  If the alias is not given, the declaration
+name will be used for the alias.  Qualident designates declaration
+which can be described in signleton object or nested singleton
+objects.</P>
+<P>You also can expose all public declarations of a signleton object by
+their identifiers.  In this case, you need to add <CODE>.*</CODE> after
+the qualident designating the corresponding object.</P>
+<P>It is a good practise to put all package declarations in a singleton
+object which in this case behaves as name <EM>spaces</EM> or modules
+in other programming langiages.</P>
+<P>Example of use-clauses:
+<BLOCKQUOTE><CODE>
+<PRE>
+          expose sys.system (shell), math.*;
+          shell ("echo sin:" @ sin (31.4) @ "cos: " @ cos (3.14));
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>In the above example, we make system from singleton
+object <CODE>sys</CODE> accessible through identifier <CODE>shell</CODE> and
+all public declaration from singleton object <CODE>math</CODE> including
+<CODE>sin</CODE> and <CODE>cos</CODE> accessible by their identifiers.</P>
 
 <HR>
 <A HREF="dino-5.html">Next</A>

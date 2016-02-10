@@ -236,8 +236,8 @@ considered to be distinct.
                                         | "..." | Keyword
 
                     Keyword = "_" | "break" | "case" | "catch" | "char" | "class"
-                            | "continue" | "else" | "extern" | "final" | "float"
-                            | "for" | "former" | "friend" | "fun" | "hide"
+                            | "continue" | "else" | "expose" | "extern" | "final"
+                            | "float" | "for" | "former" | "friend" | "fun" | "hide"
                             | "hideblock" | "if" | "in" | "int" | "later" | "long"
                             | "new" | "nil" | "obj" | "pmatch" | "priv"
                             | "process" | "pub" | "return" | "rmatch" | "tab"
@@ -378,6 +378,7 @@ detail later in the report.
 * Functions and Classes::
 * Use Clause::
 * Singleton Object::
+* Expose-clause::
 
 
 File: dino.info,  Node: Variable Declarations,  Next: External Declarations,  Up: Declarations and Scope Rules
@@ -727,13 +728,13 @@ _sub-typing_.
                 }
 
 
-File: dino.info,  Node: Singleton Object,  Prev: Use Clause,  Up: Declarations and Scope Rules
+File: dino.info,  Node: Singleton Object,  Next: Expose-clause,  Prev: Use Clause,  Up: Declarations and Scope Rules
 
 4.5 Singleton Object
 ====================
 
 Sometimes it is usefull to guarantee that there is only single object
-(_singleton object_) of a class.  Although it can be achieved by
+(called _singleton object_) of a class.  Although it can be achieved by
 creating of object of an anonymous class (see section "Anonymous
 Functions and Classes") and assigning it to a variable declared as
 'val', Dino has a special declaration for singleton object:
@@ -747,6 +748,50 @@ private.  Example of singleton object declaration:
                 priv obj coord {
                   val x = 0, y = 10;
                 }
+
+   You can not refers to object by its name inside the object as the
+declaration actually occurs after the object block.
+
+
+File: dino.info,  Node: Expose-clause,  Prev: Singleton Object,  Up: Declarations and Scope Rules
+
+4.6 Expose-clause
+=================
+
+Signleton object declarations can be accessed through designator with
+'.'  - see _Designators_.  Sometimes it can be too verbose.
+Expose-clause can make access to public object declarations more concise
+by introducing declarations on the clause place which are actually
+aliases to the corresponding object declarations.
+
+               ExposeClause = expose ExposeItem { "," ExposeItem }
+
+               ExposeItem = QualIdent ["(" IDENT ")"] | QaulIdent ".*"
+
+               QualIdent = IDENT {"." IDENT}
+
+   You can expose one declaration by using QualIdent with optional alias
+identfier in parentheses.  If the alias is not given, the declaration
+name will be used for the alias.  Qualident designates declaration which
+can be described in signleton object or nested singleton objects.
+
+   You also can expose all public declarations of a signleton object by
+their identifiers.  In this case, you need to add '.*' after the
+qualident designating the corresponding object.
+
+   It is a good practise to put all package declarations in a singleton
+object which in this case behaves as name _spaces_ or modules in other
+programming langiages.
+
+   Example of use-clauses:
+
+               expose sys.system (shell), math.*;
+               shell ("echo sin:" @ sin (31.4) @ "cos: " @ cos (3.14));
+
+   In the above example, we make system from singleton object 'sys'
+accessible through identifier 'shell' and all public declaration from
+singleton object 'math' including 'sin' and 'cos' accessible by their
+identifiers.
 
 
 File: dino.info,  Node: Expressions,  Next: Patterns,  Prev: Declarations and Scope Rules,  Up: Top
@@ -4674,6 +4719,7 @@ File: dino.info,  Node: Appendix A- Syntax of Dino,  Next: Appendix B- Implement
                  | FuncClassDeclaration
                  | SingletonObject
                  | ForwardDeclaration
+                 | ExposeClause
                  | UseClause
                  | IncludeDeclaration
 
@@ -4716,6 +4762,12 @@ File: dino.info,  Node: Appendix A- Syntax of Dino,  Next: Appendix B- Implement
      ParList = Par { "," Par}
 
      Par = [pub | priv] [val | var] IDENT [ "=" Expr]
+
+     ExposeClause = expose ExposeItem { "," ExposeItem }
+
+     ExposeItem = QualIdent ["(" IDENT ")"] | QaulIdent ".*"
+
+     QualIdent = IDENT {"." IDENT}
 
      UseClause = use IDENT { UseItemClause }
 
@@ -4906,81 +4958,82 @@ Node: Top95
 Node: Introduction632
 Node: Syntax1930
 Node: Vocabulary and Representation2834
-Node: Declarations and Scope Rules11054
-Node: Variable Declarations16453
-Node: External Declarations18202
-Node: Functions and Classes19609
-Node: Use Clause28583
-Node: Singleton Object30788
-Node: Expressions31597
-Node: Types and Values32209
-Node: Designators41255
-Node: Calls46578
-Node: Operators48642
-Node: Logical operators52939
-Node: Bit operators54747
-Node: Comparison operators55870
-Node: Arithmetic operators57866
-Node: Miscellaneous operators59077
-Node: Slice Operators63191
-Node: Current block instance66106
-Node: Anonymous Functions and Classes66569
-Node: Patterns67411
-Node: Executive statements71441
-Node: Empty statement72375
-Node: Block-statement72795
-Node: Expression-statement73514
-Node: Assignment statements74294
-Node: If-statement76933
-Node: For-statement77789
-Node: Foreach-statement79272
-Node: Match-statements80268
-Node: Break- and continue-statement83409
-Node: Return-statement84676
-Node: Throw-statement85442
-Node: Try-block86144
-Node: Wait-statement88577
-Node: Program89679
-Node: Predeclared identifiers93209
-Node: Space `lang'94654
-Node: Predeclared variables94968
-Node: Arguments and environment95326
-Node: Version95980
-Node: Threads96507
-Node: Exception classes97039
-Node: Functions of space `lang'102785
-Node: Space `io'114870
-Node: Exception classes of space `io'115457
-Node: Class `file'116374
-Node: Files117125
-Node: Functions for work with files117927
-Node: File output functions121944
-Node: File input functions134400
-Node: Encoding functions138241
-Node: Functions for work with directories139055
-Node: Functions for access to file/directory information140623
-Node: Miscellaneous functions145328
-Node: Space `sys'146048
-Node: Exceptions in space `sys'146479
-Node: Variable `time_format'152059
-Node: Time functions152457
-Node: Functions for access to information about OS processes155460
-Node: Function `system (command)'157006
-Node: Space `re'157437
-Node: Exception class `invregex'157813
-Node: Variable `split_regex'158275
-Node: Pattern matching158676
-Node: Space `math'182201
-Node: Mathematical functions182467
-Node: Other space `math' functions184030
-Node: Space `yaep'185344
-Node: Exception classes of space `yaep'187472
-Node: Class parser188327
-Node: Class `token'197421
-Node: Class `anode'198175
-Node: Variables `nil_anode' and `error_anode'200284
-Node: Example of Earley parser usage-200728
-Node: Appendix A- Syntax of Dino203636
-Node: Appendix B- Implementation208818
+Node: Declarations and Scope Rules11065
+Node: Variable Declarations16482
+Node: External Declarations18231
+Node: Functions and Classes19638
+Node: Use Clause28612
+Node: Singleton Object30817
+Node: Expose-clause31777
+Node: Expressions33431
+Node: Types and Values34043
+Node: Designators43089
+Node: Calls48412
+Node: Operators50476
+Node: Logical operators54773
+Node: Bit operators56581
+Node: Comparison operators57704
+Node: Arithmetic operators59700
+Node: Miscellaneous operators60911
+Node: Slice Operators65025
+Node: Current block instance67940
+Node: Anonymous Functions and Classes68403
+Node: Patterns69245
+Node: Executive statements73275
+Node: Empty statement74209
+Node: Block-statement74629
+Node: Expression-statement75348
+Node: Assignment statements76128
+Node: If-statement78767
+Node: For-statement79623
+Node: Foreach-statement81106
+Node: Match-statements82102
+Node: Break- and continue-statement85243
+Node: Return-statement86510
+Node: Throw-statement87276
+Node: Try-block87978
+Node: Wait-statement90411
+Node: Program91513
+Node: Predeclared identifiers95043
+Node: Space `lang'96488
+Node: Predeclared variables96802
+Node: Arguments and environment97160
+Node: Version97814
+Node: Threads98341
+Node: Exception classes98873
+Node: Functions of space `lang'104619
+Node: Space `io'116704
+Node: Exception classes of space `io'117291
+Node: Class `file'118208
+Node: Files118959
+Node: Functions for work with files119761
+Node: File output functions123778
+Node: File input functions136234
+Node: Encoding functions140075
+Node: Functions for work with directories140889
+Node: Functions for access to file/directory information142457
+Node: Miscellaneous functions147162
+Node: Space `sys'147882
+Node: Exceptions in space `sys'148313
+Node: Variable `time_format'153893
+Node: Time functions154291
+Node: Functions for access to information about OS processes157294
+Node: Function `system (command)'158840
+Node: Space `re'159271
+Node: Exception class `invregex'159647
+Node: Variable `split_regex'160109
+Node: Pattern matching160510
+Node: Space `math'184035
+Node: Mathematical functions184301
+Node: Other space `math' functions185864
+Node: Space `yaep'187178
+Node: Exception classes of space `yaep'189306
+Node: Class parser190161
+Node: Class `token'199255
+Node: Class `anode'200009
+Node: Variables `nil_anode' and `error_anode'202118
+Node: Example of Earley parser usage-202562
+Node: Appendix A- Syntax of Dino205470
+Node: Appendix B- Implementation210840
 
 End Tag Table
