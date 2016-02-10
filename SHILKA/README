@@ -11,6 +11,6 @@ is also simpler than Gperf in the usage.
 `shilka.dvi', `shilka.ps', `shilka.info*', `shilka*.html',
 `shilka*.rtf'.
 
-Please send bug reports and comments to cocom-bugs@lists.sourceforge.net
+Please send bug reports and comments to vmakarov@gcc.gnu.org
 
 Vladimir Makarov

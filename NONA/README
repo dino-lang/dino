@@ -43,6 +43,6 @@ elimination.
   Documentation of NONA is in files `nona.1', `nona.txt', `nona.dvi',
 `nona.ps', `nona.info*', `nona*.html', `nona*.rtf'.
 
-Please send bug reports and comments to cocom-bugs@lists.sourceforge.net
+Please send bug reports and comments to vmakarov@gcc.gnu.org
 
 Vladimir Makarov

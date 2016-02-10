@@ -31,6 +31,6 @@ representation nodes.
   Documentation of SPRUT is in files `sprut.1', `sprut.txt',
 `sprut.dvi', `sprut.ps', `sprut.info*', `sprut*.html', `sprut*.rtf'.
 
-Please send bug reports and comments to cocom-bugs@lists.sourceforge.net
+Please send bug reports and comments to vmakarov@gcc.gnu.org
 
 Vladimir Makarov

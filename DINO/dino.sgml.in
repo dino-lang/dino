@@ -6,7 +6,7 @@
 <title>The Programming Language DINO
 <author>Vladimir Makarov, <tt>vmakarov@gcc.gnu.org</tt>.
 Edited by Serhei Makarov.
-<date>Dec. 16, 2015
+<date>Feb. 9, 2016
 <abstract>
 This document describes the programming language DINO.
 </abstract>
@@ -358,63 +358,8 @@ The following identifiers are predeclared on the top level (in the
 implicit block covering the whole program).  They are described in
 more detail later in the report.
 <tscreen><verb>
-  abstrcall      accessop       accessvalue    anode
-  argv           atan2
-  callop         chdir          chgmod         chomod
-  chumod         clock          close          closure
-  cmpv           context        cos            curr_thread
-  deadlock       del
-  eaccess        eagain         ebadf          ebusy
-  echild         edeadlk        edom           eexist
-  efault         efbig          eintr          einval
-  eio            eisdir         eltype         emfile
-  emlink         enametoolong   enfile         enodev
-  enoent         enoexec        enolck         enomem
-  enospc         enosys         enotdir        enotempty
-  enotty         env            enxio          eof
-  eperm          epipe          erofs          error_anode
-  error          espipe         esrch          exdev
-  except         exit           exp
-  fatime         fctime         fget           fgetf
-  fgetln         fgmode         fgrpn          file
-  filter         flush          fmtime         fold
-  fomode         fprint         fprintln       fput
-  fputln         fscan          fscanln        fsize
-  ftype          fuidn          fumode
-  gc             get            get_encoding   get_file_encoding
-  getcwd         getegn         geteun         getgn
-  getgroups      getf           getln          getpid
-  getun          gmatch         gsub
-  immutable      indexop        indextype      indexvalue     
-  ins            inside         insv           invaccess
-  invcall        invector       invencoding    invenv
-  invenvar       invextern      invfmt         invgrammar
-  invindex       invinput       invkey         invop
-  invparser      invregex       invresult      invslice
-  invtoken       isa            isatty
-  keyop          keys           keyvalue
-  libclose       log            log10
-  main_thread    match          matrixform     max
-  min            mkdir
-  nil_anode      noextern       noexternsupp   noshell
-  open           optype         opvalue
-  parser         parnumber      partype        parvalue
-  patternmatch   pclose         pmemory        popen
-  pow            print          println        put
-  putln          rand           readdir        remove
-  rename         rev            rmdir
-  scan           scanln         seek           set_encoding
-  set_file_encoding signal      sigabrt        sigfpe
-  sigill         sigint         sigsegv        sigterm
-  sin            sliceform      slicetype      sort
-  split          split_regex    sprint         sprintln
-  sput           sputln         sqrt           srand
-  stderr         stdin          stdout         strtime
-  sub            subv           syncthreadcall syncwait
-  syserror       system         systemcall     systemfail
-  transpose      tell           time           time_format
-  token          tolower        toupper        trans
-  veclen         vecform        version
+  lang           io             sys            math
+  re             yaep
 </verb></tscreen>
 
 <sect1>Variable Declarations
@@ -437,8 +382,9 @@ of previous assignments in the variable list.  By default the initial
 value of variables is undefined.  Nothing can be done with this value.
 This value even can not be stored.
 <p>
-The value of the variable can not be changed after its initialization
-if its declaration is in a list starting with keyword <tt>val</tt>.
+The value of the variable is final can not be changed after its
+initialization if its declaration is in a list starting with
+keyword <tt>val</tt>.
 <p>
 Keywords <tt>pub</tt> and <tt>priv</tt> can be used to redefine the
 default accessibility.  They make the declared variables
@@ -611,10 +557,10 @@ accessibility of the declaration.
         The following example is a class with the function <tt>destroy</tt>:
 <tscreen><verb>
           var objs_number = 0;
-          class obj () {
+          class object () {
             priv var n = objs_number;
             objs_number++;
-            priv fun destroy () {objs_number--; objs_number--;}
+            priv fun destroy () {objs_number--;}
           }
 </verb></tscreen>
         The following example illustrates threads:
@@ -689,9 +635,11 @@ same qualifier <tt>final</tt>.
 <p>
 The corresponding declaration may be absent.  In this case a call of
 the function/class results in occuring exception <tt>abstrcall</tt>.
-Forward declaration without the corresponding declaration can be
-usefull to describe <em>abstract classes</em>.  The following are
-examples of forward declarations:
+When accessing to such function through the corresponding object,
+exception <tt>accessvalue</tt> is generated.  Forward declaration
+without the corresponding declaration can be usefull to
+describe <em>abstract classes</em>.  The following are examples of
+forward declarations:
 <tscreen><verb>
           fun even;
           fun odd (i) { if (i == 0) return 0; return even (i - 1);}
@@ -1614,7 +1562,6 @@ difference is an absence of function/class identifier:
           fold (fun (a, b) {a * b;}, v, 1);
 </verb></tscreen>
 
-
 <sect>Patterns
 <p>
 Patterns have form of expressions.  They are used to match an
@@ -2230,24 +2177,52 @@ it has been yet not inserted into the block of the declaration.
             for (;;) {
                str = cl.read (64); l += #str; cl.write (str);
             }
-          } catch (socket_eof_except) {
+          } catch (sockets.socket_eof_except) {
             putln ("i got ", l, " bytes");
           }
 </verb></tscreen>
 
 <sect>Predeclared identifiers
 <p>
-Dino has quite a lot of predeclared identifiers.  The section <em>Declarations
-and Scope Rules</em> contains them in alphanumeric order.  Here they
-are described according to the declaration category which they belongs
-to.
-
-<sect1>Predeclared variables
+Dino has quite a lot of predeclared identifiers.  They are combined in
+in a few signleton objects also called spaces -- see
+section <em>Declarations and Scope Rules</em>.  Most of predeclared
+identifiers refer for functions. The predeclared functions expect a
+given number of actual parameters (may be a variable number of
+parameters).  If the actual parameter number is an unexpected one,
+exception <tt>parnumber</tt> is generated.  The predeclared functions
+expect that the actual parameters (may be after implicit conversions)
+are of the required type.  If this is not true,
+exception <tt>partype</tt> is generated.  To show how many parameters
+the function requires, we will write the names of the parameters and
+use brackets <tt>[</tt> and <tt>]</tt> for the optional parameters in
+the description of the functions.
 <p>
-Dino has some predeclared variables which contain useful information
-or can be used to control the behaviour of the Dino interpreter.
+        Examples:  The following description
+<tscreen><verb>
+          strtime ([format [, time]])
+</verb></tscreen>
+        describes that the function can accept zero, one, or two
+        parameters.  If only one parameter is given, then this is
+        parameter <tt>format</tt>.
+<p>
+If nothing is said about the returned result, the function return
+value is undefined.
+<p>
+Predeclared identifiers are describe below according to their spaces.
 
-<sect2>Arguments and environment
+<sect1>Space <tt>lang</tt>
+<p>
+The space contains fundamental Dino declarations.  All declarations of
+the space are always exposed.
+
+<sect2>Predeclared variables
+<p>
+Space <tt>lang</tt> has some predeclared variables which contain
+useful information or can be used to control the behaviour of the Dino
+interpreter.
+
+<sect3>Arguments and environment
 <p>
 To access arguments to the program and the environment, the following
 variables can be used:
@@ -2261,17 +2236,16 @@ variables can be used:
        the keys of the table.
      </itemize>
 
-<sect2>Version
+<sect3>Version
 <p>
 As Dino is a live programming language, it and its interpreter are in
-the process of permanent development.  To access the Dino interpreter's
-version number and consequently the language version, the final variable
-<tt>version</tt> can be used.  The variable value is the Dino version as a
-floating point number.  For example, if the current Dino version is
-0.54, the variable value will be 0.54.
+the process of development.  To access the Dino interpreter's version
+number and consequently the language version, the final variable
+<tt>version</tt> can be used.  The variable value is the Dino version
+as a floating point number.  For example, if the current Dino version
+is 0.97, the variable value will be 0.97.
 
-
-<sect2>Threads
+<sect3>Threads
 <p>
 To access some information about threads in Dino program, the
 following variables can be used.
@@ -2283,6 +2257,391 @@ following variables can be used.
        which you reference the variable.
      </itemize>
 All these variables are final, so you can not change their values.
+
+<sect2>Exception classes
+<p>
+All predeclared classes in space <tt>lang</tt> describe exceptions
+which may be generated in Dino program.  All Dino exceptions are
+represented by objects of the predeclared class <tt>except</tt> or of
+a sub-class of the class <tt>except</tt>.  The class <tt>except</tt>
+has no parameters.  There is one predeclared sub-class
+<tt>error</tt> of class <tt>except</tt>.  All classes corresponding to
+user-defined exceptions are suggested to be declared as
+sub-class <tt>except</tt>.  All other exceptions (e.g. generated by
+the Dino interpreter itself or by predeclared functions) are objects
+of the class <tt>error</tt> or predeclared classes which are
+sub-classes of <tt>error</tt>.  The class
+<tt>error</tt> and all its sub-classes has one parameter
+<tt>msg</tt> which contains a readable message about the exception.
+The following classes are declared in space <tt>lang</tt> as sub-class
+of <tt>error</tt>:
+     <itemize>
+     <item><tt>invop</tt>.  The following sub-classes of this class
+       describe exceptions when operands of operations have an
+       incorrect type or value.
+         <itemize>
+         <item><tt>optype</tt>.  This class describes that the operand
+           of an operation is not of the required type (possibly after
+           implicit conversions).
+         <item><tt>opvalue</tt>.  This class is reserved for the error
+           of that an operand of an operation has invalid value.
+         </itemize>
+     <item><tt>invindex</tt>.  Sub-classes of this class describe
+       exceptions in referring for a vector element.
+         <itemize>
+         <item><tt>indextype</tt>.  This class describes that the
+           index is not of integer type (possibly after implicit
+           integer conversion).
+         <item><tt>indexvalue</tt>.  This class describes that the
+           index is negative or equal to or more than the vector
+           length.
+         <item><tt>indexop</tt>.  This class describes that the first
+           operand in referring to a vector element is not a vector.
+         </itemize>
+     <item><tt>invslice</tt>.  Sub-classes of this class describe
+       exceptions in referring for a vector slice.
+         <itemize>
+         <item><tt>slicetype</tt>.  This class describes that the
+           start index, bound, or step is not of integer type
+           (possibly after implicit integer conversion).
+         <item><tt>sliceform</tt>.  This class describes that the
+           slice has a wrong form, e.g. start index is negative, step
+           is zero or slice is applied not to a vector.
+         </itemize>
+     <item><tt>invector</tt>.  Sub-classes inside this class mostly
+       describe exceptions in slice operations.
+         <itemize>
+         <item><tt>veclen</tt>.  This class describes that operands in
+           a slice operator have different length.
+         <item><tt>vecform</tt>.  This class describes that operands
+           in a slice operator have different dimensions.
+         <item><tt>matrixform</tt>.  This class describes error when
+           matrix transposition (function <tt>transpose</tt>) is
+           applied to a vector of different length vectors.
+         </itemize>
+     <item><tt>invkey</tt>.  Sub-classes inside this class describe
+       exceptions in referring to a table element.
+         <itemize>
+         <item><tt>keyvalue</tt>.  This class describes that there is
+           no such element in the table with the given key when we
+           need the value of the element.  The exception does not
+           occur when a table element reference stands in the left
+           hand side of an assignment-statement.
+         <item><tt>keyop</tt>.  This class describes that the first
+           operand in referring to a table element is not a table.
+         </itemize>
+     <item><tt>invcall</tt>.  Sub-classes of this class describe
+       exceptions in calling functions (mainly predeclared ones).
+         <itemize>
+         <item><tt>abstrcall</tt>.  This class describes that we try
+           to call declared but not defined function.
+         <item><tt>callop</tt>.  This class describes that we try to
+           call something which is not a function, class, or
+           thread-function.  The exception is also generated when you
+           try to create a class <tt>file</tt> instance by calling the
+           class.
+         <item><tt>partype</tt>.  This class describes that a
+           parameter value of a predeclared function is not of
+           required type.
+         <item><tt>parvalue</tt>.  This class describes that a
+           parameter value of a predeclared function is not one of
+           permitted values (see functions <tt>set_encoding</tt>,
+           <tt>set_file_encoding</tt>).
+         <item><tt>parnumber</tt>.  This class describes that the
+           number of actual parameters is not valid when we call a
+           predeclared function.
+	 <item><tt>syncthreadcall</tt>.  This class describes that the
+           a thread call occurs inside a critical region -- see wait-statement.
+         <item><tt>invresult</tt>.  This class describes that the
+           result value of function call is not of required type,
+           e.g. comparison function used in a call of function
+           <tt>sort</tt> returns a non integer value.
+         <item><tt>internal</tt>.  This class describes all other
+           (nonspecified) exceptions in calling predeclared functions.
+         </itemize>
+     <item><tt>invaccess</tt>.  Sub-classes of this class describe
+       exceptions in accessing or changing values.
+         <itemize>
+         <item><tt>accessop</tt>.  This class describes that a given
+           class declaration can not be found or is private when
+           accessing to it through the corresponding object.
+         <item><tt>accessvalue</tt>.  This class describes that we try
+           to access to declared but not defined through the
+           corresponding object -- see <em>abstract classes</em>.
+         <item><tt>immutable</tt>.  This class describes that we try
+           to change an immutable value.
+         <item><tt>patternmatch</tt>.  This class describes that the
+           pattern in a variable declaration does not match the
+           assigned value.
+         </itemize>
+     <item><tt>deadlock</tt>.  This class describes that a deadlock is
+       recognized in multi-threaded program.
+     <item><tt>syncwait</tt>.  This class describes that we try to
+       execute a wait-stmt inside a critical region.
+     </itemize>
+
+<sect2>Functions of space <tt>lang</tt>
+<p>
+The following functions are declared in space <tt>lang</tt>:
+     <itemize>
+     <item><tt>tolower (str)</tt>.  The function expects that the
+       parameter <tt>str</tt> (after implicit string conversion) is a
+       string.  The function returns new string <tt>str</tt> in which
+       upper case letters are changed to the corresponding lower case
+       letters.
+     <item><tt>toupper (str)</tt>.  The function expects that
+       the parameter <tt>str</tt> (after implicit string conversion) is
+       a string.  The function returns the new string <tt>str</tt> in which
+       lower case letters are changed to the corresponding upper case
+       letters.
+     <item><tt>translit (str, what, subst)</tt>.  The function
+       transliterates charactes in a string.  The function expects
+       that the parameters <tt>str</tt> (after implicit string
+       conversion), <tt>what</tt>, and <tt>subst</tt> are strings.
+       The function returns the new string <tt>str</tt> in which its
+       characters which are present in <tt>what</tt> are changed to
+       the corresponding characters in <tt>subst</tt>.  The last two
+       strings should have the same length.  The second string may
+       contain more than one occurence of a character.  In this case
+       the last correspondence is taken.
+     <item><tt>eltype (vect)</tt>.  The function expects that the
+       parameter value is a vector.  The function returns <tt>nil</tt>
+       if the vector is heterogenous, otherwise the function returns
+       the type of the vector elements (type of <tt>nil</tt> if the
+       vector is empty).
+     <item><tt>keys (tab)</tt>.  The function expects that the
+       parameter value is a table.  The function returns a new mutable
+       vector containing all the keys in the table.  The order of keys
+       in the vector is undefined.
+     <item><tt>closure (par)</tt>.  The function accepts any parameter
+       value.  If the parameter value is object or a block instance of
+       a function, function <tt>closure</tt> returns the corresponding
+       class or function which contains also its context.  That is why
+       it is called closure.  In all other cases, the function
+       returns <tt>nil</tt>.
+     <item><tt>context (par)</tt>. The function returns the context
+       (see section <em>Declarations and Scope Rules</em>) represented
+       by a block instance or an object for the given parameter value
+       which should be a function, a class, a thread, a block
+       instance, or an object.
+     <item><tt>inside (par1, par2[, flag])</tt>.  The goal for
+       function usage is to check that something is declared inside
+       something other.  If the third parameter value after implicit
+       integer conversion is given and nonzero, it is checked with
+       taking contexts into account.  The second parameter value
+       should be a function, class, object, or a block instance.  In
+       the last two cases of the second parameter value, the
+       corresponding class, function, or block is used.  The first
+       parameter value should be a function, a class, an object, or a
+       block instance.  In the last two cases, they define
+       corresponding a function, class, or block.  If the function,
+       class, or block defined by the first parameter is declared
+       inside the function, class, or block given by the second
+       parameter, the function <tt>inside</tt> returns 1.  The
+       function <tt>inside</tt> also returns 1 if the function, class,
+       or block defined by the first parameter is the same as the
+       function, class, or block given by the second parameter.
+       Otherwise the function <tt>inside</tt> returns 0.  The
+       following example illustrates the difference between checking
+       with taking contexts into account and without it.
+<tscreen><verb>
+          class c () {
+            class subc () {
+            }
+          }
+          inside (c ().subc (), c ().subc);  // returns 1
+          inside (c ().subc (), c ().subc, 1); // returns 0
+</verb></tscreen>
+       The first call of <tt>inside</tt> returns 1, while the second
+       one returns 0.
+     <item><tt>isa (fco, fc)</tt>.  The goal for function usage is to
+       check that function, class, or object given by the first
+       parameter <tt>fco</tt> uses declarations (through a use-clause)
+       of a function or a class given by the second
+       parameter <tt>fc</tt>, in other words the first is a subtype of
+       the second.  If it is true, the function returns 1, otherwise
+       it returns zero.  If the parameter types are wrong, the
+       function generates exception <tt>partype</tt>.  The following
+       example illustrates usage of <tt>isa</tt>.
+<tscreen><verb>
+          class c () {}
+          class subc () { use c;}
+          isa (subc, c);
+          isa (subc (), c);
+</verb></tscreen>
+       The calls of <tt>isa</tt> in the example return 1.
+     <item><tt>subv (vect, index[, length])</tt>.  The function is
+       used to extract a sub-vector.  The first parameter value should
+       be a vector after implicit string conversion.  The second and
+       third parameter values should be integers after implicit
+       integer conversion. The function extracts only an element or
+       the part of the sub-vector existing in the vector (so you can use
+       any values of the index and the length).  ?If index is
+       negative, it is considered to be equal to zero.  If the length
+       is negative, the sub-vector will finish on the vector end.  The
+       function returns a new vector which is the sub-vector.  The result
+       vector is immutable only when the original vector is immutable.
+     <item><tt>del (vect, index[, length]) or del (tab, key)</tt>.
+       The first form of the function is used to remove the vector
+       element or a sub-vector from the mutable vector
+       <tt>vect</tt>.  The second and the third parameter values
+       should be integers after implicit integer conversion.  The
+       function removes only an element or the part of the sub-vector
+       existing in the vector (so you can use any values of the index
+       and the length).  ?If index is negative, it is considered to be
+       equal to zero.  If the length is negative, the sub-vector will
+       finish on the vector end.  The second form of the function is
+       used to remove the element (if it exists) with the given key
+       from the mutable table.  The function generates the exception
+       <tt>immutable</tt> if we are trying to remove from an immutable
+       vector or table.  The function returns the modified vector.
+     <item><tt>ins (vect, el[, index])</tt>.  The function inserts the
+       element given by the second parameter into the vector given by
+       the first parameter on the place given by the third parameter.
+       If the third parameter is not given it is believed to be zero.
+       The third parameter should be an integer after implicit integer
+       conversion.  ?If the third parameter is negative or equal to or
+       greater than the vector length, the element is inserted at the
+       end of the vector.  The function generates the exception
+       <tt>immutable</tt> if we are trying to insert into an immutable
+       vector.  The function returns the modified vector.
+     <item><tt>insv (vect, vect[, index])</tt>.  The function is
+       analogous to the function <tt>ins</tt> but it is used for
+       insertion of all vector elements into the vector given as the
+       first parameter.  So the second parameter value should be a
+       vector.  The function returns the modified vector.
+     <item><tt>rev (vect)</tt>.  The function returns reversion of the
+      given vector.
+     <item><tt>cmpv (vect, vect)</tt>.  The function makes implicit
+       string conversion of the parameter values.  After that, the
+       parameter values should be vectors whose first corresponding
+       equal elements should have the same type (character, integer,
+       or floating point type).  The first corresponding unequal
+       elements should have the same type too (the remaining elements
+       can have different type).  As usual, if this is not true,
+       exception <tt>partype</tt> is generated.  The function returns
+       1 if the first unequal element value of the first vector is
+       greater than the corresponding element in the second vector, -1
+       if less, and 0 if the all corresponding vector elements are
+       equal.  If the first vector is a prefix of the second vector,
+       the function returns -1.  If the second vector is a prefix of
+       the first vector, the function returns 1, so it is in fact
+       generalized lexicographical order.
+     <item><tt>filter (f, v [, d])</tt>.  The function expects
+       function <tt>f</tt>, vector <tt>v</tt>, and optional
+       integer <tt>d</tt> after integer conversion.  Otherwise
+       exception <tt>partype</tt> is generated.  If <tt>d</tt> is not
+       given, it is believed to be 1.  The function processes v's
+       elements if <tt>d</tt> is equal one, elements of vectors which
+       are v's elements if <tt>d</tt> is equal to 2 and so on.  In
+       other words, <tt>d</tt> is level on which vector elements are
+       processed.  If v has no structure necessary for processing,
+       exception <tt>vecform</tt> is generated.  If <tt>d</tt> is zero
+       or negative, the function just returns <tt>v</tt>.  Otherwise
+       the function creates new mutable vector having the same
+       structure as <tt>v</tt> with only elements on level <tt>d</tt>
+       for which function <tt>f</tt> returns nonzero value after
+       integer conversion.  If the result of function <tt>f</tt> after
+       the integer conversion is not integer,
+       exception <tt>invresult</tt> is generated.  The following
+       example illustrates usage of <tt>filter</tt>.
+<tscreen><verb>
+          var i, v = [0, 1, -2, 3, -4];
+          println (filter (fun (a) {a > 0;}, v));
+          v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
+          println (filter (fun (a) {a > 0;}, v, 2));
+</verb></tscreen>
+    <item><tt>map (f, v [, d])</tt>.  The meaning of function
+       parameters and constraints to their values are analogous to
+       ones of function <tt>filter</tt>.  Only function <tt>f</tt> can
+       return any value.  The elements processed by
+       function <tt>f</tt> is changed onto the result of
+       function <tt>f</tt>.  The following example illustrates usage
+       of <tt>map</tt>.
+<tscreen><verb>
+          var i, v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
+          println (map (fun (a) {a < 0 ? nil : a;}, v, 2));
+</verb></tscreen>
+     <item><tt>fold (f, v, init [, d])</tt>.  The meaning of function
+       parameters <tt>f</tt>, <tt>v</tt>, and <tt>d</tt> and
+       constraints to their values are analogous to ones of
+       function <tt>filter</tt>.  The function processes all elements
+       of vectors on level <tt>d</tt> and returns value
+       <tt>f (f (f (f (init, el0), el1), ...) , eln)</tt> where
+       <tt>el0</tt>, ..., <tt>eln</tt> are vector elements on
+       level <tt>d</tt> taken from left to right.  If <tt>d</tt> is
+       zero or negative or the vectors are empty, the function
+       returns <tt>init</tt>.  The following example illustrates usage
+       of <tt>fold</tt>.
+<tscreen><verb>
+          var v = [1,2,3,4];
+          println (fold (fun (a, b) {a + b;}, v, 0));
+</verb></tscreen> 
+     <item><tt>sort (vect[, compare_function])</tt>.  The function
+       returns a new sorted vector.  The original vector given as the
+       first parameter value should be a homogeneous vector whose
+       elements are of character, integer, long integer, or floating
+       point type.  If the second parameter is not given, standard
+       arithmetic order (see comparison operators) is used.  To use
+       special ordering, use the second parameter which should be a
+       function which compares two elements of the vector and returns
+       a negative integer if the first parameter value (element) is
+       less than the second one, a positive integer if the first
+       parameter value is greater than the second one, and zero if
+       they are equal.
+     <item><tt>transpose (m)</tt>.  The function expects
+       matrix <tt>m</tt>.  It means that <tt>m</tt> should be vector
+       (each element is a matrix row) of vectors of equal length.
+       If <tt>m</tt> is not a vector, exception <tt>partype</tt> is
+       generated.  If elements of <tt>m</tt> are not vectors of the
+       same length, exceptions <tt>matrixform</tt> is generated.  The
+       function returns a new mutable vector of mutable vectors which
+       is a matrix transposition of <tt>m</tt>.
+     <item><tt>gc ()</tt>.  The function forces garbage collection and
+       heap compaction.  Usually the Dino interpreter itself invokes
+       garbage collection when there is no more free memory.
+     <item><tt>exit (code)</tt>.  The function finishes the work of
+       the interpreter with the given code which should be an integer
+       value after implicit integer conversion.
+     </itemize>
+
+<sect1>Space <tt>io</tt>
+<p>
+The space contains functions for input and output and for work with
+files and directories.  All declarations of the space are always
+exposed.
+
+<sect2>Exception classes of space <tt>io</tt>
+<p>
+The following classes are declared in space <tt>io</tt> as sub-classes
+of <tt>invcall</tt>:
+     <itemize>
+     <item><tt>invinput</tt>.  This class describes that the file
+       input is not of required format.  Usually the exception is
+       generated by function <tt>scan</tt> etc.
+     <item><tt>invfmt</tt>.  This class describes that a format of a
+       format output function is wrong (see function <tt>putf</tt>).
+     <item><tt>eof</tt>.  This class describes that end of file is
+       encountered.  Usually the exception is generated by functions
+       reading files (<tt>get</tt>, <tt>scan</tt> etc).
+     <item><tt>invencoding</tt>.  This class describes different
+       exceptions with used encodings, e.g. file contains bytes not
+       corresponding to the expected encoding or in some cases the
+       encoding should contain ASCII characters.
+     </itemize>
+
+<sect2>Class <tt>file</tt>
+<p>
+Dino has predeclared final class <tt>file</tt>.  Work with files in
+Dino program are made through objects of the class.  All declarations
+inside of class are private.  The objects of the class can be created
+only by predeclared functions <tt>open</tt> or <tt>popen</tt>.  If you
+create an object of the class by calling the class, exception
+<tt>callop</tt> will be generated.  File encoding is defined by the
+current DINO encoding at the file creation time (see
+functions <tt>set_encoding</tt>, <tt>set_file_encoding</tt>).  If you
+want to work with files on the byte level without any encoding
+decoding, you can use encoding called <tt>"RAW"</tt>.
 
 <sect2>Files
 <p>
@@ -2303,59 +2662,603 @@ All these variables are final, so you can not change their values.
 Encoding of the files is DINO current encoding at the program start
 (see function <tt>set_encoding</tt>).
 
-<sect2>Miscellaneous variables
+<sect2>Functions for work with files
 <p>
-Values of the following variables are used by some predeclared
-functions:
+The following functions (besides input/output functions) work with OS
+files.  The functions may generate an exception declared in the class
+<tt>syserror</tt> (e.g. <tt>eaccess</tt>, <tt>enametoolong</tt>,
+<tt>eisdir</tt> and so on) besides the standard <tt>partype</tt>,
+and <tt>parnumber</tt>.  The function <tt>rename</tt> can be used for
+renaming a directory, not only a file.
      <itemize>
-     <item><tt>split_regex</tt>.  The variable value is a string which
-       represents regular expression which is used by the predeclared
-       function <tt>split</tt> when the second parameter is not given.
-       The initial value of the variable is string <tt>"[ \t]+"</tt>.
-     <item><tt>time_format</tt>.  The variable value is a string which
-       is the output format of time used by the function
-       <tt>strtime</tt> when it is called without parameters.  The
-       initial value of the variable is the string <tt>"%a %b %d
-       %H:%M:%S %Z %Y"</tt>.
+     <item><tt>rename (old_path, new_path)</tt>.  The function renames
+       the file (directory) given by its path name.  The old and new
+       names are given by parameter values which should be strings
+       after implicit string conversion.
+     <item><tt>remove (file_path)</tt>.  The function removes the OS
+       file given by its path name.  The file path name should be a
+       string after implicit string conversion.
+     <item><tt>open (file_path, mode)</tt>.  The function opens the
+       file for work in the given <em>mode</em>, creates a new class
+       <tt>file</tt> instance, associates the opened file with the
+       instance, and returns the instance.  The parameter values
+       should be strings after implicit string conversions.  The first
+       parameter value is a string representing the file path.  The
+       second parameter value is string representing the mode for work
+       with the file (for all possible modes see the ANSI C function
+       <tt>fopen</tt> documentation).  All work with an opened file is
+       made through the file instance.
+     <item><tt>close (fileinstance)</tt>.  The function closes a file
+       opened by the function <tt>open</tt>.  The file is given by the
+       class <tt>file</tt> instance.  The function also removes all
+       association of the instance with the file.
+     <item><tt>flush (fileinstance)</tt>.  The function flushes any
+       output that has been buffered for the opened file given by
+       the class <tt>file</tt> instance.
+     <item><tt>popen (command, mode)</tt>.  The function starts the
+       shell command given by the first parameter value (which should
+       be a string after implicit string conversion), creates a pipe,
+       creates a new class <tt>file</tt> instance, associates the pipe
+       with the instance, and returns the instance.  Writing to such a
+       pipe (through the class file instance) writes to the standard
+       input of the command.  Conversely, reading from the pipe reads
+       the command's standard output.  After implicit string
+       conversion the second parameter value should be the string "r"
+       (for reading from the pipe) or "w" (for writing to the pipe).
+       The pipe should be closed by the function <tt>pclose</tt>.
+     <item><tt>pclose (fileinstance)</tt>.  The function waits for the
+       command connected to a pipe to terminate.  The pipe is given by
+       the class <tt>file</tt> instance returned by the function
+       <tt>popen</tt>.  The function also removes the association of
+       the instance with the pipe.
+     <item><tt>tell (fileinstance)</tt>.  The function returns the
+       current value of the file position indicator for the file
+       (opened by function <tt>open</tt>) given by the class
+       <tt>file</tt> instance.
+     <item><tt>seek (fileinstance, offset, whence)</tt>.  The function
+       sets up the current file position indicator for the file
+       (opened by function <tt>open</tt>) given by the class
+       <tt>file</tt> instance.  The position is given by
+       <tt>offset</tt> which should be an integer after implicit
+       arithmetic conversion and <tt>whence</tt> which should be a
+       string after implicit string conversion.  The first character
+       of the string should be <tt>'s'</tt>, <tt>'c'</tt>, or
+       <tt>'e'</tt> (these characters mean that the offset is relative
+       to the start of the file, the current position indicator, or
+       the end-of-file, respectively).
+     <item><tt>get_file_encoding (fileinstance)</tt>.  The function
+       returns a new mutable string which is a name of the current file
+       encoding.
+     <item><tt>set_file_encoding (fileinstance, name)</tt>.  The
+       accepts file and string and changes the current file encoding.
+       If the name represents unknown encoding name, the function
+       generates exceptions <tt>parvalue</tt>.
      </itemize>
 
-<sect1>Predeclared classes
+<sect2>File output functions
 <p>
-The most of the predeclared classes describe exceptions which may be
-generated in Dino program.
-
-<sect2>File
-<p>
-Dino has predeclared final class <tt>file</tt>.  Work with files in
-Dino program are made through objects of the class.  All declarations
-inside of class are private.  The objects of the class can be created
-only by predeclared functions <tt>open</tt> or <tt>popen</tt>.  If you
-create an object of the class by calling the class, exception
-<tt>callop</tt> will be generated.  File encoding is defined by the
-current DINO encoding at the file creation time (see
-functions <tt>set_encoding</tt>, <tt>set_file_encoding</tt>).  If you
-want to work with files on the byte level without any encoding
-decoding, you can use encoding called <tt>"RAW"</tt>.
-
-<sect2>Exception classes
-<p>
-All Dino exceptions are represented by objects of the predeclared
-class <tt>except</tt> or of a class in the class <tt>except</tt>.  The
-class <tt>except</tt> has no parameters, therefore all arguments in
-calling the class will be ignored.  There is one predeclared class
-<tt>error</tt> inside class <tt>except</tt>.  All classes
-corresponding to user-defined exceptions are suggested to be declared
-in class <tt>except</tt> not in the class <tt>error</tt> because all
-other exceptions (e.g. generated by the Dino interpreter itself or by
-predeclared functions) are objects of the class <tt>error</tt> or
-predeclared classes inside the class <tt>error</tt>. The class
-<tt>error</tt> and all classes inside the class has one parameter
-<tt>msg</tt> which contains a readable message about the exception.
-The following classes are declared in the class <tt>error</tt>:
+The following functions are used to output something into opened
+files.  All the function return values are undefined.  The
+functions may generate an exception declared in the class <tt>syserror</tt>
+(e.g. <tt>eio</tt>, <tt>enospc</tt> and so on) besides the standard
+<tt>partype</tt>, and <tt>parnumber</tt>.
      <itemize>
-     <item><tt>signal</tt>.  Classes inside this class describe
-       exceptions from receiving a signal from other OS processes.  They
-       are
+     <item><tt>put (...)</tt>.  All parameters should be strings after
+       implicit string conversion.  The function outputs all strings
+       into the standard output stream.
+     <item><tt>putln (...)</tt>.  The function is analogous to the
+       function <tt>put</tt> except for the fact that it additionally
+       outputs a new line character after output of all the strings.
+     <item><tt>fput (fileinstance, ...)</tt>.  The function is
+       analogous to the function <tt>put</tt> except for the fact that
+       it outputs the string into an opened file associated with a
+       class <tt>file</tt> instance which is the first parameter
+       value.
+     <item><tt>fputln (fileinstance, ...)</tt>.  The function is
+       analogous to function <tt>fput</tt> except for the fact that it
+       additionally outputs a new line character after output of all
+       the strings.
+
+     <item><tt>putf (format, ...)</tt>.  The first parameter should be
+       strings after implicit string conversion.  The function outputs
+       the rest of parameters according to the format.  The number of
+       the rest parameters should be exactly equal to the conversions
+       (including parameterized widths and precisions) in the format.
+       Otherwise, exception <tt>parnumber</tt> will be generated.  The
+       types of the parameter should correspond to the corresponding
+       conversion specifier (or to be integer for parameterized widths
+       and precisions).  If it is not true, exception <tt>partype</tt>
+       will be generated.  The format is subset of one of standard C
+       function <tt>printf</tt> and has the following syntax:
+       <tscreen><verb>
+          format : <any character except %>
+                 | '%' flags [width] [precision]
+                       conversion_specifier
+          flags :
+                | flag
+
+          flag : '#' | '0' | '-' | ' ' | '+'
+
+          width : '*' | <decimal number starting with non-zero>
+
+          precision : '.' ['*' | <decimal number>]
+
+          conversion_specifier : 'd' | 'o' | 'x' | 'X'
+                               | 'e' | 'E' | 'f' | 'g'
+                               | 'G' | 'c' | 's' | '%'
+       </verb></tscreen>
+       If the format syntax is wrong, exception <tt>invfmt</tt> is
+       generated.
+
+       Flag '#' means that the value should be converted into an
+       alternative form.  It can be present only for conversion
+       specifiers 'o', 'x', 'X', 'e', 'E', 'f', 'g', and 'G'.  If the
+       flag is used for conversion specifier 'o', the output will be
+       prefixed by '0'.  For 'x' and 'X' the output will be prefixed
+       by '0x' and '0X' correspondingly. For conversions 'e', 'E',
+       'f', 'g', and 'G' the output will always contain a decimal
+       point.  For conversions 'g' and 'G' it also means that trailing
+       zeros are not removed from the output as they would be without
+       the flag.  The following code using flag '#' in format
+<tscreen><verb>
+         putf ("->%#o %#x %#x %#.0e %#.0f %#g<-\n",
+               8, 10, 16l, 2., 3., 4.);
+</verb></tscreen>
+       will output
+<tscreen><verb>
+         ->010 0xa 0x10 2.e+00 3. 4.00000<-
+</verb></tscreen>
+
+       Flag '0' means that the output value will be zero padded on the
+       left. If both flags '0' and '-' appear, the flag '0' is
+       ignored.  It is also ignored for conversions 'd', 'o', 'x', and
+       'X' if a precision is given.  The flag is prohibited for
+       conversions 'c' and 's'.  The following code using flag '0' in
+       format
+<tscreen><verb>
+         putf ("->%04d %04x %04x %09.2e %05.2f %05.2g<-\n",
+               8, 10, 16l, 2., 3., 4.);
+</verb></tscreen>
+       will output
+<tscreen><verb>
+         ->0008 000a 0010 02.00e+00 03.00 00004<-
+</verb></tscreen>
+
+       Flag '-' means that the output will be left adjusted on the
+       field boundary.  (The default is right justification). Flag '-'
+       overrides flag '0' if the both are given.  The following code
+       using flag '-' in format
+<tscreen><verb>
+         putf ("->%-04d %-04x %-04x %-09.2e %-05.2f %-05.2g<-\n",
+               8, 10, 16l, 2., 3., 4.);
+</verb></tscreen>
+       will output
+<tscreen><verb>
+         ->8    a    10    2.00e+00  3.00  4    <-
+</verb></tscreen>
+
+       Flag ' ' means that the output of a signed number will start
+       with a blank for positives number.  The flag can be used only
+       for conversions 'd', 'e', 'E', 'f', 'g', and 'G'.  If both
+       flags ' ' and '+' appear, the flag ' ' is ignored.  The
+       following code using flag ' ' in format
+<tscreen><verb>
+         putf ("->% d % d % .2e % .2f % .2g<-\n",
+               8, 16l, 2., 3., 4.);
+</verb></tscreen>
+       will output
+<tscreen><verb>
+         -> 8  16  2.00e+00  3.00  4<-
+</verb></tscreen>
+
+       Flag '+' means that the output of a signed number will start
+       with a plus for positives number.  The flag can be used only
+       for conversions 'd', 'e', 'E', 'f', 'g', and 'G'.  Flag '+'
+       overrides flag ' ' if both are given.  The following code using
+       flag '+' in format
+<tscreen><verb>
+         putf ("->%+d %+d %+.2e %+.2f %+.2g<-\n",
+               8, 16l, 2., 3., 4.);
+</verb></tscreen>
+       will output
+<tscreen><verb>
+         ->+8 +16 +2.00e+00 +3.00 +4<-
+</verb></tscreen>
+
+       The width defines a minimum width of the output value.  If the
+       output is smaller, it is padded with spaces (or zeros -- see
+       flag '0') on the left (if flag '-' is used) or right.  The
+       output is never truncated.  The width should be no more than
+       maximal integer value, otherwise exception <tt>invfmt</tt> is
+       generated.  The width can be given as a parameter of integer
+       type if '*' is used.  If the value of width given by the
+       parameter is negative, flag '-' is believed to be given and the
+       width is believed to be equal to zero.  The following code
+       using width in format
+<tscreen><verb>
+         putf ("->%5d %05d %-5d %5d %*d %*d<-\n",
+               8, 9, 10, 16l, 5, 8, -5, 10);
+</verb></tscreen>
+       will output
+<tscreen><verb>
+         ->    8 00009 10       16     8 10   <-
+</verb></tscreen>
+
+       The precision is prohibited for conversions 'c'.  If the number
+       after the period is absent, its value will be zero.  The
+       precision can be given as a parameter of integer type if '*' is
+       used after the period.  If the value of precision given by the
+       parameter is negative, its value is believed to be zero too.
+       For conversions 'd', 'o', 'x', and 'X' the precision means
+       minimum number of output digits.  For conversions 'e', 'E', and
+       'f' it means the number of digits to appear after the decimal
+       point.  For 'g' and 'G' it means the maximum number of
+       significant digits.  For 's' it means the maximum number of
+       characters to be output from a string.  The following code
+       using precision in format
+<tscreen><verb>
+         putf ("->%.d %.0d %.5d %.d %.0f %.0e %.2g<-\n",
+               8, 8, 9, 16l, 2.3, 2.3, 3.53);
+         putf ("->%.2s %.0d %.*d %.*d %.*d<-\n",
+               "long", 0, 5, 8, -5, 8, 5, 16l);
+</verb></tscreen>
+       will output
+<tscreen><verb>
+         ->8 8 00009 16 2 2e+00 3.5<-
+         ->lo  00008 8 00016<-
+</verb></tscreen>
+
+       Conversion 'd' should be used to output integer or long
+       integer.  The default precision is 1.  When 0 is output with an
+       explicit precision 0, the output is empty.
+
+       Conversions 'o', 'x', and 'X' should be used to output an
+       integer or long integer value as unsigned in octal and
+       hexadecimal form.  The lower case letters <tt>abcdef</tt> are
+       used for 'x' and the upper case letters <tt>ABCDEF</tt> are
+       used for 'X'.  The precision gives the minimum number of digits
+       that must appear. If the output value requires fewer digits, it
+       is padded on the left with zeros.  The default precision is 1.
+       When 0 is output with an explicit precision 0, the output is
+       empty.
+
+       Conversion 'f' should be used to output floating point values.
+       The output value has a form <tt>[-]ddd.ddd</tt> where the
+       number of digits after the decimal point is given by the
+       precision specification.  The default precision value is 6.  If
+       the precision is explicitly zero, no decimal-point character
+       appears.
+
+       Conversions 'e' and 'E' should be used to output floating point
+       values with an exponent in form <tt>[-]d.ddd[e|E][+|-]dd</tt>.
+       There is always one digit before the decimal-point.  The number
+       of digits after the decimal point is defined by the precision.
+       The default precision value is 6.  If the precision is zero, no
+       decimal-point appears.  Conversion 'E' uses the letter
+       <tt>E</tt> (rather than <tt>e</tt>) to introduce the exponent.
+       The exponent always contains at least two digits.  If the
+       exponent value is zero, the exponent is output as <tt>00</tt>.
+
+       Conversions 'g' and 'G' should be used to output floating point
+       values in style 'f' or 'e' (or 'E' for conversion 'G').  The
+       precision defines the number of significant digits.  The
+       default value of the precision is 6.  If the precision is zero,
+       it is treated as 1.  Conversion 'e' is used if the exponent
+       from the conversion is less than -4 or not less than the
+       precision.  Trailing zeros are removed from the fractional part
+       of the output.  If all fractional part is zero, the decimal
+       point is removed too.
+
+       Conversion 'c' should be used to output a character value.
+
+       Conversion 's' should be used to output strings.
+
+       Conversion '%' should be used to output <tt>%</tt>.
+
+       The following code using different conversions in format
+<tscreen><verb>
+         putf ("->%% %c %s %d %o %x %X %d %o %x %X<-\n",
+               'c', "string", 7, 8, 20, 20, 8l, 9l, 21l, 21l);
+         putf ("->%f<-\n", 1.5);
+         putf ("->%e %E %g %G %g %G<-\n",
+               2.8, 2.8, 3.7, 3.7, 455555555.555, 5.9e-5);
+</verb></tscreen>
+       will output
+<tscreen><verb>
+         ->% c string 7 10 14 14 8 11 15 15<-
+         ->1.500000<-
+         ->2.800000e+00 2.800000E+00 3.7 3.7 4.55556e+08 5.9E-05<-
+</verb></tscreen>
+
+     <item><tt>fput (fileinstance, format, ...)</tt>.  The function is
+       analogous to the function <tt>putf</tt> except for the fact that
+       it outputs the string into an opened file associated with a
+       class <tt>file</tt> instance which is the first parameter
+       value.
+     <item><tt>print (...)</tt>.  The function outputs all parameter
+       values into standard output stream.  The function never makes
+       implicit conversions of the parameter values.  The parameter
+       values are output as they could be represented in Dino itself
+       (e.g. character <tt>'c'</tt> is output as <tt>'c'</tt>, vector
+       <tt>['a', 'b', 'c']</tt> is output as <tt>"abc"</tt>, vector
+       <tt>[10, 20]</tt> as <tt>[10, 20]</tt> and so on).  As you know
+       some values (functions, classes, block instances, class
+       instances, threads) are not represented fully in DINO.  Such
+       values are represented schematically.  For example, the output
+       <tt>fun f {}.g(unique_number)</tt> would mean function
+       <tt>f</tt> in the call of function (or class) <tt>g</tt> with
+       the given unique number and function g is in the instance of
+       the implicit block covering the whole program.  For the
+       function <tt>g</tt>, output would look simply like <tt>fun
+       g</tt> because there is only one instance of the implicit block
+       covering the whole program.  Output for an instance of the
+       class <tt>c</tt> in the function <tt>f</tt> looks like
+       <tt>instance {}.f(unique_number).c(unique_number)</tt>.  Output
+       for a block instance of the function <tt>f</tt> looks like
+       <tt>stack {}.f(unique_number)</tt>.  Output for a thread whose
+       thread-function <tt>t</tt> is declared in the function
+       <tt>f</tt> would look like <tt>thread unique_number
+       {}.f(unique_number).t(unique_number)</tt>.
+     <item><tt>println (...)</tt>.  The function is analogous to the
+       function <tt>print</tt> except for the fact that it
+       additionally outputs new line character after output of all
+       parameters.
+     <item><tt>fprint (fileinstance, ...)</tt>.  The function is
+       analogous to the function <tt>print</tt> except for the fact
+       that it outputs the parameters into an opened file associated
+       with a class <tt>file</tt> instance which is the value of first
+       parameter.
+     <item><tt>fprintln (fileinstance, ...)</tt>.  The function is
+       analogous to function <tt>fprint</tt> except for the fact that
+       it additionally outputs a new line character after the output
+       of all the parameters.
+     </itemize>
+
+<sect2>File input functions
+<p>
+The following functions are used to input something from opened files.
+The functions may generate an exception declared in the
+class <tt>syserror</tt> (e.g. <tt>eio</tt>, <tt>enospc</tt> and so on)
+or <tt>eof</tt> besides the standard <tt>partype</tt>,
+and <tt>parnumber</tt>.
+     <itemize>
+     <item><tt>get ()</tt>.  The function reads one character from
+       standard input stream and returns it.  The function generates
+       the exception <tt>eof</tt> if the function tries to read the
+       end of file.
+     <item><tt>getln ()</tt>.  The function reads one line from
+       standard input stream and returns it as a new string.  The end
+       of line is the newline character or end of file.  The returned
+       string does not contain the newline character.  The function
+       generates the exception <tt>eof</tt> only when the file
+       position indicator before the function call stands exactly on
+       the end of file.
+     <item><tt>getf ([ln_flag])</tt>.  The function reads the whole
+       standard input stream and returns it as a new string.  The
+       function generates the exception <tt>eof</tt> only when the
+       file position indicator before the function call stands exactly
+       on the end of file.  The function has an optional parameter
+       which should be integer after implicit integer conversion.  If
+       the parameter value is nonzero, the function returns a vector
+       of strings.  Otherwise it behaves as usually.  Each string is a
+       line in the input stream.  The strings do not contain the
+       newline character.
+     <item><tt>fget (fileinstance)</tt>.  The function is analogous to
+       function <tt>get</tt> except for the fact that it reads from an
+       opened file associated with the class <tt>file</tt> instance
+       which is the parameter's value.
+     <item><tt>fgetln (fileinstance)</tt>.  The function is analogous
+       to the function <tt>getln</tt> except for the fact that it
+       reads from an opened file associated with a class <tt>file</tt>
+       instance which is the parameter value.
+     <item><tt>fgetf (fileinstance [, ln_flag])</tt>.  The function is
+       analogous to the function <tt>getf</tt> except for the fact
+       that it reads from an opened file associated with a class
+       <tt>file</tt> instance which is the parameter's value.
+     <item><tt>scan ()</tt>.  The functions reads a character,
+       integer, floating point number, string, vector, or table and
+       returns it as the result.  The input values should be
+       represented in the file as the ones in the Dino language
+       (except for the fact that there should be no identifiers in the
+       input values and there should be no operators in the values,
+       although the signs <tt>+</tt> and <tt>-</tt> are possible in an
+       integer or floating point represenation).  The table or vector
+       should contains only values of types mentioned above.  The
+       values in the file can be separated by white characters.  If
+       there is an error (e.g. unbalanced brackets in a vector value)
+       in the read value representation the function generates the
+       exception <tt>invinput</tt>.  The functions generates the
+       exception <tt>eof</tt> if only white characters are still
+       unread in the file.
+     <item><tt>scanln ()</tt>.  The function is analogous to the
+       function <tt>scan</tt> except for the fact that it skips all
+       characters until the end of line or the end of file after
+       reading the value.  Skipping is made even if the exception
+       <tt>invinput</tt> is generated.
+     <item><tt>fscan (fileinstance)</tt>.  The function is analogous
+       to the function <tt>scan</tt> except for the fact that it reads
+       from an opened file associated with a class <tt>file</tt>
+       instance which is the parameter's value.
+     <item><tt>fscanln (fileinstance)</tt>.  The function is analogous
+       to the function <tt>scanln</tt> except for that it reads from
+       an opened file associated with a class <tt>file</tt> instance
+       which is the parameter value.
+     </itemize>
+
+<sect2>Encoding functions
+<p>
+Dino internally uses Unicode for characters.  To provide communication
+with the rest of world, it can use different encodings.  The default
+encoding is UTF-8.  Dino has two functions to get and change the
+current encoding:
+     <itemize>
+     <item><tt>get_encoding ()</tt>.  The function returns a new
+       mutable string which is a name of the current encoding.
+     <item><tt>set_encoding (name)</tt>.  The function accepts string
+       and changes the current encoding.  If the name represents
+       unknown encoding name, the function generates
+       exceptions <tt>parvalue</tt>.
+     </itemize>
+       <p>
+       Examples:
+<tscreen><verb>
+          putln (get_encoding ());
+          set_encoding ("KOI8-R");
+</verb></tscreen>
+
+<sect2>Functions for work with directories
+<p>
+The following functions work with directories.  The functions may
+generate an exception declared in class syserror
+(e.g. <tt>eaccess</tt>, <tt>enametoolong</tt>, <tt>enotdir</tt> and so
+on) besides the standard <tt>partype</tt>, <tt>parnumber</tt>.
+     <itemize>
+     <item><tt>readdir (dirpath)</tt>.  The function makes implicit
+       string conversion of the parameter value which should be a
+       string (directory path).  The function returns a new mutable
+       vector with elements which are strings representing names of
+       all files and sub-directories (including <tt>"."</tt> and
+       <tt>".."</tt> for the current and parent directory
+       respectively) in given directory.
+     <item><tt>mkdir (dirpath)</tt>.  The function creates a directory
+       with the given name represented by a string (the parameter
+       value after implicit string conversion).  The directory has
+       read/write/execute rights for all.  You can change it with the
+       aid of the functions <tt>ch*mod</tt>.
+     <item><tt>rmdir (dirpath)</tt>.  The function removes the
+       directory given by a string which is parameter value after
+       implicit string conversion.
+     <item><tt>getcwd ()</tt>.  The function returns a new string
+       representing the full path of the current directory.
+     <item><tt>chdir (dirpath)</tt>.  The function makes the directory
+       given by <tt>dirpath</tt> (which should be a string after
+       implicit string conversion) the current directory.
+     </itemize>
+
+<sect2>Functions for access to file/directory information
+<p>
+The following predeclared functions can be used for accessing file or
+directory information.  The functions may generate an exception
+declared in the class <tt>syserror</tt> (e.g. <tt>eaccess</tt>,
+<tt>enametoolong</tt>, <tt>enfile</tt> and so on) besides the standard
+<tt>partype</tt>, and <tt>parnumber</tt>.  The functions expect one
+parameter which should be a file instance (see the predeclared class
+<tt>file</tt>) or the path name of a file represented by a string (the
+functions make implicit string conversion of the parameter).  The
+single exception to this is <tt>isatty</tt> which expects a file
+instance.
+     <itemize>
+     <item><tt>ftype (fileinstance_or_filename)</tt>.  The function
+       returns one the following characters:
+       <itemize>
+       <item><tt>'f'</tt>.  A regular file.
+       <item><tt>'d'</tt>.  A directory.
+       <item><tt>'L'</tt>.  A symbolic link.
+       <item><tt>'c'</tt>.  A character device.
+       <item><tt>'b'</tt>.  A block device.
+       <item><tt>'p'</tt>.  A fifo.
+       <item><tt>'S'</tt>.  A socket.
+       </itemize>
+       Under some OSes the function never returns some of the
+       characters (e.g. 'c' or 'b').  The function may return nil if
+       it can not categorize the file as above.
+     <item><tt>fuidn (fileinstance_or_filename)</tt>.  The function
+       returns new string representing name of owner of the file
+       (directory).  Under some OSes the function may return the new
+       string <tt>"Unknown"</tt> if there is no notion "owner" in the
+       OS file system.
+     <item><tt>fgrpn (fileinstance_or_filename)</tt>.  Analogous to the
+       previous function except for it returns a new string
+       representing name of the group of the file (directory).  Under
+       some OSes the function may return the new string
+       <tt>"Unknown"</tt> if there is no notion "group" in the OS file
+       system.
+     <item><tt>fsize (fileinstance_or_filename)</tt>.  The function
+       returns an integer value which is the length of the file in
+       bytes.
+     <item><tt>fatime (fileinstance_or_filename)</tt>.  The function
+       returns integer value which is time of the last access to the
+       file (directory).  The time is measured in seconds since the
+       fixed time (usually since January 1, 1970).  See also <em>time
+       functions</em>.
+     <item><tt>fmtime (fileinstance_or_filename)</tt>.  Analogous to
+       the previous functions but returns the time of the last
+       modification.
+     <item><tt>fctime (fileinstance_or_filename)</tt>.  Analogous to
+       the previous functions but it returns the time of the last
+       change.  Here `change' usually means changing the file
+       attributes (owner, modes and so on), while `modification' means
+       usually changing the file itself.
+     <item><tt>fumode (fileinstance_or_filename)</tt>.  The function
+       returns a new string representing the rights of the owner of
+       the file (directory).  The string may contain the following
+       characters (in the following order if the string contains more
+       than one character):
+       <itemize>
+       <item><tt>'s'</tt>.  Sticky bit of the file (directory).
+       <item><tt>'r'</tt>.  Right to read.
+       <item><tt>'w'</tt>.  Right to write.
+       <item><tt>'x'</tt>.  Right to execute.
+       </itemize>
+     <item><tt>fgmode (fileinstance_or_filename)</tt>.  Analogous to
+       the previous function except for the fact that it returns
+       information about the file (directory) group user rights and
+       that the function never returns a string containing the
+       character <tt>'s'</tt>.
+     <item><tt>fomode (fileinstance_or_filename)</tt>.  Analogous to
+       the previous function except for the act that it returns
+       information about the rights of all other users.
+     <item><tt>isatty (fileinstance)</tt>.  The function returns 1 if
+       the file instance given as a parameter is an open file
+       connected to a terminal and 0 otherwise.
+     </itemize>
+The following functions can be used to change rights of usage of the
+file (directory) for different users.  The function expects two
+strings (after implicit string conversion).  The first one is the path
+name of the file (directory).  The second one is the rights.  For
+instance, if the string contains a character 'r', this is right to
+read (see characters used to denote different rights in the
+description of the function <tt>fumode</tt>).  The function return
+values are always undefined.
+     <itemize>
+     <item><tt>chumod (path, mode)</tt>.  The function sets up rights
+       for the file (directory) owner according to the given mode.
+     <item><tt>chgmod (path, mode)</tt>.  Analogous to the previous
+       function except for the fact that it sets up rights for the
+       file (directory) group users and that the function ignores the
+       character <tt>'s'</tt>.
+     <item><tt>chomod (path, mode)</tt>.  Analogous to the previous
+       function except for the fact that it sets up rights for all
+       other users.
+     </itemize>
+
+<sect2>Miscellaneous functions
+<p>
+There are the following miscellaneous functions in space <tt>io</tt>:
+     <itemize>
+     <item><tt>sput (...), sputln (...), sputf (format, ...)</tt> The
+       functions are analogous to functions put, putln, print, and
+       println but they return the result string instead of output of
+       the formed string into the standard output stream.
+     <item><tt>sprint (...), sprintln (...)</tt>.  The functions are
+       analogous to functions print and println but they return the
+       result string instead of output of the formed string into the
+       standard output stream.
+     </itemize>
+
+<sect1>Space <tt>sys</tt>
+<p>
+This space contains declarations to work work with underlying
+execution environment (OS) and related exceptions.
+
+<sect2>Exceptions in space <tt>sys</tt>
+<p>
+The space contains a lot of exceptions:
+     <itemize>
+     <item><tt>signal</tt>.  This class is sub-class of
+       class <tt>error</tt>.  Sub-classes of class <tt>signal</tt>
+       describe exceptions from receiving a signal from other OS
+       processes.  They are
          <itemize>
          <item><tt>sigint</tt>.  This class describes the exception
            generated by the user's interrupt from the keyboard.
@@ -2370,626 +3273,257 @@ The following classes are declared in the class <tt>error</tt>:
          <item><tt>sigsegv</tt>.  This class describes the exception
            generated by an invalid memory reference.
          </itemize>
-     <item><tt>invenv</tt>.  This class describes corruption of the Dino
-       program environment (see predeclared variable <tt>env</tt>).
-     <item><tt>invop</tt>.  Classes inside this class describe
-       exceptions when operands of operations have an incorrect type or
-       value.
+     <item><tt>invenv</tt>.  This class is sub-class of
+       class <tt>error</tt>.  Class <tt>invenv</tt> describes
+       corruption of the Dino program environment (see predeclared
+       variable <tt>env</tt>).
+     <item><tt>syserror</tt>.  This class is sub-class of
+       class <tt>invcall</tt>.  Sub-classes of class <tt>syserror</tt>
+       describe exceptions in predeclared functions which call OS
+       system functions.  Some exceptions are never generated but may
+       be generated in the future on some OSes.
+       <itemize>
+       <item><tt>eaccess</tt>.  This describes the system error
+         "Permission denied".
+       <item><tt>eagain</tt>.  This describes the system error
+         "Resource temporarily unavailable".
+       <item><tt>ebadf</tt>.  This describes the system error "Bad
+         file descriptor".
+       <item><tt>ebusy</tt>.  This describes the system error
+         "Resource busy".
+       <item><tt>echild</tt>.  This describes the system error "No
+         child processes".
+       <item><tt>edeadlk</tt>.  This describes the system error
+         "Resource deadlock avoided".
+       <item><tt>edom</tt>.  This describes the system error "Domain
+         error".
+       <item><tt>eexist</tt>.  This describes the system error "File
+         exists".
+       <item><tt>efault</tt>.  This describes the system error "Bad
+         address".
+       <item><tt>efbig</tt>.  This describes the system error "File
+         too large".
+       <item><tt>eintr</tt>.  This describes the system error
+         "Interrupted function call".
+       <item><tt>einval</tt>.  This describes the system error
+         "Invalid argument".
+       <item><tt>eio</tt>.  This describes the system error
+         "Input/output error".
+       <item><tt>eisdir</tt>.  This describes the system error "Is a
+         directory".
+       <item><tt>emfile</tt>.  This describes the system error "Too
+         many open files".
+       <item><tt>emlink</tt>.  This describes the system error "Too
+         many links".
+       <item><tt>enametoolong</tt>.  This describes the system error
+         "Filename too long".
+       <item><tt>enfile</tt>.  This describes the system error "Too
+         many open files in system".
+       <item><tt>enodev</tt>.  This describes the system error "No
+         such device".
+       <item><tt>enoent</tt>.  This describes the system error "No
+         such file or directory".
+       <item><tt>enoexec</tt>.  This describes the system error "Exec
+         format error".
+       <item><tt>enolck</tt>.  This describes the system error "No
+         locks available".
+       <item><tt>enomem</tt>.  This describes the system error "Not
+         enough space".
+       <item><tt>enospc</tt>.  This describes the system error "No
+         space left on device".
+       <item><tt>enosys</tt>.  This describes the system error
+         "Function not implemented".
+       <item><tt>enotdir</tt>.  This describes the system error "Not a
+         directory".
+       <item><tt>enotempty</tt>.  This describes the system error
+         "Directory not empty".
+       <item><tt>enotty</tt>.  This describes the system error
+         "Inappropriate I/O control operation".
+       <item><tt>enxio</tt>.  This describes the system error "No such
+         device or address".
+       <item><tt>eperm</tt>.  This describes the system error
+         "Operation not permitted".
+       <item><tt>epipe</tt>.  This describes the system error "Broken
+         pipe".
+       <item><tt>erange</tt>.  This describes the system error "Result
+         too large".
+       <item><tt>erofs</tt>.  This describes the system error
+         "Read-only file system".
+       <item><tt>espipe</tt>.  This describes the system error
+         "Invalid seek".
+       <item><tt>esrch</tt>.  This describes the system error "No such
+         process".
+       <item><tt>exdev</tt>.  This describes the system error
+         "Improper link".
+       </itemize>
+     <item><tt>systemcall</tt>.  This is a sub-class of
+       class <tt>invcall</tt>.  Sub-classes of
+       class <tt>systemcall</tt> describe exceptions in calling the
+       predeclared function <tt>system</tt>.
+       <itemize>
+       <item><tt>noshell</tt>.  This class describes the exception
+         that the function <tt>system</tt> can not find the OS command
+         interpreter (the shell).
+       <item><tt>systemfail</tt>.  This class describes all remaining
+         exceptions in calling the OS function
+         <tt>system</tt>.
+       </itemize>
+     <item><tt>invextern</tt>.  This is a sub-class of
+       class <tt>invcall</tt>.  Sub-classes of
+       class <tt>invextern</tt> describe exceptions in calling
+       external functions or in accessing an external variable.
+       <itemize>
+       <item><tt>noextern</tt>.  This class describes the exception
+         that the given external can not be find.
+       <item><tt>libclose</tt>.  This class describes the exception
+         that there is an error in closing a shared library.
+       <item><tt>noexternsupp</tt>.  This class describes an exception
+         in the usage of externals when they are not implemented under
+         this OS.
+       </itemize>
+     <item><tt>invenvar</tt>.  This is a sub-class of
+       class <tt>invcall</tt>.  Class <tt>invenvar</tt> describes
+       corruption in the type of variables <tt>split_regex</tt> and
+       <tt>time_format</tt> (e.g. their values are not strings).
+     </itemize>
+
+<sect2>Variable <tt>time_format</tt>
+<p>
+The variable value is a string which is the output format of time used
+by the function <tt>strtime</tt> when it is called without parameters.
+The initial value of the variable is the string <tt>"%a %b %d %H:%M:%S
+%Z %Y"</tt>.
+
+<sect2>Time functions
+<p>
+The following functions from space <tt>sys</tt> can be used to get
+information about real time.
+     <itemize>
+     <item><tt>time ()</tt>.  The function returns the time in seconds
+       since the fixed time (usually since January 1, 1970).
+     <item><tt>strtime ([format [, time]])</tt>.  The function returns
+       a string representing the <tt>time</tt> (integer representing
+       time in seconds since the fixed time) according to the
+       <tt>format</tt> (string).  If the format is not given, the
+       value of variable <tt>time_format</tt> is used.  In this case
+       if the value of <tt>time_format</tt> is corrupted (it is not a
+       string), the function generates exception <tt>invenvar</tt>.
+       If the time is not given, the current time is used.  The format
+       is the same as in C library function <tt>strftime</tt>.  Here
+       is an extraction from the OS function documentation.  The
+       following format specifiers can be used in the format:
          <itemize>
-         <item><tt>optype</tt>.  This class describes that the operand
-           of an operation is not of the required type (possibly after
-           implicit conversions).
-         <item><tt>opvalue</tt>.  This class is reserved for the error
-           of that an operand of an operation has invalid value.  Now
-           this exception is not generated.
-         </itemize>
-     <item><tt>invindex</tt>.  Classes inside this class describe
-       exceptions in referring for a vector element.
-         <itemize>
-         <item><tt>indextype</tt>.  This class describes that the
-           index is not of integer type (possibly after implicit
-           integer conversion).
-         <item><tt>indexvalue</tt>.  This class describes that the
-           index is negative or equal to or more than the vector
-           length.
-         <item><tt>indexop</tt>.  This class describes that the first
-           operand in referring to a vector element is not a vector.
-         </itemize>
-     <item><tt>invkey</tt>.  Classes inside this class describe
-       exceptions in referring to a table element.
-         <itemize>
-         <item><tt>keyvalue</tt>.  This class describes that there is
-           no such element in the table with the given key when we
-           need the value of the element.  The exception does not
-           occur when a table element reference stands in the left
-           hand side of an assignment-statement.
-         <item><tt>keyop</tt>.  This class describes that the first
-           operand in referring to a table element is not a table.
-         </itemize>
-     <item><tt>invcall</tt>.  Classes inside this class describe
-       exceptions in calling functions (mainly predeclared ones).
-         <itemize>
-         <item><tt>callop</tt>.  This class describes that we try to
-           call something which is not a function, class, or
-           thread-function.  The exception is also generated when you
-           try to create a class <tt>file</tt> instance by calling the
-           class.
-         <item><tt>partype</tt>.  This class describes that a
-           parameter value of a predeclared function is not of
-           required type.
-         <item><tt>parvalue</tt>.  This class describes that a
-           parameter value of a predeclared function is not one of
-           permitted values (see functions <tt>set_encoding</tt>,
-           <tt>set_file_encoding</tt>).
-         <item><tt>invfmt</tt>.  This class describes that a format of
-           a format output function is wrong (see function
-           <tt>putf</tt>).
-         <item><tt>invencoding</tt>.  This class describes different
-           exceptions with used encodings, e.g. file contains bytes
-           not corresponding to the expected encoding or in some cases
-           the encoding should contain ASCII characters.
-         <item><tt>invresult</tt>.  This class describes that the
-           result value of function call is not of required type,
-           e.g. comparison function used in a call to function
-           <tt>sort</tt> returns a non integer value.
-         <item><tt>invinput</tt>.  This class describes that the file
-           input is not of required format.  Usually the exception is
-           generated by function <tt>scan</tt> etc.
-         <item><tt>eof</tt>.  This class describes that end of file is
-           encountered.  Usually the exception is generated by
-           functions reading files (<tt>get</tt>, <tt>scan</tt> etc).
-         <item><tt>parnumber</tt>.  This class describes that the
-           number of actual parameters is not valid when we call a
-           predeclared function.
-         <item><tt>syserror</tt>.  Classes inside this class describe
-           exceptions in predeclared functions which call OS system
-           functions.  Some exceptions are never generated but may
-           be generated in the future on some OSes.
-           <itemize>
-           <item><tt>eaccess</tt>.  This describes the system error
-             "Permission denied".
-           <item><tt>eagain</tt>.  This describes the system error
-             "Resource temporarily unavailable".
-           <item><tt>ebadf</tt>.  This describes the system error
-             "Bad file descriptor".
-           <item><tt>ebusy</tt>.  This describes the system error
-             "Resource busy".
-           <item><tt>echild</tt>.  This describes the system error
-             "No child processes".
-           <item><tt>edeadlk</tt>.  This describes the system error
-             "Resource deadlock avoided".
-           <item><tt>edom</tt>.  This describes the system error
-             "Domain error".
-           <item><tt>eexist</tt>.  This describes the system error
-             "File exists".
-           <item><tt>efault</tt>.  This describes the system error
-             "Bad address".
-           <item><tt>efbig</tt>.  This describes the system error
-             "File too large".
-           <item><tt>eintr</tt>.  This describes the system error
-             "Interrupted function call".
-           <item><tt>einval</tt>.  This describes the system error
-             "Invalid argument".
-           <item><tt>eio</tt>.  This describes the system error
-             "Input/output error".
-           <item><tt>eisdir</tt>.  This describes the system error
-             "Is a directory".
-           <item><tt>emfile</tt>.  This describes the system error
-             "Too many open files".
-           <item><tt>emlink</tt>.  This describes the system error
-             "Too many links".
-           <item><tt>enametoolong</tt>.  This describes the system
-             error "Filename too long".
-           <item><tt>enfile</tt>.  This describes the system error
-             "Too many open files in system".
-           <item><tt>enodev</tt>.  This describes the system error "No
-             such device".
-           <item><tt>enoent</tt>.  This describes the system error "No
-             such file or directory".
-           <item><tt>enoexec</tt>.  This describes the system error
-             "Exec format error".
-           <item><tt>enolck</tt>.  This describes the system error "No
-             locks available".
-           <item><tt>enomem</tt>.  This describes the system error
-             "Not enough space".
-           <item><tt>enospc</tt>.  This describes the system error "No
-             space left on device".
-           <item><tt>enosys</tt>.  This describes the system error
-             "Function not implemented".
-           <item><tt>enotdir</tt>.  This describes the system error
-             "Not a directory".
-           <item><tt>enotempty</tt>.  This describes the system error
-             "Directory not empty".
-           <item><tt>enotty</tt>.  This describes the system error
-             "Inappropriate I/O control operation".
-           <item><tt>enxio</tt>.  This describes the system error "No
-             such device or address".
-           <item><tt>eperm</tt>.  This describes the system error
-             "Operation not permitted".
-           <item><tt>epipe</tt>.  This describes the system error
-             "Broken pipe".
-           <item><tt>erange</tt>.  This describes the system error
-             "Result too large".
-           <item><tt>erofs</tt>.  This describes the system error
-             "Read-only file system".
-           <item><tt>espipe</tt>.  This describes the system error
-             "Invalid seek".
-           <item><tt>esrch</tt>.  This describes the system error "No
-             such process".
-           <item><tt>exdev</tt>.  This describes the system error
-             "Improper link".
-           </itemize>
-         <item><tt>systemcall</tt>.  Classes inside this class
-           describe exceptions in calling the predeclared function
-           <tt>system</tt>.
-           <itemize>
-           <item><tt>noshell</tt>.  This class describes the exception
-             that the function <tt>system</tt> can not find the OS
-             command interpreter (the shell).
-           <item><tt>systemfail</tt>.  This class describes all
-             remaining exceptions in calling the OS function
-             <tt>system</tt>.
-           </itemize>
-         <item><tt>invparser</tt>.  Classes inside this class describe
-           exceptions specific for calling functions of the predeclared
-           class <tt>parser</tt> implementing the Earley parser.
-           <itemize>
-           <item><tt>invgrammar</tt>.  This class describes
-             the exception that the Earley parser got a bad grammar,
-             e.g. without rules, with loops in rules, with
-             nonterminals unachievable from the axiom, with nonterminals
-             not deriving any terminal string etc.
-           <item><tt>invtoken</tt>.  This class describes the
-             exception that the parser got an input token with unknown
-             (undeclared) code.
-           <item><tt>pmemory</tt>.  This class describes the exception
-             that there is not enough memory for internal parser
-             data.
-           </itemize>
-         <item><tt>invregex</tt>.  This class describes exceptions
-           specific for calling predeclared functions implementing
-           regular expression pattern matching.
-         <item><tt>invextern</tt>.  Classes inside this class describe
-           exceptions in calling external functions or in accessing
-           an external variable.
-           <itemize>
-           <item><tt>noextern</tt>.  This class describes the
-             exception that the given external can not be find.
-           <item><tt>libclose</tt>.  This class describes the
-             exception that there is an error in closing a shared
-             library.
-           <item><tt>noexternsupp</tt>.  This class describes an
-             exception in the usage of externals when they are not
-             implemented under this OS.
-           </itemize>
-         <item><tt>invenvar</tt>.  This class describes corruption in
-           the type of variables <tt>split_regex</tt> and
-           <tt>time_format</tt> (e.g. their values are not strings).
-         <item><tt>internal</tt>.  This class describes all other
-           (nonspecified) exceptions in calling predeclared functions.
+         <item><tt>%a</tt> - the abbreviated weekday name according to
+           the current locale.
+         <item><tt>%A</tt> - the full weekday name according to the
+           current locale.
+         <item><tt>%b</tt> - the abbreviated month name according to
+           the current locale.
+         <item><tt>%B</tt> - the full month name according to the
+           current locale.
+         <item><tt>%c</tt> - the preferred date and time
+           representation for the current locale.
+         <item><tt>%d</tt> - the day of the month as a decimal number
+           (range 01 to 31).
+         <item><tt>%H</tt> - the hour as a decimal number using a
+           24-hour clock (range 00 to 23).
+         <item><tt>%I</tt> - the hour as a decimal number using a
+           12-hour clock (range 01 to 12).
+         <item><tt>%j</tt> - the day of the year as a decimal number
+           (range 001 to 366).
+         <item><tt>%m</tt> - the month as a decimal number (range 01
+           to 12).
+         <item><tt>%M</tt> - the minute as a decimal number.
+         <item><tt>%p</tt> - either `am' or `pm' according to the given time
+           value, or the corresponding strings for the current locale.
+         <item><tt>%S</tt> - the second as a decimal number.
+         <item><tt>%U</tt> - the week number of the current year as a
+           decimal number, starting with the first Sunday as the first
+           day of the first week.
+         <item><tt>%W</tt> - the week number of the current year as a
+           decimal number, starting with the first Monday as the first
+           day of the first week.
+         <item><tt>%w</tt> - the day of the week as a decimal, Sunday
+           being 0.
+         <item><tt>%x</tt> - the preferred date representation for
+           the current locale without the time.
+         <item><tt>%X</tt> - the preferred time representation for
+           the current locale without the date.
+         <item><tt>%y</tt> - the year as a decimal number without a
+           century (range 00 to 99).
+         <item><tt>%Y</tt> - the year as a decimal number including
+           the century.
+         <item><tt>%Z</tt> - the time zone or the name or an
+           abbreviation.
+         <item><tt>%%</tt> - a literal `%' character.
          </itemize>
      </itemize>
 
-<sect2>Earley parser classes
+<sect2>Functions for access to information about OS processes
 <p>
-Dino has the three following classes which are used by the Earley parser
-embedded into the Dino interpreter.
-
-<sect3>Parser.
-<p>
-Dino has predeclared final class <tt>parser</tt> which implements
-the Earley parser.  The Earley parser is a very powerful tool to implement
-serious language compilers, processors, or translators.  The
-implementation of the Earley parser used in Dino has the following
-features:
-
+Space <tt>sys</tt> contains predeclared functions which are used to
+get information about the current OS process (the Dino interpreter
+which executes the program).  Each OS process has unique identifier
+and usually OS processes are called by a concrete user and group and
+are executed on behalf of the concrete user and group (so called
+effective identifiers).  The following functions return such
+information.  On some OSes the function may return string "Unknown" as
+a name if there are notions of user and group identifiers.
      <itemize>
-     <item>It is sufficiently fast and does not require much memory.
-       This is the fastest implementation of the Earley parser which I
-       know.  The main design goal is to achieve speed and memory
-       requirements which are necessary to use it in prototype
-       compilers and language processors.  It parses 30,000 lines of C
-       per second on 500 MHz Pentium III and allocates about
-       5Mb memory for a 10,000 line C program.
-     <item>It makes simple syntax directed translation, so an
-       abstract tree is already the output of the Earley parser.
-     <item>It can parse input described by an ambiguous grammar.  In
-       this case the parse result can be an abstract tree or all
-       possible abstract trees.  Moreover, it produces the compact
-       representation of all possible parse trees by using DAG instead
-       of real trees.  These features can be used to parse natural
-       language sentences.
-     <item>It can make syntax error recovery.  Moreover its error
-       recovery algorithms find error recovery with a minimal number
-       of ignored tokens.  It permits implemention of parsers with
-       very good error recovery and reporting.
-     <item>It has fast startup.  There is practically no delay between
-       processing of grammar and start of parsing.
-     <item>It has a flexible interface.  The input grammar is given by
-       a YACC-like description.
-     <item>It has a good debugging features.  It can print huge amount
-       of information about grammar, parsing, error recovery,
-       translation.  You can even get the result translation in a form
-       for a graphic visualization program.
-     </itemize>
-The following public functions and variables are declared in the class
-<tt>parser</tt>:
-     <itemize>
-     <item><tt>ambiguous_p</tt>.  This public variable stores
-       information about the last parsing.  A nonzero variable value
-       means that during the last parsing on a given input the parser
-       found that the grammar is ambiguous.  The parser can find this
-       even if you asked for only one parser tree (see function
-       <tt>set_one_parse</tt>).
-
-     <item><tt>set_grammar (descr, strict_p)</tt>.  This function
-       tunes the parser to given grammar.  The grammar is given by
-       string <tt>descr</tt>.  Nonzero value of parameter
-       <tt>strict_p</tt> (after implicit integer conversion) means
-       more strict checking the grammar.  In this case, all
-       nonterminals will be checked on their ability to derive a
-       terminal string instead of only checking the axiom for this.
-       The function can generate exceptions <tt>partype</tt> (if the
-       parameters have wrong types) or <tt>invgrammar</tt> if the
-       description is a bad grammar.  The function can also generate
-       exception <tt>pmemory</tt> if there is no memory for internal
-       parser data.
-
-       The description is similiar to the <em>YACC</em> one.  It has
-       the following syntax:
-       <tscreen><verb>
-          file : file terms [';']
-               | file rule
-               | terms [';']
-               | rule
-       
-          terms : terms IDENTIFIER ['=' NUMBER]
-                | TERM
-       
-          rule : IDENTIFIER ':' rhs [';']
-          
-          rhs : rhs '|' sequence [translation]
-              | sequence [translation]
-          
-          sequence :
-                   | sequence IDENTIFIER
-                   | sequence C_CHARACTER_CONSTANT
-          
-          translation : '#'
-                      | '#' NUMBER
-                      | '#' '-'
-                      | '#' IDENTIFIER [NUMBER] '(' numbers ')'
-          
-          numbers :
-                  | numbers NUMBER
-                  | numbers '-'
-       </verb></tscreen>
-       So the description consists of terminal declaration and
-       rule sections.
-       
-       The terminal declaration section describes the name of
-       terminals and their codes.  The terminal code is optional.  If
-       it is omitted, the terminal code will the next free code
-       starting with 256.  You can declare a terminal several times
-       (the single condition is that its code should be the same).
-       
-       A character constant present in the rules is a terminal
-       described by default.  Its code is always the ASCII code of the
-       character constant.
-       
-       Rules syntax is the same as <em>YACC</em> rule syntax.  The
-       single difference is an optional translation construction
-       starting with <tt>#</tt> right after each alternative.  The
-       translation part could be a single number which means that the
-       translation of the alternative will be the translation of the
-       symbol with the given number (symbol number in the alternative
-       start is with 0).  Or the translation can be empty or
-       `<tt>-</tt>' which designates the value of the variable
-       <tt>nil_anode</tt>.  Or the translation can be an abstract node
-       with the given name, optional cost, and with fields whose
-       values are the translations of the alternative symbols with
-       numbers given in parentheses after the abstract node name.  You
-       can use `<tt>-</tt>' in an abstract node to show that the empty
-       node should be used in this place.  If the cost is absent it is
-       believed to be 1.  The cost of the terminal, error node, and
-       empty node is always zero.
-
-       There is a reserved terminal <tt>error</tt> which marks the
-       start point of error recovery.  The translation of the terminal
-       is the value of the variable <tt>error_anode</tt>.
- 
-     <item><tt>set_debug (level)</tt>.  This function sets up the
-       level of debugging information output to <tt>stderr</tt>.  The
-       higher the level, the more information is output.  The default
-       value is 0 (no output).  The debugging information includes
-       statistics, the result translation tree, the grammar, parser
-       sets, parser sets with all situations, situations with
-       contexts.  The function returns the previously set up debug
-       level.  Setting up a negative debug level results in output of
-       the translation for program <bf>dot</bf> of the graphic
-       visualization package <bf>graphviz</bf>.  The parameter should
-       be an integer after implicit integer conversion.  The function
-       will generate exception <tt>partype</tt> if it is not true.
-     <item><tt>set_one_parse (flag)</tt>.  This function sets up a
-       flag whose nonzero value means building only one translation
-       tree (without any alternative nodes).  For an unambiguous
-       grammar the flag does not affect the result.  The function
-       returns the previously set up flag value.  The default value of
-       the flag is 1.  The parameter should be an integer after
-       implicit integer conversion.  The function will generate
-       exception <tt>partype</tt> if it is not true.
-     <item><tt>set_lookahead (flag)</tt>.  This function sets up a
-       flag of of usage of look ahead in the parser work.  The usage
-       of lookahead gives the best results with the point of view of
-       space and speed.  The default value is 1 (the lookahead usage).
-       The function returns the previously set up flag.  No usage of
-       the lookahead is useful sometimes to get more understandable
-       debug output of the parser work (see function
-       <tt>set_debug</tt>).  The parameter should be an integer after
-       implicit integer conversion.  The function will generate the
-       exception <tt>partype</tt> if it is not true.
-     <item><tt>set_cost (flag)</tt>.  This function sets up building
-       the only translation tree (trees if we set up one_parse_flag to
-       0) with minimal cost.  For an unambiguous grammar the flag does
-       not affect the result.  The default value is 0. The function
-       returns the previously set up flag value.  The default value of
-       the flag is 0.  The parameter should be an integer after
-       implicit integer conversion.  The function will generate
-       exception <tt>partype</tt> if it is not true.
-     <item><tt>set_recovery (flag)</tt>.  This function sets up a flag
-       whose nonzero value means making error recovery if a syntax
-       error occurred.  Otherwise, a syntax error results in finishing
-       parsing (although the syntax error function passed to
-       <tt>parse</tt> is called once).  The function returns the
-       previously set up flag value.  The default value of the flag is
-       1.  The parameter should be an integer after implicit integer
-       conversion.  The function will generate exception
-       <tt>partype</tt> if it is not true.
-     <item><tt>set_recovery_match (n_toks)</tt>.  This function sets
-       up an internal parser parameter meaning how much subsequent
-       tokens should be successfully shifted to finish error recovery.
-       The default value is 3.  The function returns the previously
-       set up value.  The parameter should be an integer after
-       implicit integer conversion.  The function will generate
-       exception <tt>partype</tt> if it is not true.
-
-     <item><tt>parse (tokens, error_func)</tt>. This function is the
-       major function of the class.  It makes translation according to
-       the previously set up grammar of input given by the parameter
-       <tt>tokens</tt> whose value should be an array of objects of
-       predeclared class <tt>token</tt> or its subtype.  If the parser
-       recognizes a syntax error it calls the function given through
-       parameter <tt>error_func</tt> with six parameters:
-          <itemize>
-          <item>index of the token (in array <tt>tokens</tt>) on which
-            the syntax error occured.
-          <item>the error token itself.  It may be <tt>nil</tt> for
-            end of file.
-          <item>index of the first token (in array <tt>tokens</tt>)
-            ignored due to error recovery.
-          <item>the first ignored token itself.  It may be
-            <tt>nil</tt> for end of file.
-          <item>index of the first token (in array <tt>tokens</tt>)
-            which is not ignored after error recovery.
-          <item>the first not ignored token itself.  It may be
-            <tt>nil</tt> for end of file.
-          </itemize>
-       If the parser works with switched off error recovery (see
-       function <tt>set_recovery</tt>, the third and fifth parameters
-       will be negative and forth and sixth parameter will be
-       <tt>nil</tt>.
-
-       The function returns an object of the predeclared class
-       <tt>anode</tt> which is the root of the abtsract tree
-       representing the translation of the parser input.  The function
-       returns <tt>nil</tt> only if syntax error was occurred and
-       error recovery was switched off.  The function can generate
-       exception <tt>partype</tt> if the parameter types are wrong or
-       exception <tt>invtoken_decl</tt> if any of the input tokens
-       have a wrong code.  The function also can generate exception
-       <tt>pmemory</tt> if there is no memory for internal parser
-       data.
+     <item><tt>getpid ()</tt>.  The function returns an integer value
+       which is the process ID of the current OS process.
+     <item><tt>getun ()</tt>.  The function returns a new string which
+       is the user name for the current OS process.
+     <item><tt>geteun ()</tt>.  The function returns a new string
+       which is the effective user name for the current OS process.
+     <item><tt>getgn ()</tt>.  The function returns a new string which
+       is the group name for the current OS process.
+     <item><tt>getegn ()</tt>.  The function returns a new string
+       which is the effective group name for the current OS process.
+     <item><tt>getgroups ()</tt>.  The function returns a new vector
+       of strings (possibly the empty vector) representing
+       supplementary group names for the current OS process.
      </itemize>
 
-The call of the class <tt>parser</tt> itself can generate exception
-<tt>pmemory</tt> if there is no memory for internal parser
-data.
-
-<sect3>Token.
+<sect2>Function <tt>system (command)</tt>
 <p>
-Dino has a predeclared class <tt>token</tt>.  Objects of this class
-should be the input of the Earley parser (see function <tt>parse</tt>
-in class <tt>parser</tt>).  The result abstract tree representing the
-translation will have input tokens as leaves.  The class
-<tt>token</tt> has one public variable <tt>code</tt> whose value
-should be the code of the corresponding terminal described in the
-grammar.  You could extend the class description e.g. by adding
-variables whose values could be attributes of the token (e.g. source
-line number, name of an identifier, or value for a number).
+The function executes the command given by a string (the parameter
+value) in the OS command interpreter.  Besides standard exceptions
+<tt>parnumber</tt> and <tt>partype</tt> the function may generate
+exceptions <tt>noshell</tt> and <tt>systemfail</tt>.
 
-<sect3>Anode.
+<sect1>Space <tt>re</tt>
 <p>
-Dino has a predeclared class <tt>anode</tt> whose objects are nodes of
-the abtract tree representing the translation (see function
-<tt>parse</tt> of class <tt>parser</tt>).  Objects of this class are
-generated by the Earley parser.  The class has two public variables
-<tt>name</tt> whose value is string representing name of the abstract
-node as it given in the grammar and <tt>transl</tt> whose value is
-array with abstract node fields as the array elements.  There are a
-few node types which have special meaning:
+This space contains declarations which can be useful for working with
+regular expressions and for pattern matching -- see
+also <em>match-statements</em>.
 
-     <itemize>
-     <item>Terminal node which has reserved name <tt>$term</tt>.  The
-       value of the public variable <tt>transl</tt> for this node is
-       an object of class <tt>token</tt> representing the
-       corresponding input token which was an element of the array
-       passed as a parameter of function <tt>parse</tt> of function
-       <tt>parser</tt>.
-     <item>Error node which has reserved name <tt>$error</tt>.  This
-       node exists in one exemplar (see description of variable
-       <tt>error_anode</tt>) and represents the translation of
-       reserved grammar symbol <tt>error</tt>.  The value is public
-       variable <tt>transl</tt> will be <tt>nil</tt> in this case.
-     <item>The empty node which has the reserved name <tt>$nil</tt>.
-       This node also exists in one exemplar (see description of
-       variable <tt>nil_anode</tt>) and represents the translation of
-       a grammar symbol for which we did not describe a translation.
-       For example, in a grammar rule an abstract node refers for the
-       translation of a nonterminal for which we do not produce a
-       translation.  The value is public variable of such class object
-       will be <tt>nil</tt> in this case.
-     <item>Alternative node which has the reserved name <tt>$alt</tt>.
-       It represents all possible alternatives in the translation of
-       the grammar nonterminal.  The value of the public variable
-       <tt>transl</tt> will be an array with elements whose values are
-       objects of class <tt>anode</tt> which represent all possible
-       translations.  Such nodes can be generated by the parser only
-       if the grammar is ambiguous and we did not ask it to produce
-       only one translation.
-     </itemize>
-
-<sect3>Nil_anode and error_anode.
+<sect2>Exception class <tt>invregex</tt>
 <p>
-There is only one instance of <tt>anode</tt> which represents empty
-(nil) nodes.  The same is true for the error nodes.  The final
-variables <tt>nil_anode</tt> and <tt>error_anode</tt> correspondingly
-refer to these nodes.
+This class describes exceptions specific for executing
+<em>pmatch-statement</em> and for calling predeclared functions
+implementing regular expression pattern matching.  Although there is
+only one class for this, the messages which are the class parameter
+can be different and explain more details.
 
-<sect3>Example of Earley parser usage.
+<sect2>Variable <tt>split_regex</tt>
 <p>
-Let us write a program which transforms an expression into postfix
-polish form.  Please, read the program comments to understand what the
-code does.  The program should output string <tt>"abcda*+*+"</tt>
-which is the postfix polish form of input string
-<tt>"a+b*(c+d*a)"</tt>.
-<tscreen><verb>
-          // The following is the expression grammar:
-          var grammar = "E : E '+' T   # plus (0 2)\n\
-                           | T         # 0\n\
-                           | error     # 0\n\
-                         T : T '*' F   # mult (0 2)\n\
-                           | F         # 0\n\
-                         F : 'a'       # 0\n\
-                           | 'b'       # 0\n\
-                           | 'c'       # 0\n\
-                           | 'd'       # 0\n\
-                           | '(' E ')' # 1";
-          // Create parser and set up grammar.
-          var p = parser ();
-          p.set_grammar (grammar, 1);
+The variable value is a string which represents regular expression
+which is used by the predeclared function <tt>split</tt> when the
+second parameter is not given.  The initial value of the variable is
+string <tt>"[ \t]+"</tt>.
 
-          // Add attribute repr to token:
-          class our_token (code) { use token former code; var repr; }
-          // The following code forms input tokens from string:
-          var str = "a+b*(c+d*a)";
-          var i, inp = [#str : nil];
-          for (i = 0; i < #str; i++) {
-            inp [i] = our_token (str[i] + 0);
-            inp [i].repr = str[i];
-          }
-          // The following function output messages about syntax errors
-          // syntax error recovery:
-          fun error (err_start, err_tok,
-                      start_ignored_num, start_ignored_tok_attr,
-	              start_recovered_num, start_recovered_tok) {
-            put ("syntax error on token #", err_start,
-                 " (" @ err_tok.code @ ")");
-            putln (" -- ignore ", start_recovered_num - start_ignored_num,
-                   " tokens starting with token #", start_ignored_num);
-          }
-
-          var root = p.parse (inp, error); // parse
-
-          // Output translation in polish inverse form
-          fun pr (r) {
-            var i, n = r.name;
-
-            if (n == "$term")
-              put (r.transl.repr);
-            else if (n == "mult" || n == "plus") {
-              for (i = 0; i < #r.transl; i++)
-                pr (r.transl [i]);
-              put (n == "mult" ? "*" : "+");
-            }
-            else if (n != "$error") {
-              putln ("internal error");
-	      exit (1);
-            }
-          }
-
-          pr (root);
-          putln ();
-</verb></tscreen>
-
-<sect1>Predeclared functions
+<sect2>Pattern matching
 <p>
-The predeclared functions expect a given number of actual parameters
-(may be a variable number of parameters).  If the actual parameter
-number is an unexpected one, exception <tt>parnumber</tt> is
-generated.  The predeclared functions believe that the actual
-parameters (may be after implicit conversions) are of the required
-type.  If this is not true, exception <tt>partype</tt> is generated.
-To show how many parameters the function requires, we will write the
-names of the parameters and use brackets <tt>[</tt> and <tt>]</tt> for
-the optional parameters in the description of the functions.
-<p>
-        Examples:  The following description
-<tscreen><verb>
-          strtime ([format [, time]])
-</verb></tscreen>
-        describes that the function can accept zero, one, or two
-        parameters.  If only one parameter is given, then this is
-        parameter <tt>format</tt>.
-<p>
-If something is not said about the returned result, the function
-return value is undefined.
-
-<sect2>Mathematical functions
-<p>
-The following functions make implicit arithmetic conversion of the
-parameters.  After the conversions the parameters are expected to be
-of integer, long integer, or floating point type.  The result is
-always a floating point number.
-     <itemize>
-     <item><tt>sqrt (x)</tt>.  The function returns the square root of
-       <tt>x</tt>.  The function generates the exception <tt>edom</tt>
-       if <tt>x</tt> is negative.
-     <item><tt>exp (x)</tt>.  The function returns <tt>e</tt> (the
-       base of the natural logarithm) raised to the power of
-       <tt>x</tt>.
-     <item><tt>log (x)</tt>.  The function returns the natural
-       logarithm of <tt>x</tt>.  The function generates the exception
-       <tt>edom</tt> if <tt>x</tt> is negative or may generate
-       <tt>erange</tt> if the value is zero.
-     <item><tt>log10 (x)</tt>.  The function returns the decimal
-       logarithm of <tt>x</tt>.  The function generates the exception
-       <tt>edom</tt> if <tt>x</tt> is negative or may generate
-       <tt>erange</tt> if the value is zero.
-     <item><tt>pow (x, y)</tt>.  The function returns <tt>x</tt>
-       raised to the power of <tt>y</tt>.  The function generates
-       exception <tt>edom</tt> if x is negative and y is not of
-       integral value.
-     <item><tt>sin (x)</tt>.  The function returns the sine of
-       <tt>x</tt>.
-     <item><tt>cos (x)</tt>.  The function returns the cosine of
-       <tt>x</tt>.
-     <item><tt>atan2 (x, y)</tt>.  The function returns the arc
-       tangent of the two variables <tt>x</tt> and <tt>y</tt>.  It is
-       similar to calculating the arc tangent of <tt>y / x</tt>,
-       except that the signs of both arguments are used to determine
-       the quadrant of the result.
-     </itemize>
-
-<sect2>Pattern matching functions
-<p>
-Dino has the predeclared functions which are used for <em>pattern
-matching</em>.  The pattern is described by <em>regular
-expressions</em> (<em>regex</em>) and actually a small program
-describing a string matching.  The pattern has <em>default</em> syntax
-of ONIGURUMA package for Unicode.  It is hard to describe formally the
-pattern syntax.  Here is not a completely strict description for full
-reference, please see OINGURUMA package documentation.  The regular
-expressions have the following syntax:
+Space <tt>re</tt> contains predeclared functions which are used
+for <em>pattern matching</em>.  The pattern is described
+by <em>regular expressions</em> (<em>regex</em>) and actually a small
+program describing a string matching.  The pattern
+has <em>default</em> syntax of ONIGURUMA package for Unicode.  It is
+hard to describe formally the pattern syntax.  Here is not a
+completely strict description for full reference, please see OINGURUMA
+package documentation.  The regular expressions have the following
+syntax:
 <tscreen><verb>
           Regex = Branch {"|" Branch}
 </verb></tscreen>
@@ -3391,7 +3925,8 @@ results in never ending recursion.
           `(?<p>a|b\g<p>c)` // wrong left recursion.
 </verb></tscreen>
 <p>
-There are the following Dino pattern matching functions:
+There are the following pattern matching functions in
+space <tt>re</tt>:
      <itemize>
      <item><tt>match (regex, string)</tt>.  The function searches for
        the matching regular expression <tt>regex</tt> in
@@ -3425,7 +3960,7 @@ There are the following Dino pattern matching functions:
        <p>
        Example: The program
 <tscreen><verb>
-          println (match (`\n()(a)((a)(a))`, "b\naaab"));
+          println (re.match (`\n()(a)((a)(a))`, "b\naaab"));
 </verb></tscreen>
        outputs
 <tscreen><verb>
@@ -3451,8 +3986,8 @@ There are the following Dino pattern matching functions:
        <p>
        Example: The program
 <tscreen><verb>
-          println (gmatch (`aa`, "aaaaa"));
-          println (gmatch (`aa`, "aaaaa", 1));
+          println (re.gmatch (`aa`, "aaaaa"));
+          println (re.gmatch (`aa`, "aaaaa", 1));
 </verb></tscreen>
        outputs
 <tscreen><verb>
@@ -3494,7 +4029,7 @@ There are the following Dino pattern matching functions:
        <p>
        Examples: The program
 <tscreen><verb>
-          println (split ("aaa bbb ccc	ddd"));
+          println (re.split ("aaa bbb ccc	ddd"));
 </verb></tscreen>
        outputs
 <tscreen><verb>
@@ -3502,7 +4037,7 @@ There are the following Dino pattern matching functions:
 </verb></tscreen>
        The program
 <tscreen><verb>
-          println (split ("abcdef", ``));
+          println (re.split ("abcdef", ``));
 </verb></tscreen>
        outputs
 <tscreen><verb>
@@ -3512,672 +4047,47 @@ There are the following Dino pattern matching functions:
 If the regular expression is incorrect, the functions generate
 exception <tt>invregex</tt> with a message explaining the error.
 
-<sect2>Encoding functions
+<sect1>Space <tt>math</tt>
 <p>
-Dino internally uses Unicode for characters.  To provide communication
-with the rest of world, it can use different encodings.  The default
-encoding is UTF-8.  Dino has two functions to get and change the
-current encoding:
-     <itemize>
-     <item><tt>get_encoding ()</tt>.  The function returns a new
-       mutable string which is a name of the current encoding.
-     <item><tt>set_encoding (name)</tt>.  The function accepts string
-       and changes the current encoding.  If the name represents
-       unknown encoding name, the function generates
-       exceptions <tt>parvalue</tt>.
-     </itemize>
-       <p>
-       Examples:
-<tscreen><verb>
-          putln (get_encoding ());
-          set_encoding ("KOI8-R");
-</verb></tscreen>
+The space contains mostly mathematical functions.
 
-<sect2>File functions
+<sect2>Mathematical functions
 <p>
-Dino has some predeclared functions to work on files and
-directories.
-
-<sect3>Functions for access to file/directory information
-<p>
-The following predeclared functions can be used for accessing file or
-directory information.  The functions may generate an exception
-declared in the class <tt>syserror</tt> (e.g. <tt>eaccess</tt>,
-<tt>enametoolong</tt>, <tt>enfile</tt> and so on) besides the standard
-<tt>partype</tt>, and <tt>parnumber</tt>.  The functions expect one
-parameter which should be a file instance (see the predeclared class
-<tt>file</tt>) or the path name of a file represented by a string (the
-functions make implicit string conversion of the parameter).  The
-single exception to this is <tt>isatty</tt> which expects a file
-instance.
+The following functions make implicit arithmetic conversion of the
+parameters.  After the conversions the parameters are expected to be
+of integer, long integer, or floating point type.  The result is
+always a floating point number.
      <itemize>
-     <item><tt>ftype (fileinstance_or_filename)</tt>.  The function
-       returns one the following characters:
-       <itemize>
-       <item><tt>'f'</tt>.  A regular file.
-       <item><tt>'d'</tt>.  A directory.
-       <item><tt>'L'</tt>.  A symbolic link.
-       <item><tt>'c'</tt>.  A character device.
-       <item><tt>'b'</tt>.  A block device.
-       <item><tt>'p'</tt>.  A fifo.
-       <item><tt>'S'</tt>.  A socket.
-       </itemize>
-       Under some OSes the function never returns some of the
-       characters (e.g. 'c' or 'b').  The function may return nil if
-       it can not categorize the file as above.
-     <item><tt>fuidn (fileinstance_or_filename)</tt>.  The function
-       returns new string representing name of owner of the file
-       (directory).  Under some OSes the function may return the new
-       string <tt>"Unknown"</tt> if there is no notion "owner" in the
-       OS file system.
-     <item><tt>fgrpn (fileinstance_or_filename)</tt>.  Analogous to the
-       previous function except for it returns a new string
-       representing name of the group of the file (directory).  Under
-       some OSes the function may return the new string
-       <tt>"Unknown"</tt> if there is no notion "group" in the OS file
-       system.
-     <item><tt>fsize (fileinstance_or_filename)</tt>.  The function
-       returns an integer value which is the length of the file in
-       bytes.
-     <item><tt>fatime (fileinstance_or_filename)</tt>.  The function
-       returns integer value which is time of the last access to the
-       file (directory).  The time is measured in seconds since the
-       fixed time (usually since January 1, 1970).  See also <em>time
-       functions</em>.
-     <item><tt>fmtime (fileinstance_or_filename)</tt>.  Analogous to
-       the previous functions but returns the time of the last
-       modification.
-     <item><tt>fctime (fileinstance_or_filename)</tt>.  Analogous to
-       the previous functions but it returns the time of the last
-       change.  Here `change' usually means changing the file
-       attributes (owner, modes and so on), while `modification' means
-       usually changing the file itself.
-     <item><tt>fumode (fileinstance_or_filename)</tt>.  The function
-       returns a new string representing the rights of the owner of
-       the file (directory).  The string may contain the following
-       characters (in the following order if the string contains more
-       than one character):
-       <itemize>
-       <item><tt>'s'</tt>.  Sticky bit of the file (directory).
-       <item><tt>'r'</tt>.  Right to read.
-       <item><tt>'w'</tt>.  Right to write.
-       <item><tt>'x'</tt>.  Right to execute.
-       </itemize>
-     <item><tt>fgmode (fileinstance_or_filename)</tt>.  Analogous to
-       the previous function except for the fact that it returns
-       information about the file (directory) group user rights and
-       that the function never returns a string containing the
-       character <tt>'s'</tt>.
-     <item><tt>fomode (fileinstance_or_filename)</tt>.  Analogous to
-       the previous function except for the act that it returns
-       information about the rights of all other users.
-     <item><tt>isatty (fileinstance)</tt>.  The function returns 1 if
-       the file instance given as a parameter is an open file
-       connected to a terminal and 0 otherwise.
-     </itemize>
-The following functions can be used to change rights of usage of the
-file (directory) for different users.  The function expects two
-strings (after implicit string conversion).  The first one is the path
-name of the file (directory).  The second one is the rights.  For
-instance, if the string contains a character 'r', this is right to
-read (see characters used to denote different rights in the
-description of the function <tt>fumode</tt>).  The function return
-values are always undefined.
-     <itemize>
-     <item><tt>chumod (path, mode)</tt>.  The function sets up rights
-       for the file (directory) owner according to the given mode.
-     <item><tt>chgmod (path, mode)</tt>.  Analogous to the previous
-       function except for the fact that it sets up rights for the
-       file (directory) group users and that the function ignores the
-       character <tt>'s'</tt>.
-     <item><tt>chomod (path, mode)</tt>.  Analogous to the previous
-       function except for the fact that it sets up rights for all
-       other users.
+     <item><tt>sqrt (x)</tt>.  The function returns the square root of
+       <tt>x</tt>.  The function generates the exception <tt>edom</tt>
+       if <tt>x</tt> is negative.
+     <item><tt>exp (x)</tt>.  The function returns <tt>e</tt> (the
+       base of the natural logarithm) raised to the power of
+       <tt>x</tt>.
+     <item><tt>log (x)</tt>.  The function returns the natural
+       logarithm of <tt>x</tt>.  The function generates the exception
+       <tt>edom</tt> if <tt>x</tt> is negative or may generate
+       <tt>erange</tt> if the value is zero.
+     <item><tt>log10 (x)</tt>.  The function returns the decimal
+       logarithm of <tt>x</tt>.  The function generates the exception
+       <tt>edom</tt> if <tt>x</tt> is negative or may generate
+       <tt>erange</tt> if the value is zero.
+     <item><tt>pow (x, y)</tt>.  The function returns <tt>x</tt>
+       raised to the power of <tt>y</tt>.  The function generates
+       exception <tt>edom</tt> if x is negative and y is not of
+       integral value.
+     <item><tt>sin (x)</tt>.  The function returns the sine of
+       <tt>x</tt>.
+     <item><tt>cos (x)</tt>.  The function returns the cosine of
+       <tt>x</tt>.
+     <item><tt>atan2 (x, y)</tt>.  The function returns the arc
+       tangent of the two variables <tt>x</tt> and <tt>y</tt>.  It is
+       similar to calculating the arc tangent of <tt>y / x</tt>,
+       except that the signs of both arguments are used to determine
+       the quadrant of the result.
      </itemize>
 
-<sect3>Functions for work with directories
-<p>
-The following functions work with directories.  The functions may
-generate an exception declared in class syserror
-(e.g. <tt>eaccess</tt>, <tt>enametoolong</tt>, <tt>enotdir</tt> and so
-on) besides the standard <tt>partype</tt>, <tt>parnumber</tt>.
-     <itemize>
-     <item><tt>readdir (dirpath)</tt>.  The function makes implicit
-       string conversion of the parameter value which should be a
-       string (directory path).  The function returns a new mutable
-       vector with elements which are strings representing names of
-       all files and sub-directories (including <tt>"."</tt> and
-       <tt>".."</tt> for the current and parent directory
-       respectively) in given directory.
-     <item><tt>mkdir (dirpath)</tt>.  The function creates a directory
-       with the given name represented by a string (the parameter
-       value after implicit string conversion).  The directory has
-       read/write/execute rights for all.  You can change it with the
-       aid of the functions <tt>ch*mod</tt>.
-     <item><tt>rmdir (dirpath)</tt>.  The function removes the
-       directory given by a string which is parameter value after
-       implicit string conversion.
-     <item><tt>getcwd ()</tt>.  The function returns a new string
-       representing the full path of the current directory.
-     <item><tt>chdir (dirpath)</tt>.  The function makes the directory
-       given by <tt>dirpath</tt> (which should be a string after
-       implicit string conversion) the current directory.
-     </itemize>
-
-<sect3>Functions for work with files.
-<p>
-The following functions (besides input/output functions) work with OS
-files.  The functions may generate an exception declared in the class
-<tt>syserror</tt> (e.g. <tt>eaccess</tt>, <tt>enametoolong</tt>,
-<tt>eisdir</tt> and so on) besides the standard <tt>partype</tt>,
-and <tt>parnumber</tt>.  The function <tt>rename</tt> can be used for
-renaming a directory, not only a file.
-     <itemize>
-     <item><tt>rename (old_path, new_path)</tt>.  The function renames
-       the file (directory) given by its path name.  The old and new
-       names are given by parameter values which should be strings
-       after implicit string conversion.
-     <item><tt>remove (file_path)</tt>.  The function removes the OS
-       file given by its path name.  The file path name should be a
-       string after implicit string conversion.
-     <item><tt>open (file_path, mode)</tt>.  The function opens the
-       file for work in the given <em>mode</em>, creates a new class
-       <tt>file</tt> instance, associates the opened file with the
-       instance, and returns the instance.  The parameter values
-       should be strings after implicit string conversions.  The first
-       parameter value is a string representing the file path.  The
-       second parameter value is string representing the mode for work
-       with the file (for all possible modes see the ANSI C function
-       <tt>fopen</tt> documentation).  All work with an opened file is
-       made through the file instance.
-     <item><tt>close (fileinstance)</tt>.  The function closes a file
-       opened by the function <tt>open</tt>.  The file is given by the
-       class <tt>file</tt> instance.  The function also removes all
-       association of the instance with the file.
-     <item><tt>flush (fileinstance)</tt>.  The function flushes any
-       output that has been buffered for the opened file given by
-       the class <tt>file</tt> instance.
-     <item><tt>popen (command, mode)</tt>.  The function starts the
-       shell command given by the first parameter value (which should
-       be a string after implicit string conversion), creates a pipe,
-       creates a new class <tt>file</tt> instance, associates the pipe
-       with the instance, and returns the instance.  Writing to such a
-       pipe (through the class file instance) writes to the standard
-       input of the command.  Conversely, reading from the pipe reads
-       the command's standard output.  After implicit string
-       conversion the second parameter value should be the string "r"
-       (for reading from the pipe) or "w" (for writing to the pipe).
-       The pipe should be closed by the function <tt>pclose</tt>.
-     <item><tt>pclose (fileinstance)</tt>.  The function waits for the
-       command connected to a pipe to terminate.  The pipe is given by
-       the class <tt>file</tt> instance returned by the function
-       <tt>popen</tt>.  The function also removes the association of
-       the instance with the pipe.
-     <item><tt>tell (fileinstance)</tt>.  The function returns the
-       current value of the file position indicator for the file
-       (opened by function <tt>open</tt>) given by the class
-       <tt>file</tt> instance.
-     <item><tt>seek (fileinstance, offset, whence)</tt>.  The function
-       sets up the current file position indicator for the file
-       (opened by function <tt>open</tt>) given by the class
-       <tt>file</tt> instance.  The position is given by
-       <tt>offset</tt> which should be an integer after implicit
-       arithmetic conversion and <tt>whence</tt> which should be a
-       string after implicit string conversion.  The first character
-       of the string should be <tt>'s'</tt>, <tt>'c'</tt>, or
-       <tt>'e'</tt> (these characters mean that the offset is relative
-       to the start of the file, the current position indicator, or
-       the end-of-file, respectively).
-     <item><tt>get_file_encoding (fileinstance)</tt>.  The function
-       returns a new mutabe string which is a name of the current file
-       encoding.
-     <item><tt>set_file_encoding (fileinstance, name)</tt>.  The
-       accepts file and string and changes the current file encoding.
-       If the name represents unknown encoding name, the function
-       generates exceptions <tt>parvalue</tt>.
-     </itemize>
-
-<sect3>File output functions
-<p>
-The following functions are used to output something into opened
-files.  All the function return values are undefined.  The
-functions may generate an exception declared in the class <tt>syserror</tt>
-(e.g. <tt>eio</tt>, <tt>enospc</tt> and so on) besides the standard
-<tt>partype</tt>, and <tt>parnumber</tt>.
-     <itemize>
-     <item><tt>put (...)</tt>.  All parameters should be strings after
-       implicit string conversion.  The function outputs all strings
-       into the standard output stream.
-     <item><tt>putln (...)</tt>.  The function is analogous to the
-       function <tt>put</tt> except for the fact that it additionally
-       outputs a new line character after output of all the strings.
-     <item><tt>fput (fileinstance, ...)</tt>.  The function is
-       analogous to the function <tt>put</tt> except for the fact that
-       it outputs the string into an opened file associated with a
-       class <tt>file</tt> instance which is the first parameter
-       value.
-     <item><tt>fputln (fileinstance, ...)</tt>.  The function is
-       analogous to function <tt>fput</tt> except for the fact that it
-       additionally outputs a new line character after output of all
-       the strings.
-
-     <item><tt>putf (format, ...)</tt>.  The first parameter should be
-       strings after implicit string conversion.  The function outputs
-       the rest of parameters according to the format.  The number of
-       the rest parameters should be exactly equal to the conversions
-       (including parameterized widths and precisions) in the format.
-       Otherwise, exception <tt>parnumber</tt> will be generated.  The
-       types of the parameter should correspond to the corresponding
-       conversion specifier (or to be integer for parameterized widths
-       and precisions).  If it is not true, exception <tt>partype</tt>
-       will be generated.  The format is subset of one of standard C
-       function <tt>printf</tt> and has the following syntax:
-       <tscreen><verb>
-          format : <any character except %>
-                 | '%' flags [width] [precision]
-                       conversion_specifier
-          flags :
-                | flag
-
-          flag : '#' | '0' | '-' | ' ' | '+'
-
-          width : '*' | <decimal number starting with non-zero>
-
-          precision : '.' ['*' | <decimal number>]
-
-          conversion_specifier : 'd' | 'o' | 'x' | 'X'
-                               | 'e' | 'E' | 'f' | 'g'
-                               | 'G' | 'c' | 's' | '%'
-       </verb></tscreen>
-       If the format syntax is wrong, exception <tt>invfmt</tt> is
-       generated.
-
-       Flag '#' means that the value should be converted into an
-       alternative form.  It can be present only for conversion
-       specifiers 'o', 'x', 'X', 'e', 'E', 'f', 'g', and 'G'.  If the
-       flag is used for conversion specifier 'o', the output will be
-       prefixed by '0'.  For 'x' and 'X' the output will be prefixed
-       by '0x' and '0X' correspondingly. For conversions 'e', 'E',
-       'f', 'g', and 'G' the output will always contain a decimal
-       point.  For conversions 'g' and 'G' it also means that trailing
-       zeros are not removed from the output as they would be without
-       the flag.  The following code using flag '#' in format
-<tscreen><verb>
-         putf ("->%#o %#x %#x %#.0e %#.0f %#g<-\n",
-               8, 10, 16l, 2., 3., 4.);
-</verb></tscreen>
-       will output
-<tscreen><verb>
-         ->010 0xa 0x10 2.e+00 3. 4.00000<-
-</verb></tscreen>
-
-       Flag '0' means that the output value will be zero padded on the
-       left. If both flags '0' and '-' appear, the flag '0' is
-       ignored.  It is also ignored for conversions 'd', 'o', 'x', and
-       'X' if a precision is given.  The flag is prohibited for
-       conversions 'c' and 's'.  The following code using flag '0' in
-       format
-<tscreen><verb>
-         putf ("->%04d %04x %04x %09.2e %05.2f %05.2g<-\n",
-               8, 10, 16l, 2., 3., 4.);
-</verb></tscreen>
-       will output
-<tscreen><verb>
-         ->0008 000a 0010 02.00e+00 03.00 00004<-
-</verb></tscreen>
-
-       Flag '-' means that the output will be left adjusted on the
-       field boundary.  (The default is right justification). Flag '-'
-       overrides flag '0' if the both are given.  The following code
-       using flag '-' in format
-<tscreen><verb>
-         putf ("->%-04d %-04x %-04x %-09.2e %-05.2f %-05.2g<-\n",
-               8, 10, 16l, 2., 3., 4.);
-</verb></tscreen>
-       will output
-<tscreen><verb>
-         ->8    a    10    2.00e+00  3.00  4    <-
-</verb></tscreen>
-
-       Flag ' ' means that the output of a signed number will start
-       with a blank for positives number.  The flag can be used only
-       for conversions 'd', 'e', 'E', 'f', 'g', and 'G'.  If both
-       flags ' ' and '+' appear, the flag ' ' is ignored.  The
-       following code using flag ' ' in format
-<tscreen><verb>
-         putf ("->% d % d % .2e % .2f % .2g<-\n",
-               8, 16l, 2., 3., 4.);
-</verb></tscreen>
-       will output
-<tscreen><verb>
-         -> 8  16  2.00e+00  3.00  4<-
-</verb></tscreen>
-
-       Flag '+' means that the output of a signed number will start
-       with a plus for positives number.  The flag can be used only
-       for conversions 'd', 'e', 'E', 'f', 'g', and 'G'.  Flag '+'
-       overrides flag ' ' if both are given.  The following code using
-       flag '+' in format
-<tscreen><verb>
-         putf ("->%+d %+d %+.2e %+.2f %+.2g<-\n",
-               8, 16l, 2., 3., 4.);
-</verb></tscreen>
-       will output
-<tscreen><verb>
-         ->+8 +16 +2.00e+00 +3.00 +4<-
-</verb></tscreen>
-
-       The width defines a minimum width of the output value.  If the
-       output is smaller, it is padded with spaces (or zeros -- see
-       flag '0') on the left (if flag '-' is used) or right.  The
-       output is never truncated.  The width should be no more than
-       maximal integer value, otherwise exception <tt>invfmt</tt> is
-       generated.  The width can be given as a parameter of integer
-       type if '*' is used.  If the value of width given by the
-       parameter is negative, flag '-' is believed to be given and the
-       width is believed to be equal to zero.  The following code
-       using width in format
-<tscreen><verb>
-         putf ("->%5d %05d %-5d %5d %*d %*d<-\n",
-               8, 9, 10, 16l, 5, 8, -5, 10);
-</verb></tscreen>
-       will output
-<tscreen><verb>
-         ->    8 00009 10       16     8 10   <-
-</verb></tscreen>
-
-       The precision is prohibited for conversions 'c'.  If the number
-       after the period is absent, its value will be zero.  The
-       precision can be given as a parameter of integer type if '*' is
-       used after the period.  If the value of precision given by the
-       parameter is negative, its value is believed to be zero too.
-       For conversions 'd', 'o', 'x', and 'X' the precision means
-       minimum number of output digits.  For conversions 'e', 'E', and
-       'f' it means the number of digits to appear after the decimal
-       point.  For 'g' and 'G' it means the maximum number of
-       significant digits.  For 's' it means the maximum number of
-       characters to be output from a string.  The following code
-       using precision in format
-<tscreen><verb>
-         putf ("->%.d %.0d %.5d %.d %.0f %.0e %.2g<-\n",
-               8, 8, 9, 16l, 2.3, 2.3, 3.53);
-         putf ("->%.2s %.0d %.*d %.*d %.*d<-\n",
-               "long", 0, 5, 8, -5, 8, 5, 16l);
-</verb></tscreen>
-       will output
-<tscreen><verb>
-         ->8 8 00009 16 2 2e+00 3.5<-
-         ->lo  00008 8 00016<-
-</verb></tscreen>
-
-       Conversion 'd' should be used to output integer or long
-       integer.  The default precision is 1.  When 0 is output with an
-       explicit precision 0, the output is empty.
-
-       Conversions 'o', 'x', and 'X' should be used to output an
-       integer or long integer value as unsigned in octal and
-       hexadecimal form.  The lower case letters <tt>abcdef</tt> are
-       used for 'x' and the upper case letters <tt>ABCDEF</tt> are
-       used for 'X'.  The precision gives the minimum number of digits
-       that must appear. If the output value requires fewer digits, it
-       is padded on the left with zeros.  The default precision is 1.
-       When 0 is output with an explicit precision 0, the output is
-       empty.
-
-       Conversion 'f' should be used to output floating point values.
-       The output value has a form <tt>[-]ddd.ddd</tt> where the
-       number of digits after the decimal point is given by the
-       precision specification.  The default precision value is 6.  If
-       the precision is explicitly zero, no decimal-point character
-       appears.
-
-       Conversions 'e' and 'E' should be used to output floating point
-       values with an exponent in form <tt>[-]d.ddd[e|E][+|-]dd</tt>.
-       There is always one digit before the decimal-point.  The number
-       of digits after the decimal point is defined by the precision.
-       The default precision value is 6.  If the precision is zero, no
-       decimal-point appears.  Conversion 'E' uses the letter
-       <tt>E</tt> (rather than <tt>e</tt>) to introduce the exponent.
-       The exponent always contains at least two digits.  If the
-       exponent value is zero, the exponent is output as <tt>00</tt>.
-
-       Conversions 'g' and 'G' should be used to output floating point
-       values in style 'f' or 'e' (or 'E' for conversion 'G').  The
-       precision defines the number of significant digits.  The
-       default value of the precision is 6.  If the precision is zero,
-       it is treated as 1.  Conversion 'e' is used if the exponent
-       from the conversion is less than -4 or not less than the
-       precision.  Trailing zeros are removed from the fractional part
-       of the output.  If all fractional part is zero, the decimal
-       point is removed too.
-
-       Conversion 'c' should be used to output a character value.
-
-       Conversion 's' should be used to output strings.
-
-       Conversion '%' should be used to output <tt>%</tt>.
-
-       The following code using different conversions in format
-<tscreen><verb>
-         putf ("->%% %c %s %d %o %x %X %d %o %x %X<-\n",
-               'c', "string", 7, 8, 20, 20, 8l, 9l, 21l, 21l);
-         putf ("->%f<-\n", 1.5);
-         putf ("->%e %E %g %G %g %G<-\n",
-               2.8, 2.8, 3.7, 3.7, 455555555.555, 5.9e-5);
-</verb></tscreen>
-       will output
-<tscreen><verb>
-         ->% c string 7 10 14 14 8 11 15 15<-
-         ->1.500000<-
-         ->2.800000e+00 2.800000E+00 3.7 3.7 4.55556e+08 5.9E-05<-
-</verb></tscreen>
-
-     <item><tt>fput (fileinstance, format, ...)</tt>.  The function is
-       analogous to the function <tt>putf</tt> except for the fact that
-       it outputs the string into an opened file associated with a
-       class <tt>file</tt> instance which is the first parameter
-       value.
-     <item><tt>print (...)</tt>.  The function outputs all parameter
-       values into standard output stream.  The function never makes
-       implicit conversions of the parameter values.  The parameter
-       values are output as they could be represented in Dino itself
-       (e.g. character <tt>'c'</tt> is output as <tt>'c'</tt>, vector
-       <tt>['a', 'b', 'c']</tt> is output as <tt>"abc"</tt>, vector
-       <tt>[10, 20]</tt> as <tt>[10, 20]</tt> and so on).  As you know
-       some values (functions, classes, block instances, class
-       instances, threads) are not represented fully in DINO.  Such
-       values are represented schematically.  For example, the output
-       <tt>fun f {}.g(unique_number)</tt> would mean function
-       <tt>f</tt> in the call of function (or class) <tt>g</tt> with
-       the given unique number and function g is in the instance of
-       the implicit block covering the whole program.  For the
-       function <tt>g</tt>, output would look simply like <tt>fun
-       g</tt> because there is only one instance of the implicit block
-       covering the whole program.  Output for an instance of the
-       class <tt>c</tt> in the function <tt>f</tt> looks like
-       <tt>instance {}.f(unique_number).c(unique_number)</tt>.  Output
-       for a block instance of the function <tt>f</tt> looks like
-       <tt>stack {}.f(unique_number)</tt>.  Output for a thread whose
-       thread-function <tt>t</tt> is declared in the function
-       <tt>f</tt> would look like <tt>thread unique_number
-       {}.f(unique_number).t(unique_number)</tt>.
-     <item><tt>println (...)</tt>.  The function is analogous to the
-       function <tt>print</tt> except for the fact that it
-       additionally outputs new line character after output of all
-       parameters.
-     <item><tt>fprint (fileinstance, ...)</tt>.  The function is
-       analogous to the function <tt>print</tt> except for the fact
-       that it outputs the parameters into an opened file associated
-       with a class <tt>file</tt> instance which is the value of first
-       parameter.
-     <item><tt>fprintln (fileinstance, ...)</tt>.  The function is
-       analogous to function <tt>fprint</tt> except for the fact that
-       it additionally outputs a new line character after the output
-       of all the parameters.
-     </itemize>
-
-<sect3>File input functions
-<p>
-The following functions are used to input something from opened files.
-The functions may generate an exception declared in the class <tt>syserror</tt>
-(e.g. <tt>eio</tt>, <tt>enospc</tt> and so on) or <tt>eof</tt> besides
-the standard <tt>partype</tt>, and <tt>parnumber</tt>.
-     <itemize>
-     <item><tt>get ()</tt>.  The function reads one character from
-       standard input stream and returns it.  The function generates
-       the exception <tt>eof</tt> if the function tries to read the
-       end of file.
-     <item><tt>getln ()</tt>.  The function reads one line from
-       standard input stream and returns it as a new string.  The end
-       of line is the newline character or end of file.  The returned
-       string does not contain the newline character.  The function
-       generates the exception <tt>eof</tt> only when the file
-       position indicator before the function call stands exactly on
-       the end of file.
-     <item><tt>getf ([ln_flag])</tt>.  The function reads the whole
-       standard input stream and returns it as a new string.  The
-       function generates the exception <tt>eof</tt> only when the
-       file position indicator before the function call stands exactly
-       on the end of file.  The function has an optional parameter
-       which should be integer after implicit integer conversion.  If
-       the parameter value is nonzero, the function returns a vector
-       of strings.  Otherwise it behaves as usually.  Each string is a
-       line in the input stream.  The strings do not contain the
-       newline character.
-     <item><tt>fget (fileinstance)</tt>.  The function is analogous to
-       function <tt>get</tt> except for the fact that it reads from an
-       opened file associated with the class <tt>file</tt> instance
-       which is the parameter's value.
-     <item><tt>fgetln (fileinstance)</tt>.  The function is analogous
-       to the function <tt>getln</tt> except for the fact that it
-       reads from an opened file associated with a class <tt>file</tt>
-       instance which is the parameter value.
-     <item><tt>fgetf (fileinstance [, ln_flag])</tt>.  The function is
-       analogous to the function <tt>getf</tt> except for the fact
-       that it reads from an opened file associated with a class
-       <tt>file</tt> instance which is the parameter's value.
-     <item><tt>scan ()</tt>.  The functions reads a character,
-       integer, floating point number, string, vector, or table and
-       returns it as the result.  The input values should be
-       represented in the file as the ones in the Dino language
-       (except for the fact that there should be no identifiers in the
-       input values and there should be no operators in the values,
-       although the signs <tt>+</tt> and <tt>-</tt> are possible in an
-       integer or floating point represenation).  The table or vector
-       should contains only values of types mentioned above.  The
-       values in the file can be separated by white characters.  If
-       there is an error (e.g. unbalanced brackets in a vector value)
-       in the read value representation the function generates the
-       exception <tt>invinput</tt>.  The functions generates the
-       exception <tt>eof</tt> if only white characters are still
-       unread in the file.
-     <item><tt>scanln ()</tt>.  The function is analogous to the
-       function <tt>scan</tt> except for the fact that it skips all
-       characters until the end of line or the end of file after
-       reading the value.  Skipping is made even if the exception
-       <tt>invinput</tt> is generated.
-     <item><tt>fscan (fileinstance)</tt>.  The function is analogous
-       to the function <tt>scan</tt> except for the fact that it reads
-       from an opened file associated with a class <tt>file</tt>
-       instance which is the parameter's value.
-     <item><tt>fscanln (fileinstance)</tt>.  The function is analogous
-       to the function <tt>scanln</tt> except for that it reads from
-       an opened file associated with a class <tt>file</tt> instance
-       which is the parameter value.
-     </itemize>
-
-<sect2>Time functions
-<p>
-The following functions can be used to get information about real
-time.
-     <itemize>
-     <item><tt>time ()</tt>.  The function returns the time in seconds
-       since the fixed time (usually since January 1, 1970).
-     <item><tt>strtime ([format [, time]])</tt>.  The function returns
-       a string representing the <tt>time</tt> (integer representing
-       time in seconds since the fixed time) according to the
-       <tt>format</tt> (string).  If the format is not given, the
-       value of variable <tt>time_format</tt> is used.  In this case
-       if the value of <tt>time_format</tt> is corrupted (it is not a
-       string), the function generates exception <tt>invenvar</tt>.
-       If the time is not given, the current time is used.  The format
-       is the same as in C library function <tt>strftime</tt>.  Here
-       is an extraction from the OS function documentation.  The
-       following format specifiers can be used in the format:
-         <itemize>
-         <item><tt>%a</tt> - the abbreviated weekday name according to
-           the current locale.
-         <item><tt>%A</tt> - the full weekday name according to the
-           current locale.
-         <item><tt>%b</tt> - the abbreviated month name according to
-           the current locale.
-         <item><tt>%B</tt> - the full month name according to the
-           current locale.
-         <item><tt>%c</tt> - the preferred date and time
-           representation for the current locale.
-         <item><tt>%d</tt> - the day of the month as a decimal number
-           (range 01 to 31).
-         <item><tt>%H</tt> - the hour as a decimal number using a
-           24-hour clock (range 00 to 23).
-         <item><tt>%I</tt> - the hour as a decimal number using a
-           12-hour clock (range 01 to 12).
-         <item><tt>%j</tt> - the day of the year as a decimal number
-           (range 001 to 366).
-         <item><tt>%m</tt> - the month as a decimal number (range 01
-           to 12).
-         <item><tt>%M</tt> - the minute as a decimal number.
-         <item><tt>%p</tt> - either `am' or `pm' according to the given time
-           value, or the corresponding strings for the current locale.
-         <item><tt>%S</tt> - the second as a decimal number.
-         <item><tt>%U</tt> - the week number of the current year as a
-           decimal number, starting with the first Sunday as the first
-           day of the first week.
-         <item><tt>%W</tt> - the week number of the current year as a
-           decimal number, starting with the first Monday as the first
-           day of the first week.
-         <item><tt>%w</tt> - the day of the week as a decimal, Sunday
-           being 0.
-         <item><tt>%x</tt> - the preferred date representation for
-           the current locale without the time.
-         <item><tt>%X</tt> - the preferred time representation for
-           the current locale without the date.
-         <item><tt>%y</tt> - the year as a decimal number without a
-           century (range 00 to 99).
-         <item><tt>%Y</tt> - the year as a decimal number including
-           the century.
-         <item><tt>%Z</tt> - the time zone or the name or an
-           abbreviation.
-         <item><tt>%%</tt> - a literal `%' character.
-         </itemize>
-     </itemize>
-
-<sect2>Functions for access to process information
-<p>
-There are Dino predeclared functions which are used to get information
-about the current OS process (the Dino interpreter which executes the
-program).  Each OS process has unique identifier and usually OS
-processes are called by a concrete user and group and are executed on
-behalf of the concrete user and group (so called effective
-identifiers).  The following functions return such information.  On
-some OSes the function may return string "Unknown" as a name if there
-are notions of user and group identifiers.
-     <itemize>
-     <item><tt>getpid ()</tt>.  The function returns an integer value
-       which is the process ID of the current OS process.
-     <item><tt>getun ()</tt>.  The function returns a new string which
-       is the user name for the current OS process.
-     <item><tt>geteun ()</tt>.  The function returns a new string
-       which is the effective user name for the current OS process.
-     <item><tt>getgn ()</tt>.  The function returns a new string which
-       is the group name for the current OS process.
-     <item><tt>getegn ()</tt>.  The function returns a new string
-       which is the effective group name for the current OS process.
-     <item><tt>getgroups ()</tt>.  The function returns a new vector
-       of strings (possibly the empty vector) representing
-       supplementary group names for the current OS process.
-     </itemize>
-
-<sect2>Miscellaneous functions
+<sect2>Other space <tt>math</tt> functions
 <p>
 There are the following miscellaneous functions:
      <itemize>
@@ -4191,164 +4101,6 @@ There are the following miscellaneous functions:
      <item><tt>min (v1, v2, ...)</tt>.  The function is analogous to
        the previous function, but searches for and returns the minimal
        value.
-     <item><tt>tolower (str)</tt>.  The function expects that the
-       parameter <tt>str</tt> (after implicit string conversion) is a
-       string.  The function returns new string <tt>str</tt> in which
-       upper case letters are changed to the corresponding lower case
-       letters.
-     <item><tt>toupper (str)</tt>.  The function expects that
-       the parameter <tt>str</tt> (after implicit string conversion) is
-       a string.  The function returns the new string <tt>str</tt> in which
-       lower case letters are changed to the corresponding upper case
-       letters.
-     <item><tt>trans (str, what, subst)</tt>.  The function
-       transliterates charactes in a string.  The function expects
-       that the parameters <tt>str</tt> (after implicit string
-       conversion), <tt>what</tt>, and <tt>subst</tt> are strings.
-       The function returns the new string <tt>str</tt> in which its
-       characters which are present in <tt>what</tt> are changed to
-       the corresponding characters in <tt>subst</tt>.  The last two
-       strings should have the same length.  The second string may
-       contain more than one occurence of a character.  In this case
-       the last correspondence is taken.
-     <item><tt>eltype (vect)</tt>.  The function expects that the
-       parameter value is a vector.  The function returns <tt>nil</tt>
-       if the vector is heterogenous, otherwise the function returns
-       the type of the vector elements (type of <tt>nil</tt> if the
-       vector is empty).
-     <item><tt>keys (tab)</tt>.  The function expects that the
-       parameter value is a table.  The function returns a new mutable
-       vector containing all the keys in the table.  The order of keys
-       in the vector is undefined.
-     <item><tt>context (par)</tt>. The function returns the context
-       (see section <em>Declarations and Scope Rules</em>) represented
-       by a block instance or an object for the given parameter value
-       which should be a function, a class, a thread, a block
-       instance, or an object.
-     <item><tt>inside (par1, par2[, flag])</tt>.  The goal for
-       function usage is to check that something is declared inside
-       something other.  If the third parameter value after implicit
-       integer conversion is given and nonzero, it is checked with
-       taking contexts into account.  The second parameter value
-       should be a function or a class.  The first parameter value
-       should be a function, a class, an object, or a block instance.
-       In the first three cases, they define corresponding a function,
-       class, or block.  If the function, class, or block defined by
-       the first parameter is declared inside the function or class
-       given by the second parameter, the function <tt>inside</tt>
-       returns 1.  The function <tt>inside</tt> also returns 1 if the
-       function or class defined by the first parameter is the same as
-       the function or class given by the second parameter.  Otherwise
-       the function <tt>inside</tt> returns 0.  The following example
-       illustrates the difference between checking with taking
-       contexts into account and without it.
-<tscreen><verb>
-          class c () {
-            class subc () {
-            }
-          }
-          inside (c ().subc (), c ().subc);
-          inside (c ().subc (), c ().subc, 1);
-</verb></tscreen>
-       The first call of <tt>inside</tt> returns 1, while the second
-       one returns 0.
-     <item><tt>isa (fco, fc)</tt>.  The goal for function usage is to
-       check that function, class, or object given by the first
-       parameter <tt>fco</tt> uses declarations (through a use-clause)
-       of a function or a class given by the second
-       parameter <tt>fc</tt>, in other words the first is a subtype of
-       the second.  If it is true, the function returns 1, otherwise
-       it returns zero.  If the parameter types are wrong, the
-       function generates exception <tt>partype</tt>.  The following
-       example illustrates usage of <tt>isa</tt>.
-<tscreen><verb>
-          class c () {}
-          class subc () { use c;}
-          isa (subc, c);
-          isa (subc (), c);
-</verb></tscreen>
-       The call of <tt>isa</tt> in the example returns 1.
-     <item><tt>subv (vect, index[, length])</tt>.  The function is
-       used to extract a slice of vector elements.  The first
-       parameter value should be a vector after implicit string
-       conversion.  The second and third parameter values should be
-       integers after implicit integer conversion. The function
-       extracts only an element or the part of the slice existing in
-       the vector (so you can use any values of the index and the
-       length).  If index is negative, it is considered to be equal to
-       zero.  If the length is negative, the slice will finish on the
-       vector end.  The function returns a new vector which is the
-       slice.  The result vector is immutable only when the original
-       vector is immutable.
-     <item><tt>del (vect, index[, length]) or del (tab, key)</tt>.
-       The first form of the function is used to remove the vector
-       element or a slice of vector elements from the mutable vector
-       <tt>vect</tt>.  The second and the third parameter values
-       should be integers after implicit integer conversion. The
-       function removes only an element or the part of the slice
-       existing in the vector (so you can use any values of the index
-       and the length).  If index is negative, it is considered to be
-       equal to zero.  If the length is negative, the slice will
-       finish on the vector end.  The second form of the function is
-       used to remove the element (if it exists) with the given key
-       from the mutable table.  The function generates the exception
-       <tt>immutable</tt> if we are trying to remove from an immutable
-       vector or table.  The function returns the modified vector.
-     <item><tt>ins (vect, el[, index])</tt>.  The function inserts the
-       element given by the second parameter into the vector given by
-       the first parameter on the place given by the third parameter.
-       If the third parameter is not given it is believed to be zero.
-       The third parameter should be an integer after implicit integer
-       conversion.  If the third parameter is negative or equal to or
-       greater than the vector length, the element is inserted at the
-       end of the vector.  The function generates the exception
-       <tt>immutable</tt> if we are trying to insert into an immutable
-       vector.  The function returns the modified vector.
-     <item><tt>insv (vect, vect[, index])</tt>.  The function is
-       analogous to the function <tt>ins</tt> but it is used for
-       insertion of all vector elements into the vector given as the
-       first parameter.  So the second parameter value should be a
-       vector.  The function returns the modified vector.
-     <item><tt>rev (vect)</tt>.  The function returns reversion of the
-      given vector.
-     <item><tt>cmpv (vect, vect)</tt>.  The function makes implicit
-       string conversion of the parameter values.  After that, the
-       parameter values should be vectors whose first corresponding
-       equal elements should have the same type (character, integer,
-       or floating point type).  The first corresponding unequal
-       elements should have the same type too (the remaining elements
-       can have different type).  As usual, if this is not true,
-       exception <tt>partype</tt> is generated.  The function returns
-       1 if the first unequal element value of the first vector is
-       greater than the corresponding element in the second vector, -1
-       if less, and 0 if the all corresponding vector elements are
-       equal.  If the first vector is a prefix of the second vector,
-       the function returns -1.  If the second vector is a prefix of
-       the first vector, the function returns 1, so it is in fact
-       generalized lexicographical order.
-     <item><tt>sort (vect[, compare_function])</tt>.  The function
-       returns a new sorted vector.  The original vector given as the
-       first parameter value should be a homogeneous vector whose
-       elements are of character, integer, long integer, or floating
-       point type.  If the second parameter is not given, standard
-       arithmetic order (see comparison operators) is used.  To use
-       special ordering, use the second parameter which should be a
-       function which compares two elements of the vector and returns
-       a negative integer if the first parameter value (element) is
-       less than the second one, a positive integer if the first
-       parameter value is greater than the second one, and zero if
-       they are equal.
-     <item><tt>exit (code)</tt>.  The function finishes the work of
-       the interpreter with the given code which should be an integer
-       value after implicit integer conversion.
-     <item><tt>gc ()</tt>.  The function forces garbage collection and
-       heap compaction.  Usually the Dino interpreter itself invokes
-       garbage collection when there is no more free memory.
-     <item><tt>system (command)</tt>.  The function executes the
-       command given by a string (the parameter value) in the OS
-       command interpreter.  Besides standard exceptions
-       <tt>parnumber</tt> and <tt>partype</tt> the function may
-       generate exceptions <tt>noshell</tt> and <tt>systemfail</tt>.
      <item><tt>srand ([seed])</tt>.  The function sets the parameter
        value (after implicit integer conversion) as the seed for a new
        sequence of pseudo-random integers to be returned by
@@ -4360,73 +4112,375 @@ There are the following miscellaneous functions:
        floating point value between 0 and 1.  If the function
        <tt>srand</tt> was not called before, 1 will be used as the
        seed value.
-     <item><tt>transpose (m)</tt>.  The function expects
-       matrix <tt>m</tt>.  It means that <tt>m</tt> should be vector
-       (each element is a matrix row) of vectors of equal length.
-       If <tt>m</tt> is not a vector, exception <tt>partype</tt> is
-       generated.  If elements of <tt>m</tt> are not vectors of the
-       same length, exceptions <tt>matrixform</tt> is generated.  The
-       function returns a new mutable vector of mutable vectors which
-       is a matrix transposition of <tt>m</tt>.
-     <item><tt>filter (f, v [, d])</tt>.  The function expects
-       function <tt>f</tt>, vector <tt>v</tt>, and optional
-       integer <tt>d</tt> after integer conversion.  Otherwise
-       exception <tt>partype</tt> is generated.  If <tt>d</tt> is not
-       given, it is believed to be 1.  The function processes v's
-       elements if <tt>d</tt> is equal one, elements of vectors which
-       are v's elements if <tt>d</tt> is equal to 2 and so on.  In
-       other words, <tt>d</tt> is level on which vector elements are
-       processed.  If v has no structure necessary for processing,
-       exception <tt>vecform</tt> is generated.  If <tt>d</tt> is zero
-       or negative, the function just returns <tt>v</tt>.  Otherwise
-       the function creates new mutable vector having the same
-       structure as <tt>v</tt> with only elements on level <tt>d</tt>
-       for which function <tt>f</tt> returns nonzero value after
-       integer conversion.  If the result of function <tt>f</tt> after
-       the integer conversion is not integer,
-       exception <tt>invresult</tt> is generated.  The following
-       example illustrates usage of <tt>filter</tt>.
-<tscreen><verb>
-          var i, v = [0, 1, -2, 3, -4];
-          println (filter (fun (a) {a > 0;}, v));
-          v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
-          println (filter (fun (a) {a > 0;}, v, 2));
-</verb></tscreen>
-    <item><tt>map (f, v [, d])</tt>.  The meaning of function
-       parameters and constraints to their values are analogous to
-       ones of function <tt>filter</tt>.  Only function <tt>f</tt> can
-       return any value.  The elements processed by
-       function <tt>f</tt> is changed onto the result of
-       function <tt>f</tt>.  The following example illustrates usage
-       of <tt>map</tt>.
-<tscreen><verb>
-          var i, v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
-          println (map (fun (a) {a < 0 ? nil : a;}, v, 2));
-</verb></tscreen>
-     <item><tt>fold (f, v, init [, d])</tt>.  The meaning of function
-       parameters <tt>f</tt>, <tt>v</tt>, and <tt>d</tt> and
-       constraints to their values are analogous to ones of
-       function <tt>filter</tt>.  The function processes all elements
-       of vectors on level <tt>d</tt> and returns value
-       <tt>f (f (f (f (init, el0), el1), ...) , eln)</tt> where
-       <tt>el0</tt>, ..., <tt>eln</tt> are vector elements on
-       level <tt>d</tt> taken from left to right.  If <tt>d</tt> is
-       zero or negative or the vectors are empty, the function
-       returns <tt>init</tt>.  The following example illustrates usage
-       of <tt>fold</tt>.
-<tscreen><verb>
-          var v = [1,2,3,4];
-          println (fold (fun (a, b) {a + b;}, v, 0));
-</verb></tscreen> 
-     <item><tt>sput (...), sputln (...), sputf (format, ...)</tt> The
-       functions are analogous to functions put, putln, print, and
-       println but they return the result string instead of output of
-       the formed string into the standard output stream.
-     <item><tt>sprint (...), sprintln (...)</tt>.  The functions are
-       analogous to functions print and println but they return the
-       result string instead of output of the formed string into the
-       standard output stream.
      </itemize>
+
+<sect1>Space <tt>yaep</tt>
+<p>
+This space contains declarations to work with Yet Another Earley
+Parser (YAEP).  YAEP is a very powerful tool to implement serious
+language compilers, processors, or translators.  The implementation of
+the Earley parser used in Dino has the following features:
+     <itemize>
+     <item>It is sufficiently fast and does not require much memory.
+       This is the fastest implementation of the Earley parser which I
+       know.  The main design goal is to achieve speed and memory
+       requirements which are necessary to use it in prototype
+       compilers and language processors.  It parses 30,000 lines of C
+       per second on 500 MHz Pentium III and allocates about
+       5Mb memory for a 10,000 line C program.
+     <item>It makes simple syntax directed translation, so an
+       abstract tree is already the output of the Earley parser.
+     <item>It can parse input described by an ambiguous grammar.  In
+       this case the parse result can be an abstract tree or all
+       possible abstract trees.  Moreover, it produces the compact
+       representation of all possible parse trees by using DAG instead
+       of real trees.  These features can be used to parse natural
+       language sentences.
+     <item>It can make syntax error recovery.  Moreover its error
+       recovery algorithms find error recovery with a minimal number
+       of ignored tokens.  It permits implement-ion of parsers with
+       very good error recovery and reporting.
+     <item>It has fast startup.  There is practically no delay between
+       processing of grammar and start of parsing.
+     <item>It has a flexible interface.  The input grammar is given by
+       a YACC-like description.
+     <item>It has a good debugging features.  It can print huge amount
+       of information about grammar, parsing, error recovery,
+       translation.  You can even get the result translation in a form
+       for a graphic visualization program.
+     </itemize>
+
+<sect2>Exception classes of space <tt>yaep</tt>
+<p>
+The space yaep contains class <tt>invparser</tt> which is a sub-class
+of <tt>invcall</tt>.  The following sub-classes of
+class <tt>invparser</tt> describe exceptions specific for work with
+YAEP.
+     <itemize>
+     <item><tt>invgrammar</tt>.  This class describes the exception
+       that the Earley parser got a bad grammar, e.g. without rules,
+       with loops in rules, with nonterminals unachievable from the
+       axiom, with nonterminals not deriving any terminal string etc.
+     <item><tt>invtoken</tt>.  This class describes the exception that
+       the parser got an input token with unknown (undeclared) code.
+     <item><tt>pmemory</tt>.  This class describes the exception that
+       there is not enough memory for internal parser data.
+     </itemize>
+
+<sect2>Class parser
+<p>
+Space <tt>yaep</tt> has predeclared final class <tt>parser</tt> which
+implements the Earley parser.  The following public functions and
+variables are declared in the class
+<tt>parser</tt>:
+     <itemize>
+     <item><tt>ambiguous_p</tt>.  This public variable stores
+       information about the last parsing.  A nonzero variable value
+       means that during the last parsing on a given input the parser
+       found that the grammar is ambiguous.  The parser can find this
+       even if you asked for only one parser tree (see function
+       <tt>set_one_parse</tt>).
+
+     <item><tt>set_grammar (descr, strict_p)</tt>.  This function
+       tunes the parser to given grammar.  The grammar is given by
+       string <tt>descr</tt>.  Nonzero value of parameter
+       <tt>strict_p</tt> (after implicit integer conversion) means
+       more strict checking the grammar.  In this case, all
+       nonterminals will be checked on their ability to derive a
+       terminal string instead of only checking the axiom for this.
+       The function can generate exceptions <tt>partype</tt> (if the
+       parameters have wrong types) or <tt>invgrammar</tt> if the
+       description is a bad grammar.  The function can also generate
+       exception <tt>pmemory</tt> if there is no memory for internal
+       parser data.
+
+       The description is similiar to the <em>YACC</em> one.  It has
+       the following syntax:
+       <tscreen><verb>
+          file : file terms [';']
+               | file rule
+               | terms [';']
+               | rule
+       
+          terms : terms IDENTIFIER ['=' NUMBER]
+                | TERM
+       
+          rule : IDENTIFIER ':' rhs [';']
+          
+          rhs : rhs '|' sequence [translation]
+              | sequence [translation]
+          
+          sequence :
+                   | sequence IDENTIFIER
+                   | sequence C_CHARACTER_CONSTANT
+          
+          translation : '#'
+                      | '#' NUMBER
+                      | '#' '-'
+                      | '#' IDENTIFIER [NUMBER] '(' numbers ')'
+          
+          numbers :
+                  | numbers NUMBER
+                  | numbers '-'
+       </verb></tscreen>
+       So the description consists of terminal declaration and
+       rule sections.
+       
+       The terminal declaration section describes the name of
+       terminals and their codes.  The terminal code is optional.  If
+       it is omitted, the terminal code will the next free code
+       starting with 256.  You can declare a terminal several times
+       (the single condition is that its code should be the same).
+       
+       A character constant present in the rules is a terminal
+       described by default.  Its code is always the ASCII code of the
+       character constant.
+       
+       Rules syntax is the same as <em>YACC</em> rule syntax.  The
+       single difference is an optional translation construction
+       starting with <tt>#</tt> right after each alternative.  The
+       translation part could be a single number which means that the
+       translation of the alternative will be the translation of the
+       symbol with the given number (symbol number in the alternative
+       start is with 0).  Or the translation can be empty or
+       `<tt>-</tt>' which designates the value of the variable
+       <tt>nil_anode</tt>.  Or the translation can be an abstract node
+       with the given name, optional cost, and with fields whose
+       values are the translations of the alternative symbols with
+       numbers given in parentheses after the abstract node name.  You
+       can use `<tt>-</tt>' in an abstract node to show that the empty
+       node should be used in this place.  If the cost is absent it is
+       believed to be 1.  The cost of the terminal, error node, and
+       empty node is always zero.
+
+       There is a reserved terminal <tt>error</tt> which marks the
+       start point of error recovery.  The translation of the terminal
+       is the value of the variable <tt>error_anode</tt>.
+ 
+     <item><tt>set_debug (level)</tt>.  This function sets up the
+       level of debugging information output to <tt>stderr</tt>.  The
+       higher the level, the more information is output.  The default
+       value is 0 (no output).  The debugging information includes
+       statistics, the result translation tree, the grammar, parser
+       sets, parser sets with all situations, situations with
+       contexts.  The function returns the previously set up debug
+       level.  Setting up a negative debug level results in output of
+       the translation for program <bf>dot</bf> of the graphic
+       visualization package <bf>graphviz</bf>.  The parameter should
+       be an integer after implicit integer conversion.  The function
+       will generate exception <tt>partype</tt> if it is not true.
+     <item><tt>set_one_parse (flag)</tt>.  This function sets up a
+       flag whose nonzero value means building only one translation
+       tree (without any alternative nodes).  For an unambiguous
+       grammar the flag does not affect the result.  The function
+       returns the previously set up flag value.  The default value of
+       the flag is 1.  The parameter should be an integer after
+       implicit integer conversion.  The function will generate
+       exception <tt>partype</tt> if it is not true.
+     <item><tt>set_lookahead (flag)</tt>.  This function sets up a
+       flag of of usage of look ahead in the parser work.  The usage
+       of lookahead gives the best results with the point of view of
+       space and speed.  The default value is 1 (the lookahead usage).
+       The function returns the previously set up flag.  No usage of
+       the lookahead is useful sometimes to get more understandable
+       debug output of the parser work (see function
+       <tt>set_debug</tt>).  The parameter should be an integer after
+       implicit integer conversion.  The function will generate the
+       exception <tt>partype</tt> if it is not true.
+     <item><tt>set_cost (flag)</tt>.  This function sets up building
+       the only translation tree (trees if we set up one_parse_flag to
+       0) with minimal cost.  For an unambiguous grammar the flag does
+       not affect the result.  The default value is 0. The function
+       returns the previously set up flag value.  The default value of
+       the flag is 0.  The parameter should be an integer after
+       implicit integer conversion.  The function will generate
+       exception <tt>partype</tt> if it is not true.
+     <item><tt>set_recovery (flag)</tt>.  This function sets up a flag
+       whose nonzero value means making error recovery if a syntax
+       error occurred.  Otherwise, a syntax error results in finishing
+       parsing (although the syntax error function passed to
+       <tt>parse</tt> is called once).  The function returns the
+       previously set up flag value.  The default value of the flag is
+       1.  The parameter should be an integer after implicit integer
+       conversion.  The function will generate exception
+       <tt>partype</tt> if it is not true.
+     <item><tt>set_recovery_match (n_toks)</tt>.  This function sets
+       up an internal parser parameter meaning how much subsequent
+       tokens should be successfully shifted to finish error recovery.
+       The default value is 3.  The function returns the previously
+       set up value.  The parameter should be an integer after
+       implicit integer conversion.  The function will generate
+       exception <tt>partype</tt> if it is not true.
+
+     <item><tt>parse (tokens, error_func)</tt>. This function is the
+       major function of the class.  It makes translation according to
+       the previously set up grammar of input given by the parameter
+       <tt>tokens</tt> whose value should be an array of objects of
+       predeclared class <tt>token</tt> or its subtype.  If the parser
+       recognizes a syntax error it calls the function given through
+       parameter <tt>error_func</tt> with six parameters:
+          <itemize>
+          <item>index of the token (in array <tt>tokens</tt>) on which
+            the syntax error occured.
+          <item>the error token itself.  It may be <tt>nil</tt> for
+            end of file.
+          <item>index of the first token (in array <tt>tokens</tt>)
+            ignored due to error recovery.
+          <item>the first ignored token itself.  It may be
+            <tt>nil</tt> for end of file.
+          <item>index of the first token (in array <tt>tokens</tt>)
+            which is not ignored after error recovery.
+          <item>the first not ignored token itself.  It may be
+            <tt>nil</tt> for end of file.
+          </itemize>
+       If the parser works with switched off error recovery (see
+       function <tt>set_recovery</tt>, the third and fifth parameters
+       will be negative and forth and sixth parameter will be
+       <tt>nil</tt>.
+
+       The function returns an object of the predeclared class
+       <tt>anode</tt> which is the root of the abtsract tree
+       representing the translation of the parser input.  The function
+       returns <tt>nil</tt> only if syntax error was occurred and
+       error recovery was switched off.  The function can generate
+       exception <tt>partype</tt> if the parameter types are wrong or
+       exception <tt>invtoken_decl</tt> if any of the input tokens
+       have a wrong code.  The function also can generate exception
+       <tt>pmemory</tt> if there is no memory for internal parser
+       data.
+     </itemize>
+
+The call of the class <tt>parser</tt> itself can generate exception
+<tt>pmemory</tt> if there is no memory for internal parser
+data.
+
+<sect2>Class <tt>token</tt>
+<p>
+Dino has a predeclared class <tt>token</tt>.  Objects of this class
+should be the input of the Earley parser (see function <tt>parse</tt>
+in class <tt>parser</tt>).  The result abstract tree representing the
+translation will have input tokens as leaves.  The class
+<tt>token</tt> has one public variable <tt>code</tt> whose value
+should be the code of the corresponding terminal described in the
+grammar.  You could extend the class description e.g. by adding
+variables whose values could be attributes of the token (e.g. source
+line number, name of an identifier, or value for a number).
+
+<sect3>Class <tt>anode</tt>
+<p>
+Dino has a predeclared class <tt>anode</tt> whose objects are nodes of
+the abtract tree representing the translation (see function
+<tt>parse</tt> of class <tt>parser</tt>).  Objects of this class are
+generated by the Earley parser.  The class has two public variables
+<tt>name</tt> whose value is string representing name of the abstract
+node as it given in the grammar and <tt>transl</tt> whose value is
+array with abstract node fields as the array elements.  There are a
+few node types which have special meaning:
+
+     <itemize>
+     <item>Terminal node which has reserved name <tt>$term</tt>.  The
+       value of the public variable <tt>transl</tt> for this node is
+       an object of class <tt>token</tt> representing the
+       corresponding input token which was an element of the array
+       passed as a parameter of function <tt>parse</tt> of function
+       <tt>parser</tt>.
+     <item>Error node which has reserved name <tt>$error</tt>.  This
+       node exists in one exemplar (see description of variable
+       <tt>error_anode</tt>) and represents the translation of
+       reserved grammar symbol <tt>error</tt>.  The value is public
+       variable <tt>transl</tt> will be <tt>nil</tt> in this case.
+     <item>The empty node which has the reserved name <tt>$nil</tt>.
+       This node also exists in one exemplar (see description of
+       variable <tt>nil_anode</tt>) and represents the translation of
+       a grammar symbol for which we did not describe a translation.
+       For example, in a grammar rule an abstract node refers for the
+       translation of a nonterminal for which we do not produce a
+       translation.  The value is public variable of such class object
+       will be <tt>nil</tt> in this case.
+     <item>Alternative node which has the reserved name <tt>$alt</tt>.
+       It represents all possible alternatives in the translation of
+       the grammar nonterminal.  The value of the public variable
+       <tt>transl</tt> will be an array with elements whose values are
+       objects of class <tt>anode</tt> which represent all possible
+       translations.  Such nodes can be generated by the parser only
+       if the grammar is ambiguous and we did not ask it to produce
+       only one translation.
+     </itemize>
+
+<sect2>Variables <tt>nil_anode</tt> and <tt>error_anode</tt>
+<p>
+There is only one instance of <tt>anode</tt> which represents empty
+(nil) nodes.  The same is true for the error nodes.  The final
+variables <tt>nil_anode</tt> and <tt>error_anode</tt> correspondingly
+refer to these nodes.
+
+<sect2>Example of Earley parser usage.
+<p>
+Let us write a program which transforms an expression into postfix
+polish form.  Please, read the program comments to understand what the
+code does.  The program should output string <tt>"abcda*+*+"</tt>
+which is the postfix polish form of input string
+<tt>"a+b*(c+d*a)"</tt>.
+<tscreen><verb>
+          expose yaep.*;
+          // The following is the expression grammar:
+          var grammar = "E : E '+' T   # plus (0 2)\n\
+                           | T         # 0\n\
+                           | error     # 0\n\
+                         T : T '*' F   # mult (0 2)\n\
+                           | F         # 0\n\
+                         F : 'a'       # 0\n\
+                           | 'b'       # 0\n\
+                           | 'c'       # 0\n\
+                           | 'd'       # 0\n\
+                           | '(' E ')' # 1";
+          // Create parser and set up grammar.
+          var p = parser ();
+          p.set_grammar (grammar, 1);
+
+          // Add attribute repr to token:
+          class our_token (code) { use token former code; var repr; }
+          // The following code forms input tokens from string:
+          var str = "a+b*(c+d*a)";
+          var i, inp = [#str : nil];
+          for (i = 0; i < #str; i++) {
+            inp [i] = our_token (str[i] + 0);
+            inp [i].repr = str[i];
+          }
+          // The following function output messages about syntax errors
+          // syntax error recovery:
+          fun error (err_start, err_tok,
+                      start_ignored_num, start_ignored_tok_attr,
+	              start_recovered_num, start_recovered_tok) {
+            put ("syntax error on token #", err_start,
+                 " (" @ err_tok.code @ ")");
+            putln (" -- ignore ", start_recovered_num - start_ignored_num,
+                   " tokens starting with token #", start_ignored_num);
+          }
+
+          var root = p.parse (inp, error); // parse
+
+          // Output translation in polish inverse form
+          fun pr (r) {
+            var i, n = r.name;
+
+            if (n == "$term")
+              put (r.transl.repr);
+            else if (n == "mult" || n == "plus") {
+              for (i = 0; i < #r.transl; i++)
+                pr (r.transl [i]);
+              put (n == "mult" ? "*" : "+");
+            }
+            else if (n != "$error") {
+              putln ("internal error");
+	      exit (1);
+            }
+          }
+
+          pr (root);
+          putln ();
+</verb></tscreen>
+
 
 <sect>Appendix A. Syntax of Dino
 <p>

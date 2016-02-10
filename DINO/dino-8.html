@@ -121,7 +121,7 @@ different numbers and identifiers in stdin:
             for (;;) {
                str = cl.read (64); l += #str; cl.write (str);
             }
-          } catch (socket_eof_except) {
+          } catch (sockets.socket_eof_except) {
             putln ("i got ", l, " bytes");
           }
 </PRE>

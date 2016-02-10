@@ -144,63 +144,8 @@ implicit block covering the whole program).  They are described in
 more detail later in the report.
 <BLOCKQUOTE><CODE>
 <PRE>
-  abstrcall      accessop       accessvalue    anode
-  argv           atan2
-  callop         chdir          chgmod         chomod
-  chumod         clock          close          closure
-  cmpv           context        cos            curr_thread
-  deadlock       del
-  eaccess        eagain         ebadf          ebusy
-  echild         edeadlk        edom           eexist
-  efault         efbig          eintr          einval
-  eio            eisdir         eltype         emfile
-  emlink         enametoolong   enfile         enodev
-  enoent         enoexec        enolck         enomem
-  enospc         enosys         enotdir        enotempty
-  enotty         env            enxio          eof
-  eperm          epipe          erofs          error_anode
-  error          espipe         esrch          exdev
-  except         exit           exp
-  fatime         fctime         fget           fgetf
-  fgetln         fgmode         fgrpn          file
-  filter         flush          fmtime         fold
-  fomode         fprint         fprintln       fput
-  fputln         fscan          fscanln        fsize
-  ftype          fuidn          fumode
-  gc             get            get_encoding   get_file_encoding
-  getcwd         getegn         geteun         getgn
-  getgroups      getf           getln          getpid
-  getun          gmatch         gsub
-  immutable      indexop        indextype      indexvalue     
-  ins            inside         insv           invaccess
-  invcall        invector       invencoding    invenv
-  invenvar       invextern      invfmt         invgrammar
-  invindex       invinput       invkey         invop
-  invparser      invregex       invresult      invslice
-  invtoken       isa            isatty
-  keyop          keys           keyvalue
-  libclose       log            log10
-  main_thread    match          matrixform     max
-  min            mkdir
-  nil_anode      noextern       noexternsupp   noshell
-  open           optype         opvalue
-  parser         parnumber      partype        parvalue
-  patternmatch   pclose         pmemory        popen
-  pow            print          println        put
-  putln          rand           readdir        remove
-  rename         rev            rmdir
-  scan           scanln         seek           set_encoding
-  set_file_encoding signal      sigabrt        sigfpe
-  sigill         sigint         sigsegv        sigterm
-  sin            sliceform      slicetype      sort
-  split          split_regex    sprint         sprintln
-  sput           sputln         sqrt           srand
-  stderr         stdin          stdout         strtime
-  sub            subv           syncthreadcall syncwait
-  syserror       system         systemcall     systemfail
-  transpose      tell           time           time_format
-  token          tolower        toupper        trans
-  veclen         vecform        version
+  lang           io             sys            math
+  re             yaep
 </PRE>
 </CODE></BLOCKQUOTE>
 </P>
@@ -224,8 +169,9 @@ execution of the previous statements of the block and after execution
 of previous assignments in the variable list.  By default the initial
 value of variables is undefined.  Nothing can be done with this value.
 This value even can not be stored.</P>
-<P>The value of the variable can not be changed after its initialization
-if its declaration is in a list starting with keyword <CODE>val</CODE>.</P>
+<P>The value of the variable is final can not be changed after its
+initialization if its declaration is in a list starting with
+keyword <CODE>val</CODE>.</P>
 <P>Keywords <CODE>pub</CODE> and <CODE>priv</CODE> can be used to redefine the
 default accessibility.  They make the declared variables
 correspondingly public and private.
@@ -413,10 +359,10 @@ The following example is a class with the function <CODE>destroy</CODE>:
 <BLOCKQUOTE><CODE>
 <PRE>
           var objs_number = 0;
-          class obj () {
+          class object () {
             priv var n = objs_number;
             objs_number++;
-            priv fun destroy () {objs_number--; objs_number--;}
+            priv fun destroy () {objs_number--;}
           }
 </PRE>
 </CODE></BLOCKQUOTE>
@@ -495,9 +441,11 @@ corresponding declaration should be the same declaration type
 same qualifier <CODE>final</CODE>.</P>
 <P>The corresponding declaration may be absent.  In this case a call of
 the function/class results in occuring exception <CODE>abstrcall</CODE>.
-Forward declaration without the corresponding declaration can be
-usefull to describe <EM>abstract classes</EM>.  The following are
-examples of forward declarations:
+When accessing to such function through the corresponding object,
+exception <CODE>accessvalue</CODE> is generated.  Forward declaration
+without the corresponding declaration can be usefull to
+describe <EM>abstract classes</EM>.  The following are examples of
+forward declarations:
 <BLOCKQUOTE><CODE>
 <PRE>
           fun even;

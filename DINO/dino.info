@@ -10,7 +10,7 @@ The Programming Language DINO
 *****************************
 
      Vladimir Makarov, `vmakarov@gcc.gnu.org'. Edited by Serhei Makarov.
-     Dec. 16, 2015
+     Feb. 9, 2016
 
    This document describes the programming language DINO.
 
@@ -368,63 +368,8 @@ instance is performed by the following rules:
 implicit block covering the whole program).  They are described in more
 detail later in the report.
 
-       abstrcall      accessop       accessvalue    anode
-       argv           atan2
-       callop         chdir          chgmod         chomod
-       chumod         clock          close          closure
-       cmpv           context        cos            curr_thread
-       deadlock       del
-       eaccess        eagain         ebadf          ebusy
-       echild         edeadlk        edom           eexist
-       efault         efbig          eintr          einval
-       eio            eisdir         eltype         emfile
-       emlink         enametoolong   enfile         enodev
-       enoent         enoexec        enolck         enomem
-       enospc         enosys         enotdir        enotempty
-       enotty         env            enxio          eof
-       eperm          epipe          erofs          error_anode
-       error          espipe         esrch          exdev
-       except         exit           exp
-       fatime         fctime         fget           fgetf
-       fgetln         fgmode         fgrpn          file
-       filter         flush          fmtime         fold
-       fomode         fprint         fprintln       fput
-       fputln         fscan          fscanln        fsize
-       ftype          fuidn          fumode
-       gc             get            get_encoding   get_file_encoding
-       getcwd         getegn         geteun         getgn
-       getgroups      getf           getln          getpid
-       getun          gmatch         gsub
-       immutable      indexop        indextype      indexvalue
-       ins            inside         insv           invaccess
-       invcall        invector       invencoding    invenv
-       invenvar       invextern      invfmt         invgrammar
-       invindex       invinput       invkey         invop
-       invparser      invregex       invresult      invslice
-       invtoken       isa            isatty
-       keyop          keys           keyvalue
-       libclose       log            log10
-       main_thread    match          matrixform     max
-       min            mkdir
-       nil_anode      noextern       noexternsupp   noshell
-       open           optype         opvalue
-       parser         parnumber      partype        parvalue
-       patternmatch   pclose         pmemory        popen
-       pow            print          println        put
-       putln          rand           readdir        remove
-       rename         rev            rmdir
-       scan           scanln         seek           set_encoding
-       set_file_encoding signal      sigabrt        sigfpe
-       sigill         sigint         sigsegv        sigterm
-       sin            sliceform      slicetype      sort
-       split          split_regex    sprint         sprintln
-       sput           sputln         sqrt           srand
-       stderr         stdin          stdout         strtime
-       sub            subv           syncthreadcall syncwait
-       syserror       system         systemcall     systemfail
-       transpose      tell           time           time_format
-       token          tolower        toupper        trans
-       veclen         vecform        version
+       lang           io             sys            math
+       re             yaep
 
 * Menu:
 
@@ -457,8 +402,9 @@ previous assignments in the variable list.  By default the initial value
 of variables is undefined.  Nothing can be done with this value.  This
 value even can not be stored.
 
-   The value of the variable can not be changed after its initialization
-if its declaration is in a list starting with keyword 'val'.
+   The value of the variable is final can not be changed after its
+initialization if its declaration is in a list starting with keyword
+'val'.
 
    Keywords 'pub' and 'priv' can be used to redefine the default
 accessibility.  They make the declared variables correspondingly public
@@ -631,10 +577,10 @@ changes default accessibility of the declaration.
    The following example is a class with the function 'destroy':
 
                var objs_number = 0;
-               class obj () {
+               class object () {
                  priv var n = objs_number;
                  objs_number++;
-                 priv fun destroy () {objs_number--; objs_number--;}
+                 priv fun destroy () {objs_number--;}
                }
 
    The following example illustrates threads:
@@ -706,10 +652,11 @@ and the corresponding declaration should be the same declaration type
 same qualifier 'final'.
 
    The corresponding declaration may be absent.  In this case a call of
-the function/class results in occuring exception 'abstrcall'.  Forward
-declaration without the corresponding declaration can be usefull to
-describe _abstract classes_.  The following are examples of forward
-declarations:
+the function/class results in occuring exception 'abstrcall'.  When
+accessing to such function through the corresponding object, exception
+'accessvalue' is generated.  Forward declaration without the
+corresponding declaration can be usefull to describe _abstract classes_.
+The following are examples of forward declarations:
 
                fun even;
                fun odd (i) { if (i == 0) return 0; return even (i - 1);}
@@ -2298,7 +2245,7 @@ numbers and identifiers in stdin:
                  for (;;) {
                     str = cl.read (64); l += #str; cl.write (str);
                  }
-               } catch (socket_eof_except) {
+               } catch (sockets.socket_eof_except) {
                  putln ("i got ", l, " bytes");
                }
 
@@ -2308,39 +2255,76 @@ File: dino.info,  Node: Predeclared identifiers,  Next: Appendix A- Syntax of Di
 9 Predeclared identifiers
 *************************
 
-Dino has quite a lot of predeclared identifiers.  The section
-_Declarations and Scope Rules_ contains them in alphanumeric order.
-Here they are described according to the declaration category which they
-belongs to.
+Dino has quite a lot of predeclared identifiers.  They are combined in
+in a few signleton objects also called spaces - see section
+_Declarations and Scope Rules_.  Most of predeclared identifiers refer
+for functions.  The predeclared functions expect a given number of
+actual parameters (may be a variable number of parameters).  If the
+actual parameter number is an unexpected one, exception 'parnumber' is
+generated.  The predeclared functions expect that the actual parameters
+(may be after implicit conversions) are of the required type.  If this
+is not true, exception 'partype' is generated.  To show how many
+parameters the function requires, we will write the names of the
+parameters and use brackets '[' and ']' for the optional parameters in
+the description of the functions.
+
+   Examples: The following description
+
+               strtime ([format [, time]])
+
+   describes that the function can accept zero, one, or two parameters.
+If only one parameter is given, then this is parameter 'format'.
+
+   If nothing is said about the returned result, the function return
+value is undefined.
+
+   Predeclared identifiers are describe below according to their spaces.
+
+* Menu:
+
+* Space `lang'::
+* Space `io'::
+* Space `sys'::
+* Space `re'::
+* Space `math'::
+* Space `yaep'::
+
+
+File: dino.info,  Node: Space `lang',  Next: Space `io',  Up: Predeclared identifiers
+
+9.1 Space 'lang'
+================
+
+The space contains fundamental Dino declarations.  All declarations of
+the space are always exposed.
 
 * Menu:
 
 * Predeclared variables::
-* Predeclared classes::
-* Predeclared functions::
+* Exception classes::
+* Functions of space `lang'::
 
 
-File: dino.info,  Node: Predeclared variables,  Next: Predeclared classes,  Up: Predeclared identifiers
+File: dino.info,  Node: Predeclared variables,  Next: Exception classes,  Up: Space `lang'
 
-9.1 Predeclared variables
-=========================
+9.1.1 Predeclared variables
+---------------------------
 
-Dino has some predeclared variables which contain useful information or
-can be used to control the behaviour of the Dino interpreter.
+Space 'lang' has some predeclared variables which contain useful
+information or can be used to control the behaviour of the Dino
+interpreter.
 
 * Menu:
 
 * Arguments and environment::
 * Version::
 * Threads::
-* Files::
-* Miscellaneous variables::
 
 
 File: dino.info,  Node: Arguments and environment,  Next: Version,  Up: Predeclared variables
 
-9.1.1 Arguments and environment
--------------------------------
+9.1.1.1 Arguments and environment
+.................................
 
 To access arguments to the program and the environment, the following
 variables can be used:
@@ -2355,21 +2339,21 @@ variables can be used:
 
 File: dino.info,  Node: Version,  Next: Threads,  Prev: Arguments and environment,  Up: Predeclared variables
 
-9.1.2 Version
--------------
+9.1.1.2 Version
+...............
 
 As Dino is a live programming language, it and its interpreter are in
-the process of permanent development.  To access the Dino interpreter's
-version number and consequently the language version, the final variable
+the process of development.  To access the Dino interpreter's version
+number and consequently the language version, the final variable
 'version' can be used.  The variable value is the Dino version as a
 floating point number.  For example, if the current Dino version is
-0.54, the variable value will be 0.54.
+0.97, the variable value will be 0.97.
 
 
-File: dino.info,  Node: Threads,  Next: Files,  Prev: Version,  Up: Predeclared variables
+File: dino.info,  Node: Threads,  Prev: Version,  Up: Predeclared variables
 
-9.1.3 Threads
--------------
+9.1.1.3 Threads
+...............
 
 To access some information about threads in Dino program, the following
 variables can be used.
@@ -2383,9 +2367,381 @@ variables can be used.
    All these variables are final, so you can not change their values.
 
 
-File: dino.info,  Node: Files,  Next: Miscellaneous variables,  Prev: Threads,  Up: Predeclared variables
+File: dino.info,  Node: Exception classes,  Next: Functions of space `lang',  Prev: Predeclared variables,  Up: Space `lang'
 
-9.1.4 Files
+9.1.2 Exception classes
+-----------------------
+
+All predeclared classes in space 'lang' describe exceptions which may be
+generated in Dino program.  All Dino exceptions are represented by
+objects of the predeclared class 'except' or of a sub-class of the class
+'except'.  The class 'except' has no parameters.  There is one
+predeclared sub-class 'error' of class 'except'.  All classes
+corresponding to user-defined exceptions are suggested to be declared as
+sub-class 'except'.  All other exceptions (e.g.  generated by the Dino
+interpreter itself or by predeclared functions) are objects of the class
+'error' or predeclared classes which are sub-classes of 'error'.  The
+class 'error' and all its sub-classes has one parameter 'msg' which
+contains a readable message about the exception.  The following classes
+are declared in space 'lang' as sub-class of 'error':
+
+   * 'invop'.  The following sub-classes of this class describe
+     exceptions when operands of operations have an incorrect type or
+     value.
+
+        * 'optype'.  This class describes that the operand of an
+          operation is not of the required type (possibly after implicit
+          conversions).
+        * 'opvalue'.  This class is reserved for the error of that an
+          operand of an operation has invalid value.
+   * 'invindex'.  Sub-classes of this class describe exceptions in
+     referring for a vector element.
+
+        * 'indextype'.  This class describes that the index is not of
+          integer type (possibly after implicit integer conversion).
+        * 'indexvalue'.  This class describes that the index is negative
+          or equal to or more than the vector length.
+        * 'indexop'.  This class describes that the first operand in
+          referring to a vector element is not a vector.
+   * 'invslice'.  Sub-classes of this class describe exceptions in
+     referring for a vector slice.
+
+        * 'slicetype'.  This class describes that the start index,
+          bound, or step is not of integer type (possibly after implicit
+          integer conversion).
+        * 'sliceform'.  This class describes that the slice has a wrong
+          form, e.g.  start index is negative, step is zero or slice is
+          applied not to a vector.
+   * 'invector'.  Sub-classes inside this class mostly describe
+     exceptions in slice operations.
+
+        * 'veclen'.  This class describes that operands in a slice
+          operator have different length.
+        * 'vecform'.  This class describes that operands in a slice
+          operator have different dimensions.
+        * 'matrixform'.  This class describes error when matrix
+          transposition (function 'transpose') is applied to a vector of
+          different length vectors.
+   * 'invkey'.  Sub-classes inside this class describe exceptions in
+     referring to a table element.
+
+        * 'keyvalue'.  This class describes that there is no such
+          element in the table with the given key when we need the value
+          of the element.  The exception does not occur when a table
+          element reference stands in the left hand side of an
+          assignment-statement.
+        * 'keyop'.  This class describes that the first operand in
+          referring to a table element is not a table.
+   * 'invcall'.  Sub-classes of this class describe exceptions in
+     calling functions (mainly predeclared ones).
+
+        * 'abstrcall'.  This class describes that we try to call
+          declared but not defined function.
+        * 'callop'.  This class describes that we try to call something
+          which is not a function, class, or thread-function.  The
+          exception is also generated when you try to create a class
+          'file' instance by calling the class.
+        * 'partype'.  This class describes that a parameter value of a
+          predeclared function is not of required type.
+        * 'parvalue'.  This class describes that a parameter value of a
+          predeclared function is not one of permitted values (see
+          functions 'set_encoding', 'set_file_encoding').
+        * 'parnumber'.  This class describes that the number of actual
+          parameters is not valid when we call a predeclared function.
+        * 'syncthreadcall'.  This class describes that the a thread call
+          occurs inside a critical region - see wait-statement.
+        * 'invresult'.  This class describes that the result value of
+          function call is not of required type, e.g.  comparison
+          function used in a call of function 'sort' returns a non
+          integer value.
+        * 'internal'.  This class describes all other (nonspecified)
+          exceptions in calling predeclared functions.
+   * 'invaccess'.  Sub-classes of this class describe exceptions in
+     accessing or changing values.
+
+        * 'accessop'.  This class describes that a given class
+          declaration can not be found or is private when accessing to
+          it through the corresponding object.
+        * 'accessvalue'.  This class describes that we try to access to
+          declared but not defined through the corresponding object -
+          see _abstract classes_.
+        * 'immutable'.  This class describes that we try to change an
+          immutable value.
+        * 'patternmatch'.  This class describes that the pattern in a
+          variable declaration does not match the assigned value.
+   * 'deadlock'.  This class describes that a deadlock is recognized in
+     multi-threaded program.
+   * 'syncwait'.  This class describes that we try to execute a
+     wait-stmt inside a critical region.
+
+
+File: dino.info,  Node: Functions of space `lang',  Prev: Exception classes,  Up: Space `lang'
+
+9.1.3 Functions of space 'lang'
+-------------------------------
+
+The following functions are declared in space 'lang':
+
+   * 'tolower (str)'.  The function expects that the parameter 'str'
+     (after implicit string conversion) is a string.  The function
+     returns new string 'str' in which upper case letters are changed to
+     the corresponding lower case letters.
+   * 'toupper (str)'.  The function expects that the parameter 'str'
+     (after implicit string conversion) is a string.  The function
+     returns the new string 'str' in which lower case letters are
+     changed to the corresponding upper case letters.
+   * 'translit (str, what, subst)'.  The function transliterates
+     charactes in a string.  The function expects that the parameters
+     'str' (after implicit string conversion), 'what', and 'subst' are
+     strings.  The function returns the new string 'str' in which its
+     characters which are present in 'what' are changed to the
+     corresponding characters in 'subst'.  The last two strings should
+     have the same length.  The second string may contain more than one
+     occurence of a character.  In this case the last correspondence is
+     taken.
+   * 'eltype (vect)'.  The function expects that the parameter value is
+     a vector.  The function returns 'nil' if the vector is
+     heterogenous, otherwise the function returns the type of the vector
+     elements (type of 'nil' if the vector is empty).
+   * 'keys (tab)'.  The function expects that the parameter value is a
+     table.  The function returns a new mutable vector containing all
+     the keys in the table.  The order of keys in the vector is
+     undefined.
+   * 'closure (par)'.  The function accepts any parameter value.  If the
+     parameter value is object or a block instance of a function,
+     function 'closure' returns the corresponding class or function
+     which contains also its context.  That is why it is called closure.
+     In all other cases, the function returns 'nil'.
+   * 'context (par)'.  The function returns the context (see section
+     _Declarations and Scope Rules_) represented by a block instance or
+     an object for the given parameter value which should be a function,
+     a class, a thread, a block instance, or an object.
+   * 'inside (par1, par2[, flag])'.  The goal for function usage is to
+     check that something is declared inside something other.  If the
+     third parameter value after implicit integer conversion is given
+     and nonzero, it is checked with taking contexts into account.  The
+     second parameter value should be a function, class, object, or a
+     block instance.  In the last two cases of the second parameter
+     value, the corresponding class, function, or block is used.  The
+     first parameter value should be a function, a class, an object, or
+     a block instance.  In the last two cases, they define corresponding
+     a function, class, or block.  If the function, class, or block
+     defined by the first parameter is declared inside the function,
+     class, or block given by the second parameter, the function
+     'inside' returns 1.  The function 'inside' also returns 1 if the
+     function, class, or block defined by the first parameter is the
+     same as the function, class, or block given by the second
+     parameter.  Otherwise the function 'inside' returns 0.  The
+     following example illustrates the difference between checking with
+     taking contexts into account and without it.
+
+                    class c () {
+                      class subc () {
+                      }
+                    }
+                    inside (c ().subc (), c ().subc);  // returns 1
+                    inside (c ().subc (), c ().subc, 1); // returns 0
+
+     The first call of 'inside' returns 1, while the second one returns
+     0.
+   * 'isa (fco, fc)'.  The goal for function usage is to check that
+     function, class, or object given by the first parameter 'fco' uses
+     declarations (through a use-clause) of a function or a class given
+     by the second parameter 'fc', in other words the first is a subtype
+     of the second.  If it is true, the function returns 1, otherwise it
+     returns zero.  If the parameter types are wrong, the function
+     generates exception 'partype'.  The following example illustrates
+     usage of 'isa'.
+
+                    class c () {}
+                    class subc () { use c;}
+                    isa (subc, c);
+                    isa (subc (), c);
+
+     The calls of 'isa' in the example return 1.
+   * 'subv (vect, index[, length])'.  The function is used to extract a
+     sub-vector.  The first parameter value should be a vector after
+     implicit string conversion.  The second and third parameter values
+     should be integers after implicit integer conversion.  The function
+     extracts only an element or the part of the sub-vector existing in
+     the vector (so you can use any values of the index and the length).
+     ?If index is negative, it is considered to be equal to zero.  If
+     the length is negative, the sub-vector will finish on the vector
+     end.  The function returns a new vector which is the sub-vector.
+     The result vector is immutable only when the original vector is
+     immutable.
+   * 'del (vect, index[, length]) or del (tab, key)'.  The first form of
+     the function is used to remove the vector element or a sub-vector
+     from the mutable vector 'vect'.  The second and the third parameter
+     values should be integers after implicit integer conversion.  The
+     function removes only an element or the part of the sub-vector
+     existing in the vector (so you can use any values of the index and
+     the length).  ?If index is negative, it is considered to be equal
+     to zero.  If the length is negative, the sub-vector will finish on
+     the vector end.  The second form of the function is used to remove
+     the element (if it exists) with the given key from the mutable
+     table.  The function generates the exception 'immutable' if we are
+     trying to remove from an immutable vector or table.  The function
+     returns the modified vector.
+   * 'ins (vect, el[, index])'.  The function inserts the element given
+     by the second parameter into the vector given by the first
+     parameter on the place given by the third parameter.  If the third
+     parameter is not given it is believed to be zero.  The third
+     parameter should be an integer after implicit integer conversion.
+     ?If the third parameter is negative or equal to or greater than the
+     vector length, the element is inserted at the end of the vector.
+     The function generates the exception 'immutable' if we are trying
+     to insert into an immutable vector.  The function returns the
+     modified vector.
+   * 'insv (vect, vect[, index])'.  The function is analogous to the
+     function 'ins' but it is used for insertion of all vector elements
+     into the vector given as the first parameter.  So the second
+     parameter value should be a vector.  The function returns the
+     modified vector.
+   * 'rev (vect)'.  The function returns reversion of the given vector.
+   * 'cmpv (vect, vect)'.  The function makes implicit string conversion
+     of the parameter values.  After that, the parameter values should
+     be vectors whose first corresponding equal elements should have the
+     same type (character, integer, or floating point type).  The first
+     corresponding unequal elements should have the same type too (the
+     remaining elements can have different type).  As usual, if this is
+     not true, exception 'partype' is generated.  The function returns 1
+     if the first unequal element value of the first vector is greater
+     than the corresponding element in the second vector, -1 if less,
+     and 0 if the all corresponding vector elements are equal.  If the
+     first vector is a prefix of the second vector, the function returns
+     -1.  If the second vector is a prefix of the first vector, the
+     function returns 1, so it is in fact generalized lexicographical
+     order.
+   * 'filter (f, v [, d])'.  The function expects function 'f', vector
+     'v', and optional integer 'd' after integer conversion.  Otherwise
+     exception 'partype' is generated.  If 'd' is not given, it is
+     believed to be 1.  The function processes v's elements if 'd' is
+     equal one, elements of vectors which are v's elements if 'd' is
+     equal to 2 and so on.  In other words, 'd' is level on which vector
+     elements are processed.  If v has no structure necessary for
+     processing, exception 'vecform' is generated.  If 'd' is zero or
+     negative, the function just returns 'v'.  Otherwise the function
+     creates new mutable vector having the same structure as 'v' with
+     only elements on level 'd' for which function 'f' returns nonzero
+     value after integer conversion.  If the result of function 'f'
+     after the integer conversion is not integer, exception 'invresult'
+     is generated.  The following example illustrates usage of 'filter'.
+
+                    var i, v = [0, 1, -2, 3, -4];
+                    println (filter (fun (a) {a > 0;}, v));
+                    v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
+                    println (filter (fun (a) {a > 0;}, v, 2));
+   * 'map (f, v [, d])'.  The meaning of function parameters and
+     constraints to their values are analogous to ones of function
+     'filter'.  Only function 'f' can return any value.  The elements
+     processed by function 'f' is changed onto the result of function
+     'f'.  The following example illustrates usage of 'map'.
+
+                    var i, v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
+                    println (map (fun (a) {a < 0 ? nil : a;}, v, 2));
+   * 'fold (f, v, init [, d])'.  The meaning of function parameters 'f',
+     'v', and 'd' and constraints to their values are analogous to ones
+     of function 'filter'.  The function processes all elements of
+     vectors on level 'd' and returns value 'f (f (f (f (init, el0),
+     el1), ...)  , eln)' where 'el0', ..., 'eln' are vector elements on
+     level 'd' taken from left to right.  If 'd' is zero or negative or
+     the vectors are empty, the function returns 'init'.  The following
+     example illustrates usage of 'fold'.
+
+                    var v = [1,2,3,4];
+                    println (fold (fun (a, b) {a + b;}, v, 0));
+
+   * 'sort (vect[, compare_function])'.  The function returns a new
+     sorted vector.  The original vector given as the first parameter
+     value should be a homogeneous vector whose elements are of
+     character, integer, long integer, or floating point type.  If the
+     second parameter is not given, standard arithmetic order (see
+     comparison operators) is used.  To use special ordering, use the
+     second parameter which should be a function which compares two
+     elements of the vector and returns a negative integer if the first
+     parameter value (element) is less than the second one, a positive
+     integer if the first parameter value is greater than the second
+     one, and zero if they are equal.
+   * 'transpose (m)'.  The function expects matrix 'm'.  It means that
+     'm' should be vector (each element is a matrix row) of vectors of
+     equal length.  If 'm' is not a vector, exception 'partype' is
+     generated.  If elements of 'm' are not vectors of the same length,
+     exceptions 'matrixform' is generated.  The function returns a new
+     mutable vector of mutable vectors which is a matrix transposition
+     of 'm'.
+   * 'gc ()'.  The function forces garbage collection and heap
+     compaction.  Usually the Dino interpreter itself invokes garbage
+     collection when there is no more free memory.
+   * 'exit (code)'.  The function finishes the work of the interpreter
+     with the given code which should be an integer value after implicit
+     integer conversion.
+
+
+File: dino.info,  Node: Space `io',  Next: Space `sys',  Prev: Space `lang',  Up: Predeclared identifiers
+
+9.2 Space 'io'
+==============
+
+The space contains functions for input and output and for work with
+files and directories.  All declarations of the space are always
+exposed.
+
+* Menu:
+
+* Exception classes of space `io'::
+* Class `file'::
+* Files::
+* Functions for work with files::
+* File output functions::
+* File input functions::
+* Encoding functions::
+* Functions for work with directories::
+* Functions for access to file/directory information::
+* Miscellaneous functions::
+
+
+File: dino.info,  Node: Exception classes of space `io',  Next: Class `file',  Up: Space `io'
+
+9.2.1 Exception classes of space 'io'
+-------------------------------------
+
+The following classes are declared in space 'io' as sub-classes of
+'invcall':
+
+   * 'invinput'.  This class describes that the file input is not of
+     required format.  Usually the exception is generated by function
+     'scan' etc.
+   * 'invfmt'.  This class describes that a format of a format output
+     function is wrong (see function 'putf').
+   * 'eof'.  This class describes that end of file is encountered.
+     Usually the exception is generated by functions reading files
+     ('get', 'scan' etc).
+   * 'invencoding'.  This class describes different exceptions with used
+     encodings, e.g.  file contains bytes not corresponding to the
+     expected encoding or in some cases the encoding should contain
+     ASCII characters.
+
+
+File: dino.info,  Node: Class `file',  Next: Files,  Prev: Exception classes of space `io',  Up: Space `io'
+
+9.2.2 Class 'file'
+------------------
+
+Dino has predeclared final class 'file'.  Work with files in Dino
+program are made through objects of the class.  All declarations inside
+of class are private.  The objects of the class can be created only by
+predeclared functions 'open' or 'popen'.  If you create an object of the
+class by calling the class, exception 'callop' will be generated.  File
+encoding is defined by the current DINO encoding at the file creation
+time (see functions 'set_encoding', 'set_file_encoding').  If you want
+to work with files on the byte level without any encoding decoding, you
+can use encoding called '"RAW"'.
+
+
+File: dino.info,  Node: Files,  Next: Functions for work with files,  Prev: Class `file',  Up: Space `io'
+
+9.2.3 Files
 -----------
 
 To output something into standard streams or to input something from the
@@ -2403,75 +2759,580 @@ Encoding of the files is DINO current encoding at the program start (see
 function 'set_encoding').
 
 
-File: dino.info,  Node: Miscellaneous variables,  Prev: Files,  Up: Predeclared variables
+File: dino.info,  Node: Functions for work with files,  Next: File output functions,  Prev: Files,  Up: Space `io'
 
-9.1.5 Miscellaneous variables
------------------------------
+9.2.4 Functions for work with files
+-----------------------------------
 
-Values of the following variables are used by some predeclared
-functions:
+The following functions (besides input/output functions) work with OS
+files.  The functions may generate an exception declared in the class
+'syserror' (e.g.  'eaccess', 'enametoolong', 'eisdir' and so on) besides
+the standard 'partype', and 'parnumber'.  The function 'rename' can be
+used for renaming a directory, not only a file.
 
-   * 'split_regex'.  The variable value is a string which represents
-     regular expression which is used by the predeclared function
-     'split' when the second parameter is not given.  The initial value
-     of the variable is string '"[ \t]+"'.
-   * 'time_format'.  The variable value is a string which is the output
-     format of time used by the function 'strtime' when it is called
-     without parameters.  The initial value of the variable is the
-     string '"%a %b %d %H:%M:%S %Z %Y"'.
+   * 'rename (old_path, new_path)'.  The function renames the file
+     (directory) given by its path name.  The old and new names are
+     given by parameter values which should be strings after implicit
+     string conversion.
+   * 'remove (file_path)'.  The function removes the OS file given by
+     its path name.  The file path name should be a string after
+     implicit string conversion.
+   * 'open (file_path, mode)'.  The function opens the file for work in
+     the given _mode_, creates a new class 'file' instance, associates
+     the opened file with the instance, and returns the instance.  The
+     parameter values should be strings after implicit string
+     conversions.  The first parameter value is a string representing
+     the file path.  The second parameter value is string representing
+     the mode for work with the file (for all possible modes see the
+     ANSI C function 'fopen' documentation).  All work with an opened
+     file is made through the file instance.
+   * 'close (fileinstance)'.  The function closes a file opened by the
+     function 'open'.  The file is given by the class 'file' instance.
+     The function also removes all association of the instance with the
+     file.
+   * 'flush (fileinstance)'.  The function flushes any output that has
+     been buffered for the opened file given by the class 'file'
+     instance.
+   * 'popen (command, mode)'.  The function starts the shell command
+     given by the first parameter value (which should be a string after
+     implicit string conversion), creates a pipe, creates a new class
+     'file' instance, associates the pipe with the instance, and returns
+     the instance.  Writing to such a pipe (through the class file
+     instance) writes to the standard input of the command.  Conversely,
+     reading from the pipe reads the command's standard output.  After
+     implicit string conversion the second parameter value should be the
+     string "r" (for reading from the pipe) or "w" (for writing to the
+     pipe).  The pipe should be closed by the function 'pclose'.
+   * 'pclose (fileinstance)'.  The function waits for the command
+     connected to a pipe to terminate.  The pipe is given by the class
+     'file' instance returned by the function 'popen'.  The function
+     also removes the association of the instance with the pipe.
+   * 'tell (fileinstance)'.  The function returns the current value of
+     the file position indicator for the file (opened by function
+     'open') given by the class 'file' instance.
+   * 'seek (fileinstance, offset, whence)'.  The function sets up the
+     current file position indicator for the file (opened by function
+     'open') given by the class 'file' instance.  The position is given
+     by 'offset' which should be an integer after implicit arithmetic
+     conversion and 'whence' which should be a string after implicit
+     string conversion.  The first character of the string should be
+     ''s", ''c", or ''e" (these characters mean that the offset is
+     relative to the start of the file, the current position indicator,
+     or the end-of-file, respectively).
+   * 'get_file_encoding (fileinstance)'.  The function returns a new
+     mutable string which is a name of the current file encoding.
+   * 'set_file_encoding (fileinstance, name)'.  The accepts file and
+     string and changes the current file encoding.  If the name
+     represents unknown encoding name, the function generates exceptions
+     'parvalue'.
 
 
-File: dino.info,  Node: Predeclared classes,  Next: Predeclared functions,  Prev: Predeclared variables,  Up: Predeclared identifiers
+File: dino.info,  Node: File output functions,  Next: File input functions,  Prev: Functions for work with files,  Up: Space `io'
 
-9.2 Predeclared classes
-=======================
+9.2.5 File output functions
+---------------------------
 
-The most of the predeclared classes describe exceptions which may be
-generated in Dino program.
+The following functions are used to output something into opened files.
+All the function return values are undefined.  The functions may
+generate an exception declared in the class 'syserror' (e.g.  'eio',
+'enospc' and so on) besides the standard 'partype', and 'parnumber'.
+
+   * 'put (...)'.  All parameters should be strings after implicit
+     string conversion.  The function outputs all strings into the
+     standard output stream.
+   * 'putln (...)'.  The function is analogous to the function 'put'
+     except for the fact that it additionally outputs a new line
+     character after output of all the strings.
+   * 'fput (fileinstance, ...)'.  The function is analogous to the
+     function 'put' except for the fact that it outputs the string into
+     an opened file associated with a class 'file' instance which is the
+     first parameter value.
+   * 'fputln (fileinstance, ...)'.  The function is analogous to
+     function 'fput' except for the fact that it additionally outputs a
+     new line character after output of all the strings.
+   * 'putf (format, ...)'.  The first parameter should be strings after
+     implicit string conversion.  The function outputs the rest of
+     parameters according to the format.  The number of the rest
+     parameters should be exactly equal to the conversions (including
+     parameterized widths and precisions) in the format.  Otherwise,
+     exception 'parnumber' will be generated.  The types of the
+     parameter should correspond to the corresponding conversion
+     specifier (or to be integer for parameterized widths and
+     precisions).  If it is not true, exception 'partype' will be
+     generated.  The format is subset of one of standard C function
+     'printf' and has the following syntax:
+
+                    format : <any character except %>
+                           | '%' flags [width] [precision]
+                                 conversion_specifier
+                    flags :
+                          | flag
+
+                    flag : '#' | '0' | '-' | ' ' | '+'
+
+                    width : '*' | <decimal number starting with non-zero>
+
+                    precision : '.' ['*' | <decimal number>]
+
+                    conversion_specifier : 'd' | 'o' | 'x' | 'X'
+                                         | 'e' | 'E' | 'f' | 'g'
+                                         | 'G' | 'c' | 's' | '%'
+
+
+     If the format syntax is wrong, exception 'invfmt' is generated.
+
+     Flag '#' means that the value should be converted into an
+     alternative form.  It can be present only for conversion specifiers
+     'o', 'x', 'X', 'e', 'E', 'f', 'g', and 'G'. If the flag is used for
+     conversion specifier 'o', the output will be prefixed by '0'.  For
+     'x' and 'X' the output will be prefixed by '0x' and '0X'
+     correspondingly.  For conversions 'e', 'E', 'f', 'g', and 'G' the
+     output will always contain a decimal point.  For conversions 'g'
+     and 'G' it also means that trailing zeros are not removed from the
+     output as they would be without the flag.  The following code using
+     flag '#' in format
+
+                   putf ("->%#o %#x %#x %#.0e %#.0f %#g<-\n",
+                         8, 10, 16l, 2., 3., 4.);
+
+     will output
+
+                   ->010 0xa 0x10 2.e+00 3. 4.00000<-
+
+     Flag '0' means that the output value will be zero padded on the
+     left.  If both flags '0' and '-' appear, the flag '0' is ignored.
+     It is also ignored for conversions 'd', 'o', 'x', and 'X' if a
+     precision is given.  The flag is prohibited for conversions 'c' and
+     's'.  The following code using flag '0' in format
+
+                   putf ("->%04d %04x %04x %09.2e %05.2f %05.2g<-\n",
+                         8, 10, 16l, 2., 3., 4.);
+
+     will output
+
+                   ->0008 000a 0010 02.00e+00 03.00 00004<-
+
+     Flag '-' means that the output will be left adjusted on the field
+     boundary.  (The default is right justification).  Flag '-'
+     overrides flag '0' if the both are given.  The following code using
+     flag '-' in format
+
+                   putf ("->%-04d %-04x %-04x %-09.2e %-05.2f %-05.2g<-\n",
+                         8, 10, 16l, 2., 3., 4.);
+
+     will output
+
+                   ->8    a    10    2.00e+00  3.00  4    <-
+
+     Flag ' ' means that the output of a signed number will start with a
+     blank for positives number.  The flag can be used only for
+     conversions 'd', 'e', 'E', 'f', 'g', and 'G'. If both flags ' ' and
+     '+' appear, the flag ' ' is ignored.  The following code using flag
+     ' ' in format
+
+                   putf ("->% d % d % .2e % .2f % .2g<-\n",
+                         8, 16l, 2., 3., 4.);
+
+     will output
+
+                   -> 8  16  2.00e+00  3.00  4<-
+
+     Flag '+' means that the output of a signed number will start with a
+     plus for positives number.  The flag can be used only for
+     conversions 'd', 'e', 'E', 'f', 'g', and 'G'. Flag '+' overrides
+     flag ' ' if both are given.  The following code using flag '+' in
+     format
+
+                   putf ("->%+d %+d %+.2e %+.2f %+.2g<-\n",
+                         8, 16l, 2., 3., 4.);
+
+     will output
+
+                   ->+8 +16 +2.00e+00 +3.00 +4<-
+
+     The width defines a minimum width of the output value.  If the
+     output is smaller, it is padded with spaces (or zeros - see flag
+     '0') on the left (if flag '-' is used) or right.  The output is
+     never truncated.  The width should be no more than maximal integer
+     value, otherwise exception 'invfmt' is generated.  The width can be
+     given as a parameter of integer type if '*' is used.  If the value
+     of width given by the parameter is negative, flag '-' is believed
+     to be given and the width is believed to be equal to zero.  The
+     following code using width in format
+
+                   putf ("->%5d %05d %-5d %5d %*d %*d<-\n",
+                         8, 9, 10, 16l, 5, 8, -5, 10);
+
+     will output
+
+                   ->    8 00009 10       16     8 10   <-
+
+     The precision is prohibited for conversions 'c'.  If the number
+     after the period is absent, its value will be zero.  The precision
+     can be given as a parameter of integer type if '*' is used after
+     the period.  If the value of precision given by the parameter is
+     negative, its value is believed to be zero too.  For conversions
+     'd', 'o', 'x', and 'X' the precision means minimum number of output
+     digits.  For conversions 'e', 'E', and 'f' it means the number of
+     digits to appear after the decimal point.  For 'g' and 'G' it means
+     the maximum number of significant digits.  For 's' it means the
+     maximum number of characters to be output from a string.  The
+     following code using precision in format
+
+                   putf ("->%.d %.0d %.5d %.d %.0f %.0e %.2g<-\n",
+                         8, 8, 9, 16l, 2.3, 2.3, 3.53);
+                   putf ("->%.2s %.0d %.*d %.*d %.*d<-\n",
+                         "long", 0, 5, 8, -5, 8, 5, 16l);
+
+     will output
+
+                   ->8 8 00009 16 2 2e+00 3.5<-
+                   ->lo  00008 8 00016<-
+
+     Conversion 'd' should be used to output integer or long integer.
+     The default precision is 1.  When 0 is output with an explicit
+     precision 0, the output is empty.
+
+     Conversions 'o', 'x', and 'X' should be used to output an integer
+     or long integer value as unsigned in octal and hexadecimal form.
+     The lower case letters 'abcdef' are used for 'x' and the upper case
+     letters 'ABCDEF' are used for 'X'. The precision gives the minimum
+     number of digits that must appear.  If the output value requires
+     fewer digits, it is padded on the left with zeros.  The default
+     precision is 1.  When 0 is output with an explicit precision 0, the
+     output is empty.
+
+     Conversion 'f' should be used to output floating point values.  The
+     output value has a form '[-]ddd.ddd' where the number of digits
+     after the decimal point is given by the precision specification.
+     The default precision value is 6.  If the precision is explicitly
+     zero, no decimal-point character appears.
+
+     Conversions 'e' and 'E' should be used to output floating point
+     values with an exponent in form '[-]d.ddd[e|E][+|-]dd'.  There is
+     always one digit before the decimal-point.  The number of digits
+     after the decimal point is defined by the precision.  The default
+     precision value is 6.  If the precision is zero, no decimal-point
+     appears.  Conversion 'E' uses the letter 'E' (rather than 'e') to
+     introduce the exponent.  The exponent always contains at least two
+     digits.  If the exponent value is zero, the exponent is output as
+     '00'.
+
+     Conversions 'g' and 'G' should be used to output floating point
+     values in style 'f' or 'e' (or 'E' for conversion 'G'). The
+     precision defines the number of significant digits.  The default
+     value of the precision is 6.  If the precision is zero, it is
+     treated as 1.  Conversion 'e' is used if the exponent from the
+     conversion is less than -4 or not less than the precision.
+     Trailing zeros are removed from the fractional part of the output.
+     If all fractional part is zero, the decimal point is removed too.
+
+     Conversion 'c' should be used to output a character value.
+
+     Conversion 's' should be used to output strings.
+
+     Conversion '%' should be used to output '%'.
+
+     The following code using different conversions in format
+
+                   putf ("->%% %c %s %d %o %x %X %d %o %x %X<-\n",
+                         'c', "string", 7, 8, 20, 20, 8l, 9l, 21l, 21l);
+                   putf ("->%f<-\n", 1.5);
+                   putf ("->%e %E %g %G %g %G<-\n",
+                         2.8, 2.8, 3.7, 3.7, 455555555.555, 5.9e-5);
+
+     will output
+
+                   ->% c string 7 10 14 14 8 11 15 15<-
+                   ->1.500000<-
+                   ->2.800000e+00 2.800000E+00 3.7 3.7 4.55556e+08 5.9E-05<-
+
+   * 'fput (fileinstance, format, ...)'.  The function is analogous to
+     the function 'putf' except for the fact that it outputs the string
+     into an opened file associated with a class 'file' instance which
+     is the first parameter value.
+   * 'print (...)'.  The function outputs all parameter values into
+     standard output stream.  The function never makes implicit
+     conversions of the parameter values.  The parameter values are
+     output as they could be represented in Dino itself (e.g.  character
+     ''c" is output as ''c", vector '['a', 'b', 'c']' is output as
+     '"abc"', vector '[10, 20]' as '[10, 20]' and so on).  As you know
+     some values (functions, classes, block instances, class instances,
+     threads) are not represented fully in DINO. Such values are
+     represented schematically.  For example, the output 'fun f
+     {}.g(unique_number)' would mean function 'f' in the call of
+     function (or class) 'g' with the given unique number and function g
+     is in the instance of the implicit block covering the whole
+     program.  For the function 'g', output would look simply like 'fun
+     g' because there is only one instance of the implicit block
+     covering the whole program.  Output for an instance of the class
+     'c' in the function 'f' looks like 'instance
+     {}.f(unique_number).c(unique_number)'.  Output for a block instance
+     of the function 'f' looks like 'stack {}.f(unique_number)'.  Output
+     for a thread whose thread-function 't' is declared in the function
+     'f' would look like 'thread unique_number
+     {}.f(unique_number).t(unique_number)'.
+   * 'println (...)'.  The function is analogous to the function 'print'
+     except for the fact that it additionally outputs new line character
+     after output of all parameters.
+   * 'fprint (fileinstance, ...)'.  The function is analogous to the
+     function 'print' except for the fact that it outputs the parameters
+     into an opened file associated with a class 'file' instance which
+     is the value of first parameter.
+   * 'fprintln (fileinstance, ...)'.  The function is analogous to
+     function 'fprint' except for the fact that it additionally outputs
+     a new line character after the output of all the parameters.
+
+
+File: dino.info,  Node: File input functions,  Next: Encoding functions,  Prev: File output functions,  Up: Space `io'
+
+9.2.6 File input functions
+--------------------------
+
+The following functions are used to input something from opened files.
+The functions may generate an exception declared in the class 'syserror'
+(e.g.  'eio', 'enospc' and so on) or 'eof' besides the standard
+'partype', and 'parnumber'.
+
+   * 'get ()'.  The function reads one character from standard input
+     stream and returns it.  The function generates the exception 'eof'
+     if the function tries to read the end of file.
+   * 'getln ()'.  The function reads one line from standard input stream
+     and returns it as a new string.  The end of line is the newline
+     character or end of file.  The returned string does not contain the
+     newline character.  The function generates the exception 'eof' only
+     when the file position indicator before the function call stands
+     exactly on the end of file.
+   * 'getf ([ln_flag])'.  The function reads the whole standard input
+     stream and returns it as a new string.  The function generates the
+     exception 'eof' only when the file position indicator before the
+     function call stands exactly on the end of file.  The function has
+     an optional parameter which should be integer after implicit
+     integer conversion.  If the parameter value is nonzero, the
+     function returns a vector of strings.  Otherwise it behaves as
+     usually.  Each string is a line in the input stream.  The strings
+     do not contain the newline character.
+   * 'fget (fileinstance)'.  The function is analogous to function 'get'
+     except for the fact that it reads from an opened file associated
+     with the class 'file' instance which is the parameter's value.
+   * 'fgetln (fileinstance)'.  The function is analogous to the function
+     'getln' except for the fact that it reads from an opened file
+     associated with a class 'file' instance which is the parameter
+     value.
+   * 'fgetf (fileinstance [, ln_flag])'.  The function is analogous to
+     the function 'getf' except for the fact that it reads from an
+     opened file associated with a class 'file' instance which is the
+     parameter's value.
+   * 'scan ()'.  The functions reads a character, integer, floating
+     point number, string, vector, or table and returns it as the
+     result.  The input values should be represented in the file as the
+     ones in the Dino language (except for the fact that there should be
+     no identifiers in the input values and there should be no operators
+     in the values, although the signs '+' and '-' are possible in an
+     integer or floating point represenation).  The table or vector
+     should contains only values of types mentioned above.  The values
+     in the file can be separated by white characters.  If there is an
+     error (e.g.  unbalanced brackets in a vector value) in the read
+     value representation the function generates the exception
+     'invinput'.  The functions generates the exception 'eof' if only
+     white characters are still unread in the file.
+   * 'scanln ()'.  The function is analogous to the function 'scan'
+     except for the fact that it skips all characters until the end of
+     line or the end of file after reading the value.  Skipping is made
+     even if the exception 'invinput' is generated.
+   * 'fscan (fileinstance)'.  The function is analogous to the function
+     'scan' except for the fact that it reads from an opened file
+     associated with a class 'file' instance which is the parameter's
+     value.
+   * 'fscanln (fileinstance)'.  The function is analogous to the
+     function 'scanln' except for that it reads from an opened file
+     associated with a class 'file' instance which is the parameter
+     value.
+
+
+File: dino.info,  Node: Encoding functions,  Next: Functions for work with directories,  Prev: File input functions,  Up: Space `io'
+
+9.2.7 Encoding functions
+------------------------
+
+Dino internally uses Unicode for characters.  To provide communication
+with the rest of world, it can use different encodings.  The default
+encoding is UTF-8.  Dino has two functions to get and change the current
+encoding:
+
+   * 'get_encoding ()'.  The function returns a new mutable string which
+     is a name of the current encoding.
+   * 'set_encoding (name)'.  The function accepts string and changes the
+     current encoding.  If the name represents unknown encoding name,
+     the function generates exceptions 'parvalue'.
+
+   Examples:
+
+               putln (get_encoding ());
+               set_encoding ("KOI8-R");
+
+
+File: dino.info,  Node: Functions for work with directories,  Next: Functions for access to file/directory information,  Prev: Encoding functions,  Up: Space `io'
+
+9.2.8 Functions for work with directories
+-----------------------------------------
+
+The following functions work with directories.  The functions may
+generate an exception declared in class syserror (e.g.  'eaccess',
+'enametoolong', 'enotdir' and so on) besides the standard 'partype',
+'parnumber'.
+
+   * 'readdir (dirpath)'.  The function makes implicit string conversion
+     of the parameter value which should be a string (directory path).
+     The function returns a new mutable vector with elements which are
+     strings representing names of all files and sub-directories
+     (including '"."'  and '".."'  for the current and parent directory
+     respectively) in given directory.
+   * 'mkdir (dirpath)'.  The function creates a directory with the given
+     name represented by a string (the parameter value after implicit
+     string conversion).  The directory has read/write/execute rights
+     for all.  You can change it with the aid of the functions 'ch*mod'.
+   * 'rmdir (dirpath)'.  The function removes the directory given by a
+     string which is parameter value after implicit string conversion.
+   * 'getcwd ()'.  The function returns a new string representing the
+     full path of the current directory.
+   * 'chdir (dirpath)'.  The function makes the directory given by
+     'dirpath' (which should be a string after implicit string
+     conversion) the current directory.
+
+
+File: dino.info,  Node: Functions for access to file/directory information,  Next: Miscellaneous functions,  Prev: Functions for work with directories,  Up: Space `io'
+
+9.2.9 Functions for access to file/directory information
+--------------------------------------------------------
+
+The following predeclared functions can be used for accessing file or
+directory information.  The functions may generate an exception declared
+in the class 'syserror' (e.g.  'eaccess', 'enametoolong', 'enfile' and
+so on) besides the standard 'partype', and 'parnumber'.  The functions
+expect one parameter which should be a file instance (see the
+predeclared class 'file') or the path name of a file represented by a
+string (the functions make implicit string conversion of the parameter).
+The single exception to this is 'isatty' which expects a file instance.
+
+   * 'ftype (fileinstance_or_filename)'.  The function returns one the
+     following characters:
+
+        * ''f".  A regular file.
+        * ''d".  A directory.
+        * ''L". A symbolic link.
+        * ''c".  A character device.
+        * ''b".  A block device.
+        * ''p".  A fifo.
+        * ''S". A socket.
+
+     Under some OSes the function never returns some of the characters
+     (e.g.  'c' or 'b').  The function may return nil if it can not
+     categorize the file as above.
+   * 'fuidn (fileinstance_or_filename)'.  The function returns new
+     string representing name of owner of the file (directory).  Under
+     some OSes the function may return the new string '"Unknown"' if
+     there is no notion "owner" in the OS file system.
+   * 'fgrpn (fileinstance_or_filename)'.  Analogous to the previous
+     function except for it returns a new string representing name of
+     the group of the file (directory).  Under some OSes the function
+     may return the new string '"Unknown"' if there is no notion "group"
+     in the OS file system.
+   * 'fsize (fileinstance_or_filename)'.  The function returns an
+     integer value which is the length of the file in bytes.
+   * 'fatime (fileinstance_or_filename)'.  The function returns integer
+     value which is time of the last access to the file (directory).
+     The time is measured in seconds since the fixed time (usually since
+     January 1, 1970).  See also _time functions_.
+   * 'fmtime (fileinstance_or_filename)'.  Analogous to the previous
+     functions but returns the time of the last modification.
+   * 'fctime (fileinstance_or_filename)'.  Analogous to the previous
+     functions but it returns the time of the last change.  Here
+     'change' usually means changing the file attributes (owner, modes
+     and so on), while 'modification' means usually changing the file
+     itself.
+   * 'fumode (fileinstance_or_filename)'.  The function returns a new
+     string representing the rights of the owner of the file
+     (directory).  The string may contain the following characters (in
+     the following order if the string contains more than one
+     character):
+
+        * ''s".  Sticky bit of the file (directory).
+        * ''r".  Right to read.
+        * ''w".  Right to write.
+        * ''x".  Right to execute.
+   * 'fgmode (fileinstance_or_filename)'.  Analogous to the previous
+     function except for the fact that it returns information about the
+     file (directory) group user rights and that the function never
+     returns a string containing the character ''s".
+   * 'fomode (fileinstance_or_filename)'.  Analogous to the previous
+     function except for the act that it returns information about the
+     rights of all other users.
+   * 'isatty (fileinstance)'.  The function returns 1 if the file
+     instance given as a parameter is an open file connected to a
+     terminal and 0 otherwise.
+
+   The following functions can be used to change rights of usage of the
+file (directory) for different users.  The function expects two strings
+(after implicit string conversion).  The first one is the path name of
+the file (directory).  The second one is the rights.  For instance, if
+the string contains a character 'r', this is right to read (see
+characters used to denote different rights in the description of the
+function 'fumode').  The function return values are always undefined.
+
+   * 'chumod (path, mode)'.  The function sets up rights for the file
+     (directory) owner according to the given mode.
+   * 'chgmod (path, mode)'.  Analogous to the previous function except
+     for the fact that it sets up rights for the file (directory) group
+     users and that the function ignores the character ''s".
+   * 'chomod (path, mode)'.  Analogous to the previous function except
+     for the fact that it sets up rights for all other users.
+
+
+File: dino.info,  Node: Miscellaneous functions,  Prev: Functions for access to file/directory information,  Up: Space `io'
+
+9.2.10 Miscellaneous functions
+------------------------------
+
+There are the following miscellaneous functions in space 'io':
+
+   * 'sput (...), sputln (...), sputf (format, ...)'  The functions are
+     analogous to functions put, putln, print, and println but they
+     return the result string instead of output of the formed string
+     into the standard output stream.
+   * 'sprint (...), sprintln (...)'.  The functions are analogous to
+     functions print and println but they return the result string
+     instead of output of the formed string into the standard output
+     stream.
+
+
+File: dino.info,  Node: Space `sys',  Next: Space `re',  Prev: Space `io',  Up: Predeclared identifiers
+
+9.3 Space 'sys'
+===============
+
+This space contains declarations to work work with underlying execution
+environment (OS) and related exceptions.
 
 * Menu:
 
-* File::
-* Exception classes::
-* Earley parser classes::
+* Exceptions in space `sys'::
+* Variable `time_format'::
+* Time functions::
+* Functions for access to information about OS processes::
+* Function `system (command)'::
 
 
-File: dino.info,  Node: File,  Next: Exception classes,  Up: Predeclared classes
+File: dino.info,  Node: Exceptions in space `sys',  Next: Variable `time_format',  Up: Space `sys'
 
-9.2.1 File
-----------
+9.3.1 Exceptions in space 'sys'
+-------------------------------
 
-Dino has predeclared final class 'file'.  Work with files in Dino
-program are made through objects of the class.  All declarations inside
-of class are private.  The objects of the class can be created only by
-predeclared functions 'open' or 'popen'.  If you create an object of the
-class by calling the class, exception 'callop' will be generated.  File
-encoding is defined by the current DINO encoding at the file creation
-time (see functions 'set_encoding', 'set_file_encoding').  If you want
-to work with files on the byte level without any encoding decoding, you
-can use encoding called '"RAW"'.
+The space contains a lot of exceptions:
 
-
-File: dino.info,  Node: Exception classes,  Next: Earley parser classes,  Prev: File,  Up: Predeclared classes
-
-9.2.2 Exception classes
------------------------
-
-All Dino exceptions are represented by objects of the predeclared class
-'except' or of a class in the class 'except'.  The class 'except' has no
-parameters, therefore all arguments in calling the class will be
-ignored.  There is one predeclared class 'error' inside class 'except'.
-All classes corresponding to user-defined exceptions are suggested to be
-declared in class 'except' not in the class 'error' because all other
-exceptions (e.g.  generated by the Dino interpreter itself or by
-predeclared functions) are objects of the class 'error' or predeclared
-classes inside the class 'error'.  The class 'error' and all classes
-inside the class has one parameter 'msg' which contains a readable
-message about the exception.  The following classes are declared in the
-class 'error':
-
-   * 'signal'.  Classes inside this class describe exceptions from
-     receiving a signal from other OS processes.  They are
+   * 'signal'.  This class is sub-class of class 'error'.  Sub-classes
+     of class 'signal' describe exceptions from receiving a signal from
+     other OS processes.  They are
 
         * 'sigint'.  This class describes the exception generated by the
           user's interrupt from the keyboard.
@@ -2484,605 +3345,249 @@ class 'error':
           the termination signal.
         * 'sigsegv'.  This class describes the exception generated by an
           invalid memory reference.
-   * 'invenv'.  This class describes corruption of the Dino program
-     environment (see predeclared variable 'env').
-   * 'invop'.  Classes inside this class describe exceptions when
-     operands of operations have an incorrect type or value.
+   * 'invenv'.  This class is sub-class of class 'error'.  Class
+     'invenv' describes corruption of the Dino program environment (see
+     predeclared variable 'env').
+   * 'syserror'.  This class is sub-class of class 'invcall'.
+     Sub-classes of class 'syserror' describe exceptions in predeclared
+     functions which call OS system functions.  Some exceptions are
+     never generated but may be generated in the future on some OSes.
 
-        * 'optype'.  This class describes that the operand of an
-          operation is not of the required type (possibly after implicit
-          conversions).
-        * 'opvalue'.  This class is reserved for the error of that an
-          operand of an operation has invalid value.  Now this exception
-          is not generated.
-   * 'invindex'.  Classes inside this class describe exceptions in
-     referring for a vector element.
+        * 'eaccess'.  This describes the system error "Permission
+          denied".
+        * 'eagain'.  This describes the system error "Resource
+          temporarily unavailable".
+        * 'ebadf'.  This describes the system error "Bad file
+          descriptor".
+        * 'ebusy'.  This describes the system error "Resource busy".
+        * 'echild'.  This describes the system error "No child
+          processes".
+        * 'edeadlk'.  This describes the system error "Resource deadlock
+          avoided".
+        * 'edom'.  This describes the system error "Domain error".
+        * 'eexist'.  This describes the system error "File exists".
+        * 'efault'.  This describes the system error "Bad address".
+        * 'efbig'.  This describes the system error "File too large".
+        * 'eintr'.  This describes the system error "Interrupted
+          function call".
+        * 'einval'.  This describes the system error "Invalid argument".
+        * 'eio'.  This describes the system error "Input/output error".
+        * 'eisdir'.  This describes the system error "Is a directory".
+        * 'emfile'.  This describes the system error "Too many open
+          files".
+        * 'emlink'.  This describes the system error "Too many links".
+        * 'enametoolong'.  This describes the system error "Filename too
+          long".
+        * 'enfile'.  This describes the system error "Too many open
+          files in system".
+        * 'enodev'.  This describes the system error "No such device".
+        * 'enoent'.  This describes the system error "No such file or
+          directory".
+        * 'enoexec'.  This describes the system error "Exec format
+          error".
+        * 'enolck'.  This describes the system error "No locks
+          available".
+        * 'enomem'.  This describes the system error "Not enough space".
+        * 'enospc'.  This describes the system error "No space left on
+          device".
+        * 'enosys'.  This describes the system error "Function not
+          implemented".
+        * 'enotdir'.  This describes the system error "Not a directory".
+        * 'enotempty'.  This describes the system error "Directory not
+          empty".
+        * 'enotty'.  This describes the system error "Inappropriate I/O
+          control operation".
+        * 'enxio'.  This describes the system error "No such device or
+          address".
+        * 'eperm'.  This describes the system error "Operation not
+          permitted".
+        * 'epipe'.  This describes the system error "Broken pipe".
+        * 'erange'.  This describes the system error "Result too large".
+        * 'erofs'.  This describes the system error "Read-only file
+          system".
+        * 'espipe'.  This describes the system error "Invalid seek".
+        * 'esrch'.  This describes the system error "No such process".
+        * 'exdev'.  This describes the system error "Improper link".
+   * 'systemcall'.  This is a sub-class of class 'invcall'.  Sub-classes
+     of class 'systemcall' describe exceptions in calling the
+     predeclared function 'system'.
 
-        * 'indextype'.  This class describes that the index is not of
-          integer type (possibly after implicit integer conversion).
-        * 'indexvalue'.  This class describes that the index is negative
-          or equal to or more than the vector length.
-        * 'indexop'.  This class describes that the first operand in
-          referring to a vector element is not a vector.
-   * 'invkey'.  Classes inside this class describe exceptions in
-     referring to a table element.
+        * 'noshell'.  This class describes the exception that the
+          function 'system' can not find the OS command interpreter (the
+          shell).
+        * 'systemfail'.  This class describes all remaining exceptions
+          in calling the OS function 'system'.
+   * 'invextern'.  This is a sub-class of class 'invcall'.  Sub-classes
+     of class 'invextern' describe exceptions in calling external
+     functions or in accessing an external variable.
 
-        * 'keyvalue'.  This class describes that there is no such
-          element in the table with the given key when we need the value
-          of the element.  The exception does not occur when a table
-          element reference stands in the left hand side of an
-          assignment-statement.
-        * 'keyop'.  This class describes that the first operand in
-          referring to a table element is not a table.
-   * 'invcall'.  Classes inside this class describe exceptions in
-     calling functions (mainly predeclared ones).
-
-        * 'callop'.  This class describes that we try to call something
-          which is not a function, class, or thread-function.  The
-          exception is also generated when you try to create a class
-          'file' instance by calling the class.
-        * 'partype'.  This class describes that a parameter value of a
-          predeclared function is not of required type.
-        * 'parvalue'.  This class describes that a parameter value of a
-          predeclared function is not one of permitted values (see
-          functions 'set_encoding', 'set_file_encoding').
-        * 'invfmt'.  This class describes that a format of a format
-          output function is wrong (see function 'putf').
-        * 'invencoding'.  This class describes different exceptions with
-          used encodings, e.g.  file contains bytes not corresponding to
-          the expected encoding or in some cases the encoding should
-          contain ASCII characters.
-        * 'invresult'.  This class describes that the result value of
-          function call is not of required type, e.g.  comparison
-          function used in a call to function 'sort' returns a non
-          integer value.
-        * 'invinput'.  This class describes that the file input is not
-          of required format.  Usually the exception is generated by
-          function 'scan' etc.
-        * 'eof'.  This class describes that end of file is encountered.
-          Usually the exception is generated by functions reading files
-          ('get', 'scan' etc).
-        * 'parnumber'.  This class describes that the number of actual
-          parameters is not valid when we call a predeclared function.
-        * 'syserror'.  Classes inside this class describe exceptions in
-          predeclared functions which call OS system functions.  Some
-          exceptions are never generated but may be generated in the
-          future on some OSes.
-
-             * 'eaccess'.  This describes the system error "Permission
-               denied".
-             * 'eagain'.  This describes the system error "Resource
-               temporarily unavailable".
-             * 'ebadf'.  This describes the system error "Bad file
-               descriptor".
-             * 'ebusy'.  This describes the system error "Resource
-               busy".
-             * 'echild'.  This describes the system error "No child
-               processes".
-             * 'edeadlk'.  This describes the system error "Resource
-               deadlock avoided".
-             * 'edom'.  This describes the system error "Domain error".
-             * 'eexist'.  This describes the system error "File exists".
-             * 'efault'.  This describes the system error "Bad address".
-             * 'efbig'.  This describes the system error "File too
-               large".
-             * 'eintr'.  This describes the system error "Interrupted
-               function call".
-             * 'einval'.  This describes the system error "Invalid
-               argument".
-             * 'eio'.  This describes the system error "Input/output
-               error".
-             * 'eisdir'.  This describes the system error "Is a
-               directory".
-             * 'emfile'.  This describes the system error "Too many open
-               files".
-             * 'emlink'.  This describes the system error "Too many
-               links".
-             * 'enametoolong'.  This describes the system error
-               "Filename too long".
-             * 'enfile'.  This describes the system error "Too many open
-               files in system".
-             * 'enodev'.  This describes the system error "No such
-               device".
-             * 'enoent'.  This describes the system error "No such file
-               or directory".
-             * 'enoexec'.  This describes the system error "Exec format
-               error".
-             * 'enolck'.  This describes the system error "No locks
-               available".
-             * 'enomem'.  This describes the system error "Not enough
-               space".
-             * 'enospc'.  This describes the system error "No space left
-               on device".
-             * 'enosys'.  This describes the system error "Function not
-               implemented".
-             * 'enotdir'.  This describes the system error "Not a
-               directory".
-             * 'enotempty'.  This describes the system error "Directory
-               not empty".
-             * 'enotty'.  This describes the system error "Inappropriate
-               I/O control operation".
-             * 'enxio'.  This describes the system error "No such device
-               or address".
-             * 'eperm'.  This describes the system error "Operation not
-               permitted".
-             * 'epipe'.  This describes the system error "Broken pipe".
-             * 'erange'.  This describes the system error "Result too
-               large".
-             * 'erofs'.  This describes the system error "Read-only file
-               system".
-             * 'espipe'.  This describes the system error "Invalid
-               seek".
-             * 'esrch'.  This describes the system error "No such
-               process".
-             * 'exdev'.  This describes the system error "Improper
-               link".
-        * 'systemcall'.  Classes inside this class describe exceptions
-          in calling the predeclared function 'system'.
-
-             * 'noshell'.  This class describes the exception that the
-               function 'system' can not find the OS command interpreter
-               (the shell).
-             * 'systemfail'.  This class describes all remaining
-               exceptions in calling the OS function 'system'.
-        * 'invparser'.  Classes inside this class describe exceptions
-          specific for calling functions of the predeclared class
-          'parser' implementing the Earley parser.
-
-             * 'invgrammar'.  This class describes the exception that
-               the Earley parser got a bad grammar, e.g.  without rules,
-               with loops in rules, with nonterminals unachievable from
-               the axiom, with nonterminals not deriving any terminal
-               string etc.
-             * 'invtoken'.  This class describes the exception that the
-               parser got an input token with unknown (undeclared) code.
-             * 'pmemory'.  This class describes the exception that there
-               is not enough memory for internal parser data.
-        * 'invregex'.  This class describes exceptions specific for
-          calling predeclared functions implementing regular expression
-          pattern matching.
-        * 'invextern'.  Classes inside this class describe exceptions in
-          calling external functions or in accessing an external
-          variable.
-
-             * 'noextern'.  This class describes the exception that the
-               given external can not be find.
-             * 'libclose'.  This class describes the exception that
-               there is an error in closing a shared library.
-             * 'noexternsupp'.  This class describes an exception in the
-               usage of externals when they are not implemented under
-               this OS.
-        * 'invenvar'.  This class describes corruption in the type of
-          variables 'split_regex' and 'time_format' (e.g.  their values
-          are not strings).
-        * 'internal'.  This class describes all other (nonspecified)
-          exceptions in calling predeclared functions.
+        * 'noextern'.  This class describes the exception that the given
+          external can not be find.
+        * 'libclose'.  This class describes the exception that there is
+          an error in closing a shared library.
+        * 'noexternsupp'.  This class describes an exception in the
+          usage of externals when they are not implemented under this
+          OS.
+   * 'invenvar'.  This is a sub-class of class 'invcall'.  Class
+     'invenvar' describes corruption in the type of variables
+     'split_regex' and 'time_format' (e.g.  their values are not
+     strings).
 
 
-File: dino.info,  Node: Earley parser classes,  Prev: Exception classes,  Up: Predeclared classes
+File: dino.info,  Node: Variable `time_format',  Next: Time functions,  Prev: Exceptions in space `sys',  Up: Space `sys'
 
-9.2.3 Earley parser classes
----------------------------
-
-Dino has the three following classes which are used by the Earley parser
-embedded into the Dino interpreter.
-
-* Menu:
-
-* Parser-::
-* Token-::
-* Anode-::
-* Nil_anode and error_anode-::
-* Example of Earley parser usage-::
-
-
-File: dino.info,  Node: Parser-,  Next: Token-,  Up: Earley parser classes
-
-9.2.3.1 Parser-
-...............
-
-Dino has predeclared final class 'parser' which implements the Earley
-parser.  The Earley parser is a very powerful tool to implement serious
-language compilers, processors, or translators.  The implementation of
-the Earley parser used in Dino has the following features:
-
-   * It is sufficiently fast and does not require much memory.  This is
-     the fastest implementation of the Earley parser which I know.  The
-     main design goal is to achieve speed and memory requirements which
-     are necessary to use it in prototype compilers and language
-     processors.  It parses 30,000 lines of C per second on 500 MHz
-     Pentium III and allocates about 5Mb memory for a 10,000 line C
-     program.
-   * It makes simple syntax directed translation, so an abstract tree is
-     already the output of the Earley parser.
-   * It can parse input described by an ambiguous grammar.  In this case
-     the parse result can be an abstract tree or all possible abstract
-     trees.  Moreover, it produces the compact representation of all
-     possible parse trees by using DAG instead of real trees.  These
-     features can be used to parse natural language sentences.
-   * It can make syntax error recovery.  Moreover its error recovery
-     algorithms find error recovery with a minimal number of ignored
-     tokens.  It permits implemention of parsers with very good error
-     recovery and reporting.
-   * It has fast startup.  There is practically no delay between
-     processing of grammar and start of parsing.
-   * It has a flexible interface.  The input grammar is given by a
-     YACC-like description.
-   * It has a good debugging features.  It can print huge amount of
-     information about grammar, parsing, error recovery, translation.
-     You can even get the result translation in a form for a graphic
-     visualization program.
-
-   The following public functions and variables are declared in the
-class 'parser':
-
-   * 'ambiguous_p'.  This public variable stores information about the
-     last parsing.  A nonzero variable value means that during the last
-     parsing on a given input the parser found that the grammar is
-     ambiguous.  The parser can find this even if you asked for only one
-     parser tree (see function 'set_one_parse').
-   * 'set_grammar (descr, strict_p)'.  This function tunes the parser to
-     given grammar.  The grammar is given by string 'descr'.  Nonzero
-     value of parameter 'strict_p' (after implicit integer conversion)
-     means more strict checking the grammar.  In this case, all
-     nonterminals will be checked on their ability to derive a terminal
-     string instead of only checking the axiom for this.  The function
-     can generate exceptions 'partype' (if the parameters have wrong
-     types) or 'invgrammar' if the description is a bad grammar.  The
-     function can also generate exception 'pmemory' if there is no
-     memory for internal parser data.
-
-     The description is similiar to the _YACC_ one.  It has the
-     following syntax:
-
-                    file : file terms [';']
-                         | file rule
-                         | terms [';']
-                         | rule
-
-                    terms : terms IDENTIFIER ['=' NUMBER]
-                          | TERM
-
-                    rule : IDENTIFIER ':' rhs [';']
-
-                    rhs : rhs '|' sequence [translation]
-                        | sequence [translation]
-
-                    sequence :
-                             | sequence IDENTIFIER
-                             | sequence C_CHARACTER_CONSTANT
-
-                    translation : '#'
-                                | '#' NUMBER
-                                | '#' '-'
-                                | '#' IDENTIFIER [NUMBER] '(' numbers ')'
-
-                    numbers :
-                            | numbers NUMBER
-                            | numbers '-'
-
-
-     So the description consists of terminal declaration and rule
-     sections.
-
-     The terminal declaration section describes the name of terminals
-     and their codes.  The terminal code is optional.  If it is omitted,
-     the terminal code will the next free code starting with 256.  You
-     can declare a terminal several times (the single condition is that
-     its code should be the same).
-
-     A character constant present in the rules is a terminal described
-     by default.  Its code is always the ASCII code of the character
-     constant.
-
-     Rules syntax is the same as _YACC_ rule syntax.  The single
-     difference is an optional translation construction starting with
-     '#' right after each alternative.  The translation part could be a
-     single number which means that the translation of the alternative
-     will be the translation of the symbol with the given number (symbol
-     number in the alternative start is with 0).  Or the translation can
-     be empty or "-" which designates the value of the variable
-     'nil_anode'.  Or the translation can be an abstract node with the
-     given name, optional cost, and with fields whose values are the
-     translations of the alternative symbols with numbers given in
-     parentheses after the abstract node name.  You can use "-" in an
-     abstract node to show that the empty node should be used in this
-     place.  If the cost is absent it is believed to be 1.  The cost of
-     the terminal, error node, and empty node is always zero.
-
-     There is a reserved terminal 'error' which marks the start point of
-     error recovery.  The translation of the terminal is the value of
-     the variable 'error_anode'.
-
-   * 'set_debug (level)'.  This function sets up the level of debugging
-     information output to 'stderr'.  The higher the level, the more
-     information is output.  The default value is 0 (no output).  The
-     debugging information includes statistics, the result translation
-     tree, the grammar, parser sets, parser sets with all situations,
-     situations with contexts.  The function returns the previously set
-     up debug level.  Setting up a negative debug level results in
-     output of the translation for program *dot* of the graphic
-     visualization package *graphviz*.  The parameter should be an
-     integer after implicit integer conversion.  The function will
-     generate exception 'partype' if it is not true.
-   * 'set_one_parse (flag)'.  This function sets up a flag whose nonzero
-     value means building only one translation tree (without any
-     alternative nodes).  For an unambiguous grammar the flag does not
-     affect the result.  The function returns the previously set up flag
-     value.  The default value of the flag is 1.  The parameter should
-     be an integer after implicit integer conversion.  The function will
-     generate exception 'partype' if it is not true.
-   * 'set_lookahead (flag)'.  This function sets up a flag of of usage
-     of look ahead in the parser work.  The usage of lookahead gives the
-     best results with the point of view of space and speed.  The
-     default value is 1 (the lookahead usage).  The function returns the
-     previously set up flag.  No usage of the lookahead is useful
-     sometimes to get more understandable debug output of the parser
-     work (see function 'set_debug').  The parameter should be an
-     integer after implicit integer conversion.  The function will
-     generate the exception 'partype' if it is not true.
-   * 'set_cost (flag)'.  This function sets up building the only
-     translation tree (trees if we set up one_parse_flag to 0) with
-     minimal cost.  For an unambiguous grammar the flag does not affect
-     the result.  The default value is 0.  The function returns the
-     previously set up flag value.  The default value of the flag is 0.
-     The parameter should be an integer after implicit integer
-     conversion.  The function will generate exception 'partype' if it
-     is not true.
-   * 'set_recovery (flag)'.  This function sets up a flag whose nonzero
-     value means making error recovery if a syntax error occurred.
-     Otherwise, a syntax error results in finishing parsing (although
-     the syntax error function passed to 'parse' is called once).  The
-     function returns the previously set up flag value.  The default
-     value of the flag is 1.  The parameter should be an integer after
-     implicit integer conversion.  The function will generate exception
-     'partype' if it is not true.
-   * 'set_recovery_match (n_toks)'.  This function sets up an internal
-     parser parameter meaning how much subsequent tokens should be
-     successfully shifted to finish error recovery.  The default value
-     is 3.  The function returns the previously set up value.  The
-     parameter should be an integer after implicit integer conversion.
-     The function will generate exception 'partype' if it is not true.
-   * 'parse (tokens, error_func)'.  This function is the major function
-     of the class.  It makes translation according to the previously set
-     up grammar of input given by the parameter 'tokens' whose value
-     should be an array of objects of predeclared class 'token' or its
-     subtype.  If the parser recognizes a syntax error it calls the
-     function given through parameter 'error_func' with six parameters:
-
-        * index of the token (in array 'tokens') on which the syntax
-          error occured.
-        * the error token itself.  It may be 'nil' for end of file.
-        * index of the first token (in array 'tokens') ignored due to
-          error recovery.
-        * the first ignored token itself.  It may be 'nil' for end of
-          file.
-        * index of the first token (in array 'tokens') which is not
-          ignored after error recovery.
-        * the first not ignored token itself.  It may be 'nil' for end
-          of file.
-
-     If the parser works with switched off error recovery (see function
-     'set_recovery', the third and fifth parameters will be negative and
-     forth and sixth parameter will be 'nil'.
-
-     The function returns an object of the predeclared class 'anode'
-     which is the root of the abtsract tree representing the translation
-     of the parser input.  The function returns 'nil' only if syntax
-     error was occurred and error recovery was switched off.  The
-     function can generate exception 'partype' if the parameter types
-     are wrong or exception 'invtoken_decl' if any of the input tokens
-     have a wrong code.  The function also can generate exception
-     'pmemory' if there is no memory for internal parser data.
-
-   The call of the class 'parser' itself can generate exception
-'pmemory' if there is no memory for internal parser data.
-
-
-File: dino.info,  Node: Token-,  Next: Anode-,  Prev: Parser-,  Up: Earley parser classes
-
-9.2.3.2 Token-
-..............
-
-Dino has a predeclared class 'token'.  Objects of this class should be
-the input of the Earley parser (see function 'parse' in class 'parser').
-The result abstract tree representing the translation will have input
-tokens as leaves.  The class 'token' has one public variable 'code'
-whose value should be the code of the corresponding terminal described
-in the grammar.  You could extend the class description e.g.  by adding
-variables whose values could be attributes of the token (e.g.  source
-line number, name of an identifier, or value for a number).
-
-
-File: dino.info,  Node: Anode-,  Next: Nil_anode and error_anode-,  Prev: Token-,  Up: Earley parser classes
-
-9.2.3.3 Anode-
-..............
-
-Dino has a predeclared class 'anode' whose objects are nodes of the
-abtract tree representing the translation (see function 'parse' of class
-'parser').  Objects of this class are generated by the Earley parser.
-The class has two public variables 'name' whose value is string
-representing name of the abstract node as it given in the grammar and
-'transl' whose value is array with abstract node fields as the array
-elements.  There are a few node types which have special meaning:
-
-   * Terminal node which has reserved name '$term'.  The value of the
-     public variable 'transl' for this node is an object of class
-     'token' representing the corresponding input token which was an
-     element of the array passed as a parameter of function 'parse' of
-     function 'parser'.
-   * Error node which has reserved name '$error'.  This node exists in
-     one exemplar (see description of variable 'error_anode') and
-     represents the translation of reserved grammar symbol 'error'.  The
-     value is public variable 'transl' will be 'nil' in this case.
-   * The empty node which has the reserved name '$nil'.  This node also
-     exists in one exemplar (see description of variable 'nil_anode')
-     and represents the translation of a grammar symbol for which we did
-     not describe a translation.  For example, in a grammar rule an
-     abstract node refers for the translation of a nonterminal for which
-     we do not produce a translation.  The value is public variable of
-     such class object will be 'nil' in this case.
-   * Alternative node which has the reserved name '$alt'.  It represents
-     all possible alternatives in the translation of the grammar
-     nonterminal.  The value of the public variable 'transl' will be an
-     array with elements whose values are objects of class 'anode' which
-     represent all possible translations.  Such nodes can be generated
-     by the parser only if the grammar is ambiguous and we did not ask
-     it to produce only one translation.
-
-
-File: dino.info,  Node: Nil_anode and error_anode-,  Next: Example of Earley parser usage-,  Prev: Anode-,  Up: Earley parser classes
-
-9.2.3.4 Nil_anode and error_anode-
-..................................
-
-There is only one instance of 'anode' which represents empty (nil)
-nodes.  The same is true for the error nodes.  The final variables
-'nil_anode' and 'error_anode' correspondingly refer to these nodes.
-
-
-File: dino.info,  Node: Example of Earley parser usage-,  Prev: Nil_anode and error_anode-,  Up: Earley parser classes
-
-9.2.3.5 Example of Earley parser usage-
-.......................................
-
-Let us write a program which transforms an expression into postfix
-polish form.  Please, read the program comments to understand what the
-code does.  The program should output string '"abcda*+*+"' which is the
-postfix polish form of input string '"a+b*(c+d*a)"'.
-
-               // The following is the expression grammar:
-               var grammar = "E : E '+' T   # plus (0 2)\n\
-                                | T         # 0\n\
-                                | error     # 0\n\
-                              T : T '*' F   # mult (0 2)\n\
-                                | F         # 0\n\
-                              F : 'a'       # 0\n\
-                                | 'b'       # 0\n\
-                                | 'c'       # 0\n\
-                                | 'd'       # 0\n\
-                                | '(' E ')' # 1";
-               // Create parser and set up grammar.
-               var p = parser ();
-               p.set_grammar (grammar, 1);
-
-               // Add attribute repr to token:
-               class our_token (code) { use token former code; var repr; }
-               // The following code forms input tokens from string:
-               var str = "a+b*(c+d*a)";
-               var i, inp = [#str : nil];
-               for (i = 0; i < #str; i++) {
-                 inp [i] = our_token (str[i] + 0);
-                 inp [i].repr = str[i];
-               }
-               // The following function output messages about syntax errors
-               // syntax error recovery:
-               fun error (err_start, err_tok,
-                           start_ignored_num, start_ignored_tok_attr,
-                           start_recovered_num, start_recovered_tok) {
-                 put ("syntax error on token #", err_start,
-                      " (" @ err_tok.code @ ")");
-                 putln (" -- ignore ", start_recovered_num - start_ignored_num,
-                        " tokens starting with token #", start_ignored_num);
-               }
-
-               var root = p.parse (inp, error); // parse
-
-               // Output translation in polish inverse form
-               fun pr (r) {
-                 var i, n = r.name;
-
-                 if (n == "$term")
-                   put (r.transl.repr);
-                 else if (n == "mult" || n == "plus") {
-                   for (i = 0; i < #r.transl; i++)
-                     pr (r.transl [i]);
-                   put (n == "mult" ? "*" : "+");
-                 }
-                 else if (n != "$error") {
-                   putln ("internal error");
-                   exit (1);
-                 }
-               }
-
-               pr (root);
-               putln ();
-
-
-File: dino.info,  Node: Predeclared functions,  Prev: Predeclared classes,  Up: Predeclared identifiers
-
-9.3 Predeclared functions
-=========================
-
-The predeclared functions expect a given number of actual parameters
-(may be a variable number of parameters).  If the actual parameter
-number is an unexpected one, exception 'parnumber' is generated.  The
-predeclared functions believe that the actual parameters (may be after
-implicit conversions) are of the required type.  If this is not true,
-exception 'partype' is generated.  To show how many parameters the
-function requires, we will write the names of the parameters and use
-brackets '[' and ']' for the optional parameters in the description of
-the functions.
-
-   Examples: The following description
-
-               strtime ([format [, time]])
-
-   describes that the function can accept zero, one, or two parameters.
-If only one parameter is given, then this is parameter 'format'.
-
-   If something is not said about the returned result, the function
-return value is undefined.
-
-* Menu:
-
-* Mathematical functions::
-* Pattern matching functions::
-* Encoding functions::
-* File functions::
-* Time functions::
-* Functions for access to process information::
-* Miscellaneous functions::
-
-
-File: dino.info,  Node: Mathematical functions,  Next: Pattern matching functions,  Up: Predeclared functions
-
-9.3.1 Mathematical functions
+9.3.2 Variable 'time_format'
 ----------------------------
 
-The following functions make implicit arithmetic conversion of the
-parameters.  After the conversions the parameters are expected to be of
-integer, long integer, or floating point type.  The result is always a
-floating point number.
-
-   * 'sqrt (x)'.  The function returns the square root of 'x'.  The
-     function generates the exception 'edom' if 'x' is negative.
-   * 'exp (x)'.  The function returns 'e' (the base of the natural
-     logarithm) raised to the power of 'x'.
-   * 'log (x)'.  The function returns the natural logarithm of 'x'.  The
-     function generates the exception 'edom' if 'x' is negative or may
-     generate 'erange' if the value is zero.
-   * 'log10 (x)'.  The function returns the decimal logarithm of 'x'.
-     The function generates the exception 'edom' if 'x' is negative or
-     may generate 'erange' if the value is zero.
-   * 'pow (x, y)'.  The function returns 'x' raised to the power of 'y'.
-     The function generates exception 'edom' if x is negative and y is
-     not of integral value.
-   * 'sin (x)'.  The function returns the sine of 'x'.
-   * 'cos (x)'.  The function returns the cosine of 'x'.
-   * 'atan2 (x, y)'.  The function returns the arc tangent of the two
-     variables 'x' and 'y'.  It is similar to calculating the arc
-     tangent of 'y / x', except that the signs of both arguments are
-     used to determine the quadrant of the result.
+The variable value is a string which is the output format of time used
+by the function 'strtime' when it is called without parameters.  The
+initial value of the variable is the string '"%a %b %d %H:%M:%S %Z %Y"'.
 
 
-File: dino.info,  Node: Pattern matching functions,  Next: Encoding functions,  Prev: Mathematical functions,  Up: Predeclared functions
+File: dino.info,  Node: Time functions,  Next: Functions for access to information about OS processes,  Prev: Variable `time_format',  Up: Space `sys'
 
-9.3.2 Pattern matching functions
+9.3.3 Time functions
+--------------------
+
+The following functions from space 'sys' can be used to get information
+about real time.
+
+   * 'time ()'.  The function returns the time in seconds since the
+     fixed time (usually since January 1, 1970).
+   * 'strtime ([format [, time]])'.  The function returns a string
+     representing the 'time' (integer representing time in seconds since
+     the fixed time) according to the 'format' (string).  If the format
+     is not given, the value of variable 'time_format' is used.  In this
+     case if the value of 'time_format' is corrupted (it is not a
+     string), the function generates exception 'invenvar'.  If the time
+     is not given, the current time is used.  The format is the same as
+     in C library function 'strftime'.  Here is an extraction from the
+     OS function documentation.  The following format specifiers can be
+     used in the format:
+
+        * '%a' - the abbreviated weekday name according to the current
+          locale.
+        * '%A' - the full weekday name according to the current locale.
+        * '%b' - the abbreviated month name according to the current
+          locale.
+        * '%B' - the full month name according to the current locale.
+        * '%c' - the preferred date and time representation for the
+          current locale.
+        * '%d' - the day of the month as a decimal number (range 01 to
+          31).
+        * '%H' - the hour as a decimal number using a 24-hour clock
+          (range 00 to 23).
+        * '%I' - the hour as a decimal number using a 12-hour clock
+          (range 01 to 12).
+        * '%j' - the day of the year as a decimal number (range 001 to
+          366).
+        * '%m' - the month as a decimal number (range 01 to 12).
+        * '%M' - the minute as a decimal number.
+        * '%p' - either 'am' or 'pm' according to the given time value,
+          or the corresponding strings for the current locale.
+        * '%S' - the second as a decimal number.
+        * '%U' - the week number of the current year as a decimal
+          number, starting with the first Sunday as the first day of the
+          first week.
+        * '%W' - the week number of the current year as a decimal
+          number, starting with the first Monday as the first day of the
+          first week.
+        * '%w' - the day of the week as a decimal, Sunday being 0.
+        * '%x' - the preferred date representation for the current
+          locale without the time.
+        * '%X' - the preferred time representation for the current
+          locale without the date.
+        * '%y' - the year as a decimal number without a century (range
+          00 to 99).
+        * '%Y' - the year as a decimal number including the century.
+        * '%Z' - the time zone or the name or an abbreviation.
+        * '%%' - a literal '%' character.
+
+
+File: dino.info,  Node: Functions for access to information about OS processes,  Next: Function `system (command)',  Prev: Time functions,  Up: Space `sys'
+
+9.3.4 Functions for access to information about OS processes
+------------------------------------------------------------
+
+Space 'sys' contains predeclared functions which are used to get
+information about the current OS process (the Dino interpreter which
+executes the program).  Each OS process has unique identifier and
+usually OS processes are called by a concrete user and group and are
+executed on behalf of the concrete user and group (so called effective
+identifiers).  The following functions return such information.  On some
+OSes the function may return string "Unknown" as a name if there are
+notions of user and group identifiers.
+
+   * 'getpid ()'.  The function returns an integer value which is the
+     process ID of the current OS process.
+   * 'getun ()'.  The function returns a new string which is the user
+     name for the current OS process.
+   * 'geteun ()'.  The function returns a new string which is the
+     effective user name for the current OS process.
+   * 'getgn ()'.  The function returns a new string which is the group
+     name for the current OS process.
+   * 'getegn ()'.  The function returns a new string which is the
+     effective group name for the current OS process.
+   * 'getgroups ()'.  The function returns a new vector of strings
+     (possibly the empty vector) representing supplementary group names
+     for the current OS process.
+
+
+File: dino.info,  Node: Function `system (command)',  Prev: Functions for access to information about OS processes,  Up: Space `sys'
+
+9.3.5 Function 'system (command)'
+---------------------------------
+
+The function executes the command given by a string (the parameter
+value) in the OS command interpreter.  Besides standard exceptions
+'parnumber' and 'partype' the function may generate exceptions 'noshell'
+and 'systemfail'.
+
+
+File: dino.info,  Node: Space `re',  Next: Space `math',  Prev: Space `sys',  Up: Predeclared identifiers
+
+9.4 Space 're'
+==============
+
+This space contains declarations which can be useful for working with
+regular expressions and for pattern matching - see also
+_match-statements_.
+
+* Menu:
+
+* Exception class `invregex'::
+* Variable `split_regex'::
+* Pattern matching::
+
+
+File: dino.info,  Node: Exception class `invregex',  Next: Variable `split_regex',  Up: Space `re'
+
+9.4.1 Exception class 'invregex'
 --------------------------------
 
-Dino has the predeclared functions which are used for _pattern
+This class describes exceptions specific for executing
+_pmatch-statement_ and for calling predeclared functions implementing
+regular expression pattern matching.  Although there is only one class
+for this, the messages which are the class parameter can be different
+and explain more details.
+
+
+File: dino.info,  Node: Variable `split_regex',  Next: Pattern matching,  Prev: Exception class `invregex',  Up: Space `re'
+
+9.4.2 Variable 'split_regex'
+----------------------------
+
+The variable value is a string which represents regular expression which
+is used by the predeclared function 'split' when the second parameter is
+not given.  The initial value of the variable is string '"[ \t]+"'.
+
+
+File: dino.info,  Node: Pattern matching,  Prev: Variable `split_regex',  Up: Space `re'
+
+9.4.3 Pattern matching
+----------------------
+
+Space 're' contains predeclared functions which are used for _pattern
 matching_.  The pattern is described by _regular expressions_ (_regex_)
 and actually a small program describing a string matching.  The pattern
 has _default_ syntax of ONIGURUMA package for Unicode.  It is hard to
@@ -3471,7 +3976,7 @@ never ending recursion.
                `(?<p>a|b\g<p>c)` // matches "a", "bac", "bbacc" etc
                `(?<p>a|b\g<p>c)` // wrong left recursion.
 
-   There are the following Dino pattern matching functions:
+   There are the following pattern matching functions in space 're':
 
    * 'match (regex, string)'.  The function searches for the matching
      regular expression 'regex' in 'string'.  The both parameters should
@@ -3501,7 +4006,7 @@ never ending recursion.
      parentheses, the corresponding vector elements will have negative
      values.  Example: The program
 
-                    println (match (`\n()(a)((a)(a))`, "b\naaab"));
+                    println (re.match (`\n()(a)((a)(a))`, "b\naaab"));
 
      outputs
 
@@ -3524,8 +4029,8 @@ never ending recursion.
      last character plus one.  If there is no one occurrence, the
      function returns 'nil'.  Example: The program
 
-                    println (gmatch (`aa`, "aaaaa"));
-                    println (gmatch (`aa`, "aaaaa", 1));
+                    println (re.gmatch (`aa`, "aaaaa"));
+                    println (re.gmatch (`aa`, "aaaaa", 1));
 
      outputs
 
@@ -3561,7 +4066,7 @@ never ending recursion.
      which are strings each containing one character of string.
      Examples: The program
 
-                    println (split ("aaa bbb ccc  ddd"));
+                    println (re.split ("aaa bbb ccc       ddd"));
 
      outputs
 
@@ -3569,7 +4074,7 @@ never ending recursion.
 
      The program
 
-                    println (split ("abcdef", ``));
+                    println (re.split ("abcdef", ``));
 
      outputs
 
@@ -3579,644 +4084,54 @@ never ending recursion.
 exception 'invregex' with a message explaining the error.
 
 
-File: dino.info,  Node: Encoding functions,  Next: File functions,  Prev: Pattern matching functions,  Up: Predeclared functions
+File: dino.info,  Node: Space `math',  Next: Space `yaep',  Prev: Space `re',  Up: Predeclared identifiers
 
-9.3.3 Encoding functions
-------------------------
+9.5 Space 'math'
+================
 
-Dino internally uses Unicode for characters.  To provide communication
-with the rest of world, it can use different encodings.  The default
-encoding is UTF-8.  Dino has two functions to get and change the current
-encoding:
-
-   * 'get_encoding ()'.  The function returns a new mutable string which
-     is a name of the current encoding.
-   * 'set_encoding (name)'.  The function accepts string and changes the
-     current encoding.  If the name represents unknown encoding name,
-     the function generates exceptions 'parvalue'.
-
-   Examples:
-
-               putln (get_encoding ());
-               set_encoding ("KOI8-R");
-
-
-File: dino.info,  Node: File functions,  Next: Time functions,  Prev: Encoding functions,  Up: Predeclared functions
-
-9.3.4 File functions
---------------------
-
-Dino has some predeclared functions to work on files and directories.
+The space contains mostly mathematical functions.
 
 * Menu:
 
-* Functions for access to file/directory information::
-* Functions for work with directories::
-* Functions for work with files-::
-* File output functions::
-* File input functions::
+* Mathematical functions::
+* Other space `math' functions::
 
 
-File: dino.info,  Node: Functions for access to file/directory information,  Next: Functions for work with directories,  Up: File functions
+File: dino.info,  Node: Mathematical functions,  Next: Other space `math' functions,  Up: Space `math'
 
-9.3.4.1 Functions for access to file/directory information
-..........................................................
+9.5.1 Mathematical functions
+----------------------------
 
-The following predeclared functions can be used for accessing file or
-directory information.  The functions may generate an exception declared
-in the class 'syserror' (e.g.  'eaccess', 'enametoolong', 'enfile' and
-so on) besides the standard 'partype', and 'parnumber'.  The functions
-expect one parameter which should be a file instance (see the
-predeclared class 'file') or the path name of a file represented by a
-string (the functions make implicit string conversion of the parameter).
-The single exception to this is 'isatty' which expects a file instance.
+The following functions make implicit arithmetic conversion of the
+parameters.  After the conversions the parameters are expected to be of
+integer, long integer, or floating point type.  The result is always a
+floating point number.
 
-   * 'ftype (fileinstance_or_filename)'.  The function returns one the
-     following characters:
-
-        * ''f".  A regular file.
-        * ''d".  A directory.
-        * ''L". A symbolic link.
-        * ''c".  A character device.
-        * ''b".  A block device.
-        * ''p".  A fifo.
-        * ''S". A socket.
-
-     Under some OSes the function never returns some of the characters
-     (e.g.  'c' or 'b').  The function may return nil if it can not
-     categorize the file as above.
-   * 'fuidn (fileinstance_or_filename)'.  The function returns new
-     string representing name of owner of the file (directory).  Under
-     some OSes the function may return the new string '"Unknown"' if
-     there is no notion "owner" in the OS file system.
-   * 'fgrpn (fileinstance_or_filename)'.  Analogous to the previous
-     function except for it returns a new string representing name of
-     the group of the file (directory).  Under some OSes the function
-     may return the new string '"Unknown"' if there is no notion "group"
-     in the OS file system.
-   * 'fsize (fileinstance_or_filename)'.  The function returns an
-     integer value which is the length of the file in bytes.
-   * 'fatime (fileinstance_or_filename)'.  The function returns integer
-     value which is time of the last access to the file (directory).
-     The time is measured in seconds since the fixed time (usually since
-     January 1, 1970).  See also _time functions_.
-   * 'fmtime (fileinstance_or_filename)'.  Analogous to the previous
-     functions but returns the time of the last modification.
-   * 'fctime (fileinstance_or_filename)'.  Analogous to the previous
-     functions but it returns the time of the last change.  Here
-     'change' usually means changing the file attributes (owner, modes
-     and so on), while 'modification' means usually changing the file
-     itself.
-   * 'fumode (fileinstance_or_filename)'.  The function returns a new
-     string representing the rights of the owner of the file
-     (directory).  The string may contain the following characters (in
-     the following order if the string contains more than one
-     character):
-
-        * ''s".  Sticky bit of the file (directory).
-        * ''r".  Right to read.
-        * ''w".  Right to write.
-        * ''x".  Right to execute.
-   * 'fgmode (fileinstance_or_filename)'.  Analogous to the previous
-     function except for the fact that it returns information about the
-     file (directory) group user rights and that the function never
-     returns a string containing the character ''s".
-   * 'fomode (fileinstance_or_filename)'.  Analogous to the previous
-     function except for the act that it returns information about the
-     rights of all other users.
-   * 'isatty (fileinstance)'.  The function returns 1 if the file
-     instance given as a parameter is an open file connected to a
-     terminal and 0 otherwise.
-
-   The following functions can be used to change rights of usage of the
-file (directory) for different users.  The function expects two strings
-(after implicit string conversion).  The first one is the path name of
-the file (directory).  The second one is the rights.  For instance, if
-the string contains a character 'r', this is right to read (see
-characters used to denote different rights in the description of the
-function 'fumode').  The function return values are always undefined.
-
-   * 'chumod (path, mode)'.  The function sets up rights for the file
-     (directory) owner according to the given mode.
-   * 'chgmod (path, mode)'.  Analogous to the previous function except
-     for the fact that it sets up rights for the file (directory) group
-     users and that the function ignores the character ''s".
-   * 'chomod (path, mode)'.  Analogous to the previous function except
-     for the fact that it sets up rights for all other users.
+   * 'sqrt (x)'.  The function returns the square root of 'x'.  The
+     function generates the exception 'edom' if 'x' is negative.
+   * 'exp (x)'.  The function returns 'e' (the base of the natural
+     logarithm) raised to the power of 'x'.
+   * 'log (x)'.  The function returns the natural logarithm of 'x'.  The
+     function generates the exception 'edom' if 'x' is negative or may
+     generate 'erange' if the value is zero.
+   * 'log10 (x)'.  The function returns the decimal logarithm of 'x'.
+     The function generates the exception 'edom' if 'x' is negative or
+     may generate 'erange' if the value is zero.
+   * 'pow (x, y)'.  The function returns 'x' raised to the power of 'y'.
+     The function generates exception 'edom' if x is negative and y is
+     not of integral value.
+   * 'sin (x)'.  The function returns the sine of 'x'.
+   * 'cos (x)'.  The function returns the cosine of 'x'.
+   * 'atan2 (x, y)'.  The function returns the arc tangent of the two
+     variables 'x' and 'y'.  It is similar to calculating the arc
+     tangent of 'y / x', except that the signs of both arguments are
+     used to determine the quadrant of the result.
 
 
-File: dino.info,  Node: Functions for work with directories,  Next: Functions for work with files-,  Prev: Functions for access to file/directory information,  Up: File functions
+File: dino.info,  Node: Other space `math' functions,  Prev: Mathematical functions,  Up: Space `math'
 
-9.3.4.2 Functions for work with directories
-...........................................
-
-The following functions work with directories.  The functions may
-generate an exception declared in class syserror (e.g.  'eaccess',
-'enametoolong', 'enotdir' and so on) besides the standard 'partype',
-'parnumber'.
-
-   * 'readdir (dirpath)'.  The function makes implicit string conversion
-     of the parameter value which should be a string (directory path).
-     The function returns a new mutable vector with elements which are
-     strings representing names of all files and sub-directories
-     (including '"."'  and '".."'  for the current and parent directory
-     respectively) in given directory.
-   * 'mkdir (dirpath)'.  The function creates a directory with the given
-     name represented by a string (the parameter value after implicit
-     string conversion).  The directory has read/write/execute rights
-     for all.  You can change it with the aid of the functions 'ch*mod'.
-   * 'rmdir (dirpath)'.  The function removes the directory given by a
-     string which is parameter value after implicit string conversion.
-   * 'getcwd ()'.  The function returns a new string representing the
-     full path of the current directory.
-   * 'chdir (dirpath)'.  The function makes the directory given by
-     'dirpath' (which should be a string after implicit string
-     conversion) the current directory.
-
-
-File: dino.info,  Node: Functions for work with files-,  Next: File output functions,  Prev: Functions for work with directories,  Up: File functions
-
-9.3.4.3 Functions for work with files-
-......................................
-
-The following functions (besides input/output functions) work with OS
-files.  The functions may generate an exception declared in the class
-'syserror' (e.g.  'eaccess', 'enametoolong', 'eisdir' and so on) besides
-the standard 'partype', and 'parnumber'.  The function 'rename' can be
-used for renaming a directory, not only a file.
-
-   * 'rename (old_path, new_path)'.  The function renames the file
-     (directory) given by its path name.  The old and new names are
-     given by parameter values which should be strings after implicit
-     string conversion.
-   * 'remove (file_path)'.  The function removes the OS file given by
-     its path name.  The file path name should be a string after
-     implicit string conversion.
-   * 'open (file_path, mode)'.  The function opens the file for work in
-     the given _mode_, creates a new class 'file' instance, associates
-     the opened file with the instance, and returns the instance.  The
-     parameter values should be strings after implicit string
-     conversions.  The first parameter value is a string representing
-     the file path.  The second parameter value is string representing
-     the mode for work with the file (for all possible modes see the
-     ANSI C function 'fopen' documentation).  All work with an opened
-     file is made through the file instance.
-   * 'close (fileinstance)'.  The function closes a file opened by the
-     function 'open'.  The file is given by the class 'file' instance.
-     The function also removes all association of the instance with the
-     file.
-   * 'flush (fileinstance)'.  The function flushes any output that has
-     been buffered for the opened file given by the class 'file'
-     instance.
-   * 'popen (command, mode)'.  The function starts the shell command
-     given by the first parameter value (which should be a string after
-     implicit string conversion), creates a pipe, creates a new class
-     'file' instance, associates the pipe with the instance, and returns
-     the instance.  Writing to such a pipe (through the class file
-     instance) writes to the standard input of the command.  Conversely,
-     reading from the pipe reads the command's standard output.  After
-     implicit string conversion the second parameter value should be the
-     string "r" (for reading from the pipe) or "w" (for writing to the
-     pipe).  The pipe should be closed by the function 'pclose'.
-   * 'pclose (fileinstance)'.  The function waits for the command
-     connected to a pipe to terminate.  The pipe is given by the class
-     'file' instance returned by the function 'popen'.  The function
-     also removes the association of the instance with the pipe.
-   * 'tell (fileinstance)'.  The function returns the current value of
-     the file position indicator for the file (opened by function
-     'open') given by the class 'file' instance.
-   * 'seek (fileinstance, offset, whence)'.  The function sets up the
-     current file position indicator for the file (opened by function
-     'open') given by the class 'file' instance.  The position is given
-     by 'offset' which should be an integer after implicit arithmetic
-     conversion and 'whence' which should be a string after implicit
-     string conversion.  The first character of the string should be
-     ''s", ''c", or ''e" (these characters mean that the offset is
-     relative to the start of the file, the current position indicator,
-     or the end-of-file, respectively).
-   * 'get_file_encoding (fileinstance)'.  The function returns a new
-     mutabe string which is a name of the current file encoding.
-   * 'set_file_encoding (fileinstance, name)'.  The accepts file and
-     string and changes the current file encoding.  If the name
-     represents unknown encoding name, the function generates exceptions
-     'parvalue'.
-
-
-File: dino.info,  Node: File output functions,  Next: File input functions,  Prev: Functions for work with files-,  Up: File functions
-
-9.3.4.4 File output functions
-.............................
-
-The following functions are used to output something into opened files.
-All the function return values are undefined.  The functions may
-generate an exception declared in the class 'syserror' (e.g.  'eio',
-'enospc' and so on) besides the standard 'partype', and 'parnumber'.
-
-   * 'put (...)'.  All parameters should be strings after implicit
-     string conversion.  The function outputs all strings into the
-     standard output stream.
-   * 'putln (...)'.  The function is analogous to the function 'put'
-     except for the fact that it additionally outputs a new line
-     character after output of all the strings.
-   * 'fput (fileinstance, ...)'.  The function is analogous to the
-     function 'put' except for the fact that it outputs the string into
-     an opened file associated with a class 'file' instance which is the
-     first parameter value.
-   * 'fputln (fileinstance, ...)'.  The function is analogous to
-     function 'fput' except for the fact that it additionally outputs a
-     new line character after output of all the strings.
-   * 'putf (format, ...)'.  The first parameter should be strings after
-     implicit string conversion.  The function outputs the rest of
-     parameters according to the format.  The number of the rest
-     parameters should be exactly equal to the conversions (including
-     parameterized widths and precisions) in the format.  Otherwise,
-     exception 'parnumber' will be generated.  The types of the
-     parameter should correspond to the corresponding conversion
-     specifier (or to be integer for parameterized widths and
-     precisions).  If it is not true, exception 'partype' will be
-     generated.  The format is subset of one of standard C function
-     'printf' and has the following syntax:
-
-                    format : <any character except %>
-                           | '%' flags [width] [precision]
-                                 conversion_specifier
-                    flags :
-                          | flag
-
-                    flag : '#' | '0' | '-' | ' ' | '+'
-
-                    width : '*' | <decimal number starting with non-zero>
-
-                    precision : '.' ['*' | <decimal number>]
-
-                    conversion_specifier : 'd' | 'o' | 'x' | 'X'
-                                         | 'e' | 'E' | 'f' | 'g'
-                                         | 'G' | 'c' | 's' | '%'
-
-
-     If the format syntax is wrong, exception 'invfmt' is generated.
-
-     Flag '#' means that the value should be converted into an
-     alternative form.  It can be present only for conversion specifiers
-     'o', 'x', 'X', 'e', 'E', 'f', 'g', and 'G'. If the flag is used for
-     conversion specifier 'o', the output will be prefixed by '0'.  For
-     'x' and 'X' the output will be prefixed by '0x' and '0X'
-     correspondingly.  For conversions 'e', 'E', 'f', 'g', and 'G' the
-     output will always contain a decimal point.  For conversions 'g'
-     and 'G' it also means that trailing zeros are not removed from the
-     output as they would be without the flag.  The following code using
-     flag '#' in format
-
-                   putf ("->%#o %#x %#x %#.0e %#.0f %#g<-\n",
-                         8, 10, 16l, 2., 3., 4.);
-
-     will output
-
-                   ->010 0xa 0x10 2.e+00 3. 4.00000<-
-
-     Flag '0' means that the output value will be zero padded on the
-     left.  If both flags '0' and '-' appear, the flag '0' is ignored.
-     It is also ignored for conversions 'd', 'o', 'x', and 'X' if a
-     precision is given.  The flag is prohibited for conversions 'c' and
-     's'.  The following code using flag '0' in format
-
-                   putf ("->%04d %04x %04x %09.2e %05.2f %05.2g<-\n",
-                         8, 10, 16l, 2., 3., 4.);
-
-     will output
-
-                   ->0008 000a 0010 02.00e+00 03.00 00004<-
-
-     Flag '-' means that the output will be left adjusted on the field
-     boundary.  (The default is right justification).  Flag '-'
-     overrides flag '0' if the both are given.  The following code using
-     flag '-' in format
-
-                   putf ("->%-04d %-04x %-04x %-09.2e %-05.2f %-05.2g<-\n",
-                         8, 10, 16l, 2., 3., 4.);
-
-     will output
-
-                   ->8    a    10    2.00e+00  3.00  4    <-
-
-     Flag ' ' means that the output of a signed number will start with a
-     blank for positives number.  The flag can be used only for
-     conversions 'd', 'e', 'E', 'f', 'g', and 'G'. If both flags ' ' and
-     '+' appear, the flag ' ' is ignored.  The following code using flag
-     ' ' in format
-
-                   putf ("->% d % d % .2e % .2f % .2g<-\n",
-                         8, 16l, 2., 3., 4.);
-
-     will output
-
-                   -> 8  16  2.00e+00  3.00  4<-
-
-     Flag '+' means that the output of a signed number will start with a
-     plus for positives number.  The flag can be used only for
-     conversions 'd', 'e', 'E', 'f', 'g', and 'G'. Flag '+' overrides
-     flag ' ' if both are given.  The following code using flag '+' in
-     format
-
-                   putf ("->%+d %+d %+.2e %+.2f %+.2g<-\n",
-                         8, 16l, 2., 3., 4.);
-
-     will output
-
-                   ->+8 +16 +2.00e+00 +3.00 +4<-
-
-     The width defines a minimum width of the output value.  If the
-     output is smaller, it is padded with spaces (or zeros - see flag
-     '0') on the left (if flag '-' is used) or right.  The output is
-     never truncated.  The width should be no more than maximal integer
-     value, otherwise exception 'invfmt' is generated.  The width can be
-     given as a parameter of integer type if '*' is used.  If the value
-     of width given by the parameter is negative, flag '-' is believed
-     to be given and the width is believed to be equal to zero.  The
-     following code using width in format
-
-                   putf ("->%5d %05d %-5d %5d %*d %*d<-\n",
-                         8, 9, 10, 16l, 5, 8, -5, 10);
-
-     will output
-
-                   ->    8 00009 10       16     8 10   <-
-
-     The precision is prohibited for conversions 'c'.  If the number
-     after the period is absent, its value will be zero.  The precision
-     can be given as a parameter of integer type if '*' is used after
-     the period.  If the value of precision given by the parameter is
-     negative, its value is believed to be zero too.  For conversions
-     'd', 'o', 'x', and 'X' the precision means minimum number of output
-     digits.  For conversions 'e', 'E', and 'f' it means the number of
-     digits to appear after the decimal point.  For 'g' and 'G' it means
-     the maximum number of significant digits.  For 's' it means the
-     maximum number of characters to be output from a string.  The
-     following code using precision in format
-
-                   putf ("->%.d %.0d %.5d %.d %.0f %.0e %.2g<-\n",
-                         8, 8, 9, 16l, 2.3, 2.3, 3.53);
-                   putf ("->%.2s %.0d %.*d %.*d %.*d<-\n",
-                         "long", 0, 5, 8, -5, 8, 5, 16l);
-
-     will output
-
-                   ->8 8 00009 16 2 2e+00 3.5<-
-                   ->lo  00008 8 00016<-
-
-     Conversion 'd' should be used to output integer or long integer.
-     The default precision is 1.  When 0 is output with an explicit
-     precision 0, the output is empty.
-
-     Conversions 'o', 'x', and 'X' should be used to output an integer
-     or long integer value as unsigned in octal and hexadecimal form.
-     The lower case letters 'abcdef' are used for 'x' and the upper case
-     letters 'ABCDEF' are used for 'X'. The precision gives the minimum
-     number of digits that must appear.  If the output value requires
-     fewer digits, it is padded on the left with zeros.  The default
-     precision is 1.  When 0 is output with an explicit precision 0, the
-     output is empty.
-
-     Conversion 'f' should be used to output floating point values.  The
-     output value has a form '[-]ddd.ddd' where the number of digits
-     after the decimal point is given by the precision specification.
-     The default precision value is 6.  If the precision is explicitly
-     zero, no decimal-point character appears.
-
-     Conversions 'e' and 'E' should be used to output floating point
-     values with an exponent in form '[-]d.ddd[e|E][+|-]dd'.  There is
-     always one digit before the decimal-point.  The number of digits
-     after the decimal point is defined by the precision.  The default
-     precision value is 6.  If the precision is zero, no decimal-point
-     appears.  Conversion 'E' uses the letter 'E' (rather than 'e') to
-     introduce the exponent.  The exponent always contains at least two
-     digits.  If the exponent value is zero, the exponent is output as
-     '00'.
-
-     Conversions 'g' and 'G' should be used to output floating point
-     values in style 'f' or 'e' (or 'E' for conversion 'G'). The
-     precision defines the number of significant digits.  The default
-     value of the precision is 6.  If the precision is zero, it is
-     treated as 1.  Conversion 'e' is used if the exponent from the
-     conversion is less than -4 or not less than the precision.
-     Trailing zeros are removed from the fractional part of the output.
-     If all fractional part is zero, the decimal point is removed too.
-
-     Conversion 'c' should be used to output a character value.
-
-     Conversion 's' should be used to output strings.
-
-     Conversion '%' should be used to output '%'.
-
-     The following code using different conversions in format
-
-                   putf ("->%% %c %s %d %o %x %X %d %o %x %X<-\n",
-                         'c', "string", 7, 8, 20, 20, 8l, 9l, 21l, 21l);
-                   putf ("->%f<-\n", 1.5);
-                   putf ("->%e %E %g %G %g %G<-\n",
-                         2.8, 2.8, 3.7, 3.7, 455555555.555, 5.9e-5);
-
-     will output
-
-                   ->% c string 7 10 14 14 8 11 15 15<-
-                   ->1.500000<-
-                   ->2.800000e+00 2.800000E+00 3.7 3.7 4.55556e+08 5.9E-05<-
-
-   * 'fput (fileinstance, format, ...)'.  The function is analogous to
-     the function 'putf' except for the fact that it outputs the string
-     into an opened file associated with a class 'file' instance which
-     is the first parameter value.
-   * 'print (...)'.  The function outputs all parameter values into
-     standard output stream.  The function never makes implicit
-     conversions of the parameter values.  The parameter values are
-     output as they could be represented in Dino itself (e.g.  character
-     ''c" is output as ''c", vector '['a', 'b', 'c']' is output as
-     '"abc"', vector '[10, 20]' as '[10, 20]' and so on).  As you know
-     some values (functions, classes, block instances, class instances,
-     threads) are not represented fully in DINO. Such values are
-     represented schematically.  For example, the output 'fun f
-     {}.g(unique_number)' would mean function 'f' in the call of
-     function (or class) 'g' with the given unique number and function g
-     is in the instance of the implicit block covering the whole
-     program.  For the function 'g', output would look simply like 'fun
-     g' because there is only one instance of the implicit block
-     covering the whole program.  Output for an instance of the class
-     'c' in the function 'f' looks like 'instance
-     {}.f(unique_number).c(unique_number)'.  Output for a block instance
-     of the function 'f' looks like 'stack {}.f(unique_number)'.  Output
-     for a thread whose thread-function 't' is declared in the function
-     'f' would look like 'thread unique_number
-     {}.f(unique_number).t(unique_number)'.
-   * 'println (...)'.  The function is analogous to the function 'print'
-     except for the fact that it additionally outputs new line character
-     after output of all parameters.
-   * 'fprint (fileinstance, ...)'.  The function is analogous to the
-     function 'print' except for the fact that it outputs the parameters
-     into an opened file associated with a class 'file' instance which
-     is the value of first parameter.
-   * 'fprintln (fileinstance, ...)'.  The function is analogous to
-     function 'fprint' except for the fact that it additionally outputs
-     a new line character after the output of all the parameters.
-
-
-File: dino.info,  Node: File input functions,  Prev: File output functions,  Up: File functions
-
-9.3.4.5 File input functions
-............................
-
-The following functions are used to input something from opened files.
-The functions may generate an exception declared in the class 'syserror'
-(e.g.  'eio', 'enospc' and so on) or 'eof' besides the standard
-'partype', and 'parnumber'.
-
-   * 'get ()'.  The function reads one character from standard input
-     stream and returns it.  The function generates the exception 'eof'
-     if the function tries to read the end of file.
-   * 'getln ()'.  The function reads one line from standard input stream
-     and returns it as a new string.  The end of line is the newline
-     character or end of file.  The returned string does not contain the
-     newline character.  The function generates the exception 'eof' only
-     when the file position indicator before the function call stands
-     exactly on the end of file.
-   * 'getf ([ln_flag])'.  The function reads the whole standard input
-     stream and returns it as a new string.  The function generates the
-     exception 'eof' only when the file position indicator before the
-     function call stands exactly on the end of file.  The function has
-     an optional parameter which should be integer after implicit
-     integer conversion.  If the parameter value is nonzero, the
-     function returns a vector of strings.  Otherwise it behaves as
-     usually.  Each string is a line in the input stream.  The strings
-     do not contain the newline character.
-   * 'fget (fileinstance)'.  The function is analogous to function 'get'
-     except for the fact that it reads from an opened file associated
-     with the class 'file' instance which is the parameter's value.
-   * 'fgetln (fileinstance)'.  The function is analogous to the function
-     'getln' except for the fact that it reads from an opened file
-     associated with a class 'file' instance which is the parameter
-     value.
-   * 'fgetf (fileinstance [, ln_flag])'.  The function is analogous to
-     the function 'getf' except for the fact that it reads from an
-     opened file associated with a class 'file' instance which is the
-     parameter's value.
-   * 'scan ()'.  The functions reads a character, integer, floating
-     point number, string, vector, or table and returns it as the
-     result.  The input values should be represented in the file as the
-     ones in the Dino language (except for the fact that there should be
-     no identifiers in the input values and there should be no operators
-     in the values, although the signs '+' and '-' are possible in an
-     integer or floating point represenation).  The table or vector
-     should contains only values of types mentioned above.  The values
-     in the file can be separated by white characters.  If there is an
-     error (e.g.  unbalanced brackets in a vector value) in the read
-     value representation the function generates the exception
-     'invinput'.  The functions generates the exception 'eof' if only
-     white characters are still unread in the file.
-   * 'scanln ()'.  The function is analogous to the function 'scan'
-     except for the fact that it skips all characters until the end of
-     line or the end of file after reading the value.  Skipping is made
-     even if the exception 'invinput' is generated.
-   * 'fscan (fileinstance)'.  The function is analogous to the function
-     'scan' except for the fact that it reads from an opened file
-     associated with a class 'file' instance which is the parameter's
-     value.
-   * 'fscanln (fileinstance)'.  The function is analogous to the
-     function 'scanln' except for that it reads from an opened file
-     associated with a class 'file' instance which is the parameter
-     value.
-
-
-File: dino.info,  Node: Time functions,  Next: Functions for access to process information,  Prev: File functions,  Up: Predeclared functions
-
-9.3.5 Time functions
---------------------
-
-The following functions can be used to get information about real time.
-
-   * 'time ()'.  The function returns the time in seconds since the
-     fixed time (usually since January 1, 1970).
-   * 'strtime ([format [, time]])'.  The function returns a string
-     representing the 'time' (integer representing time in seconds since
-     the fixed time) according to the 'format' (string).  If the format
-     is not given, the value of variable 'time_format' is used.  In this
-     case if the value of 'time_format' is corrupted (it is not a
-     string), the function generates exception 'invenvar'.  If the time
-     is not given, the current time is used.  The format is the same as
-     in C library function 'strftime'.  Here is an extraction from the
-     OS function documentation.  The following format specifiers can be
-     used in the format:
-
-        * '%a' - the abbreviated weekday name according to the current
-          locale.
-        * '%A' - the full weekday name according to the current locale.
-        * '%b' - the abbreviated month name according to the current
-          locale.
-        * '%B' - the full month name according to the current locale.
-        * '%c' - the preferred date and time representation for the
-          current locale.
-        * '%d' - the day of the month as a decimal number (range 01 to
-          31).
-        * '%H' - the hour as a decimal number using a 24-hour clock
-          (range 00 to 23).
-        * '%I' - the hour as a decimal number using a 12-hour clock
-          (range 01 to 12).
-        * '%j' - the day of the year as a decimal number (range 001 to
-          366).
-        * '%m' - the month as a decimal number (range 01 to 12).
-        * '%M' - the minute as a decimal number.
-        * '%p' - either 'am' or 'pm' according to the given time value,
-          or the corresponding strings for the current locale.
-        * '%S' - the second as a decimal number.
-        * '%U' - the week number of the current year as a decimal
-          number, starting with the first Sunday as the first day of the
-          first week.
-        * '%W' - the week number of the current year as a decimal
-          number, starting with the first Monday as the first day of the
-          first week.
-        * '%w' - the day of the week as a decimal, Sunday being 0.
-        * '%x' - the preferred date representation for the current
-          locale without the time.
-        * '%X' - the preferred time representation for the current
-          locale without the date.
-        * '%y' - the year as a decimal number without a century (range
-          00 to 99).
-        * '%Y' - the year as a decimal number including the century.
-        * '%Z' - the time zone or the name or an abbreviation.
-        * '%%' - a literal '%' character.
-
-
-File: dino.info,  Node: Functions for access to process information,  Next: Miscellaneous functions,  Prev: Time functions,  Up: Predeclared functions
-
-9.3.6 Functions for access to process information
--------------------------------------------------
-
-There are Dino predeclared functions which are used to get information
-about the current OS process (the Dino interpreter which executes the
-program).  Each OS process has unique identifier and usually OS
-processes are called by a concrete user and group and are executed on
-behalf of the concrete user and group (so called effective identifiers).
-The following functions return such information.  On some OSes the
-function may return string "Unknown" as a name if there are notions of
-user and group identifiers.
-
-   * 'getpid ()'.  The function returns an integer value which is the
-     process ID of the current OS process.
-   * 'getun ()'.  The function returns a new string which is the user
-     name for the current OS process.
-   * 'geteun ()'.  The function returns a new string which is the
-     effective user name for the current OS process.
-   * 'getgn ()'.  The function returns a new string which is the group
-     name for the current OS process.
-   * 'getegn ()'.  The function returns a new string which is the
-     effective group name for the current OS process.
-   * 'getgroups ()'.  The function returns a new vector of strings
-     (possibly the empty vector) representing supplementary group names
-     for the current OS process.
-
-
-File: dino.info,  Node: Miscellaneous functions,  Prev: Functions for access to process information,  Up: Predeclared functions
-
-9.3.7 Miscellaneous functions
------------------------------
+9.5.2 Other space 'math' functions
+----------------------------------
 
 There are the following miscellaneous functions:
 
@@ -4228,150 +4143,6 @@ There are the following miscellaneous functions:
      first maximal value after the conversion.
    * 'min (v1, v2, ...)'.  The function is analogous to the previous
      function, but searches for and returns the minimal value.
-   * 'tolower (str)'.  The function expects that the parameter 'str'
-     (after implicit string conversion) is a string.  The function
-     returns new string 'str' in which upper case letters are changed to
-     the corresponding lower case letters.
-   * 'toupper (str)'.  The function expects that the parameter 'str'
-     (after implicit string conversion) is a string.  The function
-     returns the new string 'str' in which lower case letters are
-     changed to the corresponding upper case letters.
-   * 'trans (str, what, subst)'.  The function transliterates charactes
-     in a string.  The function expects that the parameters 'str' (after
-     implicit string conversion), 'what', and 'subst' are strings.  The
-     function returns the new string 'str' in which its characters which
-     are present in 'what' are changed to the corresponding characters
-     in 'subst'.  The last two strings should have the same length.  The
-     second string may contain more than one occurence of a character.
-     In this case the last correspondence is taken.
-   * 'eltype (vect)'.  The function expects that the parameter value is
-     a vector.  The function returns 'nil' if the vector is
-     heterogenous, otherwise the function returns the type of the vector
-     elements (type of 'nil' if the vector is empty).
-   * 'keys (tab)'.  The function expects that the parameter value is a
-     table.  The function returns a new mutable vector containing all
-     the keys in the table.  The order of keys in the vector is
-     undefined.
-   * 'context (par)'.  The function returns the context (see section
-     _Declarations and Scope Rules_) represented by a block instance or
-     an object for the given parameter value which should be a function,
-     a class, a thread, a block instance, or an object.
-   * 'inside (par1, par2[, flag])'.  The goal for function usage is to
-     check that something is declared inside something other.  If the
-     third parameter value after implicit integer conversion is given
-     and nonzero, it is checked with taking contexts into account.  The
-     second parameter value should be a function or a class.  The first
-     parameter value should be a function, a class, an object, or a
-     block instance.  In the first three cases, they define
-     corresponding a function, class, or block.  If the function, class,
-     or block defined by the first parameter is declared inside the
-     function or class given by the second parameter, the function
-     'inside' returns 1.  The function 'inside' also returns 1 if the
-     function or class defined by the first parameter is the same as the
-     function or class given by the second parameter.  Otherwise the
-     function 'inside' returns 0.  The following example illustrates the
-     difference between checking with taking contexts into account and
-     without it.
-
-                    class c () {
-                      class subc () {
-                      }
-                    }
-                    inside (c ().subc (), c ().subc);
-                    inside (c ().subc (), c ().subc, 1);
-
-     The first call of 'inside' returns 1, while the second one returns
-     0.
-   * 'isa (fco, fc)'.  The goal for function usage is to check that
-     function, class, or object given by the first parameter 'fco' uses
-     declarations (through a use-clause) of a function or a class given
-     by the second parameter 'fc', in other words the first is a subtype
-     of the second.  If it is true, the function returns 1, otherwise it
-     returns zero.  If the parameter types are wrong, the function
-     generates exception 'partype'.  The following example illustrates
-     usage of 'isa'.
-
-                    class c () {}
-                    class subc () { use c;}
-                    isa (subc, c);
-                    isa (subc (), c);
-
-     The call of 'isa' in the example returns 1.
-   * 'subv (vect, index[, length])'.  The function is used to extract a
-     slice of vector elements.  The first parameter value should be a
-     vector after implicit string conversion.  The second and third
-     parameter values should be integers after implicit integer
-     conversion.  The function extracts only an element or the part of
-     the slice existing in the vector (so you can use any values of the
-     index and the length).  If index is negative, it is considered to
-     be equal to zero.  If the length is negative, the slice will finish
-     on the vector end.  The function returns a new vector which is the
-     slice.  The result vector is immutable only when the original
-     vector is immutable.
-   * 'del (vect, index[, length]) or del (tab, key)'.  The first form of
-     the function is used to remove the vector element or a slice of
-     vector elements from the mutable vector 'vect'.  The second and the
-     third parameter values should be integers after implicit integer
-     conversion.  The function removes only an element or the part of
-     the slice existing in the vector (so you can use any values of the
-     index and the length).  If index is negative, it is considered to
-     be equal to zero.  If the length is negative, the slice will finish
-     on the vector end.  The second form of the function is used to
-     remove the element (if it exists) with the given key from the
-     mutable table.  The function generates the exception 'immutable' if
-     we are trying to remove from an immutable vector or table.  The
-     function returns the modified vector.
-   * 'ins (vect, el[, index])'.  The function inserts the element given
-     by the second parameter into the vector given by the first
-     parameter on the place given by the third parameter.  If the third
-     parameter is not given it is believed to be zero.  The third
-     parameter should be an integer after implicit integer conversion.
-     If the third parameter is negative or equal to or greater than the
-     vector length, the element is inserted at the end of the vector.
-     The function generates the exception 'immutable' if we are trying
-     to insert into an immutable vector.  The function returns the
-     modified vector.
-   * 'insv (vect, vect[, index])'.  The function is analogous to the
-     function 'ins' but it is used for insertion of all vector elements
-     into the vector given as the first parameter.  So the second
-     parameter value should be a vector.  The function returns the
-     modified vector.
-   * 'rev (vect)'.  The function returns reversion of the given vector.
-   * 'cmpv (vect, vect)'.  The function makes implicit string conversion
-     of the parameter values.  After that, the parameter values should
-     be vectors whose first corresponding equal elements should have the
-     same type (character, integer, or floating point type).  The first
-     corresponding unequal elements should have the same type too (the
-     remaining elements can have different type).  As usual, if this is
-     not true, exception 'partype' is generated.  The function returns 1
-     if the first unequal element value of the first vector is greater
-     than the corresponding element in the second vector, -1 if less,
-     and 0 if the all corresponding vector elements are equal.  If the
-     first vector is a prefix of the second vector, the function returns
-     -1.  If the second vector is a prefix of the first vector, the
-     function returns 1, so it is in fact generalized lexicographical
-     order.
-   * 'sort (vect[, compare_function])'.  The function returns a new
-     sorted vector.  The original vector given as the first parameter
-     value should be a homogeneous vector whose elements are of
-     character, integer, long integer, or floating point type.  If the
-     second parameter is not given, standard arithmetic order (see
-     comparison operators) is used.  To use special ordering, use the
-     second parameter which should be a function which compares two
-     elements of the vector and returns a negative integer if the first
-     parameter value (element) is less than the second one, a positive
-     integer if the first parameter value is greater than the second
-     one, and zero if they are equal.
-   * 'exit (code)'.  The function finishes the work of the interpreter
-     with the given code which should be an integer value after implicit
-     integer conversion.
-   * 'gc ()'.  The function forces garbage collection and heap
-     compaction.  Usually the Dino interpreter itself invokes garbage
-     collection when there is no more free memory.
-   * 'system (command)'.  The function executes the command given by a
-     string (the parameter value) in the OS command interpreter.
-     Besides standard exceptions 'parnumber' and 'partype' the function
-     may generate exceptions 'noshell' and 'systemfail'.
    * 'srand ([seed])'.  The function sets the parameter value (after
      implicit integer conversion) as the seed for a new sequence of
      pseudo-random integers to be returned by 'rand'.  These sequences
@@ -4381,60 +4152,379 @@ There are the following miscellaneous functions:
    * 'rand ()'.  The function returns a pseudo-random floating point
      value between 0 and 1.  If the function 'srand' was not called
      before, 1 will be used as the seed value.
-   * 'transpose (m)'.  The function expects matrix 'm'.  It means that
-     'm' should be vector (each element is a matrix row) of vectors of
-     equal length.  If 'm' is not a vector, exception 'partype' is
-     generated.  If elements of 'm' are not vectors of the same length,
-     exceptions 'matrixform' is generated.  The function returns a new
-     mutable vector of mutable vectors which is a matrix transposition
-     of 'm'.
-   * 'filter (f, v [, d])'.  The function expects function 'f', vector
-     'v', and optional integer 'd' after integer conversion.  Otherwise
-     exception 'partype' is generated.  If 'd' is not given, it is
-     believed to be 1.  The function processes v's elements if 'd' is
-     equal one, elements of vectors which are v's elements if 'd' is
-     equal to 2 and so on.  In other words, 'd' is level on which vector
-     elements are processed.  If v has no structure necessary for
-     processing, exception 'vecform' is generated.  If 'd' is zero or
-     negative, the function just returns 'v'.  Otherwise the function
-     creates new mutable vector having the same structure as 'v' with
-     only elements on level 'd' for which function 'f' returns nonzero
-     value after integer conversion.  If the result of function 'f'
-     after the integer conversion is not integer, exception 'invresult'
-     is generated.  The following example illustrates usage of 'filter'.
 
-                    var i, v = [0, 1, -2, 3, -4];
-                    println (filter (fun (a) {a > 0;}, v));
-                    v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
-                    println (filter (fun (a) {a > 0;}, v, 2));
-   * 'map (f, v [, d])'.  The meaning of function parameters and
-     constraints to their values are analogous to ones of function
-     'filter'.  Only function 'f' can return any value.  The elements
-     processed by function 'f' is changed onto the result of function
-     'f'.  The following example illustrates usage of 'map'.
+
+File: dino.info,  Node: Space `yaep',  Prev: Space `math',  Up: Predeclared identifiers
 
-                    var i, v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
-                    println (map (fun (a) {a < 0 ? nil : a;}, v, 2));
-   * 'fold (f, v, init [, d])'.  The meaning of function parameters 'f',
-     'v', and 'd' and constraints to their values are analogous to ones
-     of function 'filter'.  The function processes all elements of
-     vectors on level 'd' and returns value 'f (f (f (f (init, el0),
-     el1), ...)  , eln)' where 'el0', ..., 'eln' are vector elements on
-     level 'd' taken from left to right.  If 'd' is zero or negative or
-     the vectors are empty, the function returns 'init'.  The following
-     example illustrates usage of 'fold'.
+9.6 Space 'yaep'
+================
 
-                    var v = [1,2,3,4];
-                    println (fold (fun (a, b) {a + b;}, v, 0));
+This space contains declarations to work with Yet Another Earley Parser
+(YAEP). YAEP is a very powerful tool to implement serious language
+compilers, processors, or translators.  The implementation of the Earley
+parser used in Dino has the following features:
 
-   * 'sput (...), sputln (...), sputf (format, ...)'  The functions are
-     analogous to functions put, putln, print, and println but they
-     return the result string instead of output of the formed string
-     into the standard output stream.
-   * 'sprint (...), sprintln (...)'.  The functions are analogous to
-     functions print and println but they return the result string
-     instead of output of the formed string into the standard output
-     stream.
+   * It is sufficiently fast and does not require much memory.  This is
+     the fastest implementation of the Earley parser which I know.  The
+     main design goal is to achieve speed and memory requirements which
+     are necessary to use it in prototype compilers and language
+     processors.  It parses 30,000 lines of C per second on 500 MHz
+     Pentium III and allocates about 5Mb memory for a 10,000 line C
+     program.
+   * It makes simple syntax directed translation, so an abstract tree is
+     already the output of the Earley parser.
+   * It can parse input described by an ambiguous grammar.  In this case
+     the parse result can be an abstract tree or all possible abstract
+     trees.  Moreover, it produces the compact representation of all
+     possible parse trees by using DAG instead of real trees.  These
+     features can be used to parse natural language sentences.
+   * It can make syntax error recovery.  Moreover its error recovery
+     algorithms find error recovery with a minimal number of ignored
+     tokens.  It permits implement-ion of parsers with very good error
+     recovery and reporting.
+   * It has fast startup.  There is practically no delay between
+     processing of grammar and start of parsing.
+   * It has a flexible interface.  The input grammar is given by a
+     YACC-like description.
+   * It has a good debugging features.  It can print huge amount of
+     information about grammar, parsing, error recovery, translation.
+     You can even get the result translation in a form for a graphic
+     visualization program.
+
+* Menu:
+
+* Exception classes of space `yaep'::
+* Class parser::
+* Class `token'::
+* Variables `nil_anode' and `error_anode'::
+* Example of Earley parser usage-::
+
+
+File: dino.info,  Node: Exception classes of space `yaep',  Next: Class parser,  Up: Space `yaep'
+
+9.6.1 Exception classes of space 'yaep'
+---------------------------------------
+
+The space yaep contains class 'invparser' which is a sub-class of
+'invcall'.  The following sub-classes of class 'invparser' describe
+exceptions specific for work with YAEP.
+
+   * 'invgrammar'.  This class describes the exception that the Earley
+     parser got a bad grammar, e.g.  without rules, with loops in rules,
+     with nonterminals unachievable from the axiom, with nonterminals
+     not deriving any terminal string etc.
+   * 'invtoken'.  This class describes the exception that the parser got
+     an input token with unknown (undeclared) code.
+   * 'pmemory'.  This class describes the exception that there is not
+     enough memory for internal parser data.
+
+
+File: dino.info,  Node: Class parser,  Next: Class `token',  Prev: Exception classes of space `yaep',  Up: Space `yaep'
+
+9.6.2 Class parser
+------------------
+
+Space 'yaep' has predeclared final class 'parser' which implements the
+Earley parser.  The following public functions and variables are
+declared in the class 'parser':
+
+   * 'ambiguous_p'.  This public variable stores information about the
+     last parsing.  A nonzero variable value means that during the last
+     parsing on a given input the parser found that the grammar is
+     ambiguous.  The parser can find this even if you asked for only one
+     parser tree (see function 'set_one_parse').
+   * 'set_grammar (descr, strict_p)'.  This function tunes the parser to
+     given grammar.  The grammar is given by string 'descr'.  Nonzero
+     value of parameter 'strict_p' (after implicit integer conversion)
+     means more strict checking the grammar.  In this case, all
+     nonterminals will be checked on their ability to derive a terminal
+     string instead of only checking the axiom for this.  The function
+     can generate exceptions 'partype' (if the parameters have wrong
+     types) or 'invgrammar' if the description is a bad grammar.  The
+     function can also generate exception 'pmemory' if there is no
+     memory for internal parser data.
+
+     The description is similiar to the _YACC_ one.  It has the
+     following syntax:
+
+                    file : file terms [';']
+                         | file rule
+                         | terms [';']
+                         | rule
+
+                    terms : terms IDENTIFIER ['=' NUMBER]
+                          | TERM
+
+                    rule : IDENTIFIER ':' rhs [';']
+
+                    rhs : rhs '|' sequence [translation]
+                        | sequence [translation]
+
+                    sequence :
+                             | sequence IDENTIFIER
+                             | sequence C_CHARACTER_CONSTANT
+
+                    translation : '#'
+                                | '#' NUMBER
+                                | '#' '-'
+                                | '#' IDENTIFIER [NUMBER] '(' numbers ')'
+
+                    numbers :
+                            | numbers NUMBER
+                            | numbers '-'
+
+
+     So the description consists of terminal declaration and rule
+     sections.
+
+     The terminal declaration section describes the name of terminals
+     and their codes.  The terminal code is optional.  If it is omitted,
+     the terminal code will the next free code starting with 256.  You
+     can declare a terminal several times (the single condition is that
+     its code should be the same).
+
+     A character constant present in the rules is a terminal described
+     by default.  Its code is always the ASCII code of the character
+     constant.
+
+     Rules syntax is the same as _YACC_ rule syntax.  The single
+     difference is an optional translation construction starting with
+     '#' right after each alternative.  The translation part could be a
+     single number which means that the translation of the alternative
+     will be the translation of the symbol with the given number (symbol
+     number in the alternative start is with 0).  Or the translation can
+     be empty or "-" which designates the value of the variable
+     'nil_anode'.  Or the translation can be an abstract node with the
+     given name, optional cost, and with fields whose values are the
+     translations of the alternative symbols with numbers given in
+     parentheses after the abstract node name.  You can use "-" in an
+     abstract node to show that the empty node should be used in this
+     place.  If the cost is absent it is believed to be 1.  The cost of
+     the terminal, error node, and empty node is always zero.
+
+     There is a reserved terminal 'error' which marks the start point of
+     error recovery.  The translation of the terminal is the value of
+     the variable 'error_anode'.
+
+   * 'set_debug (level)'.  This function sets up the level of debugging
+     information output to 'stderr'.  The higher the level, the more
+     information is output.  The default value is 0 (no output).  The
+     debugging information includes statistics, the result translation
+     tree, the grammar, parser sets, parser sets with all situations,
+     situations with contexts.  The function returns the previously set
+     up debug level.  Setting up a negative debug level results in
+     output of the translation for program *dot* of the graphic
+     visualization package *graphviz*.  The parameter should be an
+     integer after implicit integer conversion.  The function will
+     generate exception 'partype' if it is not true.
+   * 'set_one_parse (flag)'.  This function sets up a flag whose nonzero
+     value means building only one translation tree (without any
+     alternative nodes).  For an unambiguous grammar the flag does not
+     affect the result.  The function returns the previously set up flag
+     value.  The default value of the flag is 1.  The parameter should
+     be an integer after implicit integer conversion.  The function will
+     generate exception 'partype' if it is not true.
+   * 'set_lookahead (flag)'.  This function sets up a flag of of usage
+     of look ahead in the parser work.  The usage of lookahead gives the
+     best results with the point of view of space and speed.  The
+     default value is 1 (the lookahead usage).  The function returns the
+     previously set up flag.  No usage of the lookahead is useful
+     sometimes to get more understandable debug output of the parser
+     work (see function 'set_debug').  The parameter should be an
+     integer after implicit integer conversion.  The function will
+     generate the exception 'partype' if it is not true.
+   * 'set_cost (flag)'.  This function sets up building the only
+     translation tree (trees if we set up one_parse_flag to 0) with
+     minimal cost.  For an unambiguous grammar the flag does not affect
+     the result.  The default value is 0.  The function returns the
+     previously set up flag value.  The default value of the flag is 0.
+     The parameter should be an integer after implicit integer
+     conversion.  The function will generate exception 'partype' if it
+     is not true.
+   * 'set_recovery (flag)'.  This function sets up a flag whose nonzero
+     value means making error recovery if a syntax error occurred.
+     Otherwise, a syntax error results in finishing parsing (although
+     the syntax error function passed to 'parse' is called once).  The
+     function returns the previously set up flag value.  The default
+     value of the flag is 1.  The parameter should be an integer after
+     implicit integer conversion.  The function will generate exception
+     'partype' if it is not true.
+   * 'set_recovery_match (n_toks)'.  This function sets up an internal
+     parser parameter meaning how much subsequent tokens should be
+     successfully shifted to finish error recovery.  The default value
+     is 3.  The function returns the previously set up value.  The
+     parameter should be an integer after implicit integer conversion.
+     The function will generate exception 'partype' if it is not true.
+   * 'parse (tokens, error_func)'.  This function is the major function
+     of the class.  It makes translation according to the previously set
+     up grammar of input given by the parameter 'tokens' whose value
+     should be an array of objects of predeclared class 'token' or its
+     subtype.  If the parser recognizes a syntax error it calls the
+     function given through parameter 'error_func' with six parameters:
+
+        * index of the token (in array 'tokens') on which the syntax
+          error occured.
+        * the error token itself.  It may be 'nil' for end of file.
+        * index of the first token (in array 'tokens') ignored due to
+          error recovery.
+        * the first ignored token itself.  It may be 'nil' for end of
+          file.
+        * index of the first token (in array 'tokens') which is not
+          ignored after error recovery.
+        * the first not ignored token itself.  It may be 'nil' for end
+          of file.
+
+     If the parser works with switched off error recovery (see function
+     'set_recovery', the third and fifth parameters will be negative and
+     forth and sixth parameter will be 'nil'.
+
+     The function returns an object of the predeclared class 'anode'
+     which is the root of the abtsract tree representing the translation
+     of the parser input.  The function returns 'nil' only if syntax
+     error was occurred and error recovery was switched off.  The
+     function can generate exception 'partype' if the parameter types
+     are wrong or exception 'invtoken_decl' if any of the input tokens
+     have a wrong code.  The function also can generate exception
+     'pmemory' if there is no memory for internal parser data.
+
+   The call of the class 'parser' itself can generate exception
+'pmemory' if there is no memory for internal parser data.
+
+
+File: dino.info,  Node: Class `token',  Next: Variables `nil_anode' and `error_anode',  Prev: Class parser,  Up: Space `yaep'
+
+9.6.3 Class 'token'
+-------------------
+
+Dino has a predeclared class 'token'.  Objects of this class should be
+the input of the Earley parser (see function 'parse' in class 'parser').
+The result abstract tree representing the translation will have input
+tokens as leaves.  The class 'token' has one public variable 'code'
+whose value should be the code of the corresponding terminal described
+in the grammar.  You could extend the class description e.g.  by adding
+variables whose values could be attributes of the token (e.g.  source
+line number, name of an identifier, or value for a number).
+
+* Menu:
+
+* Class `anode'::
+
+
+File: dino.info,  Node: Class `anode',  Up: Class `token'
+
+9.6.3.1 Class 'anode'
+.....................
+
+Dino has a predeclared class 'anode' whose objects are nodes of the
+abtract tree representing the translation (see function 'parse' of class
+'parser').  Objects of this class are generated by the Earley parser.
+The class has two public variables 'name' whose value is string
+representing name of the abstract node as it given in the grammar and
+'transl' whose value is array with abstract node fields as the array
+elements.  There are a few node types which have special meaning:
+
+   * Terminal node which has reserved name '$term'.  The value of the
+     public variable 'transl' for this node is an object of class
+     'token' representing the corresponding input token which was an
+     element of the array passed as a parameter of function 'parse' of
+     function 'parser'.
+   * Error node which has reserved name '$error'.  This node exists in
+     one exemplar (see description of variable 'error_anode') and
+     represents the translation of reserved grammar symbol 'error'.  The
+     value is public variable 'transl' will be 'nil' in this case.
+   * The empty node which has the reserved name '$nil'.  This node also
+     exists in one exemplar (see description of variable 'nil_anode')
+     and represents the translation of a grammar symbol for which we did
+     not describe a translation.  For example, in a grammar rule an
+     abstract node refers for the translation of a nonterminal for which
+     we do not produce a translation.  The value is public variable of
+     such class object will be 'nil' in this case.
+   * Alternative node which has the reserved name '$alt'.  It represents
+     all possible alternatives in the translation of the grammar
+     nonterminal.  The value of the public variable 'transl' will be an
+     array with elements whose values are objects of class 'anode' which
+     represent all possible translations.  Such nodes can be generated
+     by the parser only if the grammar is ambiguous and we did not ask
+     it to produce only one translation.
+
+
+File: dino.info,  Node: Variables `nil_anode' and `error_anode',  Next: Example of Earley parser usage-,  Prev: Class `token',  Up: Space `yaep'
+
+9.6.4 Variables 'nil_anode' and 'error_anode'
+---------------------------------------------
+
+There is only one instance of 'anode' which represents empty (nil)
+nodes.  The same is true for the error nodes.  The final variables
+'nil_anode' and 'error_anode' correspondingly refer to these nodes.
+
+
+File: dino.info,  Node: Example of Earley parser usage-,  Prev: Variables `nil_anode' and `error_anode',  Up: Space `yaep'
+
+9.6.5 Example of Earley parser usage-
+-------------------------------------
+
+Let us write a program which transforms an expression into postfix
+polish form.  Please, read the program comments to understand what the
+code does.  The program should output string '"abcda*+*+"' which is the
+postfix polish form of input string '"a+b*(c+d*a)"'.
+
+               expose yaep.*;
+               // The following is the expression grammar:
+               var grammar = "E : E '+' T   # plus (0 2)\n\
+                                | T         # 0\n\
+                                | error     # 0\n\
+                              T : T '*' F   # mult (0 2)\n\
+                                | F         # 0\n\
+                              F : 'a'       # 0\n\
+                                | 'b'       # 0\n\
+                                | 'c'       # 0\n\
+                                | 'd'       # 0\n\
+                                | '(' E ')' # 1";
+               // Create parser and set up grammar.
+               var p = parser ();
+               p.set_grammar (grammar, 1);
+
+               // Add attribute repr to token:
+               class our_token (code) { use token former code; var repr; }
+               // The following code forms input tokens from string:
+               var str = "a+b*(c+d*a)";
+               var i, inp = [#str : nil];
+               for (i = 0; i < #str; i++) {
+                 inp [i] = our_token (str[i] + 0);
+                 inp [i].repr = str[i];
+               }
+               // The following function output messages about syntax errors
+               // syntax error recovery:
+               fun error (err_start, err_tok,
+                           start_ignored_num, start_ignored_tok_attr,
+                           start_recovered_num, start_recovered_tok) {
+                 put ("syntax error on token #", err_start,
+                      " (" @ err_tok.code @ ")");
+                 putln (" -- ignore ", start_recovered_num - start_ignored_num,
+                        " tokens starting with token #", start_ignored_num);
+               }
+
+               var root = p.parse (inp, error); // parse
+
+               // Output translation in polish inverse form
+               fun pr (r) {
+                 var i, n = r.name;
+
+                 if (n == "$term")
+                   put (r.transl.repr);
+                 else if (n == "mult" || n == "plus") {
+                   for (i = 0; i < #r.transl; i++)
+                     pr (r.transl [i]);
+                   put (n == "mult" ? "*" : "+");
+                 }
+                 else if (n != "$error") {
+                   putln ("internal error");
+                   exit (1);
+                 }
+               }
+
+               pr (root);
+               putln ();
 
 
 File: dino.info,  Node: Appendix A- Syntax of Dino,  Next: Appendix B- Implementation,  Prev: Predeclared identifiers,  Up: Top
@@ -4813,74 +4903,84 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- Syntax of
 
 Tag Table:
 Node: Top95
-Node: Introduction633
-Node: Syntax1931
-Node: Vocabulary and Representation2835
-Node: Declarations and Scope Rules11055
-Node: Variable Declarations19535
-Node: External Declarations21275
-Node: Functions and Classes22682
-Node: Use Clause31564
-Node: Singleton Object33769
-Node: Expressions34578
-Node: Types and Values35190
-Node: Designators44236
-Node: Calls49559
-Node: Operators51623
-Node: Logical operators55920
-Node: Bit operators57728
-Node: Comparison operators58851
-Node: Arithmetic operators60847
-Node: Miscellaneous operators62058
-Node: Slice Operators66172
-Node: Current block instance69087
-Node: Anonymous Functions and Classes69550
-Node: Patterns70392
-Node: Executive statements74422
-Node: Empty statement75356
-Node: Block-statement75776
-Node: Expression-statement76495
-Node: Assignment statements77275
-Node: If-statement79914
-Node: For-statement80770
-Node: Foreach-statement82253
-Node: Match-statements83249
-Node: Break- and continue-statement86390
-Node: Return-statement87657
-Node: Throw-statement88423
-Node: Try-block89125
-Node: Wait-statement91558
-Node: Program92660
-Node: Predeclared identifiers96182
-Node: Predeclared variables96649
-Node: Arguments and environment97046
-Node: Version97696
-Node: Threads98229
-Node: Files98771
-Node: Miscellaneous variables99573
-Node: Predeclared classes100302
-Node: File100652
-Node: Exception classes101360
-Node: Earley parser classes112308
-Node: Parser-112687
-Node: Token-123496
-Node: Anode-124176
-Node: Nil_anode and error_anode-126322
-Node: Example of Earley parser usage-126733
-Node: Predeclared functions129611
-Node: Mathematical functions130864
-Node: Pattern matching functions132434
-Node: Encoding functions155991
-Node: File functions156801
-Node: Functions for access to file/directory information157226
-Node: Functions for work with directories161907
-Node: Functions for work with files-163495
-Node: File output functions167552
-Node: File input functions180017
-Node: Time functions183839
-Node: Functions for access to process information186816
-Node: Miscellaneous functions188328
-Node: Appendix A- Syntax of Dino201723
-Node: Appendix B- Implementation206905
+Node: Introduction632
+Node: Syntax1930
+Node: Vocabulary and Representation2834
+Node: Declarations and Scope Rules11054
+Node: Variable Declarations16453
+Node: External Declarations18202
+Node: Functions and Classes19609
+Node: Use Clause28583
+Node: Singleton Object30788
+Node: Expressions31597
+Node: Types and Values32209
+Node: Designators41255
+Node: Calls46578
+Node: Operators48642
+Node: Logical operators52939
+Node: Bit operators54747
+Node: Comparison operators55870
+Node: Arithmetic operators57866
+Node: Miscellaneous operators59077
+Node: Slice Operators63191
+Node: Current block instance66106
+Node: Anonymous Functions and Classes66569
+Node: Patterns67411
+Node: Executive statements71441
+Node: Empty statement72375
+Node: Block-statement72795
+Node: Expression-statement73514
+Node: Assignment statements74294
+Node: If-statement76933
+Node: For-statement77789
+Node: Foreach-statement79272
+Node: Match-statements80268
+Node: Break- and continue-statement83409
+Node: Return-statement84676
+Node: Throw-statement85442
+Node: Try-block86144
+Node: Wait-statement88577
+Node: Program89679
+Node: Predeclared identifiers93209
+Node: Space `lang'94654
+Node: Predeclared variables94968
+Node: Arguments and environment95326
+Node: Version95980
+Node: Threads96507
+Node: Exception classes97039
+Node: Functions of space `lang'102785
+Node: Space `io'114870
+Node: Exception classes of space `io'115457
+Node: Class `file'116374
+Node: Files117125
+Node: Functions for work with files117927
+Node: File output functions121944
+Node: File input functions134400
+Node: Encoding functions138241
+Node: Functions for work with directories139055
+Node: Functions for access to file/directory information140623
+Node: Miscellaneous functions145328
+Node: Space `sys'146048
+Node: Exceptions in space `sys'146479
+Node: Variable `time_format'152059
+Node: Time functions152457
+Node: Functions for access to information about OS processes155460
+Node: Function `system (command)'157006
+Node: Space `re'157437
+Node: Exception class `invregex'157813
+Node: Variable `split_regex'158275
+Node: Pattern matching158676
+Node: Space `math'182201
+Node: Mathematical functions182467
+Node: Other space `math' functions184030
+Node: Space `yaep'185344
+Node: Exception classes of space `yaep'187472
+Node: Class parser188327
+Node: Class `token'197421
+Node: Class `anode'198175
+Node: Variables `nil_anode' and `error_anode'200284
+Node: Example of Earley parser usage-200728
+Node: Appendix A- Syntax of Dino203636
+Node: Appendix B- Implementation208818
 
 End Tag Table

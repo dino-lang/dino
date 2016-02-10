@@ -1,3 +1,16 @@
+2016-02-09  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* README.md: Add future directions.
+	* AMMUNITION/README: Change email address.
+	* DINO/README: Ditto.
+	* {MSTA, NONA, OKA, SHILKA, SPRUT}/README: Ditto.
+	* DINO/d_ir.sprut (ENVIRONMENT): Remove a space before
+	invencoding.
+	* DINO/dino.sgml.in: Describe spaces and pre-declared identifiers
+	according to spaces.
+	* DINO/dino.{html, info, pdf, ps, dvi, txt}: Update.
+	* DINO/dino-{4, 5, 8, 9}.html: Update.
+
 2016-02-08  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_bc.sprut (LANG_CNAME, IO_CNAME, SYS_CNAME, MATH_CNAME): New.

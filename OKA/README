@@ -16,6 +16,6 @@ basic blocks (see directory SCHEDULE).
   Documentation of OKA is in files `oka.1', `oka.txt', `oka.dvi',
 `oka.ps', `oka.info*', `oka*.html', `oka*.rtf'.
 
-Please send bug reports and comments to cocom-bugs@lists.sourceforge.net
+Please send bug reports and comments to vmakarov@gcc.gnu.org
 
 Vladimir Makarov

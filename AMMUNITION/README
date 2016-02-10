@@ -81,6 +81,6 @@ reusable packages is in files `ammunition.txt', `ammunition.dvi',
 `ammunition++.ps', `ammunition++.info*', `ammunition++*.html',
 `ammunition++*.rtf'.
 
-Please send bug reports and comments to cocom-bugs@lists.sourceforge.net
+Please send bug reports and comments to vmakarov@gcc.gnu.org
 
 Vladimir Makarov
