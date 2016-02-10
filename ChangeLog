@@ -1,3 +1,15 @@
+2016-02-10  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Examples/extern.d: Remove.
+	* DINO/Examples/{fact, fibonacci, sieve, tak, mult}.d: Remove
+	copyright.  Change func to fun.  Format the code.
+	* DINO/Examples/tmult.d: Ditto.  Use new syntax for tables.
+	* DINO/Examples/prodcons.d: Remove copyright.  Change func
+	to fun.  Format the code.  Use new syntax for wait.
+	* DINO/Examples/idcount.d: Remove copyright.  Change func to fun.
+	Format the code.  Use re.split and just eof.
+	* DINO/Examples/forest-fire.d: New.
+
 2016-02-09  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/dino.sgml.in (singleton object): Describe place of

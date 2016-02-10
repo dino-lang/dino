@@ -1,41 +1,15 @@
-/*
-   Copyright (C) 1997-2007 Vladimir Makarov.
-
-   Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
-
-   This file is part of interpreter of DINO.
-
-   This is free software; you can redistribute it and/or modify it
-   under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2, or (at your option)
-   any later version.
-
-   This software is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with GNU CC; see the file COPYING.  If not, write to the Free
-   Software Foundation, 59 Temple Place - Suite 330, Boston, MA
-   02111-1307, USA.
-
-*/
-
 // 100x100 Matrixes multiplication.  No output.
 var m1, m2;
 
-func mmult (m1, m2)
-{
+fun mmult (m1, m2) {
   var i, j, k, m1rows, m1cols, m2rows, m2cols, result;
 
   m1rows = #m1; m2rows = #m2;
   m1cols = #m1[0]; m2cols = #m2[0];
-  if (m2cols != m2rows)
-    {
-       println ("matrices don't match");
-       return;
-    }
+  if (m2cols != m2rows) {
+    println ("matrices don't match");
+    return;
+  }
   result = [m1rows:[m2cols:0]];
   for (i=0; i < m1rows; i++)
     for (j=0; j < m2cols; j++)
