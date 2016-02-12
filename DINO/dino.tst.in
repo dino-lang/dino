@@ -50362,7 +50362,7 @@ TEST874
         echo '      ' $DINO '-d' $test_file "2>$stderr"
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' fgrep ovfld $stdout
-                if expr `fgrep ovfld $stdout | wc -l` == 4 > /dev/null; then
+                if expr `fgrep ovfld $stdout | wc -l` = 4 > /dev/null; then
                         result=ok
                 else
                         result=fail
@@ -50386,7 +50386,7 @@ TEST875
         echo '      ' $DINO '-d' $test_file "2>$stderr"
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' fgrep lovfld $stdout
-                if expr `fgrep lovfld $stdout | wc -l` == 2 > /dev/null; then
+                if expr `fgrep lovfld $stdout | wc -l` = 2 > /dev/null; then
                         result=ok
                 else
                         result=fail
@@ -50410,7 +50410,7 @@ TEST876
         echo '      ' $DINO '-d' $test_file "2>$stderr"
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' fgrep lovfldv $stdout
-                if expr `fgrep lovfldv $stdout | wc -l` == 2 > /dev/null; then
+                if expr `fgrep lovfldv $stdout | wc -l` = 2 > /dev/null; then
                         result=ok
                 else
                         result=fail
@@ -50433,7 +50433,7 @@ TEST877
         echo '      ' $DINO '-d' $test_file "2>$stderr"
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' fgrep ofun $stdout
-                if expr `fgrep ofun $stdout | wc -l` == 1 > /dev/null; then
+                if expr `fgrep ofun $stdout | wc -l` = 1 > /dev/null; then
                         result=ok
                 else
                         result=fail
@@ -50453,7 +50453,7 @@ TEST878
         echo '      ' $DINO '-d' $test_file "2>$stderr"
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' fgrep oclass $stdout
-                if expr `fgrep oclass $stdout | wc -l` == 1 > /dev/null; then
+                if expr `fgrep oclass $stdout | wc -l` = 1 > /dev/null; then
                         result=ok
                 else
                         result=fail
@@ -50496,7 +50496,7 @@ TEST880
         echo '      ' $DINO '-d' $test_file "2>$stderr"
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' fgrep omcall $stdout
-                if expr `fgrep omcall $stdout | fgrep '(f)' | wc -l` == 1 > /dev/null; then
+                if expr `fgrep omcall $stdout | fgrep '(f)' | wc -l` = 1 > /dev/null; then
                         result=ok
                 else
                         result=fail
@@ -50516,7 +50516,7 @@ TEST881
         echo '      ' $DINO '-d' $test_file "2>$stderr"
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' fgrep omicall $stdout
-                if expr `fgrep omicall $stdout | wc -l` == 1 > /dev/null; then
+                if expr `fgrep omicall $stdout | wc -l` = 1 > /dev/null; then
                         result=ok
                 else
                         result=fail

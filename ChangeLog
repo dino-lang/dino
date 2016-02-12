@@ -1,3 +1,11 @@
+2016-02-11  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_inference.c (insn_defs_num_cache): Change length to
+	BC_NM__error.
+	(insn_defs_num_cache): Uses.
+	* DINO/dino.tst.in (874-878, 880, 881): Use = instead of == in
+	expr.
+
 2016-02-10  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/Examples/extern.d: Remove.

@@ -970,8 +970,8 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
   return res + get_block_place_start (insn->block);
 }
 
-static int insn_defs_num_cache[UCHAR_MAX + 1];
-static int insn_uses_num_cache[UCHAR_MAX + 1];
+static int insn_defs_num_cache[BC_NM__error];
+static int insn_uses_num_cache[BC_NM__error];
 
 static inline int
 get_insn_defs_num (df_insn_t insn)
