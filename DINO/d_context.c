@@ -3111,7 +3111,7 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 					 fun_class_assign_p,
 					 NULL, &temp_vars_num, FALSE,
 					NULL, NULL, FALSE));
-	d_assert (temp_vars_num = *curr_temp_vars_num + 1);
+	d_assert (temp_vars_num == *curr_temp_vars_num + 1);
 	true_path_end = BC_bc (curr_info);
 	temp_vars_num = *curr_temp_vars_num;
 	/* Put it on stack.  */
