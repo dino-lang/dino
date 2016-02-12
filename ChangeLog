@@ -1,5 +1,9 @@
 2016-02-12  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* README.md: Change 'make test' on 'make check'.
+
+2016-02-12  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/d_inference.c (initiate_inference_pass): Change loop bound.
 
 2016-02-12  Vladimir Makarov  <vmakarov@gcc.gnu.org>

@@ -738,11 +738,11 @@ Ocaml   |8.2    |1.1    |11.7   |165    |0.4   |0.8   |1.9   |3.7  |2.1    |4.8 
 ```
 * Testing all COCOM and DINO:
 ```
-  make test
+  make check
 ```
 * Testing only DINO (about 900 tests and benchmarking comparison with available implementations of other languages which can take a lot of time):
 ```
-  cd DINO; make test
+  cd DINO; make check
 ```
 
 * Testig Dino is to run two shell scripts:
