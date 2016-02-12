@@ -2646,7 +2646,7 @@ initiate_inference_pass (void)
 {
   int i;
 
-  for (i = 0; i <= UCHAR_MAX; i++)
+  for (i = 0; i < BC_NM__error; i++)
     insn_defs_num_cache[i] = insn_uses_num_cache[i] = -1;
   pass_alloc_init ();
   VLO_CREATE (insns_vlo, 0);
