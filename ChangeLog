@@ -1,3 +1,12 @@
+2016-02-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_yacc.y (designator): Find func before merging.
+	(block): Save/restore additional_stmts.
+	(create_try_expr): Use fun to calculate fun_expr.
+	* DINO/d_func.c (sort_call): Check empty vector before checking el
+	type.
+	* DINO/dino.tst.in (900): New test.
+
 2016-02-13  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/process_ucodedb.d: Use re.split instead of split.

@@ -2143,7 +2143,8 @@ sort_call (int pars_number)
     {
       if (ER_NODE_MODE (ctop) != ER_NM_vect
 	  || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-	  || (ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
+	  || (ER_els_number (vect) != 0
+	      && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
 	      && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_byte
 	      && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_int
 	      && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_long

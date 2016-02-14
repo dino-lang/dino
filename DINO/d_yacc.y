@@ -644,10 +644,11 @@ designator : expr '[' expr ']'
            | IDENT     {$$ = $1;}
            | aheader hint block
                {
-		 additional_stmts
-		   = merge_stmt_lists (additional_stmts,
-				       process_header_block ($1, $3, $2));
-		 $$ = IR_ident (IR_next_stmt (additional_stmts));
+		 IR_node_t body = process_header_block ($1, $3, $2);
+		 IR_node_t fc = IR_next_stmt (body);
+		 
+		 additional_stmts = merge_stmt_lists (additional_stmts, body);
+		 $$ = IR_ident (fc);
 	       }
            ;
 /* Attribute value is the last element of the cycle list.  The
@@ -1445,12 +1446,15 @@ formal_parameters : par_list_empty
 block : '{'
              {
 	       start_block ();
+	       $<pointer>$ = additional_stmts;
+	       additional_stmts = NULL;
 	     }
          stmt_list '}'
              {
                IR_set_pos (current_scope, $1);
                $$ = $3;
 	       finish_block ();
+	       additional_stmts = $<pointer>2;
              }
       ;
 /* Attribute value is the last element of the cycle list. */
@@ -1940,7 +1944,7 @@ create_try_expr (IR_node_t try_block, IR_node_t stmt, IR_node_t excepts,
     = merge_stmt_lists (additional_stmts,
 			process_header_block (NULL, try_block, NO_HINT));
   /* create function call  */
-  fun_expr = IR_ident (IR_next_stmt (additional_stmts));
+  fun_expr = IR_ident (fun);
   call = create_node_with_pos (IR_NM_class_fun_thread_call, rpar_pos);
   IR_set_fun_expr (call, fun_expr);
   IR_set_actuals (call, NULL);
