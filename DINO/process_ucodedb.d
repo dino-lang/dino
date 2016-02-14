@@ -13,7 +13,7 @@ var lns = fgetf (udbf, 1);
 var all = [];
 for (var i = 0; i < #lns; i++) {
   var ln = lns[i];
-  var fs = split (ln, ";");
+  var fs = re.split (ln, ";");
   if (#fs != 15) {
     fputln (stderr, "Wrong number of fields on line ", i + 1);
     close (udbf); exit (1);
