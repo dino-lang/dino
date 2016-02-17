@@ -92,8 +92,7 @@ typedef float rfloat_t;
 #error there is no IEEE double
 #endif
 
-/* Alignment??? 32-bit int ? */
-#ifdef WORDS_BIGENDIAN
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 static const char __nan__[8] = { 0x7f, 0xf8, 0, 0, 0, 0, 0, 0 };
 #define IS_RFLOAT_NAN(var)\
   ((((int *) &var) [0] & ((int *) __nan__) [0]) == ((int *) __nan__) [0])
@@ -104,7 +103,7 @@ static const char __nan__[8] = { 0, 0, 0, 0, 0, 0, 0xf8, 0x7f };
 #endif
 
 #ifndef RFLOAT_HUGE_VAL
-#ifdef WORDS_BIGENDIAN
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 static const char __infinity[8] = { 0x7f, 0xf0, 0, 0, 0, 0, 0, 0 };
 #else
 static const char __infinity[8] = { 0, 0, 0, 0, 0, 0, 0xf0, 0x7f };

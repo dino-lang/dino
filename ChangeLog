@@ -1,3 +1,17 @@
+2016-02-17  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_conv.c (implicit_arithmetic_conversion): Don't update
+	vindex after read_dino_number call.
+	* DINO/d_func.c (get_file_unget_char_ptr): Return rint_t.
+	(get_file_char, unget_file_char): Take rint_t param.
+	(general_get_call, general_get_ln_file_call): Ditto.
+	(get_char_code, invinput_error): Ditto.
+	(get_token, scanel, general_scan_call): Ditto.
+	(number_unget_char_ptr): Make it of rint_t.
+	* DINO/d_gen.c (idiv): Check on zero for powerpc.
+	* DINO/d_types.h (IS_RFLOAT_NAN, RFLOAT_HUGE_VAL): Check
+	__BYTE_ORDER__ instead of WORDS_BIGENDIAN.
+
 2016-02-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_yacc.y (designator): Find func before merging.

@@ -600,7 +600,6 @@ implicit_arithmetic_conversion (ER_node_t var, ER_node_t tvar)
 					   &float_p, &long_p);
 	      if (err_code == NUMBER_OK)
 		{
-		  vindex += read_ch_num;
 		  while (vnumber[vindex] == ' ' || vnumber[vindex] == '\t')
 		    vindex++;
 		  if (vnumber[vindex] == 0)
