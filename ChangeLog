@@ -1,3 +1,7 @@
+2016-02-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* README.md: Add code metrics.
+
 2016-02-17  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_conv.c (implicit_arithmetic_conversion): Don't update
