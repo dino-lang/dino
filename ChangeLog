@@ -1,5 +1,9 @@
 2016-02-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* README.md: Use only 1 level list for code metrics.
+
+2016-02-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* README.md: Add empty lines arround ```.
 
 2016-02-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>

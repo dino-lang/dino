@@ -578,8 +578,7 @@ for (i = 0; i < n; i++);
 ---
 
 # Code Metrics
-* sloccount output as of 2/18/2016
-  * Dino + tools:
+* `sloccount` output as of 2/18/2016 for Dino + tools:
 
 ```
 	Totals grouped by language (dominant language first):
@@ -589,7 +588,7 @@ for (i = 0; i < n; i++);
 	cpp:           7403 (1.51%)
 ```
 
-  * Dino directory only:
+* Dino directory only:
 
 ```
 	Totals grouped by language (dominant language first):
