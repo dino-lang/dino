@@ -2280,14 +2280,16 @@ variables can be used:
        the keys of the table.
      </itemize>
 
-<sect3>Version
+<sect3>Versions
 <p>
 As Dino is a live programming language, it and its interpreter are in
 the process of development.  To access the Dino interpreter's version
-number and consequently the language version, the final variable
-<tt>version</tt> can be used.  The variable value is the Dino version
-as a floating point number.  For example, if the current Dino version
-is 0.97, the variable value will be 0.97.
+number and the language version, the final variables
+<tt>version</tt> and <tt>lang_version</tt> can be used
+correspondingly.  The variable values are the Dino versions as
+floating point numbers.  For example, if the current Dino interpreter
+version is 0.97 and the Dino language version is 0.5, the variable
+values will be 0.97 and 0.5.
 
 <sect3>Threads
 <p>

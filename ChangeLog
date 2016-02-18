@@ -1,5 +1,11 @@
 2016-02-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/dino.sgml.in: Add options with --.
+	* DINO/dino-9.html: Update.
+	* DINO/dino.{dvi, info, pdf, ps, txt}: Ditto.
+
+2016-02-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/dino.1: Add options with --.
 	* DINO/dino-11.html: Update.
 	* DINO/dino.{dvi, info, pdf, ps, txt}: Ditto.

@@ -2362,11 +2362,11 @@ interpreter.
 * Menu:
 
 * Arguments and environment::
-* Version::
+* Versions::
 * Threads::
 
 
-File: dino.info,  Node: Arguments and environment,  Next: Version,  Up: Predeclared variables
+File: dino.info,  Node: Arguments and environment,  Next: Versions,  Up: Predeclared variables
 
 9.1.1.1 Arguments and environment
 .................................
@@ -2382,20 +2382,21 @@ variables can be used:
      environment variables whose names are the keys of the table.
 
 
-File: dino.info,  Node: Version,  Next: Threads,  Prev: Arguments and environment,  Up: Predeclared variables
+File: dino.info,  Node: Versions,  Next: Threads,  Prev: Arguments and environment,  Up: Predeclared variables
 
-9.1.1.2 Version
-...............
+9.1.1.2 Versions
+................
 
 As Dino is a live programming language, it and its interpreter are in
 the process of development.  To access the Dino interpreter's version
-number and consequently the language version, the final variable
-'version' can be used.  The variable value is the Dino version as a
-floating point number.  For example, if the current Dino version is
-0.97, the variable value will be 0.97.
+number and the language version, the final variables 'version' and
+'lang_version' can be used correspondingly.  The variable values are the
+Dino versions as floating point numbers.  For example, if the current
+Dino interpreter version is 0.97 and the Dino language version is 0.5,
+the variable values will be 0.97 and 0.5.
 
 
-File: dino.info,  Node: Threads,  Prev: Version,  Up: Predeclared variables
+File: dino.info,  Node: Threads,  Prev: Versions,  Up: Predeclared variables
 
 9.1.1.3 Threads
 ...............
@@ -5003,43 +5004,43 @@ Node: Program91513
 Node: Predeclared identifiers95043
 Node: Space `lang'96488
 Node: Predeclared variables96802
-Node: Arguments and environment97160
-Node: Version97814
-Node: Threads98341
-Node: Exception classes98873
-Node: Functions of space `lang'104619
-Node: Space `io'116704
-Node: Exception classes of space `io'117291
-Node: Class `file'118208
-Node: Files118959
-Node: Functions for work with files119761
-Node: File output functions123778
-Node: File input functions136234
-Node: Encoding functions140075
-Node: Functions for work with directories140889
-Node: Functions for access to file/directory information142457
-Node: Miscellaneous functions147162
-Node: Space `sys'147882
-Node: Exceptions in space `sys'148313
-Node: Variable `time_format'153893
-Node: Time functions154291
-Node: Functions for access to information about OS processes157294
-Node: Function `system (command)'158840
-Node: Space `re'159271
-Node: Exception class `invregex'159647
-Node: Variable `split_regex'160109
-Node: Pattern matching160510
-Node: Space `math'184035
-Node: Mathematical functions184301
-Node: Other space `math' functions185864
-Node: Space `yaep'187178
-Node: Exception classes of space `yaep'189306
-Node: Class parser190161
-Node: Class `token'199255
-Node: Class `anode'200009
-Node: Variables `nil_anode' and `error_anode'202118
-Node: Example of Earley parser usage-202562
-Node: Appendix A- Syntax of Dino205470
-Node: Appendix B- Implementation210840
+Node: Arguments and environment97161
+Node: Versions97816
+Node: Threads98429
+Node: Exception classes98962
+Node: Functions of space `lang'104708
+Node: Space `io'116793
+Node: Exception classes of space `io'117380
+Node: Class `file'118297
+Node: Files119048
+Node: Functions for work with files119850
+Node: File output functions123867
+Node: File input functions136323
+Node: Encoding functions140164
+Node: Functions for work with directories140978
+Node: Functions for access to file/directory information142546
+Node: Miscellaneous functions147251
+Node: Space `sys'147971
+Node: Exceptions in space `sys'148402
+Node: Variable `time_format'153982
+Node: Time functions154380
+Node: Functions for access to information about OS processes157383
+Node: Function `system (command)'158929
+Node: Space `re'159360
+Node: Exception class `invregex'159736
+Node: Variable `split_regex'160198
+Node: Pattern matching160599
+Node: Space `math'184124
+Node: Mathematical functions184390
+Node: Other space `math' functions185953
+Node: Space `yaep'187267
+Node: Exception classes of space `yaep'189395
+Node: Class parser190250
+Node: Class `token'199344
+Node: Class `anode'200098
+Node: Variables `nil_anode' and `error_anode'202207
+Node: Example of Earley parser usage-202651
+Node: Appendix A- Syntax of Dino205559
+Node: Appendix B- Implementation210929
 
 End Tag Table

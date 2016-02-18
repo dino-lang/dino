@@ -55,7 +55,7 @@
      9.1 Space lang
         9.1.1 Predeclared variables
            9.1.1.1 Arguments and environment
-           9.1.1.2 Version
+           9.1.1.2 Versions
            9.1.1.3 Threads
         9.1.2 Exception classes
         9.1.3 Functions of space lang
@@ -2608,14 +2608,15 @@
      strings (immutable vectors of characters) representing values of
      environment variables whose names are the keys of the table.
 
-  9.1.1.2.  Version
+  9.1.1.2.  Versions
 
   As Dino is a live programming language, it and its interpreter are in
   the process of development. To access the Dino interpreter's version
-  number and consequently the language version, the final variable
-  version can be used. The variable value is the Dino version as a
-  floating point number. For example, if the current Dino version is
-  0.97, the variable value will be 0.97.
+  number and the language version, the final variables version and
+  lang_version can be used correspondingly. The variable values are the
+  Dino versions as floating point numbers. For example, if the current
+  Dino interpreter version is 0.97 and the Dino language version is 0.5,
+  the variable values will be 0.97 and 0.5.
 
   9.1.1.3.  Threads
 
