@@ -1,5 +1,11 @@
 2016-02-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/dino.1: Add options with --.
+	* DINO/dino-11.html: Update.
+	* DINO/dino.{dvi, info, pdf, ps, txt}: Ditto.
+
+2016-02-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/configure.ac (DINO_LANG_VERSION, DINO_MODULE_VERSION): New.
 	(DINO_MODULE_VERSION_SUFFIX): New.
 	* DINO/configure: Update.

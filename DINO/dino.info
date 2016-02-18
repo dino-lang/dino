@@ -4795,83 +4795,89 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- Syntax of
             dino - the interpreter of the programming language Dino
 
      SYNOPSIS
-            dino  [  -h  -s  -t -m size -Idirname -Lpath -O --save-temps -d -p] (-c
-            program | program-file | -i dump-file ) dino-program-arguments
+            dino [ -h --help -s --statistics -t --trace -m size -Idirname -Lpath -O
+            --save-temps -d --dump -p --profile] (-c program |  program-file  |  -i
+            dump-file ) dino-program-arguments
 
      DESCRIPTION
-            dino interprets a program in the Dino programming language.   The  pro‐
+            dino  interprets  a program in the Dino programming language.  The pro‐
             gram file (and include files) must have the suffix .d
 
-            The  program  encodings  are  defined by the current encoding.  You can
-            change  the  current  input  encoding  defining  environment   variable
-            DINO_ENCODING  or  calling  DINO function set_encoding in case of REPL.
-            Each program file can define own encoding putting  -*- coding:  <encod‐
+            The program encodings are defined by the  current  encoding.   You  can
+            change   the  current  input  encoding  defining  environment  variable
+            DINO_ENCODING or calling DINO function set_encoding in  case  of  REPL.
+            Each  program file can define own encoding putting  -*- coding: <encod‐
             ing-name> -*-  anywhere on the first two lines of the file.
 
-            The  description  of  Dino language is in the report of the Programming
+            The description of Dino language is in the report  of  the  Programming
             Language Dino.
 
      OPTIONS
-            Calling the interpreter without arguments is to call REPL (an  interac‐
-            tive  environment  for  execution  of  Dino statements and printing the
+            Calling  the interpreter without arguments is to call REPL (an interac‐
+            tive environment for execution of  Dino  statements  and  printing  the
             results of the statement execution).  The options which the Dino inter‐
             preter recognizes are:
 
             -c program
-                   Execute  the Dino program given on the command line as the argu‐
+                   Execute the Dino program given on the command line as the  argu‐
                    ment.
 
-            -h     Output information about Dino command line options.
+            -h, --help
+                   Output information about Dino command line options.
 
             -m number
-                   Determine the size of the heap chunks used by  the  Dino  inter‐
-                   preter.   The  size can be given in bytes (e.g. 32000), in kilo‐
-                   bytes (e.g. 64k), or in megabytes (e.g. 1m).  The  default  size
-                   is  1  Megabyte.   Initially,  the  Dino interpreter creates one
-                   chunk.  It allocates one additional chunk (as rule of  the  same
-                   size)  whenever there is no additional memory after garbage col‐
+                   Determine  the  size  of the heap chunks used by the Dino inter‐
+                   preter.  The size can be given in bytes (e.g. 32000),  in  kilo‐
+                   bytes  (e.g.  64k), or in megabytes (e.g. 1m).  The default size
+                   is 1 Megabyte.  Initially,  the  Dino  interpreter  creates  one
+                   chunk.   It  allocates one additional chunk (as rule of the same
+                   size) whenever there is no additional memory after garbage  col‐
                    lection.
 
-            -s     Output some statistics of interpreter work into stderr.  Statis‐
-                   tics  contain  the maximal heap size, number of heap chunks, and
-                   number of collisions in hash  tables  which  are  used  for  the
+            -s, --statistics
+                   Output some statistics of interpreter work into stderr.  Statis‐
+                   tics contain the maximal heap size, number of heap  chunks,  and
+                   number  of  collisions  in  hash  tables  which are used for the
                    implementation of Dino tables.
 
-            -t     Output  information  about call stack of the program into stderr
+            -t, --trace
+                   Output information about call stack of the program  into  stderr
                    for unprocessed exception or calling exit function.  This output
                    sometimes can be different from what people would expect because
                    of tail call elimination.
 
             -Idirname
-                   Define the  directory  in  which  Dino  include  files  will  be
-                   searched  for.  The order of searching in directories given with
+                   Define  the  directory  in  which  Dino  include  files  will be
+                   searched for.  The order of searching in directories given  with
                    this option is the same as the one on the command line.
 
             -Ldirname
                    Define  where  to  search  for  external  libraries  (if  shared
-                   libraries  are  implemented  on  the  system.   This is true for
+                   libraries are implemented on  the  system.   This  is  true  for
                    Linux, Solaris, Irix, OSF, and Windows) in which the Dino exter‐
-                   nal  variables and functions will be searched for.  The order of
+                   nal variables and functions will be searched for.  The order  of
                    searching in libraries given with this option is the same as one
                    on the command line.
 
             -O     Do type inference and byte code specialization.  It can speed up
                    the program execution, especially when JIT is used.
 
-            -d     Output Dino byte code to the standard output.
+            -d, --dump
+                   Output Dino byte code to the standard output.
 
-            -i     Read Dino byte code from a given file and execute it.   You  can
+            -i     Read  Dino  byte code from a given file and execute it.  You can
                    use this option instead of providing Dino program file.
 
             --save-temps
-                   If  a  Dino  function processed by JIT compiler, the generated C
-                   source code and PIC object code can  be  saved  after  finishing
-                   Dino  interpreter  in directory /tmp with this option.  The file
-                   names will contain identifier number of the  corresponding  Dino
+                   If a Dino function processed by JIT compiler,  the  generated  C
+                   source  code  and  PIC  object code can be saved after finishing
+                   Dino interpreter in directory /tmp with this option.   The  file
+                   names  will  contain identifier number of the corresponding Dino
                    interpreter process.
 
-            -p     Output  profile  information  into  stderr.  Profile information
-                   contains the number of calls and execution times of  all  called
+            -p, --profile
+                   Output profile information  into  stderr.   Profile  information
+                   contains  the  number of calls and execution times of all called
                    functions and classes.
 
      FILES
@@ -4882,60 +4888,60 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- Syntax of
             mpi.d
                    the DINO file implementing multiple precision arithmetic.
             mpi.so
-                   the  DINO  shared library used for implementing MPI on some Unix
+                   the DINO shared library used for implementing MPI on  some  Unix
                    systems.
             ieee.d
-                   the Dino file implementing IEEE standard floating  point  arith‐
+                   the  Dino  file implementing IEEE standard floating point arith‐
                    metic.
             ieee.so
-                   the  Dino shared library used for implementing IEEE on some Unix
+                   the Dino shared library used for implementing IEEE on some  Unix
                    systems.
             ipcerr.d
-                   the Dino file definining  exceptions  of  ipc/network  software.
+                   the  Dino  file  definining  exceptions of ipc/network software.
                    This file is used by socket.d.
             ipcerr.so
-                   the  Dino  shared  library  used for implementing IPCERR on some
+                   the Dino shared library used for  implementing  IPCERR  on  some
                    Unix systems.
             socket.d
                    the Dino file implementing work with sockets.
             socket.so
-                   the Dino shared library used for  implementing  SOCKET  on  some
+                   the  Dino  shared  library  used for implementing SOCKET on some
                    Unix systems.
-            Dino  interpreter  creates  temporary C and object files for Dino func‐
+            Dino interpreter creates temporary C and object files  for  Dino  func‐
             tions processed by JIT compiler in directory /tmp.
 
      ENVIRONMENT
-            There are the following environment variables which affect Dino  behav‐
+            There  are the following environment variables which affect Dino behav‐
             ior:
 
             DINO_HOME
-                   If  not null, it defines the places of the dino shared libraries
+                   If not null, it defines the places of the dino shared  libraries
                    (such a library may be only on some Unix systems including Linux
-                   and   Solaris),   include  files,  and  dino  standard  external
-                   libraries.  The places are defined as the  subdirectory  lib  in
-                   directory  given  by the environment variable value.  You should
-                   define the variable value on Windows if you installed the  files
+                   and  Solaris),  include  files,  and  dino   standard   external
+                   libraries.   The  places  are defined as the subdirectory lib in
+                   directory given by the environment variable value.   You  should
+                   define  the variable value on Windows if you installed the files
                    in a directory other than C:\dino\lib
 
             DINO_PATH
-                   If  not  null, it defines the places of dino include-files.  The
-                   value of the variable has more priority than DINO_HOME but  less
+                   If not null, it defines the places of dino  include-files.   The
+                   value  of the variable has more priority than DINO_HOME but less
                    priority than values given through -I options.
 
             DINO_LIB
-                   If  not  null, it defines places of dino shared library, if any.
-                   The  value  of  variable  has  more  priority  than   DINO_HOME.
+                   If not null, it defines places of dino shared library,  if  any.
+                   The   value  of  variable  has  more  priority  than  DINO_HOME.
                    DINO_EXTERN_LIBS.
 
             DINO_EXTERN_LIBS
-                   If  not  null,  it  defines  paths  of  additional Dino external
-                   libraries.  The libraries should be separated by ":"  (on  Unix)
-                   or  ";"  (on  Windows).  The value has less priority than values
+                   If not null,  it  defines  paths  of  additional  Dino  external
+                   libraries.   The  libraries should be separated by ":" (on Unix)
+                   or ";" (on Windows).  The value has less  priority  than  values
                    given in -L options.
 
             DINO_ENCODING
-                   If not null, it defines the current encoding  of  dino  program.
-                   By  defaull  the  current encoding is UTF-8 encoding.  Use iconv
+                   If  not  null,  it defines the current encoding of dino program.
+                   By defaull the current encoding is UTF-8  encoding.   Use  iconv
                    utility to get possible encoding names.
 
      DIAGNOSTICS
