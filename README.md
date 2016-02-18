@@ -580,6 +580,7 @@ for (i = 0; i < n; i++);
 # Code Metrics
 * sloccount output as of 2/18/2016
   * Dino + tools:
+
 ```
 	Totals grouped by language (dominant language first):
 	sh:          265452 (54.10%)
@@ -587,7 +588,9 @@ for (i = 0; i < n; i++);
 	yacc:         23297 (4.75%)
 	cpp:           7403 (1.51%)
 ```
+
   * Dino directory only:
+
 ```
 	Totals grouped by language (dominant language first):
 	sh:          161561 (62.13%)

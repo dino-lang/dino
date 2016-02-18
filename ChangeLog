@@ -1,5 +1,9 @@
 2016-02-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* README.md: Add empty lines arround ```.
+
+2016-02-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* README.md: Add code metrics.
 
 2016-02-17  Vladimir Makarov  <vmakarov@gcc.gnu.org>
