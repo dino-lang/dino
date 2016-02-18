@@ -1,5 +1,32 @@
 2016-02-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/configure.ac (DINO_LANG_VERSION, DINO_MODULE_VERSION): New.
+	(DINO_MODULE_VERSION_SUFFIX): New.
+	* DINO/configure: Update.
+	* DINO/Makefile.am (version_suffix, module_suffix): Remove.
+	(DINO_VERSION, DINO_LANG_VERSION): New.
+	(DINO_MODULE_VERSION, DINO_VERSION_SUFFIX): New.
+	(DINO_MODULE_VERSION_SUFFIX, DINO_MODULE_SUFFIX): New.
+	(full_suffix): Rename to dino_module_full_suffix.
+	(libdino_la_CFLAGS): Use the new macros.
+	(d_mpi_la_LDFLAGS, d_ieee_la_LDFLAGS, d_ipcerr_la_LDFLAGS): Use
+	DINO_MODULE_VERSION.
+	(d_socket_la_LDFLAGS): Ditto.
+	(dinoincludedir): Remove.
+	* DINO/Makefile.in: Update.
+	* DINO/d_bc.sprut (LANG_VERSION_NAME, lang_version_bc_decl): New.
+	(bc_decls_table): Add entry for lang_version.
+	* DINO/d_dino.c (COMMAND_LINE_DESCRIPTION): Add --help,
+	--statistics, --trace, --profile, --dump.
+	(dino_main): Initialize curr_byte_cd, curr_ucode_cd, and
+	curr_reverse_ucode_cd.  Process new options.  Print lang version.
+	* DINO/d_func.c (initiate_vars): Set up lang_version.
+	* DINO/d_ir.sprut (ENVIRONMENT): Add lang_version.
+	* DINO/dino.tst.in (version): Use DINO_MODULE_VERSION.
+	* README.md: Update benchmark times.
+
+2016-02-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* README.md: Use only 1 level list for code metrics.
 
 2016-02-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>

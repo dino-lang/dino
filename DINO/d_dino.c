@@ -1102,18 +1102,18 @@ void add_dino_path (const char *prefix, const char *subdir,
 "%%\n"\
 "command line: dino [option ...] [program-file] arguments\n"\
 "\n"\
-"`-h'           help\n"\
-"`-c program'   execute program\n"\
-"`-m size'      set heap chunk size (1m - default, 1000k, or 1000000)\n"\
-"`-Idirname'    directory for searching for Dino programs\n"\
-"`-Ldirname'    Dino extern libraries\n"\
-"`-O'           optimize\n"\
-"`-s'           output statistics to stderr\n"\
-"`-t'           output final trace to stderr\n"\
-"`-p'           output profile information into stderr\n"\
-"`-d'           dump program IR\n"\
-"`-i dump'      read IR instead of program\n"\
-"`--save-temps' save temp JIT C and object files\n"
+"`-h', `--help'       help\n"\
+"`-c program'         execute program\n"\
+"`-m size'            set heap chunk size (1m - default, 1000k, or 1000000)\n"\
+"`-Idirname'          directory for searching for Dino programs\n"\
+"`-Ldirname'          Dino extern libraries\n"\
+"`-O'                 optimize\n"\
+"`-s', `--statistics' output statistics to stderr\n"\
+"`-t', `--trace'      output final trace to stderr\n"\
+"`-p', `--profile'    output profile information into stderr\n"\
+"`-d', `--dump'       dump program IR\n"\
+"`-i dump'            read IR instead of program\n"\
+"`--save-temps'       save temp JIT C and object files\n"
 
 int bc_nodes_num;
 
@@ -1528,6 +1528,9 @@ dino_main (int argc, char *argv[], char *envp[])
   start_time = clock ();
   set_big_endian_flag ();
   command_line_program = NULL;
+#ifdef HAVE_ICONV_H
+  curr_byte_cd = curr_ucode_cd = curr_reverse_ucode_cd = NO_CONV_DESC;
+#endif
   if ((code = setjmp (exit_longjump_buff)) != 0)
     return (code < 0 ? 0 : code);
 #ifndef NDEBUG
@@ -1562,9 +1565,10 @@ dino_main (int argc, char *argv[], char *envp[])
 	    fprintf (stderr, "dino: unknown flag `%s'\n", argument_vector[i]);
 	  okay = FALSE;
 	}
-      else if (strcmp (option, "-h") == 0)
+      else if (strcmp (option, "-h") == 0 || strcmp (option, "--help") == 0)
 	{
-	  fprintf (stderr, "Version %.2f\n", DINO_VERSION);
+	  fprintf (stderr, "Version %.2f, Language Version %.2f\n",
+		   DINO_VERSION, DINO_LANG_VERSION);
 	  output_command_line_description ();
 	  dino_finish (1);
 	}
@@ -1572,11 +1576,12 @@ dino_main (int argc, char *argv[], char *envp[])
 	command_line_program = (ucode_t *) argument_vector [i + 1];
       else if (strcmp (option, "-O") == 0)
 	optimize_flag = TRUE;
-      else if (strcmp (option, "-s") == 0)
+      else if (strcmp (option, "-s") == 0
+	       || strcmp (option, "--statistics") == 0)
 	statistics_flag = TRUE;
-      else if (strcmp (option, "-t") == 0)
+      else if (strcmp (option, "-t") == 0 || strcmp (option, "--trace") == 0)
 	trace_flag = TRUE;
-      else if (strcmp (option, "-p") == 0)
+      else if (strcmp (option, "-p") == 0 || strcmp (option, "--profile") == 0)
 	{
 #ifdef NO_PROFILE
 	  fprintf (stderr, "dino: option `-p' is not implemented\n");
@@ -1584,7 +1589,7 @@ dino_main (int argc, char *argv[], char *envp[])
 	  profile_flag = TRUE;
 #endif
 	}
-      else if (strcmp (option, "-d") == 0)
+      else if (strcmp (option, "-d") == 0 || strcmp (option, "--dump") == 0)
 	dump_flag = TRUE;
       else if (strcmp (option, "-i") == 0)
 	input_dump = argument_vector [i + 1];
@@ -1705,8 +1710,9 @@ dino_main (int argc, char *argv[], char *envp[])
     {
       int first_p;
 
-      printf ("Dino interpreter, version %.2f\n", DINO_VERSION);
-      printf ("Copyright (c) 1997-2015, Vladimir Makarov, vmakarov@gcc.gnu.org\n");
+      printf ("Dino interpreter, version %.2f, language version %.2f\n",
+	      DINO_VERSION, DINO_LANG_VERSION);
+      printf ("Copyright (c) 1997-2016, Vladimir Makarov, vmakarov@gcc.gnu.org\n");
       printf ("Use \"exit(<int>);\" or Ctrl-D to exit\n");
       printf ("Use \";\" for stmt end, for if-stmt w/o else use \";;\", e.g. if (cond) v = e;;\n");
       start_scanner_file ("", NULL, no_position);

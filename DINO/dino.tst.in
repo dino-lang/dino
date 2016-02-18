@@ -41,7 +41,7 @@ ftemp=_temp.out
 ftemp2=_temp2.out
 tempdir=__tempdir
 result=ok
-version="@VERSION@"
+version="@DINO_MODULE_VERSION@"
 if uname | fgrep CYGWIN >/dev/null; then
     version=`echo $version|sed 's/\./-/'`
 fi

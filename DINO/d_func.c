@@ -6065,6 +6065,11 @@ initiate_vars (void)
   var = IVAL (ER_stack_vars (ostack), BC_var_num (version_bc_decl));
   ER_SET_MODE (var, ER_NM_float);
   ER_set_f (var, DINO_VERSION);
+  /* Set language version */
+  d_assert (BC_decl_scope (lang_version_bc_decl) == ER_block_node (ostack));
+  var = IVAL (ER_stack_vars (ostack), BC_var_num (lang_version_bc_decl));
+  ER_SET_MODE (var, ER_NM_float);
+  ER_set_f (var, DINO_LANG_VERSION);
   /* Set main_thread, curr_thread */
   d_assert (BC_decl_scope (main_thread_bc_decl) == ER_block_node (ostack));
   var = IVAL (ER_stack_vars (ostack),

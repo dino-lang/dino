@@ -651,7 +651,10 @@ ac_ct_CXX
 CXXFLAGS
 CXX
 DINO_MODULE_SUFFIX
+DINO_MODULE_VERSION_SUFFIX
 DINO_VERSION_SUFFIX
+DINO_MODULE_VERSION
+DINO_LANG_VERSION
 DINO_MOD_LDFLAGS
 DINO_LIB_LDFLAGS
 DINO_LIB_CFLAGS
@@ -11898,8 +11901,14 @@ fi
 
 
 
+# Version of language and mdoules.  Bump the versions if language is
+# changed or a module interface change.
+DINO_LANG_VERSION=0.5
+DINO_MODULE_VERSION=0.1
+
 DINO_MOD_LDFLAGS=
 DINO_VERSION_SUFFIX="-$VERSION"
+DINO_MODULE_VERSION_SUFFIX="-$DINO_MODULE_VERSION"
 DINO_MODULE_SUFFIX=".so"
 system=`uname`.`uname -r`
 case $system in
@@ -11918,6 +11927,7 @@ case $system in
 	  DINO_MOD_LDFLAGS='libdino.la -no-undefined'
 	  CFLAGS="`echo $CFLAGS` -I/usr/include -I/usr/local/include -L/usr/lib -L/usr/local/lib"
 	  DINO_VERSION_SUFFIX="-`echo $VERSION|sed 's/\./-/'`"
+	  DINO_MODULE_VERSION_SUFFIX="-`echo $DINO_MODULE_VERSION|sed 's/\./-/'`"
 	  DINO_MODULE_SUFFIX=".dll"
           ;;
 	*)
@@ -11925,6 +11935,9 @@ case $system in
           DINO_LIB_LDFLAGS=-static
 	  ;;
 esac
+
+
+
 
 
 
