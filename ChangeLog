@@ -1,5 +1,9 @@
 2016-02-22  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* README.md: Add Dino site.
+
+2016-02-22  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* README.md: Add empty lines and a proper indentation for
 	kramdown.  Add a note about the devlopment version.
 	* DINO/dino.sgml.in: Add a note about the devlopment version.
