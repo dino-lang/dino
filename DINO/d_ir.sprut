@@ -295,7 +295,7 @@ extern IR_node_t destroy_unique_ident;
   "    class deadlock (msg = nil) {use error former msg;}\n"\
   "    class syncwait (msg = nil) {use error former msg;}\n"\
   "\n"\
-  "  val version, main_thread, curr_thread;\n"\
+  "  val version, lang_version, main_thread, curr_thread;\n"\
   "  var argv, env;\n"\
   "  fun tolower {} fun toupper {} fun translit {}\n"\
   "  fun eltype {} fun keys {}\n"\

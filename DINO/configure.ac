@@ -11,8 +11,14 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([d_main.c])
 AM_MAINTAINER_MODE
 
+# Version of language and mdoules.  Bump the versions if language is
+# changed or a module interface change.
+DINO_LANG_VERSION=0.5
+DINO_MODULE_VERSION=0.1
+
 DINO_MOD_LDFLAGS=
 DINO_VERSION_SUFFIX="-$VERSION"
+DINO_MODULE_VERSION_SUFFIX="-$DINO_MODULE_VERSION"
 DINO_MODULE_SUFFIX=".so"
 system=`uname`.`uname -r`
 case $system in
@@ -31,6 +37,7 @@ case $system in
 	  DINO_MOD_LDFLAGS='libdino.la -no-undefined'
 	  CFLAGS="`echo $CFLAGS` -I/usr/include -I/usr/local/include -L/usr/lib -L/usr/local/lib"
 	  DINO_VERSION_SUFFIX="-`echo $VERSION|sed 's/\./-/'`"
+	  DINO_MODULE_VERSION_SUFFIX="-`echo $DINO_MODULE_VERSION|sed 's/\./-/'`"
 	  DINO_MODULE_SUFFIX=".dll"
           ;;
 	*)
@@ -42,7 +49,10 @@ esac
 AC_SUBST(DINO_LIB_CFLAGS)
 AC_SUBST(DINO_LIB_LDFLAGS)
 AC_SUBST(DINO_MOD_LDFLAGS)
+AC_SUBST(DINO_LANG_VERSION)
+AC_SUBST(DINO_MODULE_VERSION)
 AC_SUBST(DINO_VERSION_SUFFIX)
+AC_SUBST(DINO_MODULE_VERSION_SUFFIX)
 AC_SUBST(DINO_MODULE_SUFFIX)
 
 # Checks for programs.
