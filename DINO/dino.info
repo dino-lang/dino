@@ -9,10 +9,11 @@ File: dino.info,  Node: Top,  Next: Introduction,  Up: (dir)
 The Programming Language DINO
 *****************************
 
-     Vladimir Makarov, `vmakarov@gcc.gnu.org'. Edited by Serhei Makarov.
-     Feb. 9, 2016
+     Vladimir Makarov, `vmakarov@gcc.gnu.org'.
+     Feb. 22, 2016
 
-   This document describes the programming language DINO.
+   This document describes the programming language DINO - the
+development version of the future release 0.97.
 
 * Menu:
 
@@ -190,6 +191,7 @@ considered to be distinct.
      Examples:
 
                     'a'  '\''  '\\'  '\12'  '"'
+
   4. A _string_ is sequence of characters enclosed in double quotes.
      There are the same sequences of characters with special meaning as
      in a character constant.  To denote a double quote mark use
@@ -3274,6 +3276,7 @@ The single exception to this is 'isatty' which expects a file instance.
      Under some OSes the function never returns some of the characters
      (e.g.  'c' or 'b').  The function may return nil if it can not
      categorize the file as above.
+
    * 'fuidn (fileinstance_or_filename)'.  The function returns new
      string representing name of owner of the file (directory).  Under
      some OSes the function may return the new string '"Unknown"' if
@@ -4955,85 +4958,85 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- Syntax of
 
 Tag Table:
 Node: Top95
-Node: Introduction632
-Node: Syntax1930
-Node: Vocabulary and Representation2834
-Node: Declarations and Scope Rules11065
-Node: Variable Declarations16482
-Node: External Declarations18231
-Node: Functions and Classes19638
-Node: Use Clause28612
-Node: Singleton Object30817
-Node: Expose-clause31777
-Node: Expressions33431
-Node: Types and Values34043
-Node: Designators43089
-Node: Calls48412
-Node: Operators50476
-Node: Logical operators54773
-Node: Bit operators56581
-Node: Comparison operators57704
-Node: Arithmetic operators59700
-Node: Miscellaneous operators60911
-Node: Slice Operators65025
-Node: Current block instance67940
-Node: Anonymous Functions and Classes68403
-Node: Patterns69245
-Node: Executive statements73275
-Node: Empty statement74209
-Node: Block-statement74629
-Node: Expression-statement75348
-Node: Assignment statements76128
-Node: If-statement78767
-Node: For-statement79623
-Node: Foreach-statement81106
-Node: Match-statements82102
-Node: Break- and continue-statement85243
-Node: Return-statement86510
-Node: Throw-statement87276
-Node: Try-block87978
-Node: Wait-statement90411
-Node: Program91513
-Node: Predeclared identifiers95043
-Node: Space `lang'96488
-Node: Predeclared variables96802
-Node: Arguments and environment97160
-Node: Version97814
-Node: Threads98341
-Node: Exception classes98873
-Node: Functions of space `lang'104619
-Node: Space `io'116704
-Node: Exception classes of space `io'117291
-Node: Class `file'118208
-Node: Files118959
-Node: Functions for work with files119761
-Node: File output functions123778
-Node: File input functions136234
-Node: Encoding functions140075
-Node: Functions for work with directories140889
-Node: Functions for access to file/directory information142457
-Node: Miscellaneous functions147162
-Node: Space `sys'147882
-Node: Exceptions in space `sys'148313
-Node: Variable `time_format'153893
-Node: Time functions154291
-Node: Functions for access to information about OS processes157294
-Node: Function `system (command)'158840
-Node: Space `re'159271
-Node: Exception class `invregex'159647
-Node: Variable `split_regex'160109
-Node: Pattern matching160510
-Node: Space `math'184035
-Node: Mathematical functions184301
-Node: Other space `math' functions185864
-Node: Space `yaep'187178
-Node: Exception classes of space `yaep'189306
-Node: Class parser190161
-Node: Class `token'199255
-Node: Class `anode'200009
-Node: Variables `nil_anode' and `error_anode'202118
-Node: Example of Earley parser usage-202562
-Node: Appendix A- Syntax of Dino205470
-Node: Appendix B- Implementation210840
+Node: Introduction660
+Node: Syntax1958
+Node: Vocabulary and Representation2862
+Node: Declarations and Scope Rules11094
+Node: Variable Declarations16511
+Node: External Declarations18260
+Node: Functions and Classes19667
+Node: Use Clause28641
+Node: Singleton Object30846
+Node: Expose-clause31806
+Node: Expressions33460
+Node: Types and Values34072
+Node: Designators43118
+Node: Calls48441
+Node: Operators50505
+Node: Logical operators54802
+Node: Bit operators56610
+Node: Comparison operators57733
+Node: Arithmetic operators59729
+Node: Miscellaneous operators60940
+Node: Slice Operators65054
+Node: Current block instance67969
+Node: Anonymous Functions and Classes68432
+Node: Patterns69274
+Node: Executive statements73304
+Node: Empty statement74238
+Node: Block-statement74658
+Node: Expression-statement75377
+Node: Assignment statements76157
+Node: If-statement78796
+Node: For-statement79652
+Node: Foreach-statement81135
+Node: Match-statements82131
+Node: Break- and continue-statement85272
+Node: Return-statement86539
+Node: Throw-statement87305
+Node: Try-block88007
+Node: Wait-statement90440
+Node: Program91542
+Node: Predeclared identifiers95072
+Node: Space `lang'96517
+Node: Predeclared variables96831
+Node: Arguments and environment97189
+Node: Version97843
+Node: Threads98370
+Node: Exception classes98902
+Node: Functions of space `lang'104648
+Node: Space `io'116733
+Node: Exception classes of space `io'117320
+Node: Class `file'118237
+Node: Files118988
+Node: Functions for work with files119790
+Node: File output functions123807
+Node: File input functions136263
+Node: Encoding functions140104
+Node: Functions for work with directories140918
+Node: Functions for access to file/directory information142486
+Node: Miscellaneous functions147192
+Node: Space `sys'147912
+Node: Exceptions in space `sys'148343
+Node: Variable `time_format'153923
+Node: Time functions154321
+Node: Functions for access to information about OS processes157324
+Node: Function `system (command)'158870
+Node: Space `re'159301
+Node: Exception class `invregex'159677
+Node: Variable `split_regex'160139
+Node: Pattern matching160540
+Node: Space `math'184065
+Node: Mathematical functions184331
+Node: Other space `math' functions185894
+Node: Space `yaep'187208
+Node: Exception classes of space `yaep'189336
+Node: Class parser190191
+Node: Class `token'199285
+Node: Class `anode'200039
+Node: Variables `nil_anode' and `error_anode'202148
+Node: Example of Earley parser usage-202592
+Node: Appendix A- Syntax of Dino205500
+Node: Appendix B- Implementation210870
 
 End Tag Table

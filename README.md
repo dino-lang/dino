@@ -1,6 +1,10 @@
 # Programming language Dino and its implementation
-## Vladimir Makarov, vmakarov@gcc.gnu.org
-## Feb, 2016
+
+### The development version of the future release 0.97
+
+### Vladimir Makarov, vmakarov@gcc.gnu.org
+
+### Feb, 2016
 
 # Description Layout
 * Introduction to Dino
@@ -31,21 +35,22 @@
 
 # The first taste of Dino
   * Eratosthenes sieve:
+
 ```
-    var i, prime, k, count = 0, SieveSize = 8191, flags = [SieveSize : 1];
-    for (i = 0; i < SieveSize; i++)
-      if (flags[i]) {
-        prime = i + i + 3;
-        k = i + prime;
-        for (;;) {
-          if (k >= SieveSize)
-            break;
-          flags[k] = 0;
-          k += prime;
+      var i, prime, k, count = 0, SieveSize = 8191, flags = [SieveSize : 1];
+      for (i = 0; i < SieveSize; i++)
+        if (flags[i]) {
+          prime = i + i + 3;
+          k = i + prime;
+          for (;;) {
+            if (k >= SieveSize)
+              break;
+            flags[k] = 0;
+            k += prime;
+          }
+          count++;
         }
-        count++;
-      }
-    putln (count);
+      putln (count);
 ```
     
 ---
@@ -74,61 +79,71 @@
     * elements can be any values, e.g. other tables
     * Implemented as hash tables without buckets for compactness
       and data locality
-        * Secondary hash for conflict resolutions
-        * Murmur hash function for most values
+      * Secondary hash for conflict resolutions
+      * Murmur hash function for most values
 
 ---
 
 # Array Slices
 * Eratosthenes sieve with slices:
+
 ```
-    var i, prime, count = 0, SieveSize = 8191, flags = [SieveSize : 1];
-    for (i = 0; i < SieveSize; i++)
-      if (flags[i]) {
-        prime = i + i + 3;
-        flags[i + prime:SieveSize:prime] = 0;
-        count++;
-      }
-    putln (count);
+      var i, prime, count = 0, SieveSize = 8191, flags = [SieveSize : 1];
+      for (i = 0; i < SieveSize; i++)
+        if (flags[i]) {
+          prime = i + i + 3;
+          flags[i + prime:SieveSize:prime] = 0;
+          count++;
+        }
+      putln (count);
 ```
 
 ---
 
 # Functions
-* Example:                                                                                                                                                                           
+* Example:
+
 ```
-    fun even;
-    fun odd  (i) {i == 0 ? 0 : even (i - 1);}
-    fun even (i) {i == 0 ? 1 : odd (i - 1);}
-    putln (odd (1000000));
+      fun even;
+      fun odd  (i) {i == 0 ? 0 : even (i - 1);}
+      fun even (i) {i == 0 ? 1 : odd (i - 1);}
+      putln (odd (1000000));
 ```
+
 * Anonymous functions:
+
 ```
-    filter (fun (a) {a > 0;}, v);
-    fold (fun (a, b) {a * b;}, v, 1);
+      filter (fun (a) {a > 0;}, v);
+      fold (fun (a, b) {a * b;}, v, 1);
 ```
+
 * Function closures:
+
 ```
-    fun incr (base) {fun (incr) {base + incr;}}
+      fun incr (base) {fun (incr) {base + incr;}}
 ```
 
 ---
 
 # Threads
 * Thread: a function with concurrent execution
+
 ```
-    thread t (n) {for (var i = 0; i < n; i++) putln (i);}
-    t(100); // the following code don't wait for t finish
-    for (var i = 0; i < 1000; i++) putln (“main”, i);
+      thread t (n) {for (var i = 0; i < n; i++) putln (i);}
+      t(100); // the following code don't wait for t finish
+      for (var i = 0; i < 1000; i++) putln (“main”, i);
 ```
+
 * Implemented as green threads:
     * Much faster than OS threads with Global Interpreter Lock (Python/Ruby)
     * Deterministic behaviour and automatic deadlock recognition
     * Plans to implement through OS threads without GIL for parallelism
 * There is a low level sync-statement wait
+
 ```
-    wait (cond) [stmt];
+      wait (cond) [stmt];
 ```
+
 * Simple statements are atomic
 
 
@@ -137,19 +152,22 @@
 # Object orientation
 * Class is just a special type of function:
     * Returns closure, public visibility by default
+
 ```
-      class num (i) {fun print {put (i);}}
-      class binop (l, r) { fun print_op;
-        fun print {l.print(); print_op (); r.print ();}
-      }
+          class num (i) {fun print {put (i);}}
+          class binop (l, r) { fun print_op;
+            fun print {l.print(); print_op (); r.print ();}
+          }
 ```
+
 * Special class/function composition:
     * emulates (multiple) inheritance, traits, and dynamic dispatching
+
 ```
-      class add (l, r) {
-        use binop former l, r later print_op;
-        fun print_op {put (“ + “);}
-      }
+          class add (l, r) {
+            use binop former l, r later print_op;
+            fun print_op {put (“ + “);}
+          }
 ```
 
 ---
@@ -171,18 +189,20 @@
 
 # Object orientation -- continuation
 * Special function **isa** to check subtyping of class or object:
+
 ```
-    isa (add, binop);
-    isa (add (num (1), num (2)), binop);
+      isa (add, binop);
+      isa (add (num (1), num (2)), binop);
 ```
+
 * Optimization for removing code duplication
 * Syntactic sugar for a singleton object (it is implemented as
   anonymous class and corresponding object creation)
 
 ```
-    obj int_pair {
-      val min = 0, max = 10;
-    }
+      obj int_pair {
+        val min = 0, max = 10;
+      }
 ```
 
 ---
@@ -190,31 +210,37 @@
 # Object orientation -- continuation
 * Optimizations for access to object members permit to use
   objects as **name spaces**
- 
+
 ```
-    obj sorts {
-      var compare_fun;
-      fun quick_sort (...) {...}
-      fun heap_sort (...) {...}
-    }
-    ...
-    sorts.fft (...);
+      obj sorts {
+        var compare_fun;
+        fun quick_sort (...) {...}
+        fun heap_sort (...) {...}
+      }
+      ...
+      sorts.fft (...);
 ```
+
 * To make access to object more brief an **expose**-clause exists
 * Exposing an object member
+
 ```
-    expose sorts.quick_sort;
-    quick_sort (...);
+      expose sorts.quick_sort;
+      quick_sort (...);
 ```
+
 * You can have a member access with a different name
+
 ```
-   expose sorts.quick_sort (asort);
-   asort (...);
+      expose sorts.quick_sort (asort);
+      asort (...);
 ```
+
 * You can expose all public declarations of an object
+
 ```
-   expose sorts.*;
-   compare_fun = ...; quick_sort (...); heap_sort (...);
+      expose sorts.*;
+      compare_fun = ...; quick_sort (...); heap_sort (...);
 ```
 
 ---
@@ -254,6 +280,7 @@
 ---
 
 # Pattern matching -- pmatch statement
+
 ```
     pmatch (v) {
       case [...]: putln ("array"); continue;
@@ -262,6 +289,7 @@
       case _: putln ("any but array");
     }
 ```
+
   * Try to match value with case patterns in a particular order,
     execute the corresponding code for the first matched pattern
   * Scope of pattern variables is the corresponding case
@@ -274,27 +302,31 @@
 
 # Example: classes and functions with pattern matching
 * Simple binary tree and its check:
+
 ```
-    class tree {}
-    class leaf (i) {use tree;}
-    class node (l, r) {use tree;}
+      class tree {}
+      class leaf (i) {use tree;}
+      class node (l, r) {use tree;}
 ```
+
 ```
-    fun exists_leaf (test, t) {
-      pmatch (t) {
-        case leaf (v): return test (v);
-        case node (l, r):
-          return exists_leaf (test, l) || exists_leaf (test, r);
+      fun exists_leaf (test, t) {
+        pmatch (t) {
+          case leaf (v): return test (v);
+          case node (l, r):
+            return exists_leaf (test, l) || exists_leaf (test, r);
+        }
       }
-    }
 ```
+
 ```
-    fun has_odd_leaf (t) {
-      exists_leaf (fun (n) {type (n) == int && n % 2 == 1;}, t);
-    }
+      fun has_odd_leaf (t) {
+        exists_leaf (fun (n) {type (n) == int && n % 2 == 1;}, t);
+      }
 ```
 
 # Regular expression matching -- rmatch statement
+
 ```
     rmatch (str) {
       case "[a-zA-Z]+": putln ("word starting at ", m[0]);
@@ -302,6 +334,7 @@
       case _: putln ("anything else, m is undefined");
     }
 ```
+
   * Try to match string with case regular expressions in a particular order,
     execute the corresponding code for the first matched regular expression
   * Implicitly declared variable `m` contains integer vector
@@ -316,10 +349,12 @@
   * Exceptions are objects of sub-classes of class **except**
     * Exceptions can be generated by Dino interpreter, e.g. floating point exception
     * or by *throw*-statement:
+
 ```
-          class my_except (msg) {use except;}
-          throw my_except ("my special exceptions");
+            class my_except (msg) {use except;}
+            throw my_except ("my special exceptions");
 ```
+
   * Exceptions can be processed by *try*-block or *try*-operator
     * Exceptions are propagated to previous blocks on the block stack until they are processed
     * Unprocessed exceptions finish the program execution
@@ -331,27 +366,32 @@
     * The processed exception is in variable *e* implicitly defined in
       the corresponding catch-block
     * If there is no matched catch-block, the exception is propagated further
+
 ```
-          try {
-            var ln;
-            for (;;) {
-              var ln = getln (); putln (ln);
-            }
-          } catch (eof) { putln ("end of file"); }
+            try {
+              var ln;
+              for (;;) {
+                var ln = getln (); putln (ln);
+              }
+            } catch (eof) { putln ("end of file"); }
 ```
+
   * *Try-operator*
     * The operator returns non-zero if no exceptions occurs in the statement given as the first argument
     * The operator returns zero if an exception occurs and its class is a sub-class (see *isa*)
       of one exception class given by the subsequent arguments
     * If there is no matched argument class, the exception is propagated further
+
 ```
-          var ln;
-          for (; try (ln = getln (), eof);) putln (ln);
+            var ln;
+            for (; try (ln = getln (), eof);) putln (ln);
 ```
+
   * In the previous example, `try (ln = getln (), eof)` can be considered as
     abbreviation of anonymous function call:
+
 ```
-          fun {try {ln = getln (); return 1;} catch (eof) {return 0;} ()
+            fun {try {ln = getln (); return 1;} catch (eof) {return 0;} ()
 ```
 
 # Earley parser
@@ -368,7 +408,8 @@
 ---
 
 # Earley parser -- tiny language example
-````
+
+```
 expose yaep.*;
 val grammar =
  "TERM ident=301, num=302, if=303, then=304, for=305, do=307, var=308;
@@ -387,7 +428,7 @@ val p = parser ();       // create an Earley parser
 p.set_grammar (grammar); // set grammar
 fun syntax_error;        // forward decl of syntax error reporting func
 val asbtract_tree = p.parse (token_vector, syntax_error);
-````
+```
 
 ---
 
@@ -420,23 +461,26 @@ val asbtract_tree = p.parse (token_vector, syntax_error);
 
 # Implementation -- Byte Code example
 * Dino code
+
 ```
-var i, n = 1000;
-for (i = 0; i < n; i++);
+      var i, n = 1000;
+      for (i = 0; i < n; i++);
 ```
+
 * Readable BCode representation:
+
 ```
-0 block fn="ex.d" ln=1 pos=1 next=730 vars_num=29 tvars_num=3 // ident=
-...
-372 vdecl fn="ex.d" ln=1 pos=5 ident=i ident_num=268 decl_scope=0 var_num=27
-373 vdecl pos=8 ident=n ident_num=269 decl_scope=0 var_num=28
-...
-788 ldi fn="ex.d" ln=1 pos=12 op1=28 op2=1000 // 28 <- i1000
-789 ldi ln=2 pos=10 next=791 op1=27 op2=0 // 27 <- i0
-790 btltinc pos=15 next=792 op1=27 binc_inc=1 bcmp_op2=28 bcmp_res=29 pc=790
+      0 block fn="ex.d" ln=1 pos=1 next=730 vars_num=29 tvars_num=3 // ident=
+      ...
+      372 vdecl fn="ex.d" ln=1 pos=5 ident=i ident_num=268 decl_scope=0 var_num=27
+      373 vdecl pos=8 ident=n ident_num=269 decl_scope=0 var_num=28
+      ...
+      788 ldi fn="ex.d" ln=1 pos=12 op1=28 op2=1000 // 28 <- i1000
+      789 ldi ln=2 pos=10 next=791 op1=27 op2=0 // 27 <- i0
+      790 btltinc pos=15 next=792 op1=27 binc_inc=1 bcmp_op2=28 bcmp_res=29 pc=790
                                           // goto 790 if 29 <- (27 += i1) cmp 28
-791 btlt pos=15 op1=27 bcmp_op2=28 bcmp_res=29 pc=790 // goto 790 if 29 <- 27 cmp 28
-792 bend pos=17 block=0
+      791 btlt pos=15 op1=27 bcmp_op2=28 bcmp_res=29 pc=790 // goto 790 if 29 <- 27 cmp 28
+      792 bend pos=17 block=0
 ```
 
 ---
@@ -450,10 +494,11 @@ for (i = 0; i < n; i++);
     * Pure function optimization
     * Byte code combining (this is just an illustration, the readable
       BCode representation has a bit different format -- see the previous slide)
+
 ```
-      label: addi op1, op1, i1; lt res, op1, op2; bt res, label =>
-      label: addi op1, op1, i1; blt res, op1, op2, label =>
-      label: btltinc op1, op2, i2, res, label
+            label: addi op1, op1, i1; lt res, op1, op2; bt res, label =>
+            label: addi op1, op1, i1; blt res, op1, op2, label =>
+            label: btltinc op1, op2, i2, res, label
 ```
 
 ---
@@ -473,9 +518,11 @@ for (i = 0; i < n; i++);
 # Implementation -- Continuation
 * JIT
     * Function Level for functions marked by hint (! jit)
+
 ```
-      fun fact (n) !jit {n <=1 ? 1 : n * fact (n - 1);}
+            fun fact (n) !jit {n <=1 ? 1 : n * fact (n - 1);}
 ```
+
 * JIT details:
     * Triggered by the first call
     * Portable implementation through C code generation
@@ -548,32 +595,32 @@ for (i = 0; i < n; i++);
 
 # Implementation -- Profiling
 * Typical performance tuning: Profiling: dino -p meteor.d
+
 ```
-** Calls *** Time **** Name **************************************
-  761087        0.43  --  search1: "meteor.d": 229
-  561264        0.07  --  ctz: "meteor.d": 28
-    1260        0.01  --  GoodPiece: "meteor.d": 37
-     ...
-                0.51  --  All Program
+      ** Calls *** Time **** Name **************************************
+        761087     0.43  --  search1: "meteor.d": 229
+        561264     0.07  --  ctz: "meteor.d": 28
+          1260     0.01  --  GoodPiece: "meteor.d": 37
+           ...
+                   0.51  --  All Program
 ```
+
 * Adding hints: !inline for ctz and !jit for search1
 
 ```
-** Calls *** Time **** Name **************************************
-  761087        0.15  --  search1: "meteor.d": 229
-     ...
-       0        0.00  --  ctz: "meteor.d": 28
-     ...
-                0.17  --  All Program
+      ** Calls *** Time **** Name **************************************
+        761087     0.15  --  search1: "meteor.d": 229
+           ...
+             0     0.00  --  ctz: "meteor.d": 28
+           ...
+                   0.17  --  All Program
 ```
 
 ---
 
-# Implementation -- C/C++ Interface
-* Interface to C/C++
+# Implementation -- C Interface
+* Interface to C
 
-
----
 
 ---
 
@@ -747,26 +794,34 @@ Ocaml   |8.2    |1.1    |11.7   |165    |0.4   |0.8   |1.9   |3.7  |2.1    |4.8 
 # Dino Building
 * See file INSTALL for details
 * Configure in a build directory:
+
 ```
-  <dino-path>/configure --srcidir=<dino-path> --prefix=<install-path>
+      <dino-path>/configure --srcidir=<dino-path> --prefix=<install-path>
 ```
+
 * Configure in a debug mode: -O0 and full IR checking (it makes
   DINO several times slower):
+
 ```
-  dino_debug=y <dino-path>/configure --srcidir=<dino-path> --prefix=<install-path>
-  or cocom_debug=y ...
+      <dino-path>/configure --srcidir=<dino-path> --prefix=<install-path> --enable-debug
 ```
+
 * Make:
+
 ```
-  make
+      make
 ```
+
 * Testing all COCOM and DINO:
+
 ```
-  make check
+      make check
 ```
+
 * Testing only DINO (about 900 tests and benchmarking comparison with available implementations of other languages which can take a lot of time):
+
 ```
-  cd DINO; make check
+      cd DINO; make check
 ```
 
 * Testig Dino is to run two shell scripts:
@@ -774,6 +829,9 @@ Ocaml   |8.2    |1.1    |11.7   |165    |0.4   |0.8   |1.9   |3.7  |2.1    |4.8 
     * Benchmarks are in file DINO/compare.tst
 
 * Installing COCOM and DINO:
+
 ```
-  make install
+      make install
 ```
+
+---

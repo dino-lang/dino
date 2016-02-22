@@ -1,9 +1,9 @@
   The Programming Language DINO
-  Vladimir Makarov, vmakarov@gcc.gnu.org.  Edited by Serhei
-  Makarov.
-  Feb. 9, 2016
+  Vladimir Makarov, vmakarov@gcc.gnu.org.
+  Feb. 22, 2016
 
-  This document describes the programming language DINO.
+  This document describes the programming language DINO -- the develop-
+  ment version of the future release 0.97.
   ______________________________________________________________________
 
   Table of Contents
@@ -117,10 +117,10 @@
 
   o  objects
 
-     Originally, Dino was used in the russian graphics company ANIMATEK
-     for description of the movement of dinosaurs in a project. It has
-     been considerably redesigned and was implemented with the aid of
-     the COCOM tool set.
+  Originally, Dino was used in the russian graphics company ANIMATEK for
+  description of the movement of dinosaurs in a project. It has been
+  considerably redesigned and was implemented with the aid of the COCOM
+  tool set.
 
   This document is not intended for use as a programmer's tutorial. It
   is a concise description of the language DINO and can be used as a
@@ -250,10 +250,11 @@
 
      o  \char - Character char for all remaining characters
 
+
      To denote a single quote mark use the sequence \'.  The double
-     quote mark can be represented either by \" or simply by ". To rep-
-     resent a backslash inside the character constant, use two consecu-
-     tive ASCII backslashes.
+     quote mark can be represented either by \" or simply by ". To
+     represent a backslash inside the character constant, use two
+     consecutive ASCII backslashes.
 
 
                  Character = "'" Char "'"
@@ -847,8 +848,7 @@
      parentheses is given. The original declaration can be used with
      this identfier.
 
-     These rules are necessary for correct duck-typing or class sub-
-     typing.
+  These rules are necessary for correct duck-typing or class sub-typing.
 
   The following example illustrates use-clause:
 
@@ -2629,7 +2629,7 @@
   o  curr_thread. The variable value is the thread in which you
      reference the variable.
 
-     All these variables are final, so you can not change their values.
+  All these variables are final, so you can not change their values.
 
   9.1.2.  Exception classes
 
@@ -3039,9 +3039,9 @@
   o  stderr. The variable value is an object of the class file which
      corresponds to the standard error stream.
 
-     All these variables are final, so you can not change their values.
-     Encoding of the files is DINO current encoding at the program start
-     (see function set_encoding).
+  All these variables are final, so you can not change their values.
+  Encoding of the files is DINO current encoding at the program start
+  (see function set_encoding).
 
   9.2.4.  Functions for work with files
 
@@ -3567,9 +3567,10 @@
 
      o  'S'. A socket.
 
+
      Under some OSes the function never returns some of the characters
-     (e.g. 'c' or 'b'). The function may return nil if it can not cate-
-     gorize the file as above.
+     (e.g. 'c' or 'b'). The function may return nil if it can not
+     categorize the file as above.
 
   o  fuidn (fileinstance_or_filename). The function returns new string
      representing name of owner of the file (directory). Under some OSes
@@ -3625,14 +3626,13 @@
      given as a parameter is an open file connected to a terminal and 0
      otherwise.
 
-     The following functions can be used to change rights of usage of
-     the file (directory) for different users. The function expects two
-     strings (after implicit string conversion). The first one is the
-     path name of the file (directory). The second one is the rights.
-     For instance, if the string contains a character 'r', this is right
-     to read (see characters used to denote different rights in the
-     description of the function fumode). The function return values are
-     always undefined.
+  The following functions can be used to change rights of usage of the
+  file (directory) for different users. The function expects two strings
+  (after implicit string conversion). The first one is the path name of
+  the file (directory). The second one is the rights. For instance, if
+  the string contains a character 'r', this is right to read (see
+  characters used to denote different rights in the description of the
+  function fumode). The function return values are always undefined.
 
   o  chumod (path, mode). The function sets up rights for the file
      (directory) owner according to the given mode.
@@ -4516,8 +4516,8 @@
 
 
 
-  If the regular expression is incorrect, the functions generate excep-
-  tion invregex with a message explaining the error.
+  If the regular expression is incorrect, the functions generate
+  exception invregex with a message explaining the error.
 
   9.5.  Space math
 
@@ -4802,6 +4802,7 @@
      o  the first not ignored token itself. It may be nil for end of
         file.
 
+
      If the parser works with switched off error recovery (see function
      set_recovery, the third and fifth parameters will be negative and
      forth and sixth parameter will be nil.
@@ -4809,11 +4810,11 @@
      The function returns an object of the predeclared class anode which
      is the root of the abtsract tree representing the translation of
      the parser input. The function returns nil only if syntax error was
-     occurred and error recovery was switched off. The function can gen-
-     erate exception partype if the parameter types are wrong or excep-
-     tion invtoken_decl if any of the input tokens have a wrong code.
-     The function also can generate exception pmemory if there is no
-     memory for internal parser data.
+     occurred and error recovery was switched off. The function can
+     generate exception partype if the parameter types are wrong or
+     exception invtoken_decl if any of the input tokens have a wrong
+     code. The function also can generate exception pmemory if there is
+     no memory for internal parser data.
 
   The call of the class parser itself can generate exception pmemory if
   there is no memory for internal parser data.
