@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2015 Vladimir Makarov.
+   Copyright (C) 1997-2016 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@gcc.gnu.org>
 
@@ -999,6 +999,10 @@ use_item :: generic_pos
 former_item, later_item :: use_item
 ;
 
+require :: stmt
+%other
+	required_version : expr
+;
 /************* The following part is set in context analyzer **************/
 
 ident

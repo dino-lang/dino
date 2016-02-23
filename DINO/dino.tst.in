@@ -51000,6 +51000,138 @@ OUTPUT900
         fi
 fi
 
+# Test 901.
+if test $result = ok -a $start_test_number -le 901; then
+	echo test 901: Require
+        cat >$test_file <<'TEST901'
+require 0;
+putln ("Hi");
+TEST901
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT901' && $CMP $stdout $ftemp2; then
+Hi
+OUTPUT901
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 902.
+if test $result = ok -a $start_test_number -le 902; then
+	echo test 902: Require
+        cat >$test_file <<'TEST902'
+require 0l;
+putln ("Hi");
+TEST902
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT902' && $CMP $stdout $ftemp2; then
+Hi
+OUTPUT902
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 903.
+if test $result = ok -a $start_test_number -le 903; then
+	echo test 903: Require
+        if $DINO -c 'putln (" require ", lang_version, ";\nputln (\"Hi\");");' > $test_file; then
+            echo '      ' $DINO '-O' $test_file "2>$stderr"
+            if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT903' && $CMP $stdout $ftemp2; then
+Hi
+OUTPUT903
+                        result=ok
+                else
+                        result=fail
+                fi
+            else
+                result=fail
+            fi
+        else
+            result=fail
+        fi
+fi
+
+# Test 904.
+if test $result = ok -a $start_test_number -le 904; then
+	echo test 904: Require
+        if $DINO -c 'putln (" require ", lang_version + 0.0049, ";\nputln (\"Hi\");");' > $test_file; then
+            echo '      ' $DINO '-O' $test_file "2>$stderr"
+            if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT904' && $CMP $stdout $ftemp2; then
+Hi
+OUTPUT904
+                        result=ok
+                else
+                        result=fail
+                fi
+            else
+                result=fail
+            fi
+        else
+            result=fail
+        fi
+fi
+
+# Test 905.
+if test $result = ok -a $start_test_number -le 905; then
+	echo test 905: Require
+        if $DINO -c 'putln (" require ", lang_version + 0.005, ";\nputln (\"Hi\");");' > $test_file; then
+            echo '      ' $DINO '-O' $test_file " 2>&1 | sed 's/[0-9]//g' >$stderr"
+            if $DINO -O $test_file 2>&1 | sed 's/[0-9]//g' >$stderr; then
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT905' && $CMP $stderr $ftemp2; then
+test.d::: the current language version . is not compatible with required .
+OUTPUT905
+                        result=ok
+                else
+                        result=fail
+                fi
+            else
+                result=fail
+            fi
+        else
+            result=fail
+        fi
+fi
+
+# Test 906.
+if test $result = ok -a $start_test_number -le 906; then
+	echo test 906: Require
+        cat >$test_file <<'TEST906'
+require 10000000000000000000000l;
+putln ("Hi");
+TEST906
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT906' && $CMP $stderr $ftemp2; then
+test.d:1:9: required version is too huge
+OUTPUT906
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
 # Final message
 
 if test $result = ok; then

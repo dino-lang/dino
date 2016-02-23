@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2015 Vladimir Makarov.
+   Copyright (C) 1997-2016 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@gcc.gnu.org>
 
@@ -1512,6 +1512,26 @@ check_encoding_on_ascii (const char *encoding)
 #else
 #define DEFAULT_DINO_ENCODING RAW_STRING
 #endif
+
+static rfloat_t incompatible_lang_versions[] = {};
+
+int
+incompatible_lang_version_p (rfloat_t v)
+{
+  rfloat_t epsilon = 0.001; /* we consider only 2 digits after point */
+  int i;
+  
+  if (v > DINO_LANG_VERSION + epsilon)
+    return TRUE;
+  for (i = (int) sizeof (incompatible_lang_versions) / (int) sizeof (rfloat_t) - 1;
+       i >= 0;
+       i--)
+    if (incompatible_lang_versions[i] - epsilon < v
+	&& v < incompatible_lang_versions[i] + epsilon)
+      return TRUE;
+  return FALSE;
+}
+    
 
 int
 dino_main (int argc, char *argv[], char *envp[])

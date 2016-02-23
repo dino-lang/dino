@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2015 Vladimir Makarov.
+   Copyright (C) 1997-2016 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@gcc.gnu.org>
 
@@ -123,7 +123,7 @@ static int repl_can_process_p (void);
 %token <pointer> NUMBER CHARACTER STRING IDENT
 %token <pos> BREAK CASE CATCH CHAR CLASS CONTINUE ELSE EXPOSE EXTERN
        FINAL FLOAT FOR FORMER FRIEND FUN HIDE HIDEBLOCK IF IN INT
-       LONG LATER NEW NIL OBJ PMATCH PRIV PROCESS PUB RETURN RMATCH
+       LONG LATER NEW NIL OBJ PMATCH PRIV PROCESS PUB REQUIRE RETURN RMATCH
        TAB THIS THREAD THROW TRY TYPE USE VAL VAR VEC WAIT
 %token <pos> LOGICAL_OR LOGICAL_AND EQ NE IDENTITY UNIDENTITY LE GE
              LSHIFT RSHIFT ASHIFT
@@ -1171,6 +1171,12 @@ declaration : access VAL {$<access>$ = $1;} set_flag
 		  IR_set_next_stmt ($$, $$);
                   IR_set_use_qual_ident ($$, $2);
 		  IR_set_use_items ($$, uncycle_use_item_list ($3));
+	        }
+            | REQUIRE NUMBER {$<flag>$ = $<flag>0;} end_simple_stmt
+                {
+		  $$ = create_node_with_pos (IR_NM_require, IR_pos ($2));
+		  IR_set_next_stmt ($$, $$);
+                  IR_set_required_version ($$, $2);
 	        }
             ;
 expose_clause : EXPOSE expose_qual_ident

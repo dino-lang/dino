@@ -1,5 +1,19 @@
 2016-02-22  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/d_common.h (incompatible_version_p): New.
+	(incompatible_lang_versions): New.
+	* DINO/d_dino.c (incompatible_version_p): New.
+	* DINO/d_errors.[ch] (ERR_incompatible_version): New.
+	(ERR_too_huge_version): New.
+	* DINO/d_ir.sprut (require): New.
+	* DINO/d_kw.shilka (require): Add.
+	* DINO/d_yacc.y: Add rule for require.
+	* DINO/d_context.c (first_block_passing): Process require.
+	(second_block_passing): Skip require.
+	* DINO/dino.tst.in (901-906): New tests.
+
+2016-02-22  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* README.md: Use io for site.
 
 2016-02-22  Vladimir Makarov  <vmakarov@gcc.gnu.org>
@@ -13,6 +27,12 @@
 	* DINO/dino.sgml.in: Add a note about the devlopment version.
 	* DINO/dino-{1, 3, 4, 9}.html: Update.  Add <p> and </p>.
 	* DINO/dino.{dvi, html, info, pdf, ps, txt}
+
+2016-02-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/dino.sgml.in: Describe lang_version.
+	* DINO/dino-9.html: Update.
+	* DINO/dino.{dvi, info, pdf, ps, txt}: Ditto.
 
 2016-02-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 

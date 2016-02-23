@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2015 Vladimir Makarov.
+   Copyright (C) 1997-2016 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@gcc.gnu.org>
 
@@ -31,6 +31,9 @@
    found before the evaluation.  DERR is one found during the
    evaluation. */
 
+char ERR_incompatible_version[]
+  = "the current language version %.2f is not compatible with required %.2f";
+char ERR_too_huge_version[] = "required version is too huge";
 char ERR_no_memory[] = "no memory";
 char ERR_source_file_encoding[]
   = "unknown or not implemented encoding `%s' of file `%s'";
