@@ -68,14 +68,16 @@ the keys of the table.</LI>
 </UL>
 </P>
 
-<H3>Version</H3>
+<H3>Versions</H3>
 
 <P>As Dino is a live programming language, it and its interpreter are in
 the process of development.  To access the Dino interpreter's version
-number and consequently the language version, the final variable
-<CODE>version</CODE> can be used.  The variable value is the Dino version
-as a floating point number.  For example, if the current Dino version
-is 0.97, the variable value will be 0.97.</P>
+number and the language version, the final variables
+<CODE>version</CODE> and <CODE>lang_version</CODE> can be used
+correspondingly.  The variable values are the Dino versions as
+floating point numbers.  For example, if the current Dino interpreter
+version is 0.97 and the Dino language version is 0.5, the variable
+values will be 0.97 and 0.5.</P>
 
 <H3>Threads</H3>
 
@@ -88,8 +90,8 @@ which is called <EM>the main thread</EM>.</LI>
 <LI><CODE>curr_thread</CODE>.  The variable value is the thread in
 which you reference the variable.</LI>
 </UL>
-
-All these variables are final, so you can not change their values.</P>
+</P>
+<P>All these variables are final, so you can not change their values.</P>
 
 <H3>Exception classes</H3>
 
@@ -517,8 +519,8 @@ stream.</LI>
 class <CODE>file</CODE> which corresponds to the standard error
 stream.</LI>
 </UL>
-
-All these variables are final, so you can not change their values.
+</P>
+<P>All these variables are final, so you can not change their values.
 Encoding of the files is DINO current encoding at the program start
 (see function <CODE>set_encoding</CODE>).</P>
 
@@ -1079,9 +1081,10 @@ returns one the following characters:
 <LI><CODE>'S'</CODE>.  A socket.</LI>
 </UL>
 
-Under some OSes the function never returns some of the
+<P>Under some OSes the function never returns some of the
 characters (e.g. 'c' or 'b').  The function may return nil if
-it can not categorize the file as above.</LI>
+it can not categorize the file as above.</P>
+</LI>
 <LI><CODE>fuidn (fileinstance_or_filename)</CODE>.  The function
 returns new string representing name of owner of the file
 (directory).  Under some OSes the function may return the new
@@ -1133,8 +1136,8 @@ information about the rights of all other users.</LI>
 the file instance given as a parameter is an open file
 connected to a terminal and 0 otherwise.</LI>
 </UL>
-
-The following functions can be used to change rights of usage of the
+</P>
+<P>The following functions can be used to change rights of usage of the
 file (directory) for different users.  The function expects two
 strings (after implicit string conversion).  The first one is the path
 name of the file (directory).  The second one is the rights.  For
@@ -2024,8 +2027,8 @@ outputs
 </P>
 </LI>
 </UL>
-
-If the regular expression is incorrect, the functions generate
+</P>
+<P>If the regular expression is incorrect, the functions generate
 exception <CODE>invregex</CODE> with a message explaining the error.</P>
 
 <H2><A NAME="ss9.5">9.5</A> <A HREF="dino.html#toc9.5">Space <CODE>math</CODE></A>
@@ -2325,12 +2328,11 @@ which is not ignored after error recovery.</LI>
 <CODE>nil</CODE> for end of file.</LI>
 </UL>
 
-If the parser works with switched off error recovery (see
+<P>If the parser works with switched off error recovery (see
 function <CODE>set_recovery</CODE>, the third and fifth parameters
 will be negative and forth and sixth parameter will be
-<CODE>nil</CODE>.
-
-The function returns an object of the predeclared class
+<CODE>nil</CODE>.</P>
+<P>The function returns an object of the predeclared class
 <CODE>anode</CODE> which is the root of the abtsract tree
 representing the translation of the parser input.  The function
 returns <CODE>nil</CODE> only if syntax error was occurred and
@@ -2339,7 +2341,8 @@ exception <CODE>partype</CODE> if the parameter types are wrong or
 exception <CODE>invtoken_decl</CODE> if any of the input tokens
 have a wrong code.  The function also can generate exception
 <CODE>pmemory</CODE> if there is no memory for internal parser
-data.</LI>
+data.</P>
+</LI>
 </UL>
 </P>
 <P>The call of the class <CODE>parser</CODE> itself can generate exception

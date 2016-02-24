@@ -2143,7 +2143,8 @@ sort_call (int pars_number)
     {
       if (ER_NODE_MODE (ctop) != ER_NM_vect
 	  || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-	  || (ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
+	  || (ER_els_number (vect) != 0
+	      && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
 	      && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_byte
 	      && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_int
 	      && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_long
@@ -2233,10 +2234,10 @@ print_context (ER_node_t context, int byte_p)
 
 
 
-static inline int *
+static inline rint_t *
 get_file_unget_char_ptr (ER_node_t instance)
 {
-  return (int *) ((char *) IVAL (ER_stack_vars (instance),
+  return (rint_t *) ((char *) IVAL (ER_stack_vars (instance),
 				 BC_var_num (unget_char_bc_decl))
 		  + val_displ_table [ER_NM_int]);
 }
@@ -3466,7 +3467,7 @@ sprintln_call (int pars_number)
 }
 
 static inline int
-get_file_char (FILE *f, int *unget_char_ptr, conv_desc_t cd,
+get_file_char (FILE *f, rint_t *unget_char_ptr, conv_desc_t cd,
 	       encoding_type_t tp)
 {
   int uc;
@@ -3493,14 +3494,14 @@ get_file_char (FILE *f, int *unget_char_ptr, conv_desc_t cd,
 }
 
 static inline void
-unget_file_char (int ch, FILE *f, int *unget_char_ptr)
+unget_file_char (int ch, FILE *f, rint_t *unget_char_ptr)
 {
   d_assert (*unget_char_ptr == UCODE_BOUND);
   *unget_char_ptr = ch;
 }
 
 static void
-general_get_call (FILE *f, int *unget_char_ptr, int file_flag, conv_desc_t cd,
+general_get_call (FILE *f, rint_t *unget_char_ptr, int file_flag, conv_desc_t cd,
 		  encoding_type_t tp)
 {
   ucode_t ch;
@@ -3518,7 +3519,7 @@ general_get_call (FILE *f, int *unget_char_ptr, int file_flag, conv_desc_t cd,
 }
 
 static void
-general_get_ln_file_call (FILE *f, int *unget_char_ptr, int param_flag,
+general_get_ln_file_call (FILE *f, rint_t *unget_char_ptr, int param_flag,
 			  int ln_flag, int as_lns_p, conv_desc_t cd,
 			  encoding_type_t tp)
 {
@@ -3740,7 +3741,7 @@ finish_io (void)
    Dino scanner.  If `read_dino_string_code' is changed, please modify
    this function too. */
 static int
-get_char_code (FILE *f, int *unget_char_ptr, conv_desc_t cd, encoding_type_t tp,
+get_char_code (FILE *f, rint_t *unget_char_ptr, conv_desc_t cd, encoding_type_t tp,
 	       ucode_t curr_char, int *correct_newln, int *wrong_escape_code)
 {
   int char_code;
@@ -3816,7 +3817,7 @@ get_char_code (FILE *f, int *unget_char_ptr, conv_desc_t cd, encoding_type_t tp,
 }
 
 static void
-invinput_error (FILE *f, int *unget_char_ptr, conv_desc_t cd,
+invinput_error (FILE *f, rint_t *unget_char_ptr, conv_desc_t cd,
 		encoding_type_t tp, int ln_flag)
 {
   int curr_char;
@@ -3832,7 +3833,7 @@ invinput_error (FILE *f, int *unget_char_ptr, conv_desc_t cd,
 
 /* Used by read_dino_number.  */
 static FILE *number_file;
-static int *number_unget_char_ptr;
+static rint_t *number_unget_char_ptr;
 static conv_desc_t number_file_cd;
 static encoding_type_t number_file_encoding_type;
 
@@ -3852,7 +3853,7 @@ n_ungetc (int c)
 /* The following function is analogous to `yylex' in Dino scanner.  If
    `yylex' is changed, please modify this function too. */
 static struct token
-get_token (FILE *f, int *unget_char_ptr, conv_desc_t cd,
+get_token (FILE *f, rint_t *unget_char_ptr, conv_desc_t cd,
 	   encoding_type_t tp, int ln_flag)
 {
   int curr_char;
@@ -4040,7 +4041,7 @@ get_token (FILE *f, int *unget_char_ptr, conv_desc_t cd,
    If syntax (or semantics) of values is changed, please modify this
    function too. */
 static val_t
-scanel (FILE *f, int *unget_char_ptr,
+scanel (FILE *f, rint_t *unget_char_ptr,
 	conv_desc_t cd, encoding_type_t tp, struct token token, int ln_flag)
 {
   val_t result;
@@ -4171,7 +4172,7 @@ scanel (FILE *f, int *unget_char_ptr,
 }
 
 static void
-general_scan_call (FILE *f, int *unget_char_ptr, conv_desc_t cd,
+general_scan_call (FILE *f, rint_t *unget_char_ptr, conv_desc_t cd,
 		   encoding_type_t tp, int file_flag, int ln_flag)
 {
   struct token token;
@@ -6064,6 +6065,11 @@ initiate_vars (void)
   var = IVAL (ER_stack_vars (ostack), BC_var_num (version_bc_decl));
   ER_SET_MODE (var, ER_NM_float);
   ER_set_f (var, DINO_VERSION);
+  /* Set language version */
+  d_assert (BC_decl_scope (lang_version_bc_decl) == ER_block_node (ostack));
+  var = IVAL (ER_stack_vars (ostack), BC_var_num (lang_version_bc_decl));
+  ER_SET_MODE (var, ER_NM_float);
+  ER_set_f (var, DINO_LANG_VERSION);
   /* Set main_thread, curr_thread */
   d_assert (BC_decl_scope (main_thread_bc_decl) == ER_block_node (ostack));
   var = IVAL (ER_stack_vars (ostack),

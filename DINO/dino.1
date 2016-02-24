@@ -5,7 +5,7 @@
 .SH NAME
 dino \- the interpreter of the programming language Dino
 .SH SYNOPSIS
-.B dino [ -h -s -t -m size -Idirname -Lpath -O --save-temps -d -p] (-c
+.B dino [ -h --help -s --statistics -t --trace -m size -Idirname -Lpath -O --save-temps -d --dump -p --profile] (-c
 .I program
 .B |
 .I program-file
@@ -42,7 +42,8 @@ The options which the Dino interpreter recognizes are:
 Execute the Dino
 .B program
 given on the command line as the argument.
-.IP -h
+.TP
+.BR \-h ", " \-\-help
 Output information about Dino command line options.
 .IP "-m number"
 Determine the size of the heap chunks used by the Dino interpreter.
@@ -51,12 +52,14 @@ or in megabytes (e.g. 1m).  The default size is 1 Megabyte.
 Initially, the Dino interpreter creates one chunk.  It allocates one
 additional chunk (as rule of the same size) whenever there is no
 additional memory after garbage collection.
-.IP -s
+.TP
+.BR \-s ", " \-\-statistics
 Output some statistics of interpreter work into stderr.  Statistics
 contain the maximal heap size, number of heap chunks, and number of
 collisions in hash tables which are used for the implementation of
 Dino tables.
-.IP -t
+.TP
+.BR \-t ", " \-\-trace
 Output information about call stack of the program into stderr for
 unprocessed exception or calling exit function.  This output sometimes
 can be different from what people would expect because of tail call
@@ -74,7 +77,8 @@ given with this option is the same as one on the command line.
 .IP -O
 Do type inference and byte code specialization.  It can speed up the
 program execution, especially when JIT is used.
-.IP -d
+.TP
+.BR \-d ", " \-\-dump
 Output Dino byte code to the standard output.
 .IP -i dump-file
 Read Dino byte code from a given file and execute it.  You can use this
@@ -85,7 +89,8 @@ and PIC object code can be saved after finishing Dino interpreter in directory
 .B /tmp
 with this option.  The file names will contain identifier number of the
 corresponding Dino interpreter process.
-.IP -p
+.TP
+.BR \-p ", " \-\-profile
 Output profile information into stderr.  Profile information contains
 the number of calls and execution times of all called functions and
 classes.

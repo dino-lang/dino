@@ -196,6 +196,9 @@ extern BC_node_t syncwait_bc_decl;
 #define VERSION_NAME "version"
 extern BC_node_t version_bc_decl;
 
+#define LANG_VERSION_NAME "lang_version"
+extern BC_node_t lang_version_bc_decl;
+
 #define MAIN_THREAD_NAME "main_thread"
 extern BC_node_t main_thread_bc_decl;
 
@@ -1576,6 +1579,7 @@ BC_node_t patternmatch_bc_decl;
 BC_node_t deadlock_bc_decl;
 BC_node_t syncwait_bc_decl;
 BC_node_t version_bc_decl;
+BC_node_t lang_version_bc_decl;
 BC_node_t main_thread_bc_decl;
 BC_node_t curr_thread_bc_decl;
 BC_node_t argv_bc_decl;
@@ -1844,6 +1848,7 @@ static struct bc_decl_entry bc_decls_table [] =
   {&deadlock_bc_decl, DEADLOCK_NAME, &lang_bc_decl, NULL},
   {&syncwait_bc_decl, SYNCWAIT_NAME, &lang_bc_decl, NULL},
   {&version_bc_decl, VERSION_NAME, &lang_bc_decl, NULL},
+  {&lang_version_bc_decl, LANG_VERSION_NAME, &lang_bc_decl, NULL},
   {&main_thread_bc_decl, MAIN_THREAD_NAME, &lang_bc_decl, NULL},
   {&curr_thread_bc_decl, CURR_THREAD_NAME, &lang_bc_decl, NULL},
   {&argv_bc_decl, ARGV_NAME, &lang_bc_decl, NULL},

@@ -1,3 +1,117 @@
+2016-02-23  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/dino.tst.in (907-908): New.
+
+2016-02-22  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_common.h (incompatible_version_p): New.
+	(incompatible_lang_versions): New.
+	* DINO/d_dino.c (incompatible_version_p): New.
+	* DINO/d_errors.[ch] (ERR_incompatible_version): New.
+	(ERR_too_huge_version): New.
+	* DINO/d_ir.sprut (require): New.
+	* DINO/d_kw.shilka (require): Add.
+	* DINO/d_yacc.y: Add rule for require.
+	* DINO/d_context.c (first_block_passing): Process require.
+	(second_block_passing): Skip require.
+	* DINO/dino.tst.in (901-906): New tests.
+
+2016-02-22  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* README.md: Use io for site.
+
+2016-02-22  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* README.md: Add Dino site.
+
+2016-02-22  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* README.md: Add empty lines and a proper indentation for
+	kramdown.  Add a note about the devlopment version.
+	* DINO/dino.sgml.in: Add a note about the devlopment version.
+	* DINO/dino-{1, 3, 4, 9}.html: Update.  Add <p> and </p>.
+	* DINO/dino.{dvi, html, info, pdf, ps, txt}
+
+2016-02-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/dino.sgml.in: Describe lang_version.
+	* DINO/dino-9.html: Update.
+	* DINO/dino.{dvi, info, pdf, ps, txt}: Ditto.
+
+2016-02-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/dino.sgml.in: Add options with --.
+	* DINO/dino-9.html: Update.
+	* DINO/dino.{dvi, info, pdf, ps, txt}: Ditto.
+
+2016-02-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/dino.1: Add options with --.
+	* DINO/dino-11.html: Update.
+	* DINO/dino.{dvi, info, pdf, ps, txt}: Ditto.
+
+2016-02-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/configure.ac (DINO_LANG_VERSION, DINO_MODULE_VERSION): New.
+	(DINO_MODULE_VERSION_SUFFIX): New.
+	* DINO/configure: Update.
+	* DINO/Makefile.am (version_suffix, module_suffix): Remove.
+	(DINO_VERSION, DINO_LANG_VERSION): New.
+	(DINO_MODULE_VERSION, DINO_VERSION_SUFFIX): New.
+	(DINO_MODULE_VERSION_SUFFIX, DINO_MODULE_SUFFIX): New.
+	(full_suffix): Rename to dino_module_full_suffix.
+	(libdino_la_CFLAGS): Use the new macros.
+	(d_mpi_la_LDFLAGS, d_ieee_la_LDFLAGS, d_ipcerr_la_LDFLAGS): Use
+	DINO_MODULE_VERSION.
+	(d_socket_la_LDFLAGS): Ditto.
+	(dinoincludedir): Remove.
+	* DINO/Makefile.in: Update.
+	* DINO/d_bc.sprut (LANG_VERSION_NAME, lang_version_bc_decl): New.
+	(bc_decls_table): Add entry for lang_version.
+	* DINO/d_dino.c (COMMAND_LINE_DESCRIPTION): Add --help,
+	--statistics, --trace, --profile, --dump.
+	(dino_main): Initialize curr_byte_cd, curr_ucode_cd, and
+	curr_reverse_ucode_cd.  Process new options.  Print lang version.
+	* DINO/d_func.c (initiate_vars): Set up lang_version.
+	* DINO/d_ir.sprut (ENVIRONMENT): Add lang_version.
+	* DINO/dino.tst.in (version): Use DINO_MODULE_VERSION.
+	* README.md: Update benchmark times.
+
+2016-02-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* README.md: Use only 1 level list for code metrics.
+
+2016-02-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* README.md: Add empty lines arround ```.
+
+2016-02-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* README.md: Add code metrics.
+
+2016-02-17  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_conv.c (implicit_arithmetic_conversion): Don't update
+	vindex after read_dino_number call.
+	* DINO/d_func.c (get_file_unget_char_ptr): Return rint_t.
+	(get_file_char, unget_file_char): Take rint_t param.
+	(general_get_call, general_get_ln_file_call): Ditto.
+	(get_char_code, invinput_error): Ditto.
+	(get_token, scanel, general_scan_call): Ditto.
+	(number_unget_char_ptr): Make it of rint_t.
+	* DINO/d_gen.c (idiv): Check on zero for powerpc.
+	* DINO/d_types.h (IS_RFLOAT_NAN, RFLOAT_HUGE_VAL): Check
+	__BYTE_ORDER__ instead of WORDS_BIGENDIAN.
+
+2016-02-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_yacc.y (designator): Find func before merging.
+	(block): Save/restore additional_stmts.
+	(create_try_expr): Use fun to calculate fun_expr.
+	* DINO/d_func.c (sort_call): Check empty vector before checking el
+	type.
+	* DINO/dino.tst.in (900): New test.
+
 2016-02-13  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/process_ucodedb.d: Use re.split instead of split.

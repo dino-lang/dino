@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2015 Vladimir Makarov.
+   Copyright (C) 1997-2016 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@gcc.gnu.org>
 
@@ -24,6 +24,8 @@
 
 #include "errors.h"
 
+extern char ERR_incompatible_version[];
+extern char ERR_too_huge_version[];
 extern char ERR_no_memory[];
 extern char ERR_source_file_encoding[];
 extern char ERR_non_ascii_source_file_encoding[];

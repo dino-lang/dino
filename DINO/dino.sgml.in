@@ -5,10 +5,10 @@
 
 <title>The Programming Language DINO
 <author>Vladimir Makarov, <tt>vmakarov@gcc.gnu.org</tt>.
-Edited by Serhei Makarov.
-<date>Feb. 9, 2016
+<date>Feb. 22, 2016
 <abstract>
-This document describes the programming language DINO.
+This document describes the programming language DINO -- the
+development version of the future release 0.97.
 </abstract>
 <toc>
 
@@ -30,6 +30,7 @@ on other languages.  The high level structures of Dino are
       table elements
     <item>objects
     </itemize>
+<p>
 Originally, Dino was used in the russian graphics company ANIMATEK for
 description of the movement of dinosaurs in a project.  It has been
 considerably redesigned and was implemented with the aid of the COCOM
@@ -153,6 +154,7 @@ letters are considered to be distinct.
           <item><tt><bf>\char</bf>  -</tt> Character char for all
           remaining characters
           </itemize>
+        <p>
         To denote a single quote mark use the sequence <tt>\'</tt>.
         The double quote mark can be represented either by <tt>\"</tt>
         or simply by <tt>"</tt>.  To represent a backslash inside the
@@ -354,6 +356,7 @@ instance is performed by the following rules:
        the construction is not inside a friend of the declaration
        scope.
      </itemize>
+<p>
 The following identifiers are predeclared on the top level (in the
 implicit block covering the whole program).  They are described in
 more detail later in the report.
@@ -692,6 +695,7 @@ It has the following semantics:
   identfier in parentheses is given.  The original declaration can be
   used with this identfier.
 </itemize>
+<p>
 These rules are necessary for correct <em>duck-typing</em> or class
 <em>sub-typing</em>.
 <p>
@@ -2280,14 +2284,16 @@ variables can be used:
        the keys of the table.
      </itemize>
 
-<sect3>Version
+<sect3>Versions
 <p>
 As Dino is a live programming language, it and its interpreter are in
 the process of development.  To access the Dino interpreter's version
-number and consequently the language version, the final variable
-<tt>version</tt> can be used.  The variable value is the Dino version
-as a floating point number.  For example, if the current Dino version
-is 0.97, the variable value will be 0.97.
+number and the language version, the final variables
+<tt>version</tt> and <tt>lang_version</tt> can be used
+correspondingly.  The variable values are the Dino versions as
+floating point numbers.  For example, if the current Dino interpreter
+version is 0.97 and the Dino language version is 0.5, the variable
+values will be 0.97 and 0.5.
 
 <sect3>Threads
 <p>
@@ -2300,6 +2306,7 @@ following variables can be used.
      <item><tt>curr_thread</tt>.  The variable value is the thread in
        which you reference the variable.
      </itemize>
+<p>
 All these variables are final, so you can not change their values.
 
 <sect2>Exception classes
@@ -2702,6 +2709,7 @@ the standard input stream, the following variables can be used:
        class <tt>file</tt> which corresponds to the standard error
        stream.
      </itemize>
+<p>
 All these variables are final, so you can not change their values.
 Encoding of the files is DINO current encoding at the program start
 (see function <tt>set_encoding</tt>).
@@ -3203,6 +3211,7 @@ instance.
        <item><tt>'p'</tt>.  A fifo.
        <item><tt>'S'</tt>.  A socket.
        </itemize>
+       <p>
        Under some OSes the function never returns some of the
        characters (e.g. 'c' or 'b').  The function may return nil if
        it can not categorize the file as above.
@@ -3256,6 +3265,7 @@ instance.
        the file instance given as a parameter is an open file
        connected to a terminal and 0 otherwise.
      </itemize>
+<p>
 The following functions can be used to change rights of usage of the
 file (directory) for different users.  The function expects two
 strings (after implicit string conversion).  The first one is the path
@@ -4088,6 +4098,7 @@ space <tt>re</tt>:
           ["a", "b", "c", "d", "e", "f"]
 </verb></tscreen>
      </itemize>
+<p>
 If the regular expression is incorrect, the functions generate
 exception <tt>invregex</tt> with a message explaining the error.
 
@@ -4377,11 +4388,12 @@ variables are declared in the class
           <item>the first not ignored token itself.  It may be
             <tt>nil</tt> for end of file.
           </itemize>
+       <p>
        If the parser works with switched off error recovery (see
        function <tt>set_recovery</tt>, the third and fifth parameters
        will be negative and forth and sixth parameter will be
        <tt>nil</tt>.
-
+       <p>
        The function returns an object of the predeclared class
        <tt>anode</tt> which is the root of the abtsract tree
        representing the translation of the parser input.  The function

@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2015 Vladimir Makarov.
+   Copyright (C) 1997-2016 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@gcc.gnu.org>
 
@@ -123,7 +123,7 @@ static int repl_can_process_p (void);
 %token <pointer> NUMBER CHARACTER STRING IDENT
 %token <pos> BREAK CASE CATCH CHAR CLASS CONTINUE ELSE EXPOSE EXTERN
        FINAL FLOAT FOR FORMER FRIEND FUN HIDE HIDEBLOCK IF IN INT
-       LONG LATER NEW NIL OBJ PMATCH PRIV PROCESS PUB RETURN RMATCH
+       LONG LATER NEW NIL OBJ PMATCH PRIV PROCESS PUB REQUIRE RETURN RMATCH
        TAB THIS THREAD THROW TRY TYPE USE VAL VAR VEC WAIT
 %token <pos> LOGICAL_OR LOGICAL_AND EQ NE IDENTITY UNIDENTITY LE GE
              LSHIFT RSHIFT ASHIFT
@@ -644,10 +644,11 @@ designator : expr '[' expr ']'
            | IDENT     {$$ = $1;}
            | aheader hint block
                {
-		 additional_stmts
-		   = merge_stmt_lists (additional_stmts,
-				       process_header_block ($1, $3, $2));
-		 $$ = IR_ident (IR_next_stmt (additional_stmts));
+		 IR_node_t body = process_header_block ($1, $3, $2);
+		 IR_node_t fc = IR_next_stmt (body);
+		 
+		 additional_stmts = merge_stmt_lists (additional_stmts, body);
+		 $$ = IR_ident (fc);
 	       }
            ;
 /* Attribute value is the last element of the cycle list.  The
@@ -1171,6 +1172,12 @@ declaration : access VAL {$<access>$ = $1;} set_flag
                   IR_set_use_qual_ident ($$, $2);
 		  IR_set_use_items ($$, uncycle_use_item_list ($3));
 	        }
+            | REQUIRE NUMBER {$<flag>$ = $<flag>0;} end_simple_stmt
+                {
+		  $$ = create_node_with_pos (IR_NM_require, IR_pos ($2));
+		  IR_set_next_stmt ($$, $$);
+                  IR_set_required_version ($$, $2);
+	        }
             ;
 expose_clause : EXPOSE expose_qual_ident
                   {
@@ -1445,12 +1452,15 @@ formal_parameters : par_list_empty
 block : '{'
              {
 	       start_block ();
+	       $<pointer>$ = additional_stmts;
+	       additional_stmts = NULL;
 	     }
          stmt_list '}'
              {
                IR_set_pos (current_scope, $1);
                $$ = $3;
 	       finish_block ();
+	       additional_stmts = $<pointer>2;
              }
       ;
 /* Attribute value is the last element of the cycle list. */
@@ -1940,7 +1950,7 @@ create_try_expr (IR_node_t try_block, IR_node_t stmt, IR_node_t excepts,
     = merge_stmt_lists (additional_stmts,
 			process_header_block (NULL, try_block, NO_HINT));
   /* create function call  */
-  fun_expr = IR_ident (IR_next_stmt (additional_stmts));
+  fun_expr = IR_ident (fun);
   call = create_node_with_pos (IR_NM_class_fun_thread_call, rpar_pos);
   IR_set_fun_expr (call, fun_expr);
   IR_set_actuals (call, NULL);

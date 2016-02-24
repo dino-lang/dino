@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2015 Vladimir Makarov.
+   Copyright (C) 1997-2016 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@gcc.gnu.org>
 
@@ -1743,6 +1743,34 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	  break;
 	case IR_NM_decl_redir:
 	  break;
+	case IR_NM_require:
+	  {
+	    IR_node_t version = IR_required_version (stmt);
+	    rfloat_t v;
+
+	    if (IR_IS_OF_TYPE (version, IR_NM_int))
+	      v = (rfloat_t) IR_int_value (IR_unique_int (version));
+	    else if (IR_IS_OF_TYPE (version, IR_NM_float))
+	      v = (rfloat_t) ((rint_t) (IR_float_value (IR_unique_float (version))
+					* 100.0 + 0.5)) / 100.0;
+	    else if (mpz_ok_for_rint_p (*IR_mpz_ptr (IR_unique_long (version))))
+	      v = (rfloat_t) mpz2i (*IR_mpz_ptr (IR_unique_long (version)));
+	    else
+	      {
+		d_error (! repl_flag, IR_pos (IR_required_version (stmt)),
+			 ERR_too_huge_version);
+		if (repl_flag)
+		  longjmp (context_exit_longjump_buff, 1);
+	      }
+	    if (incompatible_lang_version_p (v))
+	      {
+		d_error (! repl_flag, IR_pos (IR_required_version (stmt)),
+			 ERR_incompatible_version, DINO_LANG_VERSION, v);
+		if (repl_flag)
+		  longjmp (context_exit_longjump_buff, 1);
+	      }
+	    break;
+	  }
 	default:
 	  d_unreachable ();
 	}
@@ -5118,6 +5146,9 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	      BC_set_subst (BC_info (get_fblock (origin)),
 			    get_fblock (curr_decl));
 	  }
+	  break;
+	case IR_NM_require:
+	  /* Do nothing */
 	  break;
 	default:
 	  d_unreachable ();

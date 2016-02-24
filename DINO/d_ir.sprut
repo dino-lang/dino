@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2015 Vladimir Makarov.
+   Copyright (C) 1997-2016 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@gcc.gnu.org>
 
@@ -295,7 +295,7 @@ extern IR_node_t destroy_unique_ident;
   "    class deadlock (msg = nil) {use error former msg;}\n"\
   "    class syncwait (msg = nil) {use error former msg;}\n"\
   "\n"\
-  "  val version, main_thread, curr_thread;\n"\
+  "  val version, lang_version, main_thread, curr_thread;\n"\
   "  var argv, env;\n"\
   "  fun tolower {} fun toupper {} fun translit {}\n"\
   "  fun eltype {} fun keys {}\n"\
@@ -999,6 +999,10 @@ use_item :: generic_pos
 former_item, later_item :: use_item
 ;
 
+require :: stmt
+%other
+	required_version : expr
+;
 /************* The following part is set in context analyzer **************/
 
 ident

@@ -299,9 +299,12 @@ CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DINO_LANG_VERSION = @DINO_LANG_VERSION@
 DINO_LIB_CFLAGS = @DINO_LIB_CFLAGS@
 DINO_LIB_LDFLAGS = @DINO_LIB_LDFLAGS@
 DINO_MODULE_SUFFIX = @DINO_MODULE_SUFFIX@
+DINO_MODULE_VERSION = @DINO_MODULE_VERSION@
+DINO_MODULE_VERSION_SUFFIX = @DINO_MODULE_VERSION_SUFFIX@
 DINO_MOD_LDFLAGS = @DINO_MOD_LDFLAGS@
 DINO_VERSION_SUFFIX = @DINO_VERSION_SUFFIX@
 DLLTOOL = @DLLTOOL@
@@ -422,23 +425,23 @@ libdino_la_SOURCES = d_dino.h d_errors.h d_common.h d_built.h d_yacc.h d_runtab.
 		     d_eval.c d_dino.c
 
 nodist_libdino_la_SOURCES = d_yacc.c d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_extern.h
-version_suffix = @DINO_VERSION_SUFFIX@
-module_suffix = @DINO_MODULE_SUFFIX@
-full_suffix = $(version_suffix)$(module_suffix)
-mpi_lib = d_mpi$(full_suffix)
-ieee_lib = d_ieee$(full_suffix)
-ipcerr_lib = d_ipcerr$(full_suffix)
-socket_lib = d_socket$(full_suffix)
+DINO_VERSION = $(VERSION)
+dino_module_full_suffix = $(DINO_MODULE_VERSION_SUFFIX)$(DINO_MODULE_SUFFIX)
+mpi_lib = d_mpi$(dino_module_full_suffix)
+ieee_lib = d_ieee$(dino_module_full_suffix)
+ipcerr_lib = d_ipcerr$(dino_module_full_suffix)
+socket_lib = d_socket$(dino_module_full_suffix)
 DINO_EXTERN_LIBS_PATH = \"$(mpi_lib):$(ieee_lib):$(ipcerr_lib):$(socket_lib)\"
 libdino_la_CFLAGS = -I$(srcdir)/../ONIGURUMA -I$(srcdir)/../AMMUNITION\
-        	    @DINO_LIB_CFLAGS@ -DDINO_VERSION=$(VERSION) -DCC='"$(CC)"'\
-		    -DSTANDARD_DINO_INCLUDE_DIRECTORY='"$(includedir)"'\
+        	    @DINO_LIB_CFLAGS@ -DCC='"$(CC)"'\
+		    -DDINO_VERSION=$(DINO_VERSION) -DDINO_LANG_VERSION=$(DINO_LANG_VERSION)\
+                    -DSTANDARD_DINO_INCLUDE_DIRECTORY='"$(includedir)"'\
 		    -DSTANDARD_DINO_EXTERN_LIBS=$(DINO_EXTERN_LIBS_PATH)\
 		    -DSTANDARD_DINO_LIB_DIRECTORY='"$(libdir)"'\
 		    -DSTANDARD_DINO_BIN_DIRECTORY='"$(bindir)"'\
-		    -DDINO_VERSION_SUFFIX='"$(version_suffix)"'
+		    -DDINO_VERSION_SUFFIX='"$(DINO_VERSION_SUFFIX)"'
 
-libdino_la_LDFLAGS = @DINO_LIB_LDFLAGS@ -release $(VERSION)
+libdino_la_LDFLAGS = @DINO_LIB_LDFLAGS@ -release $(DINO_VERSION)
 dino_SOURCES = d_main.c
 CLEANFILES = sgramm.c d_yacc.c d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_kw.c d_enc.c d_bcn.c d_bcf.c
 dino_DEPENDENCIES = libdino.la
@@ -449,22 +452,22 @@ dino_LDFLAGS = -lgmp -lm -export-dynamic @DINO_LIB_LDFLAGS@ \
 BUILT_SOURCES = d_ir.h d_bc.h d_run.h d_extern.h d_kw.c d_enc.c d_bcn.c d_bcf.c
 d_mpi_la_SOURCES = d_mpi.c
 d_mpi_la_CFLAGS = -shared -I. -I$(srcdir) -I$(srcdir)/../AMMUNITION
-d_mpi_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ ../AMMUNITION/libcocom.la -release $(VERSION)
+d_mpi_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ ../AMMUNITION/libcocom.la -release $(DINO_MODULE_VERSION)
 nodist_d_mpi_la_SOURCES = d_extern.h
 EXTRA_d_mpi_la_DEPENDENCIES = libdino.la
 d_ieee_la_SOURCES = d_ieee.c
 d_ieee_la_CFLAGS = -shared -DIEEE_QUAD -I. -I$(srcdir) -I$(srcdir)/../AMMUNITION
-d_ieee_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ ../AMMUNITION/libcocom.la -release $(VERSION)
+d_ieee_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ ../AMMUNITION/libcocom.la -release $(DINO_MODULE_VERSION)
 nodist_d_ieee_la_SOURCES = d_extern.h
 EXTRA_d_ieee_la_DEPENDENCIES = libdino.la
 d_ipcerr_la_SOURCES = d_ipcerr.c
 d_ipcerr_la_CFLAGS = -shared -I. -I$(srcdir)
-d_ipcerr_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ -release $(VERSION)
+d_ipcerr_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ -release $(DINO_MODULE_VERSION)
 nodist_d_ipcerr_la_SOURCES = d_extern.h
 EXTRA_d_ipcerr_la_DEPENDENCIES = libdino.la
 d_socket_la_SOURCES = d_socket.c
 d_socket_la_CFLAGS = -shared -I. -I$(srcdir)
-d_socket_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ -release $(VERSION)
+d_socket_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ -release $(DINO_MODULE_VERSION)
 nodist_d_socket_la_SOURCES = d_extern.h
 EXTRA_d_socket_la_DEPENDENCIES = libdino.la
 dist_doc_DATA = dino.txt dino.info dino.html dino-1.html dino-2.html\
@@ -485,7 +488,6 @@ ACLOCAL_AMFLAGS = -I m4
 SPRUT = ../SPRUT/sprut
 SHILKA = ../SHILKA/shilka
 MSTA = ../MSTA/msta
-dinoincludedir = $(includedir)/dino-$(VERSION)
 all: $(BUILT_SOURCES) d_config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 

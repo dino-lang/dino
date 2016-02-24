@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2015 Vladimir Makarov.
+   Copyright (C) 1997-2016 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@gcc.gnu.org>
 
@@ -242,6 +242,8 @@ extern ucode_t get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd,
 extern int check_encoding_on_ascii (const char *encoding);
 
 extern void dino_finish (int code);
+
+extern int incompatible_version_p (rint_t major, rint_t minor);
 
 #define SET_SOURCE_POSITION(ref)     (source_position = IR_pos (ref))
 

@@ -98,7 +98,13 @@ extern void binary_vect_op (ER_node_t, ER_node_t, ER_node_t);
 ifunc (i_plus) { return a + b;}
 ifunc (i_minus) { return a - b;}
 ifunc (i_mult) { return a * b;}
-ifunc (i_div) { return a / b;}
+ifunc (i_div) {
+#if defined (__powerpc__) || defined (__powerpc64__)
+ if (b == 0)
+   raise (SIGFPE);
+#endif
+ return a / b;
+}
 ifunc (i_mod) { return a % b;}
 ifunc (i_and) { return a & b;}
 ifunc (i_xor) { return a ^ b;}
