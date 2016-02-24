@@ -51132,6 +51132,60 @@ OUTPUT906
         fi
 fi
 
+# Test 907.
+if test $result = ok -a $start_test_number -le 907; then
+	echo test 907: REPL and huge require
+        cat >$test_file <<'TEST907'
+require 10000000000000000000000l;
+putln ("Hi");
+TEST907
+        echo '      ' $DINO "<" $test_file "2>&1 | egrep -v 'interpreter|Copyright|if-stmt' >$stdout"
+        if $DINO < $test_file 2>&1 | egrep -v 'interpreter|Copyright|if-stmt' >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT907' && $CMP $stdout $ftemp2; then
+Use "exit(<int>);" or Ctrl-D to exit
+dino>       require 10000000000000000000000l;
+              ^
+      required version is too huge
+dino> Hi
+dino> 
+OUTPUT907
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 908.
+if test $result = ok -a $start_test_number -le 908; then
+	echo test 908: REPL and incompatible require
+        cat >$test_file <<'TEST908'
+require 1000000000;
+putln ("Hi");
+TEST908
+        echo '      ' $DINO "<" $test_file "2>&1 | egrep -v 'interpreter|Copyright|if-stmt' >$stdout"
+        if $DINO < $test_file 2>&1 | egrep -v 'interpreter|Copyright|if-stmt' >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT908' && $CMP $stdout $ftemp2; then
+Use "exit(<int>);" or Ctrl-D to exit
+dino>       require 1000000000;
+              ^
+      the current language version 0.50 is not compatible with required 1000000000.00
+dino> Hi
+dino> 
+OUTPUT908
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
 # Final message
 
 if test $result = ok; then

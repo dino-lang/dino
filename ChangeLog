@@ -1,3 +1,7 @@
+2016-02-23  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/dino.tst.in (907-908): New.
+
 2016-02-22  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_common.h (incompatible_version_p): New.
