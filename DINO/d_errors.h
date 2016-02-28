@@ -42,6 +42,7 @@ extern char ERR_int_value[];
 extern char ERR_string_end_absence[];
 extern char ERR_exponent_absence[];
 extern char ERR_eof_in_comment[];
+extern char ERR_eof_in_C_code[];
 extern char ERR_unknown_hint[];
 extern char ERR_wrong_hint_for_non_fun[];
 extern char ERR_jit_hint_for_thread[];
@@ -322,3 +323,5 @@ extern char DERR_rmatch_case_expr_type [];
 extern char DERR_deadlock [];
 /* Not catched. */
 extern char DERR_unprocessed_exception [];
+/* extern C code compilation.  */
+extern char DERR_C_code_compilation_failure [];

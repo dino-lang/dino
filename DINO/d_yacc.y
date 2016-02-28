@@ -120,7 +120,7 @@ static int repl_can_process_p (void);
     access_val_t access;
    }
 
-%token <pointer> NUMBER CHARACTER STRING IDENT
+%token <pointer> NUMBER CHARACTER STRING IDENT CODE
 %token <pos> BREAK CASE CATCH CHAR CLASS CONTINUE ELSE EXPOSE EXTERN
        FINAL FLOAT FOR FORMER FRIEND FUN HIDE HIDEBLOCK IF IN INT
        LONG LATER NEW NIL OBJ PMATCH PRIV PROCESS PUB REQUIRE RETURN RMATCH
@@ -960,6 +960,7 @@ executive_stmt :
         }
     | block_stmt     {$$ = $1;}
     | try_block_stmt {$$ = $1;}
+    | CODE           {$$ = $1;}
     ;
 match_head : PMATCH { $$ = create_node_with_pos (IR_NM_pmatch_stmt, $1); }
            | RMATCH { $$ = create_node_with_pos (IR_NM_rmatch_stmt, $1); }
@@ -3054,11 +3055,69 @@ yylex (void)
 	      current_position.column_number++;
 	      return MOD_ASSIGN;
 	    }
-          else
+          else if (input_char != '{')
             {
               d_ungetc (input_char);
               return '%';
             }
+	  else
+	    {
+	      char *string_value_in_code_memory;
+	      IR_node_t unique_string_node_ptr;
+	      conv_desc_t saved_reverse_ucode_cd = curr_reverse_ucode_cd;
+
+	      current_position.column_number++;
+	      curr_reverse_ucode_cd = NO_CONV_DESC;
+	      VLO_NULLIFY (symbol_text);
+	      yylval.pointer = create_node_with_pos (IR_NM_code, current_position);
+	      for (;;)
+		{
+		  input_char = d_getc ();
+		  if (input_char == '%')
+		    {
+		      current_position.column_number++;
+		      input_char = d_getc ();
+		      if (input_char == '}')
+			{
+			  current_position.column_number++;
+			  break;
+			}
+		      else
+			{
+			  d_ungetc (input_char);
+			  input_char = '%';
+			}
+		    }
+		  else if (input_char == '\n')
+		    {
+		      current_position.column_number = 1;
+		      current_position.line_number++;
+		    }
+                  else if (input_char == EOF)
+		    {
+		      error (FALSE, current_position, ERR_eof_in_C_code);
+		      break;
+		    }
+		  VLO_ADD_BYTE (symbol_text, input_char);
+		}
+	      VLO_ADD_BYTE (symbol_text, '\0');
+	      curr_reverse_ucode_cd = saved_reverse_ucode_cd;
+	      IR_set_string_value (temp_unique_string, VLO_BEGIN (symbol_text));
+	      unique_string_node_ptr
+		= *find_table_entry (temp_unique_string, FALSE);
+	      if (unique_string_node_ptr == NULL)
+		{
+		  unique_string_node_ptr
+		    = create_unique_node_with_string
+		      (IR_NM_unique_string, VLO_BEGIN (symbol_text),
+		       VLO_LENGTH (symbol_text), &string_value_in_code_memory);
+		  IR_set_string_value (unique_string_node_ptr,
+				       string_value_in_code_memory);
+		  include_to_table (unique_string_node_ptr);
+		}
+	      IR_set_code_string (yylval.pointer, unique_string_node_ptr);
+	      return CODE;
+	    }
         case '^':
 	  yylval.pos = source_position = current_position;
           current_position.column_number++;

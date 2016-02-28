@@ -186,6 +186,23 @@ Examples:
 </PRE>
 </CODE></BLOCKQUOTE>
 </LI>
+<LI>A <EM>C code</EM> is sequence characters enclosed in
+special brackets <CODE>%{</CODE> and <CODE>%}</CODE>.  It represents a
+C code fragment which is compiled and loaded in Dino
+interpreter during the program execution
+<BLOCKQUOTE><CODE>
+<PRE>
+          C_CODE = "%{"  {Char} "%}"
+</PRE>
+</CODE></BLOCKQUOTE>
+
+And example:
+<BLOCKQUOTE><CODE>
+<PRE>
+          %{ static val_t dino_var; %}
+</PRE>
+</CODE></BLOCKQUOTE>
+</LI>
 <LI>The remaining essential symbols are called
 <EM>operators</EM> and <EM>delimiters</EM>.  Operators are
 used for forming expressions, delimiters are used for forming

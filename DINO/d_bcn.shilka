@@ -286,4 +286,5 @@ chstel		{return BC_NM_chstel;}
 chstend		{return BC_NM_chstend;}
 rmatch		{return BC_NM_rmatch;}
 rmatchs		{return BC_NM_rmatchs;}
+compile		{return BC_NM_compile;}
 %other {return 0;}

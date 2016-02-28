@@ -1308,6 +1308,12 @@ put_var_list_before (IR_node_t list, IR_node_t stmt,
   IR_set_next_stmt (*prev_stmt_ptr, stmt);
 }
 
+/* It will contains all C code nodes:  */
+static vlo_t code_vlo;
+
+/* It will contains all C code strings in a given file: */
+static vlo_t code_str_vlo;
+
 /* This recursive func passes all stmts and exprs (correctly setting
    up SOURCE_POSITION and curr_scope (before first call of the func
    curr_scope is to be NULL)) on the same stmt nesting level, includes
@@ -1771,11 +1777,58 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	      }
 	    break;
 	  }
+	case IR_NM_code:
+	  VLO_ADD_MEMORY (code_vlo, &stmt, sizeof (stmt));
+	  break;
 	default:
 	  d_unreachable ();
 	}
     }
   return first_level_stmt;
+}
+
+/* Used to sort C codes according their locations in the program.  */
+static int
+compare_codes (const void *n1, const void *n2)
+{
+  int res;
+  const IR_node_t nc1 = *(const IR_node_t *) n1, nc2 = *(const IR_node_t *) n2;
+  position_t pos1 = IR_pos (nc1), pos2 = IR_pos (nc2);
+  
+  if ((res = strcmp (pos1.file_name, pos2.file_name)) != 0)
+    return res;
+  else if (pos1.path != pos2.path)
+    return pos1.path < pos2.path ? -1 : 1;
+  else if ((res = (int) pos1.line_number - (int) pos2.line_number) != 0)
+    return res;
+  return (int) pos1.column_number - (int) pos2.column_number;
+}
+
+static void
+form_code_chains (void) {
+  IR_node_t *code_ptr, code, last_code;
+  size_t len = VLO_LENGTH (code_vlo);
+
+  if (len == 0)
+    return;
+  qsort (VLO_BEGIN (code_vlo), len / sizeof (IR_node_t), sizeof (IR_node_t),
+	 compare_codes);
+  last_code = NULL;
+  for (code_ptr = (IR_node_t *) VLO_BEGIN (code_vlo);
+       code_ptr < (IR_node_t *) VLO_BOUND (code_vlo);
+       code_ptr++)
+    {
+      IR_node_t code = *code_ptr;
+      position_t pos = IR_pos (code);
+      
+      if (last_code == NULL
+	  || IR_pos (last_code).file_name != pos.file_name
+	  || IR_pos (last_code).path != pos.path)
+	IR_set_first_file_code_p (code, TRUE);
+      else
+	IR_set_next_file_code (last_code, code);
+      last_code = code;
+    }
 }
 
 /* Process inlining of BLOCK and its nested blocks into block
@@ -5150,6 +5203,34 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	case IR_NM_require:
 	  /* Do nothing */
 	  break;
+	case IR_NM_code:
+	  if (IR_first_file_code_p (stmt))
+	    {
+	      IR_node_t code;
+		  
+	      VLO_NULLIFY (code_str_vlo);
+	      bc = new_bc_code_with_src (BC_NM_compile, stmt);
+	      for (code = stmt; code != NULL; code = IR_next_file_code (code))
+		{
+		  string_t str;
+		  position_t pos = IR_pos (code);
+		  
+		  VLO_ADD_MEMORY (code_str_vlo, "#line ", 6);
+		  str = i2a (pos.line_number);
+		  VLO_ADD_MEMORY (code_str_vlo, str, strlen (str));
+		  VLO_ADD_MEMORY (code_str_vlo, " \"", 2);
+		  VLO_ADD_MEMORY (code_str_vlo, pos.file_name,
+				  strlen (pos.file_name));
+		  VLO_ADD_MEMORY (code_str_vlo, "\"\n", 2);
+		  str = IR_string_value (IR_code_string (code));
+		  VLO_ADD_MEMORY (code_str_vlo, str,
+				  strlen (str)
+				  + (IR_next_file_code (code) == NULL ? 1 : 0));
+		}
+	      BC_set_c_code (bc, get_unique_string (VLO_BEGIN (code_str_vlo)));
+	      add_to_bcode (bc);
+	    }
+	  break;
 	default:
 	  d_unreachable ();
 	}
@@ -5817,6 +5898,7 @@ test_context (IR_node_t first_program_stmt_ptr, int first_p)
     return;
   curr_scope = NULL;
   first_program_stmt_ptr = first_block_passing (first_program_stmt_ptr, 0);
+  form_code_chains ();
   /* first_block_passing include declarations into table.  The
      environment scope is the first stmt (which is always block). */
   curr_scope = curr_real_scope = NULL;
@@ -5881,6 +5963,8 @@ initiate_context (void)
 {
   bc_nodes_num = 0;
   max_block_level = 0;
+  VLO_CREATE (code_str_vlo, 1024 * 16);
+  VLO_CREATE (code_vlo, 1024);
   VLO_CREATE (all_fblocks, 0);
   curr_use_items_start = 0;
   VLO_CREATE (exposed_objects, 0);
@@ -5911,4 +5995,6 @@ finish_context (void)
   VLO_DELETE (use_items);
   VLO_DELETE (exposed_objects);
   VLO_DELETE (all_fblocks);
+  VLO_DELETE (code_vlo);
+  VLO_DELETE (code_str_vlo);
 }

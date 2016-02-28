@@ -396,6 +396,7 @@ extern IR_node_t destroy_unique_ident;
   "    class noextern (msg = nil) {use invextern former msg;}\n"\
   "    class libclose (msg = nil) {use invextern former msg;}\n"\
   "    class noexternsupp (msg = nil) {use invextern former msg;}\n"\
+  "    class compile (msg = nil) {use invextern former msg;}\n"\
   "\n"\
   "   class invenvar (msg = nil) {use invcall former msg;}\n"\
   "\n"\
@@ -906,6 +907,11 @@ exception :: generic_pos
           next_exception : exception
 ;
 
+code :: stmt
+%other
+        code_string : unique_string /* always defined */
+;
+
 %abstract
 decl :: stmt
 %other
@@ -1230,6 +1236,12 @@ decl_redir :: stmt
         /* All redirs for a later use item are chained by the following
 	   field.  */
         next_redir : decl_redir
+;
+
+code
+%other
+        first_file_code_p : bool_t {$ = FALSE;}
+        next_file_code : code {$ = NULL;}
 ;
 
 /************* The following part is set in evaluator **************/

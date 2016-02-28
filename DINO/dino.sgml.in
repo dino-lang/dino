@@ -5,7 +5,7 @@
 
 <title>The Programming Language DINO
 <author>Vladimir Makarov, <tt>vmakarov@gcc.gnu.org</tt>.
-<date>Feb. 22, 2016
+<date>Feb. 28, 2016
 <abstract>
 This document describes the programming language DINO -- the
 development version of the future release 0.97.
@@ -202,6 +202,17 @@ letters are considered to be distinct.
         Examples:
 <tscreen><verb>
           `\p{Greek}+`  `back qoute `` is here`
+</verb></tscreen>
+     <item>A <em>C code</em> is sequence characters enclosed in
+        special brackets <tt>%{</tt> and <tt>%}</tt>.  It represents a
+        C code fragment which is compiled and loaded in Dino
+        interpreter during the program execution
+<tscreen><verb>
+          C_CODE = "%{"  {Char} "%}"
+</verb></tscreen>
+        And example:
+<tscreen><verb>
+          %{ static val_t dino_var; %}
 </verb></tscreen>
      <item>The remaining essential symbols are called
         <em>operators</em> and <em>delimiters</em>.  Operators are
@@ -2120,9 +2131,47 @@ a critical region result in generation exception
 <tscreen><verb>
           ExecutiveStmt = wait  "(" Expr ")" Stmt
 </verb></tscreen>
-        Examples:
+        An example:
 <tscreen><verb>
           wait (!empty);
+</verb></tscreen>
+
+<sect1>C code
+<p>
+All C code between pairs of brackets <tt>%{</tt> and <tt>%}</tt> in
+one Dino file is <em>concatenated</em> in the same order as they occur
+in the file.  The result code with pre-appended C code providing
+an interface to the Dino interpreter internal data representation is
+compiled when the execution <em>the first time</em> achieves the location of the first
+<tt>%{</tt> in the file.  The result shared object is loaded and
+external variables and functions are searched lately in the same order
+as the shared objects are loaded.
+<tscreen><verb>
+          ExecutiveStmt = C_CODE
+</verb></tscreen>
+If an error during the compilation or loading the shared object file
+occurs, exception <tt>compile</tt> is generated.
+<p>
+        An example:
+<tscreen><verb>
+          %{
+            #include <math.h>
+            val_t isnan_p (int npars, val_t *vals) {
+              val_t val;
+              ER_node_t res = (ER_node_t) &val;
+
+	      ER_SET_MODE (res, ER_NM_int);
+              ER_set_i (res, 0);
+	      if (npars == 1
+                  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_float
+                  && isnan (ER_f ((ER_node_t) vals)))
+                ER_set_i (res, 1);
+              return val;
+            }
+          %}
+
+          extern isnan_p ();
+          putln (isnan_p (10.0));
 </verb></tscreen>
 
 <sect>Program
@@ -3434,6 +3483,9 @@ The space contains a lot of exceptions:
        <item><tt>noexternsupp</tt>.  This class describes an exception
          in the usage of externals when they are not implemented under
          this OS.
+       <item><tt>compile</tt>.  This class describes an exception
+         in a compilation of C code or loading the result shared
+         object file.
        </itemize>
      <item><tt>invenvar</tt>.  This is a sub-class of
        class <tt>invcall</tt>.  Class <tt>invenvar</tt> describes
@@ -4663,6 +4715,7 @@ ExecutiveStmt = ";"
               | wait  "(" Expr ")" Stmt
               | BlockStmt
               | TryBlockStmt
+              | C_CODE
 
 ForGuardExpr = [Expr]
 

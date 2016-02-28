@@ -905,6 +905,8 @@ dino_finish (int code)
 		 generated_c_functions_num, generated_c_function_calls_num);
       if (inlined_calls_num != 0)
 	fprintf (stderr, "Inlined calls - %u\n", inlined_calls_num);
+      if (c_compilations_num != 0)
+	fprintf (stderr, "Compilations of C code - %u\n", c_compilations_num);
     }
   finish_cds ();
   mpz_finish ();
@@ -939,7 +941,7 @@ dino_start (void)
   VLO_CREATE (repr_vlobj, 0);
   VLO_CREATE (number_text, 0);
   generated_c_functions_num = generated_c_function_calls_num = 0;
-  inlined_calls_num = 0;
+  c_compilations_num = inlined_calls_num = 0;
   max_gmp_memory_size = gmp_memory_size = 0;
   mp_set_memory_functions (gmp_alloc, gmp_realloc, gmp_free);
   initiate_unique_strings ();
@@ -1113,7 +1115,8 @@ void add_dino_path (const char *prefix, const char *subdir,
 "`-p', `--profile'    output profile information into stderr\n"\
 "`-d', `--dump'       dump program IR\n"\
 "`-i dump'            read IR instead of program\n"\
-"`--save-temps'       save temp JIT C and object files\n"
+"`--save-temps'       save temp JIT C and object files\n"\
+"`--check'            check program w/o execution\n"
 
 int bc_nodes_num;
 
@@ -1128,6 +1131,7 @@ int trace_flag;
 int profile_flag;
 int dump_flag;
 int save_temps_flag;
+int check_flag;
 
 /* CYGWIN reports incorrect start time, we need this for correction of
    clock. */
@@ -1571,6 +1575,7 @@ dino_main (int argc, char *argv[], char *envp[])
   profile_flag = FALSE;
   dump_flag = FALSE;
   save_temps_flag = FALSE;
+  check_flag = FALSE;
   eval_long_jump_set_flag = FALSE;
   /* Process all command line options. */
   for (i = next_option (TRUE), okay = TRUE; i != 0; i = next_option (FALSE))
@@ -1615,6 +1620,8 @@ dino_main (int argc, char *argv[], char *envp[])
 	input_dump = argument_vector [i + 1];
       else if (strcmp (option, "--save-temps") == 0)
 	save_temps_flag = TRUE;
+      else if (strcmp (option, "--check") == 0)
+	check_flag = TRUE;
       else if (strcmp (option, "-m") == 0)
 	{
 	  heap_chunk_size = atoi (argument_vector [i + 1]);
@@ -1805,7 +1812,12 @@ dino_main (int argc, char *argv[], char *envp[])
       output_errors ();
       if (number_of_errors == 0 && first_program_bc != NULL)
 	{
-	  if (! dump_flag)
+	  if (check_flag)
+	    {
+	      if (! check_c_code (first_program_bc))
+		number_of_errors++;
+	    }
+	  else if (! dump_flag)
 	    {
 	      if (input_dump_file == NULL)
 		{

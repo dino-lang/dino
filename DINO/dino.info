@@ -10,7 +10,7 @@ The Programming Language DINO
 *****************************
 
      Vladimir Makarov, `vmakarov@gcc.gnu.org'.
-     Feb. 22, 2016
+     Feb. 28, 2016
 
    This document describes the programming language DINO - the
 development version of the future release 0.97.
@@ -218,7 +218,16 @@ considered to be distinct.
      Examples:
 
                     `\p{Greek}+`  `back qoute `` is here`
-  5. The remaining essential symbols are called _operators_ and
+  5. A _C code_ is sequence characters enclosed in special brackets '%{'
+     and '%}'.  It represents a C code fragment which is compiled and
+     loaded in Dino interpreter during the program execution
+
+                    C_CODE = "%{"  {Char} "%}"
+
+     And example:
+
+                    %{ static val_t dino_var; %}
+  6. The remaining essential symbols are called _operators_ and
      _delimiters_.  Operators are used for forming expressions,
      delimiters are used for forming syntax constructions.  There is a
      special kind of operators and delimiters which look like
@@ -246,7 +255,7 @@ considered to be distinct.
                             | "thread" | "this" | "throw" | "try" | "type"
                             | "use" | "val" | "var" | "vec" | "wait"
 
-  6. _Comments_ are considered analogous to blanks on the syntax level
+  7. _Comments_ are considered analogous to blanks on the syntax level
      of the program.  There are two types of comments.  The first type
      is an arbitrary character sequence starting with '/*' and finishing
      with '*/'.  The second type of comment starts with '//' and
@@ -1750,6 +1759,7 @@ and repetitive execution.
 * Throw-statement::
 * Try-block::
 * Wait-statement::
+* C code::
 
 
 File: dino.info,  Node: Empty statement,  Next: Block-statement,  Up: Executive statements
@@ -2166,7 +2176,7 @@ object representing the exception.
                }
 
 
-File: dino.info,  Node: Wait-statement,  Prev: Try-block,  Up: Executive statements
+File: dino.info,  Node: Wait-statement,  Next: C code,  Prev: Try-block,  Up: Executive statements
 
 7.13 Wait-statement
 ===================
@@ -2187,9 +2197,49 @@ critical region result in generation exception 'syncthreadcall'.
 
                ExecutiveStmt = wait  "(" Expr ")" Stmt
 
-   Examples:
+   An example:
 
                wait (!empty);
+
+
+File: dino.info,  Node: C code,  Prev: Wait-statement,  Up: Executive statements
+
+7.14 C code
+===========
+
+All C code between pairs of brackets '%{' and '%}' in one Dino file is
+_concatenated_ in the same order as they occur in the file.  The result
+code with pre-appended C code providing an interface to the Dino
+interpreter internal data representation is compiled when the execution
+_the first time_ achieves the location of the first '%{' in the file.
+The result shared object is loaded and external variables and functions
+are searched lately in the same order as the shared objects are loaded.
+
+               ExecutiveStmt = C_CODE
+
+   If an error during the compilation or loading the shared object file
+occurs, exception 'compile' is generated.
+
+   An example:
+
+               %{
+                 #include <math.h>
+                 val_t isnan_p (int npars, val_t *vals) {
+                   val_t val;
+                   ER_node_t res = (ER_node_t)
+
+                   ER_SET_MODE (res, ER_NM_int);
+                   ER_set_i (res, 0);
+                   if (npars == 1
+                       && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_float
+                       && isnan (ER_f ((ER_node_t) vals)))
+                     ER_set_i (res, 1);
+                   return val;
+                 }
+               %}
+
+               extern isnan_p ();
+               putln (isnan_p (10.0));
 
 
 File: dino.info,  Node: Program,  Next: Predeclared identifiers,  Prev: Executive statements,  Up: Top
@@ -3477,6 +3527,8 @@ The space contains a lot of exceptions:
         * 'noexternsupp'.  This class describes an exception in the
           usage of externals when they are not implemented under this
           OS.
+        * 'compile'.  This class describes an exception in a compilation
+          of C code or loading the result shared object file.
    * 'invenvar'.  This is a sub-class of class 'invcall'.  Class
      'invenvar' describes corruption in the type of variables
      'split_regex' and 'time_format' (e.g.  their values are not
@@ -4703,6 +4755,7 @@ File: dino.info,  Node: Appendix A- Syntax of Dino,  Next: Appendix B- Implement
                    | wait  "(" Expr ")" Stmt
                    | BlockStmt
                    | TryBlockStmt
+                   | C_CODE
 
      ForGuardExpr = [Expr]
 
@@ -4800,8 +4853,8 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- Syntax of
 
      SYNOPSIS
             dino [ -h --help -s --statistics -t --trace -m size -Idirname -Lpath -O
-            --save-temps -d --dump -p --profile] (-c program |  program-file  |  -i
-            dump-file ) dino-program-arguments
+            --check --save-temps -d --dump -p --profile] (-c program | program-file
+            | -i dump-file ) dino-program-arguments
 
      DESCRIPTION
             dino  interprets  a program in the Dino programming language.  The pro‐
@@ -4872,16 +4925,20 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- Syntax of
             -i     Read  Dino  byte code from a given file and execute it.  You can
                    use this option instead of providing Dino program file.
 
+            --check
+                   Check non run-time errors without program execution.  The option
+                   also checks all C-code fragments in the Dino program.
+
             --save-temps
-                   If a Dino function processed by JIT compiler,  the  generated  C
-                   source  code  and  PIC  object code can be saved after finishing
-                   Dino interpreter in directory /tmp with this option.   The  file
-                   names  will  contain identifier number of the corresponding Dino
+                   If  a  Dino  function processed by JIT compiler, the generated C
+                   source code and PIC object code can  be  saved  after  finishing
+                   Dino  interpreter  in directory /tmp with this option.  The file
+                   names will contain identifier number of the  corresponding  Dino
                    interpreter process.
 
             -p, --profile
-                   Output profile information  into  stderr.   Profile  information
-                   contains  the  number of calls and execution times of all called
+                   Output  profile  information  into  stderr.  Profile information
+                   contains the number of calls and execution times of  all  called
                    functions and classes.
 
      FILES
@@ -4892,60 +4949,60 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- Syntax of
             mpi.d
                    the DINO file implementing multiple precision arithmetic.
             mpi.so
-                   the DINO shared library used for implementing MPI on  some  Unix
+                   the  DINO  shared library used for implementing MPI on some Unix
                    systems.
             ieee.d
-                   the  Dino  file implementing IEEE standard floating point arith‐
+                   the Dino file implementing IEEE standard floating  point  arith‐
                    metic.
             ieee.so
-                   the Dino shared library used for implementing IEEE on some  Unix
+                   the  Dino shared library used for implementing IEEE on some Unix
                    systems.
             ipcerr.d
-                   the  Dino  file  definining  exceptions of ipc/network software.
+                   the Dino file definining  exceptions  of  ipc/network  software.
                    This file is used by socket.d.
             ipcerr.so
-                   the Dino shared library used for  implementing  IPCERR  on  some
+                   the  Dino  shared  library  used for implementing IPCERR on some
                    Unix systems.
             socket.d
                    the Dino file implementing work with sockets.
             socket.so
-                   the  Dino  shared  library  used for implementing SOCKET on some
+                   the Dino shared library used for  implementing  SOCKET  on  some
                    Unix systems.
-            Dino interpreter creates temporary C and object files  for  Dino  func‐
+            Dino  interpreter  creates  temporary C and object files for Dino func‐
             tions processed by JIT compiler in directory /tmp.
 
      ENVIRONMENT
-            There  are the following environment variables which affect Dino behav‐
+            There are the following environment variables which affect Dino  behav‐
             ior:
 
             DINO_HOME
-                   If not null, it defines the places of the dino shared  libraries
+                   If  not null, it defines the places of the dino shared libraries
                    (such a library may be only on some Unix systems including Linux
-                   and  Solaris),  include  files,  and  dino   standard   external
-                   libraries.   The  places  are defined as the subdirectory lib in
-                   directory given by the environment variable value.   You  should
-                   define  the variable value on Windows if you installed the files
+                   and   Solaris),   include  files,  and  dino  standard  external
+                   libraries.  The places are defined as the  subdirectory  lib  in
+                   directory  given  by the environment variable value.  You should
+                   define the variable value on Windows if you installed the  files
                    in a directory other than C:\dino\lib
 
             DINO_PATH
-                   If not null, it defines the places of dino  include-files.   The
-                   value  of the variable has more priority than DINO_HOME but less
+                   If  not  null, it defines the places of dino include-files.  The
+                   value of the variable has more priority than DINO_HOME but  less
                    priority than values given through -I options.
 
             DINO_LIB
-                   If not null, it defines places of dino shared library,  if  any.
-                   The   value  of  variable  has  more  priority  than  DINO_HOME.
+                   If  not  null, it defines places of dino shared library, if any.
+                   The  value  of  variable  has  more  priority  than   DINO_HOME.
                    DINO_EXTERN_LIBS.
 
             DINO_EXTERN_LIBS
-                   If not null,  it  defines  paths  of  additional  Dino  external
-                   libraries.   The  libraries should be separated by ":" (on Unix)
-                   or ";" (on Windows).  The value has less  priority  than  values
+                   If  not  null,  it  defines  paths  of  additional Dino external
+                   libraries.  The libraries should be separated by ":"  (on  Unix)
+                   or  ";"  (on  Windows).  The value has less priority than values
                    given in -L options.
 
             DINO_ENCODING
-                   If  not  null,  it defines the current encoding of dino program.
-                   By defaull the current encoding is UTF-8  encoding.   Use  iconv
+                   If not null, it defines the current encoding  of  dino  program.
+                   By  defaull  the  current encoding is UTF-8 encoding.  Use iconv
                    utility to get possible encoding names.
 
      DIAGNOSTICS
@@ -4968,82 +5025,83 @@ Node: Top95
 Node: Introduction660
 Node: Syntax1958
 Node: Vocabulary and Representation2862
-Node: Declarations and Scope Rules11094
-Node: Variable Declarations16511
-Node: External Declarations18260
-Node: Functions and Classes19667
-Node: Use Clause28641
-Node: Singleton Object30846
-Node: Expose-clause31806
-Node: Expressions33460
-Node: Types and Values34072
-Node: Designators43118
-Node: Calls48441
-Node: Operators50505
-Node: Logical operators54802
-Node: Bit operators56610
-Node: Comparison operators57733
-Node: Arithmetic operators59729
-Node: Miscellaneous operators60940
-Node: Slice Operators65054
-Node: Current block instance67969
-Node: Anonymous Functions and Classes68432
-Node: Patterns69274
-Node: Executive statements73304
-Node: Empty statement74238
-Node: Block-statement74658
-Node: Expression-statement75377
-Node: Assignment statements76157
-Node: If-statement78796
-Node: For-statement79652
-Node: Foreach-statement81135
-Node: Match-statements82131
-Node: Break- and continue-statement85272
-Node: Return-statement86539
-Node: Throw-statement87305
-Node: Try-block88007
-Node: Wait-statement90440
-Node: Program91542
-Node: Predeclared identifiers95072
-Node: Space `lang'96517
-Node: Predeclared variables96831
-Node: Arguments and environment97190
-Node: Versions97845
-Node: Threads98458
-Node: Exception classes98991
-Node: Functions of space `lang'104737
-Node: Space `io'116822
-Node: Exception classes of space `io'117409
-Node: Class `file'118326
-Node: Files119077
-Node: Functions for work with files119879
-Node: File output functions123896
-Node: File input functions136352
-Node: Encoding functions140193
-Node: Functions for work with directories141007
-Node: Functions for access to file/directory information142575
-Node: Miscellaneous functions147281
-Node: Space `sys'148001
-Node: Exceptions in space `sys'148432
-Node: Variable `time_format'154012
-Node: Time functions154410
-Node: Functions for access to information about OS processes157413
-Node: Function `system (command)'158959
-Node: Space `re'159390
-Node: Exception class `invregex'159766
-Node: Variable `split_regex'160228
-Node: Pattern matching160629
-Node: Space `math'184154
-Node: Mathematical functions184420
-Node: Other space `math' functions185983
-Node: Space `yaep'187297
-Node: Exception classes of space `yaep'189425
-Node: Class parser190280
-Node: Class `token'199374
-Node: Class `anode'200128
-Node: Variables `nil_anode' and `error_anode'202237
-Node: Example of Earley parser usage-202681
-Node: Appendix A- Syntax of Dino205589
-Node: Appendix B- Implementation210959
+Node: Declarations and Scope Rules11415
+Node: Variable Declarations16832
+Node: External Declarations18581
+Node: Functions and Classes19988
+Node: Use Clause28962
+Node: Singleton Object31167
+Node: Expose-clause32127
+Node: Expressions33781
+Node: Types and Values34393
+Node: Designators43439
+Node: Calls48762
+Node: Operators50826
+Node: Logical operators55123
+Node: Bit operators56931
+Node: Comparison operators58054
+Node: Arithmetic operators60050
+Node: Miscellaneous operators61261
+Node: Slice Operators65375
+Node: Current block instance68290
+Node: Anonymous Functions and Classes68753
+Node: Patterns69595
+Node: Executive statements73625
+Node: Empty statement74570
+Node: Block-statement74990
+Node: Expression-statement75709
+Node: Assignment statements76489
+Node: If-statement79128
+Node: For-statement79984
+Node: Foreach-statement81467
+Node: Match-statements82463
+Node: Break- and continue-statement85604
+Node: Return-statement86871
+Node: Throw-statement87637
+Node: Try-block88339
+Node: Wait-statement90772
+Node: C code91891
+Node: Program93290
+Node: Predeclared identifiers96820
+Node: Space `lang'98265
+Node: Predeclared variables98579
+Node: Arguments and environment98938
+Node: Versions99593
+Node: Threads100206
+Node: Exception classes100739
+Node: Functions of space `lang'106485
+Node: Space `io'118570
+Node: Exception classes of space `io'119157
+Node: Class `file'120074
+Node: Files120825
+Node: Functions for work with files121627
+Node: File output functions125644
+Node: File input functions138100
+Node: Encoding functions141941
+Node: Functions for work with directories142755
+Node: Functions for access to file/directory information144323
+Node: Miscellaneous functions149029
+Node: Space `sys'149749
+Node: Exceptions in space `sys'150180
+Node: Variable `time_format'155895
+Node: Time functions156293
+Node: Functions for access to information about OS processes159296
+Node: Function `system (command)'160842
+Node: Space `re'161273
+Node: Exception class `invregex'161649
+Node: Variable `split_regex'162111
+Node: Pattern matching162512
+Node: Space `math'186037
+Node: Mathematical functions186303
+Node: Other space `math' functions187866
+Node: Space `yaep'189180
+Node: Exception classes of space `yaep'191308
+Node: Class parser192163
+Node: Class `token'201257
+Node: Class `anode'202011
+Node: Variables `nil_anode' and `error_anode'204120
+Node: Example of Earley parser usage-204564
+Node: Appendix A- Syntax of Dino207472
+Node: Appendix B- Implementation212870
 
 End Tag Table

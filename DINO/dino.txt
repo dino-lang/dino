@@ -1,6 +1,6 @@
   The Programming Language DINO
   Vladimir Makarov, vmakarov@gcc.gnu.org.
-  Feb. 22, 2016
+  Feb. 28, 2016
 
   This document describes the programming language DINO -- the develop-
   ment version of the future release 0.97.
@@ -49,6 +49,7 @@
      7.11 Throw-statement
      7.12 Try-block
      7.13 Wait-statement
+     7.14 C code
 
   8. Program
   9. Predeclared identifiers
@@ -315,7 +316,23 @@
 
 
 
-  5. The remaining essential symbols are called operators and
+  5. A C code is sequence characters enclosed in special brackets %{ and
+     %}. It represents a C code fragment which is compiled and loaded in
+     Dino interpreter during the program execution
+
+
+                 C_CODE = "%{"  {Char} "%}"
+
+
+
+  And example:
+
+
+                 %{ static val_t dino_var; %}
+
+
+
+  6. The remaining essential symbols are called operators and
      delimiters. Operators are used for forming expressions, delimiters
      are used for forming syntax constructions. There is a special kind
      of operators and delimiters which look like identifiers containing
@@ -345,7 +362,7 @@
 
 
 
-  6. Comments are considered analogous to blanks on the syntax level of
+  7. Comments are considered analogous to blanks on the syntax level of
      the program. There are two types of comments.  The first type is an
      arbitrary character sequence starting with /* and finishing with
      */. The second type of comment starts with // and finishes with the
@@ -2431,10 +2448,53 @@
 
 
 
-  Examples:
+  An example:
 
 
                  wait (!empty);
+
+
+
+  7.14.  C code
+
+  All C code between pairs of brackets %{ and %} in one Dino file is
+  concatenated in the same order as they occur in the file. The result
+  code with pre-appended C code providing an interface to the Dino
+  interpreter internal data representation is compiled when the
+  execution the first time achieves the location of the first %{ in the
+  file. The result shared object is loaded and external variables and
+  functions are searched lately in the same order as the shared objects
+  are loaded.
+
+
+                 ExecutiveStmt = C_CODE
+
+
+
+  If an error during the compilation or loading the shared object file
+  occurs, exception compile is generated.
+
+  An example:
+
+
+                 %{
+                   #include <math.h>
+                   val_t isnan_p (int npars, val_t *vals) {
+                     val_t val;
+                     ER_node_t res = (ER_node_t)
+
+                     ER_SET_MODE (res, ER_NM_int);
+                     ER_set_i (res, 0);
+                     if (npars == 1
+                         && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_float
+                         && isnan (ER_f ((ER_node_t) vals)))
+                       ER_set_i (res, 1);
+                     return val;
+                   }
+                 %}
+
+                 extern isnan_p ();
+                 putln (isnan_p (10.0));
 
 
 
@@ -3805,6 +3865,9 @@
      o  noexternsupp. This class describes an exception in the usage of
         externals when they are not implemented under this OS.
 
+     o  compile. This class describes an exception in a compilation of C
+        code or loading the result shared object file.
+
   o  invenvar. This is a sub-class of class invcall. Class invenvar
      describes corruption in the type of variables split_regex and
      time_format (e.g. their values are not strings).
@@ -5069,6 +5132,7 @@
                      | wait  "(" Expr ")" Stmt
                      | BlockStmt
                      | TryBlockStmt
+                     | C_CODE
 
        ForGuardExpr = [Expr]
 
@@ -5166,8 +5230,8 @@
 
        SYNOPSIS
               dino [ -h --help -s --statistics -t --trace -m size -Idirname -Lpath -O
-              --save-temps -d --dump -p --profile] (-c program |  program-file  |  -i
-              dump-file ) dino-program-arguments
+              --check --save-temps -d --dump -p --profile] (-c program | program-file
+              | -i dump-file ) dino-program-arguments
 
        DESCRIPTION
               dino  interprets  a program in the Dino programming language.  The pro
@@ -5238,16 +5302,20 @@
               -i     Read  Dino  byte code from a given file and execute it.  You can
                      use this option instead of providing Dino program file.
 
+              --check
+                     Check non run-time errors without program execution.  The option
+                     also checks all C-code fragments in the Dino program.
+
               --save-temps
-                     If a Dino function processed by JIT compiler,  the  generated  C
-                     source  code  and  PIC  object code can be saved after finishing
-                     Dino interpreter in directory /tmp with this option.   The  file
-                     names  will  contain identifier number of the corresponding Dino
+                     If  a  Dino  function processed by JIT compiler, the generated C
+                     source code and PIC object code can  be  saved  after  finishing
+                     Dino  interpreter  in directory /tmp with this option.  The file
+                     names will contain identifier number of the  corresponding  Dino
                      interpreter process.
 
               -p, --profile
-                     Output profile information  into  stderr.   Profile  information
-                     contains  the  number of calls and execution times of all called
+                     Output  profile  information  into  stderr.  Profile information
+                     contains the number of calls and execution times of  all  called
                      functions and classes.
 
        FILES
@@ -5258,60 +5326,60 @@
               mpi.d
                      the DINO file implementing multiple precision arithmetic.
               mpi.so
-                     the DINO shared library used for implementing MPI on  some  Unix
+                     the  DINO  shared library used for implementing MPI on some Unix
                      systems.
               ieee.d
-                     the  Dino  file implementing IEEE standard floating point arith
+                     the Dino file implementing IEEE standard floating  point  arith
                      metic.
               ieee.so
-                     the Dino shared library used for implementing IEEE on some  Unix
+                     the  Dino shared library used for implementing IEEE on some Unix
                      systems.
               ipcerr.d
-                     the  Dino  file  definining  exceptions of ipc/network software.
+                     the Dino file definining  exceptions  of  ipc/network  software.
                      This file is used by socket.d.
               ipcerr.so
-                     the Dino shared library used for  implementing  IPCERR  on  some
+                     the  Dino  shared  library  used for implementing IPCERR on some
                      Unix systems.
               socket.d
                      the Dino file implementing work with sockets.
               socket.so
-                     the  Dino  shared  library  used for implementing SOCKET on some
+                     the Dino shared library used for  implementing  SOCKET  on  some
                      Unix systems.
-              Dino interpreter creates temporary C and object files  for  Dino  func
+              Dino  interpreter  creates  temporary C and object files for Dino func
               tions processed by JIT compiler in directory /tmp.
 
        ENVIRONMENT
-              There  are the following environment variables which affect Dino behav
+              There are the following environment variables which affect Dino  behav
               ior:
 
               DINO_HOME
-                     If not null, it defines the places of the dino shared  libraries
+                     If  not null, it defines the places of the dino shared libraries
                      (such a library may be only on some Unix systems including Linux
-                     and  Solaris),  include  files,  and  dino   standard   external
-                     libraries.   The  places  are defined as the subdirectory lib in
-                     directory given by the environment variable value.   You  should
-                     define  the variable value on Windows if you installed the files
+                     and   Solaris),   include  files,  and  dino  standard  external
+                     libraries.  The places are defined as the  subdirectory  lib  in
+                     directory  given  by the environment variable value.  You should
+                     define the variable value on Windows if you installed the  files
                      in a directory other than C:\dino\lib
 
               DINO_PATH
-                     If not null, it defines the places of dino  include-files.   The
-                     value  of the variable has more priority than DINO_HOME but less
+                     If  not  null, it defines the places of dino include-files.  The
+                     value of the variable has more priority than DINO_HOME but  less
                      priority than values given through -I options.
 
               DINO_LIB
-                     If not null, it defines places of dino shared library,  if  any.
-                     The   value  of  variable  has  more  priority  than  DINO_HOME.
+                     If  not  null, it defines places of dino shared library, if any.
+                     The  value  of  variable  has  more  priority  than   DINO_HOME.
                      DINO_EXTERN_LIBS.
 
               DINO_EXTERN_LIBS
-                     If not null,  it  defines  paths  of  additional  Dino  external
-                     libraries.   The  libraries should be separated by ":" (on Unix)
-                     or ";" (on Windows).  The value has less  priority  than  values
+                     If  not  null,  it  defines  paths  of  additional Dino external
+                     libraries.  The libraries should be separated by ":"  (on  Unix)
+                     or  ";"  (on  Windows).  The value has less priority than values
                      given in -L options.
 
               DINO_ENCODING
-                     If  not  null,  it defines the current encoding of dino program.
-                     By defaull the current encoding is UTF-8  encoding.   Use  iconv
+                     If not null, it defines the current encoding  of  dino  program.
+                     By  defaull  the  current encoding is UTF-8 encoding.  Use iconv
                      utility to get possible encoding names.
 
        DIAGNOSTICS

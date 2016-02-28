@@ -1,3 +1,62 @@
+2016-02-28  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Makefile.am (no_dist): Add d_extern.i.
+	(all_local): Ditto.
+	(distclean_local): Remove d_extern.i.
+	(d_extern.i): New entry.
+	* DINO/Makefile.in: New.
+	* DINO/d_bc.sprut (COMPILE_NAME, compile_bc_decl): Ditto.
+	(compile): New node.
+	(bc_decls_table): Add compile_bc_decl.
+	(copy_gen_file): Rename to copy_pre_file.  Add new arg.
+	(CC_COMPILE_OPTIONS, CC_COMPILE_OPTIONS2): New.
+	(form_code_fname, c_compilations_num, compile_c_code): New.
+	(check_c_code): New.
+	* DINO/d_bcf.shilka (c_code): New.
+	* DINO/d_bcio.c (BC_NM_compile): New case.
+	(enum token): Add D_C_CODE.
+	(get_token): Return D_UCODESTR for unicode string.  Read C code.
+	(read_bc_program): Add case for FR_c_code.  Check field presence
+	for compile node.
+	* DINO/d_bcn.shilka: Add compile.
+	* DINO/d_common.h (c_compilations_num): New.
+	* DINO/d_context.c (code_vlo, code_str_vlo): New.
+	(first_block_passing): Process C code.
+	(compare_codes, form_code_chains): New.
+	(second_block_passing): Process C code.
+	(test_context): Call form_code_chains.
+	(initiate_context, finish_context): Create/delete code_vlo and
+	code_str_vlo.
+	* DINO/d_dino.c (dino_main): Print c_compilations_num.
+	(dino_start): Initialize c_compilations_num.
+	(COMMAND_LINE_DESCRIPTION): New option --check.
+	(check_flag): New.
+	(dino_main): Process --check.  Call check_c_code.
+	* DINO/d_dino.h (STANDARD_DINO_EXTERN_FILE_NAME): New.
+	* DINO/d_errors.[ch] (ERR_eof_in_C_code): New.
+	(DERR_C_code_compilation_failure): New.
+	* DINO/d_eval.c (do_compile): New.
+	(evaluate_code): Add case for BC_NM_compile.
+	* DINO/d_gen.c (do_compile, compile): New.
+	* DINO/d_heap.c (dl_handle_vlo): New.
+	(initiate_heap, finish_heap): Create/delete dl_handle_vlo.
+	(store_handle): New.
+	(external_address): Process dl_handle_vlo.
+	* DINO/d_inference.c (get_insn_op_place, type_transf): Add cases
+	for BC_NM_compile.
+	(specialize_insn): Ditto.
+	* DINO/d_ir.sprut (ENVIRONMENT): Add exception compile.
+	(code): New node.
+	* DINO/d_run.sprut (store_handle): New.
+	* DINO/d_yacc.y: Add rules for CODE.
+	(yylex): Process CODE.
+	* DINO/dino.1 (--check): Describe.
+	* DINO/dino.sgml.in: Describe C code and exception compile.
+	* INO/dino.{dvi, html, info, pdf, ps, txt}: Update.
+	* DINO/dino-{3,7,9,10,11}.html: Update.
+	* DINO/dino.tst.in (909-914): New.
+	* README.md: Describe Dino C interface.
+
 2016-02-23  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/dino.tst.in (907-908): New.

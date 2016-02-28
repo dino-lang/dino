@@ -515,10 +515,54 @@ a critical region result in generation exception
 </PRE>
 </CODE></BLOCKQUOTE>
 
-Examples:
+An example:
 <BLOCKQUOTE><CODE>
 <PRE>
           wait (!empty);
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+
+<H2><A NAME="ss7.14">7.14</A> <A HREF="dino.html#toc7.14">C code</A>
+</H2>
+
+<P>All C code between pairs of brackets <CODE>%{</CODE> and <CODE>%}</CODE> in
+one Dino file is <EM>concatenated</EM> in the same order as they occur
+in the file.  The result code with pre-appended C code providing
+an interface to the Dino interpreter internal data representation is
+compiled when the execution <EM>the first time</EM> achieves the location of the first
+<CODE>%{</CODE> in the file.  The result shared object is loaded and
+external variables and functions are searched lately in the same order
+as the shared objects are loaded.
+<BLOCKQUOTE><CODE>
+<PRE>
+          ExecutiveStmt = C_CODE
+</PRE>
+</CODE></BLOCKQUOTE>
+
+If an error during the compilation or loading the shared object file
+occurs, exception <CODE>compile</CODE> is generated.</P>
+<P>An example:
+<BLOCKQUOTE><CODE>
+<PRE>
+          %{
+            #include &lt;math.h>
+            val_t isnan_p (int npars, val_t *vals) {
+              val_t val;
+              ER_node_t res = (ER_node_t) 
+
+              ER_SET_MODE (res, ER_NM_int);
+              ER_set_i (res, 0);
+              if (npars == 1
+                  &amp;&amp; ER_NODE_MODE ((ER_node_t) vals) == ER_NM_float
+                  &amp;&amp; isnan (ER_f ((ER_node_t) vals)))
+                ER_set_i (res, 1);
+              return val;
+            }
+          %}
+
+          extern isnan_p ();
+          putln (isnan_p (10.0));
 </PRE>
 </CODE></BLOCKQUOTE>
 </P>

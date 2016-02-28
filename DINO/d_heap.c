@@ -57,6 +57,8 @@ vlo_t heap_temp_refs;
 vlo_t temp_vlobj;
 vlo_t temp_vlobj2;
 
+vlo_t dl_handle_vlo;
+
 /* Current (active) process. */
 ER_node_t cprocess;
 
@@ -493,6 +495,7 @@ initiate_heap ()
   CREATE_TEMP_REF ();
   VLO_CREATE (temp_vlobj, 256);
   VLO_CREATE (temp_vlobj2, 256);
+  VLO_CREATE (dl_handle_vlo, 0);
   gc_number = 0;
   GC_executed_stmts_count = 1;
   free_gc_memory_percent = 0;
@@ -562,6 +565,7 @@ finish_heap (void)
   VLO_DELETE (heap_chunks);
   VLO_DELETE (external_vars);
   FINISH_TEMP_REF ();
+  VLO_DELETE (dl_handle_vlo);
   VLO_DELETE (temp_vlobj2);
   VLO_DELETE (temp_vlobj);
 }
@@ -3078,10 +3082,16 @@ interrupt (pc_t first_resume_pc)
 
 
 
+void
+store_handle (void *handle)
+{
+  VLO_ADD_MEMORY (dl_handle_vlo, &handle, sizeof (handle));
+}
+  
 void *
 external_address (BC_node_t decl)
 {
-  void *address;
+  void *address = NULL;
   const char *name;
   const char **curr_libname_ptr;
   int i;
@@ -3091,28 +3101,41 @@ external_address (BC_node_t decl)
     address = (external_fun_t *) BC_address (decl);
   else
     {
-      (void) dlopen (NULL, RTLD_NOW);
-      for (curr_libname_ptr = libraries;
-	   *curr_libname_ptr != NULL;
-	   curr_libname_ptr++)
+      void **dl_handle_ptr;
+      
+      for (dl_handle_ptr = (void **) VLO_BEGIN (dl_handle_vlo);
+	   dl_handle_ptr < (void **) VLO_BOUND (dl_handle_vlo);
+	   dl_handle_ptr++)
 	{
-	  void *handle;
-	  FILE *f;
-
-	  /* Dlopen on some system does not like unexisting libraries. */
-	  f = fopen (*curr_libname_ptr, "r");
-	  if (f == NULL)
-	    continue;
-	  fclose (f);
-	  handle = dlopen (*curr_libname_ptr, RTLD_LAZY | RTLD_GLOBAL);
-	  if (handle == NULL)
-	    continue;
-	  address = dlsym (handle, name);
+	  address = dlsym (*dl_handle_ptr, name);
 	  if (dlerror () == NULL)
 	    break;
 	}
-      if (*curr_libname_ptr == NULL)
-	eval_error (noextern_bc_decl, get_cpos (), DERR_no_such_external, name);
+      if (dl_handle_ptr >= (void **) VLO_BOUND (dl_handle_vlo))
+	{
+	  (void) dlopen (NULL, RTLD_NOW);
+	  for (curr_libname_ptr = libraries;
+	       *curr_libname_ptr != NULL;
+	       curr_libname_ptr++)
+	    {
+	      void *handle;
+	      FILE *f;
+
+	      /* Dlopen on some system does not like unexisting libraries. */
+	      f = fopen (*curr_libname_ptr, "r");
+	      if (f == NULL)
+		continue;
+	      fclose (f);
+	      handle = dlopen (*curr_libname_ptr, RTLD_LAZY | RTLD_GLOBAL);
+	      if (handle == NULL)
+		continue;
+	      address = dlsym (handle, name);
+	      if (dlerror () == NULL)
+		break;
+	    }
+	  if (*curr_libname_ptr == NULL)
+	    eval_error (noextern_bc_decl, get_cpos (), DERR_no_such_external, name);
+	}
     }
   BC_set_address (decl, address);
   if (BC_IS_OF_TYPE (decl, BC_NM_evdecl))

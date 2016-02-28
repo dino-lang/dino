@@ -648,6 +648,9 @@ extern BC_node_t libclose_bc_decl;
 #define NOEXTERNSUPP_NAME "noexternsupp"
 extern BC_node_t noexternsupp_bc_decl;
 
+#define COMPILE_NAME "compile"
+extern BC_node_t compile_bc_decl;
+
 #define INVENVAR_NAME "invenvar"
 extern BC_node_t invenvar_bc_decl;
 
@@ -855,6 +858,8 @@ extern int all_env_decls_processed_p (void);
 extern void process_env_decl (BC_node_t);
 extern void prepare_block (BC_node_t);
 extern void *gen_cfblock (BC_node_t fblock);
+extern int compile_c_code (BC_node_t bc, void (*process_handle) (void *));
+extern int check_c_code (BC_node_t);
 
 }
 
@@ -1239,6 +1244,13 @@ rmatchs :: check2
    input.  Code rpr_def never prints undefined values (e.g. proc call
    results).  */
 rpr, rpr_def :: op1
+;
+
+/* Compile c code given by a string: */
+compile :: bcode
+%other
+     c_code : string_t
+     compiled_p : bool_t {$$ = FALSE;}
 ;
 
 /* This byte code should be last.  The byte code is used only during
@@ -1731,6 +1743,7 @@ BC_node_t invextern_bc_decl;
 BC_node_t noextern_bc_decl;
 BC_node_t libclose_bc_decl;
 BC_node_t noexternsupp_bc_decl;
+BC_node_t compile_bc_decl;
 BC_node_t invenvar_bc_decl;
 BC_node_t systemcall_bc_decl;
 BC_node_t noshell_bc_decl;
@@ -2004,6 +2017,7 @@ static struct bc_decl_entry bc_decls_table [] =
   {&noextern_bc_decl, NOEXTERN_NAME, &sys_bc_decl, NULL},
   {&libclose_bc_decl, LIBCLOSE_NAME, &sys_bc_decl, NULL},
   {&noexternsupp_bc_decl, NOEXTERNSUPP_NAME, &sys_bc_decl, NULL},
+  {&compile_bc_decl, COMPILE_NAME, &sys_bc_decl, NULL},
   {&invenvar_bc_decl, INVENVAR_NAME, &sys_bc_decl, NULL},
   {&systemcall_bc_decl, SYSTEMCALL_NAME, &sys_bc_decl, NULL},
   {&noshell_bc_decl, NOSHELL_NAME, &sys_bc_decl, NULL},
@@ -2403,10 +2417,10 @@ form_fname (vlo_t *fname, BC_node_t fdecl, const char *suffix)
   VLO_ADD_STRING (*fname, suffix);
 }
 
-/* Copy the generation file into F.  Return FALSE if any error on the
-   generation file op occurs.  */
+/* Copy a pre-processed C file FNAME into F.  Return FALSE if any
+   error on the file op occurs.  */
 static int
-copy_gen_file (FILE *f)
+copy_pre_file (FILE *f, const char *fname)
 {
   int res;
   size_t len;
@@ -2416,14 +2430,14 @@ copy_gen_file (FILE *f)
 
   VLO_CREATE (gen_fname, 0);
   VLO_ADD_STRING (gen_fname, "./");
-  VLO_ADD_STRING (gen_fname, STANDARD_DINO_GEN_FILE_NAME);
+  VLO_ADD_STRING (gen_fname, fname);
   genf = fopen (VLO_BEGIN (gen_fname), "r");
   if (genf == NULL)
     {
       VLO_NULLIFY (gen_fname);
       VLO_ADD_STRING (gen_fname, STANDARD_DINO_INCLUDE_DIRECTORY);
       VLO_ADD_STRING (gen_fname, "/");
-      VLO_ADD_STRING (gen_fname, STANDARD_DINO_GEN_FILE_NAME);
+      VLO_ADD_STRING (gen_fname, fname);
       genf = fopen (VLO_BEGIN (gen_fname), "r");
       if (genf == NULL)
 	{
@@ -2525,7 +2539,7 @@ gen_cfblock (BC_node_t fblock)
   traverse_bcode (BC_next (fblock));
   error_p = TRUE;
   VLO_CREATE (fun_name, 0);
-  if (copy_gen_file (f))
+  if (copy_pre_file (f, STANDARD_DINO_GEN_FILE_NAME))
     {
       form_fun_name (&fun_name, BC_fdecl (fblock));
       fprintf (f, "void %s (struct ER_node *__restrict__ cv, ",
@@ -2609,6 +2623,166 @@ gen_cfblock (BC_node_t fblock)
   VLO_DELETE (fname);
   return addr;
 #endif
+}
+
+#if defined(__gnu_linux__)
+#define CC_COMPILE_OPTIONS  " -O2 -w -fPIC -shared -pipe -g"
+#define CC_COMPILE_OPTIONS2 " -O2 -w -fPIC -shared -pipe -xc -"
+#elif defined(__APPLE__)
+#define CC_COMPILE_OPTIONS  " -O2 -w -Wl,-undefined -Wl,dynamic_lookup -bundle -pipe -g"
+#define CC_COMPILE_OPTIONS2 " -O2 -w -Wl,-undefined -Wl,dynamic_lookup -bundle -pipe -xc -"
+#elif defined(__CYGWIN__)
+#define CC_COMPILE_OPTIONS  " -O2 -w -shared -pipe -g"
+#define CC_COMPILE_OPTIONS2 " -O2 -w -shared -pipe -xc - -xnone"
+#endif
+
+static void
+form_code_fname (vlo_t *fname, BC_node_t bc, const char *suffix)
+{
+  /* It might be before prepare block call for checking.  */
+  position_t pos = BC_pos (BC_IS_OF_TYPE (BC_info (bc), BC_NM_info)
+			   ? BC_source (BC_info (bc)) : BC_info (bc));
+  char str[70];
+
+  VLO_ADD_STRING (*fname, GEN_DIR);
+  VLO_ADD_STRING (*fname, pos.file_name);
+  sprintf (str, "_bc%lu_p%lu", (unsigned long) bc, (unsigned long) getpid ());
+  VLO_ADD_STRING (*fname, str);
+  VLO_ADD_STRING (*fname, suffix);
+}
+
+/* Number of compilations of C code (%{...%}). */
+unsigned int c_compilations_num;
+
+/* Compile C code given by compile node BC.  Process the handle of the
+   loaded result object file by PROCESS_HANDLE if it is not NULL.
+   Otherwise it is the case of checking C code in dino program.  */
+int
+compile_c_code (BC_node_t bc, void (*process_handle) (void *))
+{
+#if !defined(HAVE_DLOPEN) || !defined (CC_COMPILE_OPTIONS) || !defined (CC_COMPILE_OPTIONS2)
+  return FALSE;
+#else
+  FILE *f;
+  vlo_t fname, objname, command;
+#if defined(__CYGWIN__)
+  vlo_t dllname;
+#endif
+  int error_p, ret;
+  const char *code;
+  
+  d_assert (BC_NODE_MODE (bc) == BC_NM_compile);
+  if (BC_compiled_p (bc))
+    return TRUE;
+  c_compilations_num++;
+  VLO_CREATE (fname, 0);
+  form_code_fname (&fname, bc, ".c");
+  VLO_CREATE (objname, 0);
+  form_code_fname (&objname, bc, ".so");
+  VLO_CREATE (command, 0);
+  VLO_ADD_STRING (command, CC);
+  if (! save_temps_flag)
+    VLO_ADD_STRING (command, CC_COMPILE_OPTIONS2);
+  else
+    {
+      VLO_ADD_STRING (command, CC_COMPILE_OPTIONS);
+      VLO_ADD_STRING (command, " ");
+      VLO_ADD_STRING (command, VLO_BEGIN (fname));
+    }
+  VLO_ADD_STRING (command, " -o ");
+  VLO_ADD_STRING (command, VLO_BEGIN (objname));
+#if defined(__CYGWIN__)
+  VLO_CREATE (dllname, 0);
+  if (! find_dllname (".libs", "/", &dllname)
+      && ! find_dllname (STANDARD_DINO_BIN_DIRECTORY, "/", &dllname))
+    {
+      VLO_DELETE (dllname);
+      return FALSE;
+    }
+  else
+    {
+      VLO_ADD_STRING (command, " ");
+      VLO_ADD_STRING (command, VLO_BEGIN (dllname));
+      VLO_DELETE (dllname);
+    }
+#endif
+  if (save_temps_flag)
+    f = fopen (VLO_BEGIN (fname), "w");
+  else
+    f = popen (VLO_BEGIN (command), "w");
+  if (f == NULL || ! copy_pre_file (f, STANDARD_DINO_EXTERN_FILE_NAME))
+    {
+      VLO_DELETE (command);
+      VLO_DELETE (objname);
+      VLO_DELETE (fname);
+      return FALSE;
+    }
+  error_p = fputs (BC_c_code (bc), f) == EOF;
+  ret = (save_temps_flag ? fclose (f) : pclose (f));
+  if (ret)
+    {
+      if (! save_temps_flag)
+	remove (VLO_BEGIN (fname));
+      VLO_DELETE (command);
+      VLO_DELETE (objname);
+      return FALSE;
+    }
+  ret = FALSE;
+  if (!error_p)
+    {
+      if (! save_temps_flag || system (VLO_BEGIN (command)) == 0)
+	{
+	  void *handle = dlopen (VLO_BEGIN (objname), RTLD_LAZY | RTLD_GLOBAL);
+	  
+	  if (handle != NULL)
+	    {
+	      ret = TRUE;
+	      if (process_handle != NULL)
+		(*process_handle) (handle);
+	    }
+	}
+      if (! save_temps_flag)
+	remove (VLO_BEGIN (objname));
+    }
+  VLO_DELETE (command);
+  VLO_DELETE (objname);
+  if (! save_temps_flag)
+    remove (VLO_BEGIN (fname));
+  VLO_DELETE (fname);
+  if (ret)
+    BC_set_compiled_p (bc, TRUE);
+  return ret;
+#endif
+}
+
+/* Compile all c-code in infoed block. */
+int
+check_c_code (BC_node_t block)
+{
+  BC_node_t bc_decl, info, bc;
+  int ok_p = TRUE;
+  
+  d_assert (BC_IS_OF_TYPE (block, BC_NM_block));
+  for (bc_decl = BC_decls (block);
+       bc_decl != NULL;
+       bc_decl = BC_next_decl (bc_decl))
+    if (BC_IS_OF_TYPE (bc_decl, BC_NM_fdecl)
+	&& ! check_c_code (BC_fblock (bc_decl)))
+      ok_p = FALSE;
+  if (BC_IS_OF_TYPE (block, BC_NM_fblock) || BC_scope (block) == NULL)
+    for (info = BC_info (block); info != NULL; info = BC_next_info (info))
+      {
+	bc = BC_bc (info);
+	if (BC_NODE_MODE (bc) == BC_NM_compile)
+	  {
+	    if (! compile_c_code (bc, NULL))
+	      ok_p = FALSE;
+	  }
+	else if (BC_NODE_MODE (bc) == BC_NM_block && bc != block
+		 && ! check_c_code (bc))
+	  ok_p = FALSE;
+      }
+  return ok_p;
 }
 
 /*

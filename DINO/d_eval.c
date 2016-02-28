@@ -3363,6 +3363,15 @@ except (void)
 }
 
 void
+do_compile (void)
+{
+  
+  if (! compile_c_code (cpc, store_handle))
+    eval_error (compile_bc_decl, get_cpos (),
+		DERR_C_code_compilation_failure);
+}
+
+void
 evaluate_code (void)
 {
   BC_node_mode_t node_mode;
@@ -3631,6 +3640,7 @@ evaluate_code (void)
       goto_table [BC_NM_oclass] = &&l_BC_NM_oclass;
       goto_table [BC_NM_rpr] = &&l_BC_NM_rpr;
       goto_table [BC_NM_rpr_def] = &&l_BC_NM_rpr_def;
+      goto_table [BC_NM_compile] = &&l_BC_NM_compile;
       goto_table [BC_NM_nop] = &&l_BC_NM_nop;
     }
 #define CASE(value) l_ ## value
@@ -4881,6 +4891,13 @@ evaluate_code (void)
 	  BREAK;
 	CASE (BC_NM_rpr_def):
 	  rpr_def (get_op (BC_op1 (cpc)));
+	  INCREMENT_PC ();
+	  BREAK;
+	CASE (BC_NM_compile):
+	  compile ();
+	  if (! compile_c_code (cpc, store_handle))
+	    eval_error (compile_bc_decl, get_cpos (),
+			DERR_C_code_compilation_failure);
 	  INCREMENT_PC ();
 	  BREAK;
 	CASE (BC_NM_nop):

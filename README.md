@@ -4,7 +4,7 @@
 
 ### Vladimir Makarov, vmakarov@gcc.gnu.org
 
-### Feb, 2016
+### Feb 28, 2016
 
 # Description Layout
 * Introduction to Dino
@@ -545,7 +545,7 @@ val asbtract_tree = p.parse (token_vector, syntax_error);
       or **fadd** (floating point variant) which are executed
       without operand type checking
 * Type recognition (inference) is very important for better
-  object code generation, **especially for JIT**.
+  object code generation, **especially for JIT**
     * It can speed up code in many times
 
 
@@ -619,8 +619,83 @@ val asbtract_tree = p.parse (token_vector, syntax_error);
 ---
 
 # Implementation -- C Interface
-* Interface to C
+* Dino has declarations to describe C functions and variables external
+  to Dino programs. For example, the following describes external
+  variable `v` and function `f`
 
+```
+      extern v, f ();
+```
+
+* The variable `v` in C code will be of type `val_t`.  The function
+  `f` in C code will have teh following prototype
+
+```
+      val_t f (int npars, val_t *args);
+```
+
+* The file `d_extern.h` provides C descriptions of Dino internals (the
+  type `val_t`, functions to create vectors, tables etc).  The file is
+  generated from SPRUT description `d_extern.d`
+* The external C code is responsible for providing correct Dino
+  values
+* There are two ways to use C code: *pre-compiled* and *compiled on the
+  fly*
+
+---
+
+# Implementation -- C Interface 2
+* C code for *pre-compiled* way should look like
+
+```
+      #include d_extern.h
+      ...
+      val_t v;
+      ...
+      val_t f (int n_pars, val_t *args) {
+        ER_node_t first_arg = (ER_node_t) &args[0];
+        if (npars == 1 && ER_NODE_MODE (first_arg) == ER_NM_int)
+	  <do something with integer value> ER_i (first_arg);
+	...
+      }
+```
+
+* External variables and functions in C code preliminary compiled
+  as *shared objects* can be used if Dino knows where the objects are located
+    * The option `-L` provides such knowledge.  For example, options
+      `-L/home/dino/obj1.so -L../obj2.so` says Dino to load the shared
+      objects
+    * Externals will be searched in some standard objects first, then in
+      objects provided by options `-L` in the same order as they stay on
+      the command line
+* A standard Dino external C code in file `d_socket.c` from Dino
+  sources can be used as an example of pre-compiled C code
+
+---
+ 
+# Implementation -- C Interface 3
+* C code *compiled on the fly* looks in Dino code like
+
+```
+      %{
+        ...
+        val_t f (int n_pars, val_t *args) {
+          ...
+        }
+      %}
+      extern f ();
+      val r = f(10);
+```
+
+* All C code between pairs of brackets `%{` and `%}` in one Dino file
+  is *concatenated*
+* The result code with pre-appended code from `d_extern.h` is compiled
+  when the execution the first time achieves the location of the first
+  `%{`
+* The result shared object is loaded and external variables and
+  functions are searched lately also in this object as it was
+  described in pre-compiled C code
+* To check all C code before execution you can use option `--check`
 
 ---
 

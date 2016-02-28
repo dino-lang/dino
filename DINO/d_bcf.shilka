@@ -93,6 +93,7 @@ move_decl
 element
 ret_decl
 block
+c_code
 
 %%
 

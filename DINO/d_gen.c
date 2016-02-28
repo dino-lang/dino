@@ -3547,6 +3547,14 @@ nop (void)
 {
 }
 
+extern void do_compile (void);
+
+static void do_always_inline
+compile (void)
+{
+  do_compile ();
+}
+
 static void do_always_inline
 set_c_code_p (void)
 {

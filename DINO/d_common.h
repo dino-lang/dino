@@ -166,7 +166,7 @@ extern size_t gmp_memory_size;
 extern int bc_nodes_num;
 extern unsigned int heap_chunk_size;
 extern unsigned int generated_c_functions_num, generated_c_function_calls_num;
-extern unsigned int inlined_calls_num;
+extern unsigned int inlined_calls_num, c_compilations_num;
 extern int repl_flag;
 extern int optimize_flag;
 extern int statistics_flag;

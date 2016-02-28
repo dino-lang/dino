@@ -793,6 +793,9 @@ dump_code (BC_node_t infos, int indent)
 	  printf (" // %d <- regexp_match (%d, string)",
 		  BC_op1 (bc), BC_ch_op2 (bc));
 	  break;
+	case BC_NM_compile:
+	  printf (" c_code=%%{%s%%}", BC_c_code (bc));
+	  break;
 	default:
 	  /* Other nodes should not occur here. */
 	  d_unreachable ();
@@ -823,7 +826,8 @@ enum token
   D_LONG,
   D_FLOAT,
   D_STRING,
-  D_UCODESTR
+  D_UCODESTR,
+  D_C_CODE
 };
 
 /* The token attributes. */
@@ -1099,7 +1103,7 @@ get_token (void)
 		ch = '\0';
 		VLO_ADD_MEMORY (symbol_text, &ch, sizeof (ucode_t));
 		token_attr.ustr = ucodestr_to_table (VLO_BEGIN (symbol_text));
-		return curr_token = D_STRING;
+		return curr_token = D_UCODESTR;
 	      }
 	    else
 	      {
@@ -1108,6 +1112,44 @@ get_token (void)
 		return curr_token = D_STRING;
 	      }
           }
+	case '%':
+	  {
+	    int ch;
+	    
+	    curr_token_position = current_position;
+	    current_position.column_number++;
+	    ch = bc_getc ();
+	    if (ch == '{')
+	      {
+		for (;;)
+		  {
+		    current_position.column_number++;
+		    ch = bc_getc ();
+		    if (ch == '%')
+		      {
+			current_position.column_number++;
+			ch = bc_getc ();
+			if (ch == '}')
+			  break;
+			VLO_ADD_BYTE (symbol_text, '%');
+		      }
+		    else if (ch == '\n')
+		      {
+			current_position.column_number = 1;
+			current_position.line_number++;
+		      }
+                  else if (ch == EOF)
+		    {
+		      error (FALSE, current_position, ERR_eof_in_C_code);
+		      break;
+		    }
+		    VLO_ADD_BYTE (symbol_text, ch);
+		  }
+		VLO_ADD_BYTE (symbol_text, '\0');
+		token_attr.str = string_to_table (VLO_BEGIN (symbol_text));
+		return curr_token = D_C_CODE;
+	      }
+	  }
         default:
 	  /* We permit idents starting with prefix '$' too.  */
           if (isalpha_ascii (input_char)
@@ -1365,7 +1407,7 @@ get_decl (int label)
      label : D_INT
      nodename : D_IDENT
      field : D_IDENT '=' value
-     value : D_INT | D_LONG | D_FLOAT | D_IDENT | D_STRING | D_UCODESTR
+     value : D_INT | D_LONG | D_FLOAT | D_IDENT | D_STRING | D_UCODESTR | D_C_CODE
 
    Some fields are not obligatory as they have a default value.  Some
    fields represent nodes different from node where they present
@@ -1743,6 +1785,10 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	      if (check_fld (BC_NM_bend, D_INT)) goto fail;
 	      store_curr_ptr_fld (); 
 	      break;
+	    case FR_c_code:
+	      if (check_fld (BC_NM_compile, D_C_CODE)) goto fail;
+	      BC_set_c_code (curr_node, token_attr.str);
+	      break;
 	    default:
 	      error (TRUE, current_position,
 		     "Internal error: unprocessed field %s", curr_fld_name);
@@ -1839,6 +1885,7 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
       check_fld_set (BC_NM_foreach2, FR_element, "element");
       check_fld_set (BC_NM_move, FR_move_decl, "move_decl");
       check_fld_set (BC_NM_bend, FR_block, "block");
+      check_fld_set (BC_NM_compile, FR_c_code, "c_code");
       /* Link infos: */
       if (info_p)
 	{

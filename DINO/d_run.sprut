@@ -199,6 +199,7 @@ extern void delete_cprocess (void);
 extern int delete_cprocess_during_exception (void);
 extern void initiate_processes (pc_t start_pc);
 
+extern void store_handle (void *handle);
 extern void *external_address (BC_node_t decl);
 
 extern void process_system_errors (const char *function_name);

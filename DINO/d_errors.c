@@ -53,6 +53,7 @@ char ERR_int_value[] = "too big integer value";
 char ERR_string_end_absence[] = "string end is absent";
 char ERR_exponent_absence[] = "exponent of float is absent";
 char ERR_eof_in_comment[] = "comment is not finished (EOF)";
+char ERR_eof_in_C_code[] = "C code is not finished (EOF)";
 char ERR_unknown_hint[] = "unknown hint %s";
 char ERR_wrong_hint_for_non_fun[]
   = "inline or pure hint is permitted only for fun";
@@ -457,3 +458,5 @@ char DERR_rmatch_case_expr_type []
 char DERR_deadlock [] = "run time error - process deadlock";
 char DERR_unprocessed_exception []
   = "run time error - exception %s has not been processed";
+char DERR_C_code_compilation_failure []
+  = "run time error - failure to compile the C code";

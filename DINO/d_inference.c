@@ -962,6 +962,8 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
 	    return NO_MORE_OPERAND;
 	}
       break;
+    case BC_NM_compile:
+      return NO_MORE_OPERAND;
     default:
       assert (FALSE);
     }
@@ -2025,6 +2027,9 @@ type_transf (node_t node)
     case BC_NM_rmatch:
     case BC_NM_rmatchs:
       break;
+    case BC_NM_compile:
+      return FALSE;
+      break;
     default:
       d_assert (FALSE);
     }
@@ -2393,6 +2398,7 @@ specialize_insn (df_insn_t insn)
     case BC_NM_chstel:
     case BC_NM_rmatch:
     case BC_NM_rmatchs:
+    case BC_NM_compile:
       break;
     default:
       d_assert (FALSE);

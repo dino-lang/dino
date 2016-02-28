@@ -5,7 +5,7 @@
 .SH NAME
 dino \- the interpreter of the programming language Dino
 .SH SYNOPSIS
-.B dino [ -h --help -s --statistics -t --trace -m size -Idirname -Lpath -O --save-temps -d --dump -p --profile] (-c
+.B dino [ -h --help -s --statistics -t --trace -m size -Idirname -Lpath -O --check --save-temps -d --dump -p --profile] (-c
 .I program
 .B |
 .I program-file
@@ -83,6 +83,9 @@ Output Dino byte code to the standard output.
 .IP -i dump-file
 Read Dino byte code from a given file and execute it.  You can use this
 option instead of providing Dino program file.
+.IP --check
+Check non run-time errors without program execution.  The option also checks
+all C-code fragments in the Dino program.
 .IP --save-temps
 If a Dino function processed by JIT compiler, the generated C source code
 and PIC object code can be saved after finishing Dino interpreter in directory
