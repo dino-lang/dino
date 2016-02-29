@@ -1,5 +1,9 @@
 2016-02-28  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/d_flatten.d: New.
+
+2016-02-28  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/Makefile.am (EXTRA_DIST): Add d_flatten.d.
 	(d_extern.i): Rewrite the rule using d_flatten.d.
 	* DINO/Makefile.in: Update.
