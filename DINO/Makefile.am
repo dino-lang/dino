@@ -67,7 +67,7 @@ include_HEADERS = d_types.h mpi.d ieee.d ipcerr.d socket.d
 nodist_include_HEADERS = d_extern.h d_config.h d_extern.i d_gen.i
 EXTRA_DIST =  d_gen.c d_yacc.y d_ir.sprut d_bc.sprut d_extern.sprut d_run.sprut\
 	      d_kw.shilka d_enc.shilka d_bcn.shilka d_bcf.shilka dino.tst.in UnicodeDB.c\
-	      compare.tst README INSTALL d_minimize.d\
+	      compare.tst README INSTALL d_minimize.d d_flatten.d\
 	      UnicodeOriginalData.txt process_ucodedb.d\
 	      dino.sgml.in
 ACLOCAL_AMFLAGS = -I m4
@@ -84,8 +84,11 @@ distclean-local:
 	rm -f d_genheader.i d_extern.h d_extern.i d_gen.i\
 	      dino.sgml dino.tmp dino.tex dino.log dino.aux dino.toc quality.tst dino.tst dino.out
 
-d_extern.i: d_extern.h d_config.h $(srcdir)/d_types.h
-	$(CC) @DEFS@ -I$(srcdir) -I. $(libdino_la_CFLAGS) $(CFLAGS) -E > d_extern.tmp d_extern.h && mv d_extern.tmp $@
+d_extern.i: dino$(EXEEXT) d_extern.h d_config.h $(srcdir)/d_types.h $(srcdir)/d_flatten.d
+	@if test d_extern.i -ot d_extern.h;then\
+           echo Flatten d_extern.h;\
+           ./dino $(srcdir)/d_flatten.d d_extern.h $(srcdir) > d_gen.tmp && mv d_gen.tmp $@;\
+        fi
 
 d_gen.i : dino$(EXEEXT) d_genheader.i $(srcdir)/d_minimize.d
 	@if test d_gen.i -ot d_genheader.i;then\

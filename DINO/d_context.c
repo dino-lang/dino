@@ -4980,12 +4980,12 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 		    = IR_var_number_in_block (IR_match_expr_var (match_stmt));
 		else
 		  {
-		    bc = create_bc_decl (IR_match_expr_var (match_stmt),
-					 match_stmt);
+		    BC_node_t var_bc = create_bc_decl (IR_match_expr_var (match_stmt),
+						       match_stmt);
 		    result = not_defined_result;
 		    BC_set_op1
-		      (bc, setup_result_var_number (&result, &temp_vars_num));
-		    add_to_bcode (bc);
+		      (var_bc, setup_result_var_number (&result, &temp_vars_num));
+		    add_to_bcode (var_bc);
 		  }
 		generate_case (stmt, IR_case_pattern (stmt), result,
 			       continue_target, &temp_vars_num);

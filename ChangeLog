@@ -1,5 +1,15 @@
 2016-02-28  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/Makefile.am (EXTRA_DIST): Add d_flatten.d.
+	(d_extern.i): Rewrite the rule using d_flatten.d.
+	* DINO/Makefile.in: Update.
+	* DINO/d_bc.sprut (CC_COMPILE_OPTIONS, CC_COMPILE_OPTIONS2): Add
+	-DHAVE_CONFIG_H.
+	* DINO/d_context.c (second_block_passing): Use var_bc instead of
+	bc for math expr.
+
+2016-02-28  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/Makefile.am (no_dist): Add d_extern.i.
 	(all_local): Ditto.
 	(distclean_local): Remove d_extern.i.
