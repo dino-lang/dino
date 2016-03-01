@@ -34,7 +34,7 @@ case $system in
 	CYGWIN*)
 	  DINO_LIB_CFLAGS='-shared'
           DINO_LIB_LDFLAGS='-shared ../AMMUNITION/libcocom.la ../ONIGURUMA/libonig.la -no-undefined'
-	  DINO_MOD_LDFLAGS='libdino.la -no-undefined'
+	  DINO_MOD_LDFLAGS='../libdino.la -no-undefined'
 	  CFLAGS="`echo $CFLAGS` -I/usr/include -I/usr/local/include -L/usr/lib -L/usr/local/lib"
 	  DINO_VERSION_SUFFIX="-`echo $VERSION|sed 's/\./-/'`"
 	  DINO_MODULE_VERSION_SUFFIX="-`echo $DINO_MODULE_VERSION|sed 's/\./-/'`"

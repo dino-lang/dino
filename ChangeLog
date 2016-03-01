@@ -1,5 +1,10 @@
 2016-02-29  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/configure.ac (DINO_MOD_LDFLAGS): Use ../ for libdino.la.
+	* DINO/configure: Update.
+
+2016-02-29  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* README.md: Use d_api.h instead of d_extern.h.
 
 2016-02-29  Vladimir Makarov  <vmakarov@gcc.gnu.org>
