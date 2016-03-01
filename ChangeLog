@@ -1,5 +1,13 @@
 2016-02-29  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/d_eval.c (process_slice_extract): Remove immutable check.
+	* DINO/d_flatten.d: Remove new.
+	* DINO/d_yacc.y (try-expr): Save restore additional_stsmts.
+	(a_case): Ditto.
+	* DINO/dino.tst.in (915-917): New tests.
+
+2016-02-29  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/configure.ac (DINO_MOD_LDFLAGS): Use ../ for libdino.la.
 	* DINO/configure: Update.
 

@@ -9,7 +9,7 @@ if (#argv != 2) {
 
 var fname = argv[0], dir = argv[1], f = open (fname, "r"), streams = [], n = 1, ln;
 for (;;) {
-  for (; try (ln = new fgetln (f), eof); n++) {
+  for (; try (ln = fgetln (f), eof); n++) {
     rmatch (ln) {
     case `\s*#\s*include\s+"(.*)"`:
       var newf, newfname = ln [m[2]:m[3]];

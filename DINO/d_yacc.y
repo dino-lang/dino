@@ -510,9 +510,14 @@ expr : NUMBER        {$$ = $1;}
 	   IR_set_pos (current_scope, $2);
 	   start_block (); /* start try block */
 	 }
+         {
+	   $<pointer>$ = additional_stmts;
+	   additional_stmts = NULL;
+	 }
        set_flag2  executive_stmt  except_class_list_opt  ')'
          {
-	   $$ = create_try_expr ($<pointer>3, $5, $6, $2, $7);
+	   additional_stmts = $<pointer>4;
+	   $$ = create_try_expr ($<pointer>3, $6, $7, $2, $8);
 	 }
      | TRY '(' error
           {
@@ -981,23 +986,28 @@ a_case :   {
               $<pointer>$ = create_empty_block (current_scope);
               current_scope = $<pointer>$;
             }
+            {
+	      $<pointer>$ = additional_stmts;
+	      additional_stmts = NULL;
+	    }
        	 CASE regexp_pattern opt_cond ':' stmt_list
             {
 	      IR_node_t break_stmt;
 	      
               $$ = $<pointer>1;
 	      IR_set_match_stmt ($$, $<pointer>0);
-	      IR_set_case_pattern ($$, $3);
-	      IR_set_case_cond ($$, $4);
+	      IR_set_case_pattern ($$, $4);
+	      IR_set_case_cond ($$, $5);
 	      /* Add implicit break at the end of case-stmts. */
 	      break_stmt = create_node_with_pos (IR_NM_break_stmt,
 						 current_position);
 	      IR_set_next_stmt (break_stmt, break_stmt);
 	      IR_set_implicit_case_break_stmt ($$, break_stmt);
 	      IR_set_block_stmts ($$, uncycle_stmt_list (merge_stmt_lists
-							 ($6, break_stmt)));
+							 ($7, break_stmt)));
 	      IR_set_next_stmt ($$, $$);
 	      current_scope = IR_block_scope ($$);
+	      additional_stmts = $<pointer>2;
 	    }
         ;
 opt_cond :           { $$ = NULL; }

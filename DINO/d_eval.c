@@ -638,9 +638,6 @@ process_slice_extract (ER_node_t container1, ER_node_t start_val1, int dim1,
   d_assert (dim1 > 0);
   vect1 = container1;
   GO_THROUGH_REDIR (vect1);
-  if (ER_immutable (vect1))
-    eval_error (immutable_bc_decl, get_designator_pos (),
-		DERR_immutable_vector_modification);
   pack_flag1 = ER_NODE_MODE (vect1) == ER_NM_heap_pack_vect;
   len1 = ER_els_number (vect1);
   check_and_get_slice_info (start_val1, len1, depth,
