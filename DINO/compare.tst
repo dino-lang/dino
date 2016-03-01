@@ -7702,15 +7702,15 @@ EOF
 
 title=
 if uname | fgrep CYGWIN >/dev/null; then
-ipcerr=`ls .libs/d_ipcerr-*.dll`
-socket=`ls .libs/d_socket-*.dll`
+ipcerr=`ls MODULES/.libs/d_ipcerr-*.dll`
+socket=`ls MODULES/.libs/d_socket-*.dll`
 else
-ipcerr=`ls .libs/d_ipcerr-*.so`
-socket=`ls .libs/d_socket-*.so`
+ipcerr=`ls MODULES/.libs/d_ipcerr-*.so`
+socket=`ls MODULES/.libs/d_socket-*.so`
 fi
 
-$DINO -I$srcdir -L$ipcerr -L$socket $ftest $rep > /dev/null &
-  (time -p $DINO -I$srcdir -L$ipcerr -L$socket $ftest $rep client) >$temp2 2>&1
+$DINO -I$srcdir/MODULES -L$ipcerr -L$socket $ftest $rep > /dev/null &
+  (time -p $DINO -I$srcdir/MODULES -L$ipcerr -L$socket $ftest $rep client) >$temp2 2>&1
 print_dino "" $temp2
   
 if test x$PERL != x; then

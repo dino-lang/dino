@@ -17475,7 +17475,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
   esac
 fi
 
-ac_config_files="$ac_config_files Makefile"
+ac_config_files="$ac_config_files Makefile MODULES/Makefile"
 
 
 output_files="dino.tst"
@@ -18594,6 +18594,7 @@ do
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "d_config.h") CONFIG_HEADERS="$CONFIG_HEADERS d_config.h" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
+    "MODULES/Makefile") CONFIG_FILES="$CONFIG_FILES MODULES/Makefile" ;;
     "$output_files") CONFIG_FILES="$CONFIG_FILES $output_files" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;

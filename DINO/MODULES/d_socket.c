@@ -25,10 +25,7 @@
 /* We made all check inside DINO code therefore we trust in correct
    operand types. */
 
-#ifdef HAVE_CONFIG_H
-#include "d_config.h"
-#endif
-#include "d_extern.h"
+#include "d_api.h"
 #include <errno.h>
 #include <ctype.h>
 #include <string.h>

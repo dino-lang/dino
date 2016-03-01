@@ -199,7 +199,7 @@ if test "$GCC" = yes && test x$dino_debug = x; then
   esac
 fi
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile MODULES/Makefile])
 
 output_files="dino.tst"
 

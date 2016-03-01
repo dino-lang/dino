@@ -25,7 +25,7 @@
 /* We made all check inside DINO code therefore we trust in correct
    operand types */
 
-#include "d_extern.h"
+#include "d_api.h"
 #include "arithm.h"
 #include "IEEE.h"
 #include <string.h>

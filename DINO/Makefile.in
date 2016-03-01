@@ -86,8 +86,8 @@ subdir = .
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) \
 	$(srcdir)/d_config.h.in depcomp $(dist_man_MANS) \
-	$(dist_doc_DATA) $(include_HEADERS) INSTALL README compile \
-	config.guess config.sub install-sh missing ltmain.sh
+	$(dist_doc_DATA) INSTALL README compile config.guess \
+	config.sub install-sh missing ltmain.sh
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -130,43 +130,8 @@ am__uninstall_files_from_dir = { \
   }
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
 	"$(DESTDIR)$(man1dir)" "$(DESTDIR)$(docdir)" \
-	"$(DESTDIR)$(includedir)" "$(DESTDIR)$(includedir)"
+	"$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
-d_ieee_la_LIBADD =
-am_d_ieee_la_OBJECTS = d_ieee_la-d_ieee.lo
-nodist_d_ieee_la_OBJECTS =
-d_ieee_la_OBJECTS = $(am_d_ieee_la_OBJECTS) \
-	$(nodist_d_ieee_la_OBJECTS)
-AM_V_lt = $(am__v_lt_@AM_V@)
-am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
-am__v_lt_0 = --silent
-am__v_lt_1 = 
-d_ieee_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(d_ieee_la_CFLAGS) \
-	$(CFLAGS) $(d_ieee_la_LDFLAGS) $(LDFLAGS) -o $@
-d_ipcerr_la_LIBADD =
-am_d_ipcerr_la_OBJECTS = d_ipcerr_la-d_ipcerr.lo
-nodist_d_ipcerr_la_OBJECTS =
-d_ipcerr_la_OBJECTS = $(am_d_ipcerr_la_OBJECTS) \
-	$(nodist_d_ipcerr_la_OBJECTS)
-d_ipcerr_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(d_ipcerr_la_CFLAGS) \
-	$(CFLAGS) $(d_ipcerr_la_LDFLAGS) $(LDFLAGS) -o $@
-d_mpi_la_LIBADD =
-am_d_mpi_la_OBJECTS = d_mpi_la-d_mpi.lo
-nodist_d_mpi_la_OBJECTS =
-d_mpi_la_OBJECTS = $(am_d_mpi_la_OBJECTS) $(nodist_d_mpi_la_OBJECTS)
-d_mpi_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(d_mpi_la_CFLAGS) \
-	$(CFLAGS) $(d_mpi_la_LDFLAGS) $(LDFLAGS) -o $@
-d_socket_la_LIBADD =
-am_d_socket_la_OBJECTS = d_socket_la-d_socket.lo
-nodist_d_socket_la_OBJECTS =
-d_socket_la_OBJECTS = $(am_d_socket_la_OBJECTS) \
-	$(nodist_d_socket_la_OBJECTS)
-d_socket_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(d_socket_la_CFLAGS) \
-	$(CFLAGS) $(d_socket_la_LDFLAGS) $(LDFLAGS) -o $@
 libdino_la_LIBADD =
 am_libdino_la_OBJECTS = libdino_la-d_errors.lo libdino_la-d_heap.lo \
 	libdino_la-d_runtab.lo libdino_la-d_context.lo \
@@ -177,6 +142,10 @@ nodist_libdino_la_OBJECTS = libdino_la-d_yacc.lo libdino_la-d_ir.lo \
 	libdino_la-d_bc.lo libdino_la-d_run.lo
 libdino_la_OBJECTS = $(am_libdino_la_OBJECTS) \
 	$(nodist_libdino_la_OBJECTS)
+AM_V_lt = $(am__v_lt_@AM_V@)
+am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
+am__v_lt_0 = --silent
+am__v_lt_1 = 
 libdino_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libdino_la_CFLAGS) \
 	$(CFLAGS) $(libdino_la_LDFLAGS) $(LDFLAGS) -o $@
@@ -221,15 +190,17 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(d_ieee_la_SOURCES) $(nodist_d_ieee_la_SOURCES) \
-	$(d_ipcerr_la_SOURCES) $(nodist_d_ipcerr_la_SOURCES) \
-	$(d_mpi_la_SOURCES) $(nodist_d_mpi_la_SOURCES) \
-	$(d_socket_la_SOURCES) $(nodist_d_socket_la_SOURCES) \
-	$(libdino_la_SOURCES) $(nodist_libdino_la_SOURCES) \
+SOURCES = $(libdino_la_SOURCES) $(nodist_libdino_la_SOURCES) \
 	$(dino_SOURCES)
-DIST_SOURCES = $(d_ieee_la_SOURCES) $(d_ipcerr_la_SOURCES) \
-	$(d_mpi_la_SOURCES) $(d_socket_la_SOURCES) \
-	$(libdino_la_SOURCES) $(dino_SOURCES)
+DIST_SOURCES = $(libdino_la_SOURCES) $(dino_SOURCES)
+RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
+	ctags-recursive dvi-recursive html-recursive info-recursive \
+	install-data-recursive install-dvi-recursive \
+	install-exec-recursive install-html-recursive \
+	install-info-recursive install-pdf-recursive \
+	install-ps-recursive install-recursive installcheck-recursive \
+	installdirs-recursive pdf-recursive ps-recursive \
+	tags-recursive uninstall-recursive
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -239,7 +210,15 @@ man1dir = $(mandir)/man1
 NROFF = nroff
 MANS = $(dist_man_MANS)
 DATA = $(dist_doc_DATA)
-HEADERS = $(include_HEADERS) $(nodist_include_HEADERS)
+HEADERS = $(nodist_include_HEADERS)
+RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
+  distclean-recursive maintainer-clean-recursive
+am__recursive_targets = \
+  $(RECURSIVE_TARGETS) \
+  $(RECURSIVE_CLEAN_TARGETS) \
+  $(am__extra_recursive_targets)
+AM_RECURSIVE_TARGETS = $(am__recursive_targets:-recursive=) TAGS CTAGS \
+	cscope distdir dist dist-all distcheck
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) \
 	$(LISP)d_config.h.in
 # Read a list of newline-separated strings from the standard input,
@@ -261,7 +240,7 @@ am__define_uniq_tagged_files = \
 ETAGS = etags
 CTAGS = ctags
 CSCOPE = cscope
-AM_RECURSIVE_TARGETS = cscope
+DIST_SUBDIRS = $(SUBDIRS)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -272,6 +251,31 @@ am__remove_distdir = \
       || { sleep 5 && rm -rf "$(distdir)"; }; \
   else :; fi
 am__post_remove_distdir = $(am__remove_distdir)
+am__relativize = \
+  dir0=`pwd`; \
+  sed_first='s,^\([^/]*\)/.*$$,\1,'; \
+  sed_rest='s,^[^/]*/*,,'; \
+  sed_last='s,^.*/\([^/]*\)$$,\1,'; \
+  sed_butlast='s,/*[^/]*$$,,'; \
+  while test -n "$$dir1"; do \
+    first=`echo "$$dir1" | sed -e "$$sed_first"`; \
+    if test "$$first" != "."; then \
+      if test "$$first" = ".."; then \
+        dir2=`echo "$$dir0" | sed -e "$$sed_last"`/"$$dir2"; \
+        dir0=`echo "$$dir0" | sed -e "$$sed_butlast"`; \
+      else \
+        first2=`echo "$$dir2" | sed -e "$$sed_first"`; \
+        if test "$$first2" = "$$first"; then \
+          dir2=`echo "$$dir2" | sed -e "$$sed_rest"`; \
+        else \
+          dir2="../$$dir2"; \
+        fi; \
+        dir0="$$dir0"/"$$first"; \
+      fi; \
+    fi; \
+    dir1=`echo "$$dir1" | sed -e "$$sed_rest"`; \
+  done; \
+  reldir="$$dir2"
 DIST_ARCHIVES = $(distdir).tar.gz
 GZIP_ENV = --best
 DIST_TARGETS = dist-gzip
@@ -417,7 +421,8 @@ top_srcdir = @top_srcdir@
 
 # Cygwin can not find dll without changing PATH
 PATH := ${PATH}:../AMMUNITION/.libs
-lib_LTLIBRARIES = libdino.la d_mpi.la d_ieee.la d_ipcerr.la d_socket.la
+SUBDIRS = . MODULES
+lib_LTLIBRARIES = libdino.la
 libdino_la_SOURCES = d_dino.h d_errors.h d_common.h d_built.h d_yacc.h d_runtab.h d_bcio.h\
 		     d_types.h d_context.h d_inference.h d_conv.h d_udb.h d_func.h d_eval.h\
 		     d_errors.c d_heap.c d_runtab.c\
@@ -449,35 +454,14 @@ dino_CFLAGS = $(libdino_la_CFLAGS)
 dino_LDFLAGS = -lgmp -lm -export-dynamic @DINO_LIB_LDFLAGS@ \
                libdino.la ../ONIGURUMA/libonig.la ../AMMUNITION/libcocom.la
 
-BUILT_SOURCES = d_ir.h d_bc.h d_run.h d_extern.h d_kw.c d_enc.c d_bcn.c d_bcf.c
-d_mpi_la_SOURCES = d_mpi.c
-d_mpi_la_CFLAGS = -shared -I. -I$(srcdir) -I$(srcdir)/../AMMUNITION
-d_mpi_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ ../AMMUNITION/libcocom.la -release $(DINO_MODULE_VERSION)
-nodist_d_mpi_la_SOURCES = d_extern.h
-EXTRA_d_mpi_la_DEPENDENCIES = libdino.la
-d_ieee_la_SOURCES = d_ieee.c
-d_ieee_la_CFLAGS = -shared -DIEEE_QUAD -I. -I$(srcdir) -I$(srcdir)/../AMMUNITION
-d_ieee_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ ../AMMUNITION/libcocom.la -release $(DINO_MODULE_VERSION)
-nodist_d_ieee_la_SOURCES = d_extern.h
-EXTRA_d_ieee_la_DEPENDENCIES = libdino.la
-d_ipcerr_la_SOURCES = d_ipcerr.c
-d_ipcerr_la_CFLAGS = -shared -I. -I$(srcdir)
-d_ipcerr_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ -release $(DINO_MODULE_VERSION)
-nodist_d_ipcerr_la_SOURCES = d_extern.h
-EXTRA_d_ipcerr_la_DEPENDENCIES = libdino.la
-d_socket_la_SOURCES = d_socket.c
-d_socket_la_CFLAGS = -shared -I. -I$(srcdir)
-d_socket_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ -release $(DINO_MODULE_VERSION)
-nodist_d_socket_la_SOURCES = d_extern.h
-EXTRA_d_socket_la_DEPENDENCIES = libdino.la
+BUILT_SOURCES = d_ir.h d_bc.h d_run.h d_bcn.c d_bcf.c d_kw.c d_enc.c
 dist_doc_DATA = dino.txt dino.info dino.html dino-1.html dino-2.html\
 	        dino-3.html dino-4.html dino-5.html dino-6.html dino-7.html\
 	        dino-8.html dino-9.html dino-10.html dino-11.html\
 	        dino.pdf dino.dvi dino.ps
 
 dist_man_MANS = dino.1
-include_HEADERS = d_types.h mpi.d ieee.d ipcerr.d socket.d
-nodist_include_HEADERS = d_extern.h d_config.h d_extern.i d_gen.i
+nodist_include_HEADERS = d_api.h d_gen.i
 EXTRA_DIST = d_gen.c d_yacc.y d_ir.sprut d_bc.sprut d_extern.sprut d_run.sprut\
 	      d_kw.shilka d_enc.shilka d_bcn.shilka d_bcf.shilka dino.tst.in UnicodeDB.c\
 	      compare.tst README INSTALL d_minimize.d d_flatten.d\
@@ -489,7 +473,7 @@ SPRUT = ../SPRUT/sprut
 SHILKA = ../SHILKA/shilka
 MSTA = ../MSTA/msta
 all: $(BUILT_SOURCES) d_config.h
-	$(MAKE) $(AM_MAKEFLAGS) all-am
+	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
 .SUFFIXES:
 .SUFFIXES: .c .lo .o .obj
@@ -578,18 +562,6 @@ clean-libLTLIBRARIES:
 	  rm -f $${locs}; \
 	}
 
-d_ieee.la: $(d_ieee_la_OBJECTS) $(d_ieee_la_DEPENDENCIES) $(EXTRA_d_ieee_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(d_ieee_la_LINK) -rpath $(libdir) $(d_ieee_la_OBJECTS) $(d_ieee_la_LIBADD) $(LIBS)
-
-d_ipcerr.la: $(d_ipcerr_la_OBJECTS) $(d_ipcerr_la_DEPENDENCIES) $(EXTRA_d_ipcerr_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(d_ipcerr_la_LINK) -rpath $(libdir) $(d_ipcerr_la_OBJECTS) $(d_ipcerr_la_LIBADD) $(LIBS)
-
-d_mpi.la: $(d_mpi_la_OBJECTS) $(d_mpi_la_DEPENDENCIES) $(EXTRA_d_mpi_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(d_mpi_la_LINK) -rpath $(libdir) $(d_mpi_la_OBJECTS) $(d_mpi_la_LIBADD) $(LIBS)
-
-d_socket.la: $(d_socket_la_OBJECTS) $(d_socket_la_DEPENDENCIES) $(EXTRA_d_socket_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(d_socket_la_LINK) -rpath $(libdir) $(d_socket_la_OBJECTS) $(d_socket_la_LIBADD) $(LIBS)
-
 libdino.la: $(libdino_la_OBJECTS) $(libdino_la_DEPENDENCIES) $(EXTRA_libdino_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(libdino_la_LINK) -rpath $(libdir) $(libdino_la_OBJECTS) $(libdino_la_LIBADD) $(LIBS)
 install-binPROGRAMS: $(bin_PROGRAMS)
@@ -652,10 +624,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/d_ieee_la-d_ieee.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/d_ipcerr_la-d_ipcerr.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/d_mpi_la-d_mpi.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/d_socket_la-d_socket.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dino-d_main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_bc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_bcio.Plo@am__quote@
@@ -693,34 +661,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
-
-d_ieee_la-d_ieee.lo: d_ieee.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(d_ieee_la_CFLAGS) $(CFLAGS) -MT d_ieee_la-d_ieee.lo -MD -MP -MF $(DEPDIR)/d_ieee_la-d_ieee.Tpo -c -o d_ieee_la-d_ieee.lo `test -f 'd_ieee.c' || echo '$(srcdir)/'`d_ieee.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/d_ieee_la-d_ieee.Tpo $(DEPDIR)/d_ieee_la-d_ieee.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='d_ieee.c' object='d_ieee_la-d_ieee.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(d_ieee_la_CFLAGS) $(CFLAGS) -c -o d_ieee_la-d_ieee.lo `test -f 'd_ieee.c' || echo '$(srcdir)/'`d_ieee.c
-
-d_ipcerr_la-d_ipcerr.lo: d_ipcerr.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(d_ipcerr_la_CFLAGS) $(CFLAGS) -MT d_ipcerr_la-d_ipcerr.lo -MD -MP -MF $(DEPDIR)/d_ipcerr_la-d_ipcerr.Tpo -c -o d_ipcerr_la-d_ipcerr.lo `test -f 'd_ipcerr.c' || echo '$(srcdir)/'`d_ipcerr.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/d_ipcerr_la-d_ipcerr.Tpo $(DEPDIR)/d_ipcerr_la-d_ipcerr.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='d_ipcerr.c' object='d_ipcerr_la-d_ipcerr.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(d_ipcerr_la_CFLAGS) $(CFLAGS) -c -o d_ipcerr_la-d_ipcerr.lo `test -f 'd_ipcerr.c' || echo '$(srcdir)/'`d_ipcerr.c
-
-d_mpi_la-d_mpi.lo: d_mpi.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(d_mpi_la_CFLAGS) $(CFLAGS) -MT d_mpi_la-d_mpi.lo -MD -MP -MF $(DEPDIR)/d_mpi_la-d_mpi.Tpo -c -o d_mpi_la-d_mpi.lo `test -f 'd_mpi.c' || echo '$(srcdir)/'`d_mpi.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/d_mpi_la-d_mpi.Tpo $(DEPDIR)/d_mpi_la-d_mpi.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='d_mpi.c' object='d_mpi_la-d_mpi.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(d_mpi_la_CFLAGS) $(CFLAGS) -c -o d_mpi_la-d_mpi.lo `test -f 'd_mpi.c' || echo '$(srcdir)/'`d_mpi.c
-
-d_socket_la-d_socket.lo: d_socket.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(d_socket_la_CFLAGS) $(CFLAGS) -MT d_socket_la-d_socket.lo -MD -MP -MF $(DEPDIR)/d_socket_la-d_socket.Tpo -c -o d_socket_la-d_socket.lo `test -f 'd_socket.c' || echo '$(srcdir)/'`d_socket.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/d_socket_la-d_socket.Tpo $(DEPDIR)/d_socket_la-d_socket.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='d_socket.c' object='d_socket_la-d_socket.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(d_socket_la_CFLAGS) $(CFLAGS) -c -o d_socket_la-d_socket.lo `test -f 'd_socket.c' || echo '$(srcdir)/'`d_socket.c
 
 libdino_la-d_errors.lo: d_errors.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libdino_la_CFLAGS) $(CFLAGS) -MT libdino_la-d_errors.lo -MD -MP -MF $(DEPDIR)/libdino_la-d_errors.Tpo -c -o libdino_la-d_errors.lo `test -f 'd_errors.c' || echo '$(srcdir)/'`d_errors.c
@@ -913,27 +853,6 @@ uninstall-dist_docDATA:
 	@list='$(dist_doc_DATA)'; test -n "$(docdir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	dir='$(DESTDIR)$(docdir)'; $(am__uninstall_files_from_dir)
-install-includeHEADERS: $(include_HEADERS)
-	@$(NORMAL_INSTALL)
-	@list='$(include_HEADERS)'; test -n "$(includedir)" || list=; \
-	if test -n "$$list"; then \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(includedir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(includedir)" || exit 1; \
-	fi; \
-	for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  echo "$$d$$p"; \
-	done | $(am__base_list) | \
-	while read files; do \
-	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(includedir)'"; \
-	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(includedir)" || exit $$?; \
-	done
-
-uninstall-includeHEADERS:
-	@$(NORMAL_UNINSTALL)
-	@list='$(include_HEADERS)'; test -n "$(includedir)" || list=; \
-	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
-	dir='$(DESTDIR)$(includedir)'; $(am__uninstall_files_from_dir)
 install-nodist_includeHEADERS: $(nodist_include_HEADERS)
 	@$(NORMAL_INSTALL)
 	@list='$(nodist_include_HEADERS)'; test -n "$(includedir)" || list=; \
@@ -956,14 +875,61 @@ uninstall-nodist_includeHEADERS:
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	dir='$(DESTDIR)$(includedir)'; $(am__uninstall_files_from_dir)
 
+# This directory's subdirectories are mostly independent; you can cd
+# into them and run 'make' without going through this Makefile.
+# To change the values of 'make' variables: instead of editing Makefiles,
+# (1) if the variable is set in 'config.status', edit 'config.status'
+#     (which will cause the Makefiles to be regenerated when you run 'make');
+# (2) otherwise, pass the desired values on the 'make' command line.
+$(am__recursive_targets):
+	@fail=; \
+	if $(am__make_keepgoing); then \
+	  failcom='fail=yes'; \
+	else \
+	  failcom='exit 1'; \
+	fi; \
+	dot_seen=no; \
+	target=`echo $@ | sed s/-recursive//`; \
+	case "$@" in \
+	  distclean-* | maintainer-clean-*) list='$(DIST_SUBDIRS)' ;; \
+	  *) list='$(SUBDIRS)' ;; \
+	esac; \
+	for subdir in $$list; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" = "."; then \
+	    dot_seen=yes; \
+	    local_target="$$target-am"; \
+	  else \
+	    local_target="$$target"; \
+	  fi; \
+	  ($(am__cd) $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
+	  || eval $$failcom; \
+	done; \
+	if test "$$dot_seen" = "no"; then \
+	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
+	fi; test -z "$$fail"
+
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
-tags: tags-am
+tags: tags-recursive
 TAGS: tags
 
 tags-am: $(TAGS_DEPENDENCIES) $(am__tagged_files)
 	set x; \
 	here=`pwd`; \
+	if ($(ETAGS) --etags-include --version) >/dev/null 2>&1; then \
+	  include_option=--etags-include; \
+	  empty_fix=.; \
+	else \
+	  include_option=--include; \
+	  empty_fix=; \
+	fi; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  if test "$$subdir" = .; then :; else \
+	    test ! -f $$subdir/TAGS || \
+	      set "$$@" "$$include_option=$$here/$$subdir/TAGS"; \
+	  fi; \
+	done; \
 	$(am__define_uniq_tagged_files); \
 	shift; \
 	if test -z "$(ETAGS_ARGS)$$*$$unique"; then :; else \
@@ -976,7 +942,7 @@ tags-am: $(TAGS_DEPENDENCIES) $(am__tagged_files)
 	      $$unique; \
 	  fi; \
 	fi
-ctags: ctags-am
+ctags: ctags-recursive
 
 CTAGS: ctags
 ctags-am: $(TAGS_DEPENDENCIES) $(am__tagged_files)
@@ -995,7 +961,7 @@ cscope: cscope.files
 clean-cscope:
 	-rm -f cscope.files
 cscope.files: clean-cscope cscopelist
-cscopelist: cscopelist-am
+cscopelist: cscopelist-recursive
 
 cscopelist-am: $(am__tagged_files)
 	list='$(am__tagged_files)'; \
@@ -1045,6 +1011,31 @@ distdir: $(DISTFILES)
 	    test -f "$(distdir)/$$file" \
 	    || cp -p $$d/$$file "$(distdir)/$$file" \
 	    || exit 1; \
+	  fi; \
+	done
+	@list='$(DIST_SUBDIRS)'; for subdir in $$list; do \
+	  if test "$$subdir" = .; then :; else \
+	    $(am__make_dryrun) \
+	      || test -d "$(distdir)/$$subdir" \
+	      || $(MKDIR_P) "$(distdir)/$$subdir" \
+	      || exit 1; \
+	    dir1=$$subdir; dir2="$(distdir)/$$subdir"; \
+	    $(am__relativize); \
+	    new_distdir=$$reldir; \
+	    dir1=$$subdir; dir2="$(top_distdir)"; \
+	    $(am__relativize); \
+	    new_top_distdir=$$reldir; \
+	    echo " (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) top_distdir="$$new_top_distdir" distdir="$$new_distdir" \\"; \
+	    echo "     am__remove_distdir=: am__skip_length_check=: am__skip_mode_fix=: distdir)"; \
+	    ($(am__cd) $$subdir && \
+	      $(MAKE) $(AM_MAKEFLAGS) \
+	        top_distdir="$$new_top_distdir" \
+	        distdir="$$new_distdir" \
+		am__remove_distdir=: \
+		am__skip_length_check=: \
+		am__skip_mode_fix=: \
+	        distdir) \
+	      || exit 1; \
 	  fi; \
 	done
 	-test -n "$(am__skip_mode_fix)" \
@@ -1180,25 +1171,26 @@ distcleancheck: distclean
 	       exit 1; } >&2
 check-am: all-am
 check: $(BUILT_SOURCES)
-	$(MAKE) $(AM_MAKEFLAGS) check-am
+	$(MAKE) $(AM_MAKEFLAGS) check-recursive
 all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(MANS) $(DATA) $(HEADERS) \
-		d_config.h all-local
+		d_config.h
 install-binPROGRAMS: install-libLTLIBRARIES
 
-installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(docdir)" "$(DESTDIR)$(includedir)" "$(DESTDIR)$(includedir)"; do \
+installdirs: installdirs-recursive
+installdirs-am:
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(docdir)" "$(DESTDIR)$(includedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: $(BUILT_SOURCES)
-	$(MAKE) $(AM_MAKEFLAGS) install-am
-install-exec: install-exec-am
-install-data: install-data-am
-uninstall: uninstall-am
+	$(MAKE) $(AM_MAKEFLAGS) install-recursive
+install-exec: install-exec-recursive
+install-data: install-data-recursive
+uninstall: uninstall-recursive
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 
-installcheck: installcheck-am
+installcheck: installcheck-recursive
 install-strip:
 	if test -z '$(STRIP)'; then \
 	  $(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
@@ -1222,125 +1214,126 @@ maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
-clean: clean-am
+clean: clean-recursive
 
 clean-am: clean-binPROGRAMS clean-generic clean-libLTLIBRARIES \
-	clean-libtool mostlyclean-am
+	clean-libtool clean-local mostlyclean-am
 
-distclean: distclean-am
+distclean: distclean-recursive
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-libtool distclean-local distclean-tags
 
-dvi: dvi-am
+dvi: dvi-recursive
 
 dvi-am:
 
-html: html-am
+html: html-recursive
 
 html-am:
 
-info: info-am
+info: info-recursive
 
 info-am:
 
-install-data-am: install-dist_docDATA install-includeHEADERS \
-	install-man install-nodist_includeHEADERS
+install-data-am: install-dist_docDATA install-man \
+	install-nodist_includeHEADERS
 
-install-dvi: install-dvi-am
+install-dvi: install-dvi-recursive
 
 install-dvi-am:
 
 install-exec-am: install-binPROGRAMS install-libLTLIBRARIES
 	@$(NORMAL_INSTALL)
 	$(MAKE) $(AM_MAKEFLAGS) install-exec-hook
-install-html: install-html-am
+install-html: install-html-recursive
 
 install-html-am:
 
-install-info: install-info-am
+install-info: install-info-recursive
 
 install-info-am:
 
 install-man: install-man1
 
-install-pdf: install-pdf-am
+install-pdf: install-pdf-recursive
 
 install-pdf-am:
 
-install-ps: install-ps-am
+install-ps: install-ps-recursive
 
 install-ps-am:
 
 installcheck-am:
 
-maintainer-clean: maintainer-clean-am
+maintainer-clean: maintainer-clean-recursive
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
 	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
-mostlyclean: mostlyclean-am
+mostlyclean: mostlyclean-recursive
 
 mostlyclean-am: mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool
 
-pdf: pdf-am
+pdf: pdf-recursive
 
 pdf-am:
 
-ps: ps-am
+ps: ps-recursive
 
 ps-am:
 
 uninstall-am: uninstall-binPROGRAMS uninstall-dist_docDATA \
-	uninstall-includeHEADERS uninstall-libLTLIBRARIES \
-	uninstall-man uninstall-nodist_includeHEADERS
+	uninstall-libLTLIBRARIES uninstall-man \
+	uninstall-nodist_includeHEADERS
 
 uninstall-man: uninstall-man1
 
-.MAKE: all check install install-am install-exec-am install-strip
+.MAKE: $(am__recursive_targets) all check install install-am \
+	install-exec-am install-strip
 
-.PHONY: CTAGS GTAGS TAGS all all-am all-local am--refresh check \
-	check-am clean clean-binPROGRAMS clean-cscope clean-generic \
-	clean-libLTLIBRARIES clean-libtool cscope cscopelist-am ctags \
-	ctags-am dist dist-all dist-bzip2 dist-gzip dist-lzip \
-	dist-shar dist-tarZ dist-xz dist-zip distcheck distclean \
-	distclean-compile distclean-generic distclean-hdr \
-	distclean-libtool distclean-local distclean-tags \
-	distcleancheck distdir distuninstallcheck dvi dvi-am html \
-	html-am info info-am install install-am install-binPROGRAMS \
-	install-data install-data-am install-dist_docDATA install-dvi \
+.PHONY: $(am__recursive_targets) CTAGS GTAGS TAGS all all-am \
+	am--refresh check check-am clean clean-binPROGRAMS \
+	clean-cscope clean-generic clean-libLTLIBRARIES clean-libtool \
+	clean-local cscope cscopelist-am ctags ctags-am dist dist-all \
+	dist-bzip2 dist-gzip dist-lzip dist-shar dist-tarZ dist-xz \
+	dist-zip distcheck distclean distclean-compile \
+	distclean-generic distclean-hdr distclean-libtool \
+	distclean-local distclean-tags distcleancheck distdir \
+	distuninstallcheck dvi dvi-am html html-am info info-am \
+	install install-am install-binPROGRAMS install-data \
+	install-data-am install-dist_docDATA install-dvi \
 	install-dvi-am install-exec install-exec-am install-exec-hook \
-	install-html install-html-am install-includeHEADERS \
-	install-info install-info-am install-libLTLIBRARIES \
-	install-man install-man1 install-nodist_includeHEADERS \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	pdf pdf-am ps ps-am tags tags-am uninstall uninstall-am \
-	uninstall-binPROGRAMS uninstall-dist_docDATA \
-	uninstall-includeHEADERS uninstall-libLTLIBRARIES \
-	uninstall-man uninstall-man1 uninstall-nodist_includeHEADERS
+	install-html install-html-am install-info install-info-am \
+	install-libLTLIBRARIES install-man install-man1 \
+	install-nodist_includeHEADERS install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs installdirs-am maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags tags-am uninstall uninstall-am uninstall-binPROGRAMS \
+	uninstall-dist_docDATA uninstall-libLTLIBRARIES uninstall-man \
+	uninstall-man1 uninstall-nodist_includeHEADERS
 
 check : test
 
-all-local: d_extern.i d_gen.i
-dist-local:
+clean-local:
+	rm -f d_gen.tmp d_api.tmp
 
 # Delete all not needed for distribution.
-distclean-local:
-	rm -f d_genheader.i d_extern.h d_extern.i d_gen.i\
+distclean-local: clean-local
+	rm -f d_genheader.i d_extern.h d_api.h d_gen.i\
 	      dino.sgml dino.tmp dino.tex dino.log dino.aux dino.toc quality.tst dino.tst dino.out
 
-d_extern.i: dino$(EXEEXT) d_extern.h d_config.h $(srcdir)/d_types.h $(srcdir)/d_flatten.d
-	@if test d_extern.i -ot d_extern.h;then\
+d_api.h: dino$(EXEEXT) d_extern.h d_config.h $(srcdir)/d_types.h $(srcdir)/d_flatten.d
+	@if test d_api.h -ot d_extern.h;then\
            echo Flatten d_extern.h;\
-           ./dino $(srcdir)/d_flatten.d d_extern.h $(srcdir) > d_gen.tmp && mv d_gen.tmp $@;\
+           ./dino $(srcdir)/d_flatten.d d_extern.h $(srcdir) > d_api.tmp && mv d_api.tmp $@;\
         fi
 
 d_gen.i : dino$(EXEEXT) d_genheader.i $(srcdir)/d_minimize.d

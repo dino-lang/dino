@@ -18091,8 +18091,8 @@ putln ("ovfw=", mpis.mpi_overflow);
 mpis.mpi_ignore_overflow = 0;
 TEST258
         if uname | fgrep CYGWIN >/dev/null; then
-            echo '      ' $DINO -L.libs/d_mpi-$version.dll -I@srcdir@ $test_file "2>$stderr"
-	    if $DINO -L.libs/d_mpi-$version.dll -I@srcdir@ $test_file 2>$stderr >$stdout; then
+            echo '      ' $DINO -LMODULES/.libs/d_mpi-$version.dll -I@srcdir@/MODULES $test_file "2>$stderr"
+	    if $DINO -LMODULES/.libs/d_mpi-$version.dll -I@srcdir@/MODULES $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT258' && $CMP $stdout $ftemp2; then
 15
@@ -18180,8 +18180,8 @@ OUTPUT258
                 result=fail
 	    fi
 	else
-            echo '      ' $DINO -L.libs/d_mpi-$version.so -I@srcdir@ $test_file "2>$stderr"
-	    if $DINO -L.libs/d_mpi-$version.so -I@srcdir@ $test_file 2>$stderr >$stdout; then
+            echo '      ' $DINO -LMODULES/.libs/d_mpi-$version.so -I@srcdir@/MODULES $test_file "2>$stderr"
+	    if $DINO -LMODULES/.libs/d_mpi-$version.so -I@srcdir@/MODULES $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT258' && $CMP $stdout $ftemp2; then
 15
@@ -26001,8 +26001,8 @@ d1 = q1.to_double ();
 putln ("quad ", q1.to_string (), " -> double ", d1.to_string ());
 TEST453
         if uname | fgrep CYGWIN >/dev/null; then
-            echo '      ' $DINO -L.libs/d_ieee-$version.dll -L.libs/d_mpi-$version.dll -I@srcdir@ $test_file "2>$stderr"
-	    if $DINO -L.libs/d_ieee-$version.dll -L.libs/d_mpi-$version.dll -I@srcdir@ $test_file 2>$stderr >$stdout; then
+            echo '      ' $DINO -LMODULES/.libs/d_ieee-$version.dll -LMODULES/.libs/d_mpi-$version.dll -I@srcdir@/MODULES $test_file "2>$stderr"
+	    if $DINO -LMODULES/.libs/d_ieee-$version.dll -LMODULES/.libs/d_mpi-$version.dll -I@srcdir@/MODULES $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT453' && $CMP $stdout $ftemp2; then
 *******IEEE singles:**********
@@ -26215,8 +26215,8 @@ OUTPUT453
                 result=fail
 	    fi
 	else
-            echo '      ' $DINO -L.libs/d_ieee-$version.so -L.libs/d_mpi-$version.so -I@srcdir@ $test_file "2>$stderr"
-	    if $DINO -L.libs/d_ieee-$version.so -L.libs/d_mpi-$version.so -I@srcdir@ $test_file 2>$stderr >$stdout; then
+            echo '      ' $DINO -LMODULES/.libs/d_ieee-$version.so -LMODULES/.libs/d_mpi-$version.so -I@srcdir@/MODULES $test_file "2>$stderr"
+	    if $DINO -LMODULES/.libs/d_ieee-$version.so -LMODULES/.libs/d_mpi-$version.so -I@srcdir@/MODULES $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT453' && $CMP $stdout $ftemp2; then
 *******IEEE singles:**********
@@ -27488,8 +27488,8 @@ println (hi.name, hi.aliases, hi.ipaddrs);
 exit (0);
 TEST493
         if uname | fgrep CYGWIN >/dev/null; then
-            echo '      ' "$DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@  $test_file 127.0.0.1 >$stdout"
-            if $DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@ $test_file 127.0.0.1 >$stdout; then
+            echo '      ' "$DINO -LMODULES/.libs/d_ipcerr-$version.dll -LMODULES/.libs/d_socket-$version.dll -I@srcdir@/MODULES  $test_file 127.0.0.1 >$stdout"
+            if $DINO -LMODULES/.libs/d_ipcerr-$version.dll -LMODULES/.libs/d_socket-$version.dll -I@srcdir@/MODULES $test_file 127.0.0.1 >$stdout; then
                 echo '      ' egrep '^".+"\[.*\]\[".+"\]$' $stdout
                 if egrep '^".+"\[.*\]\[".+"\]$' $stdout; then
                         result=ok
@@ -27500,8 +27500,8 @@ TEST493
                 result=fail
             fi
         else
-            echo '      ' "$DINO -L.libs/d_ipcerr-$version.so -L.libs/d_socket-$version.so -I@srcdir@  $test_file 127.0.0.1 >$stdout"
-            if $DINO -L.libs/d_ipcerr-$version.so -L.libs/d_socket-$version.so -I@srcdir@ $test_file 127.0.0.1 >$stdout; then
+            echo '      ' "$DINO -LMODULES/.libs/d_ipcerr-$version.so -LMODULES/.libs/d_socket-$version.so -I@srcdir@/MODULES  $test_file 127.0.0.1 >$stdout"
+            if $DINO -LMODULES/.libs/d_ipcerr-$version.so -LMODULES/.libs/d_socket-$version.so -I@srcdir@/MODULES $test_file 127.0.0.1 >$stdout; then
                 echo '      ' egrep '^".+"\[.*\]\[".+"\]$' $stdout
                 if egrep '^".+"\[.*\]\[".+"\]$' $stdout; then
                         result=ok
@@ -27526,8 +27526,8 @@ if (s != nil)
 exit (0);
 TEST494
      if uname | fgrep CYGWIN >/dev/null; then
-        echo '      ' "$DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@  $test_file time >$stdout"
-        if $DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@ $test_file time >$stdout; then
+        echo '      ' "$DINO -LMODULES/.libs/d_ipcerr-$version.dll -LMODULES/.libs/d_socket-$version.dll -I@srcdir@/MODULES  $test_file time >$stdout"
+        if $DINO -LMODULES/.libs/d_ipcerr-$version.dll -LMODULES/.libs/d_socket-$version.dll -I@srcdir@/MODULES $test_file time >$stdout; then
                 echo '      ' egrep '^".+"\[(".+")?\]37"tcp"$' $stdout
                 if egrep '^".+"\[(".+")?\]37"tcp"$' $stdout; then
                         result=ok
@@ -27538,8 +27538,8 @@ TEST494
                 result=fail
         fi
      else
-        echo '      ' "$DINO -L.libs/d_ipcerr-$version.so -L.libs/d_socket-$version.so -I@srcdir@  $test_file time >$stdout"
-        if $DINO -L.libs/d_ipcerr-$version.so -L.libs/d_socket-$version.so -I@srcdir@ $test_file time >$stdout; then
+        echo '      ' "$DINO -LMODULES/.libs/d_ipcerr-$version.so -LMODULES/.libs/d_socket-$version.so -I@srcdir@/MODULES  $test_file time >$stdout"
+        if $DINO -LMODULES/.libs/d_ipcerr-$version.so -LMODULES/.libs/d_socket-$version.so -I@srcdir@/MODULES $test_file time >$stdout; then
                 echo '      ' egrep '^".+"\[(".+")?\]37"tcp"$' $stdout
                 if egrep '^".+"\[(".+")?\]37"tcp"$' $stdout; then
                         result=ok
@@ -27567,8 +27567,8 @@ putln (d.str);
 exit (0);
 TEST495
      if uname | fgrep CYGWIN >/dev/null; then
-        echo '      ' "$DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@  $test_file time >$stdout"
-        if $DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@ $test_file time >$stdout; then
+        echo '      ' "$DINO -LMODULES/.libs/d_ipcerr-$version.dll -LMODULES/.libs/d_socket-$version.dll -I@srcdir@/MODULES  $test_file time >$stdout"
+        if $DINO -LMODULES/.libs/d_ipcerr-$version.dll -LMODULES/.libs/d_socket-$version.dll -I@srcdir@/MODULES $test_file time >$stdout; then
                 echo '      ' egrep '^[A-Za-z]+ [A-Za-z]+ [0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [A-Za-z]+ [0-9][0-9][0-9][0-9]' $stdout
                 if egrep '^[A-Za-z]+ [A-Za-z]+ [0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [A-Za-z]+ [0-9][0-9][0-9][0-9]' $stdout; then
                         result=ok
@@ -27579,8 +27579,8 @@ TEST495
                 result=fail
         fi
      else
-        echo '      ' "$DINO -L.libs/d_ipcerr-$version.so -L.libs/d_socket-$version.so -I@srcdir@  $test_file time >$stdout"
-        if $DINO -L.libs/d_ipcerr-$version.so -L.libs/d_socket-$version.so -I@srcdir@ $test_file time >$stdout; then
+        echo '      ' "$DINO -LMODULES/.libs/d_ipcerr-$version.so -LMODULES/.libs/d_socket-$version.so -I@srcdir@/MODULES  $test_file time >$stdout"
+        if $DINO -LMODULES/.libs/d_ipcerr-$version.so -LMODULES/.libs/d_socket-$version.so -I@srcdir@/MODULES $test_file time >$stdout; then
                 echo '      ' egrep '^[A-Za-z]+ [A-Za-z]+ [0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [A-Za-z]+ [0-9][0-9][0-9][0-9]' $stdout
                 if egrep '^[A-Za-z]+ [A-Za-z]+ [0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [A-Za-z]+ [0-9][0-9][0-9][0-9]' $stdout; then
                         result=ok
@@ -27611,8 +27611,8 @@ putln (str);
 exit (0);
 TEST496
      if uname | fgrep CYGWIN >/dev/null; then
-        echo '      ' "$DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@  $test_file time >$stdout"
-        if $DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@ $test_file time >$stdout; then
+        echo '      ' "$DINO -LMODULES/.libs/d_ipcerr-$version.dll -LMODULES/.libs/d_socket-$version.dll -I@srcdir@/MODULES  $test_file time >$stdout"
+        if $DINO -LMODULES/.libs/d_ipcerr-$version.dll -LMODULES/.libs/d_socket-$version.dll -I@srcdir@/MODULES $test_file time >$stdout; then
                 echo '      ' egrep '(^[A-Za-z]+ [A-Za-z]+[ ]+[0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9])|(^[0-9][0-9] [A-Za-z]+ [0-9][0-9][0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [A-Za-z0-9]+)' $stdout
                 if egrep '(^[A-Za-z]+ [A-Za-z]+[ ]+[0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9])|(^[0-9][0-9] [A-Za-z]+ [0-9][0-9][0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [A-Za-z0-9]+)' $stdout; then
                         result=ok
@@ -27624,8 +27624,8 @@ TEST496
                 result=fail
         fi
      else
-        echo '      ' "$DINO -L.libs/d_ipcerr-$version.so -L.libs/d_socket-$version.so -I@srcdir@  $test_file time >$stdout"
-        if $DINO -L.libs/d_ipcerr-$version.so -L.libs/d_socket-$version.so -I@srcdir@ $test_file time >$stdout; then
+        echo '      ' "$DINO -LMODULES/.libs/d_ipcerr-$version.so -LMODULES/.libs/d_socket-$version.so -I@srcdir@/MODULES  $test_file time >$stdout"
+        if $DINO -LMODULES/.libs/d_ipcerr-$version.so -LMODULES/.libs/d_socket-$version.so -I@srcdir@/MODULES $test_file time >$stdout; then
                 echo '      ' egrep '(^[A-Za-z]+ [A-Za-z]+[ ]+[0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9])|(^[0-9][0-9] [A-Za-z]+ [0-9][0-9][0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [A-Za-z0-9]+)' $stdout
                 if egrep '(^[A-Za-z]+ [A-Za-z]+[ ]+[0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9])|(^[0-9][0-9] [A-Za-z]+ [0-9][0-9][0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [A-Za-z0-9]+)' $stdout; then
                         result=ok
@@ -27649,8 +27649,8 @@ cl = sockets.stream_client ("abracadabra", 10003);
 exit (0);
 TEST497
      if uname | fgrep CYGWIN >/dev/null; then
-        echo '      ' "$DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@ $test_file 2>$stderr"
-        if $DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@ $test_file 2>$stderr >$stdout; then
+        echo '      ' "$DINO -LMODULES/.libs/d_ipcerr-$version.dll -LMODULES/.libs/d_socket-$version.dll -I@srcdir@/MODULES $test_file 2>$stderr"
+        if $DINO -LMODULES/.libs/d_ipcerr-$version.dll -LMODULES/.libs/d_socket-$version.dll -I@srcdir@/MODULES $test_file 2>$stderr >$stdout; then
                 result=fail
         else
 		sed 's,\\,/,g' $stderr|sed 's%^.*socket.d%@srcdir@/socket.d%' >$ftemp
@@ -27675,8 +27675,8 @@ OUTPUT497-3
                 fi
         fi
      else
-        echo '      ' "$DINO -L.libs/d_ipcerr-$version.so -L.libs/d_socket-$version.so -I@srcdir@ $test_file 2>$stderr"
-        if $DINO -L.libs/d_ipcerr-$version.so -L.libs/d_socket-$version.so -I@srcdir@ $test_file 2>$stderr >$stdout; then
+        echo '      ' "$DINO -LMODULES/.libs/d_ipcerr-$version.so -LMODULES/.libs/d_socket-$version.so -I@srcdir@/MODULES $test_file 2>$stderr"
+        if $DINO -LMODULES/.libs/d_ipcerr-$version.so -LMODULES/.libs/d_socket-$version.so -I@srcdir@/MODULES $test_file 2>$stderr >$stdout; then
                 result=fail
         else
 		sed 's,\\,/,g' $stderr|sed 's%^.*socket.d%@srcdir@/socket.d%' >$ftemp
@@ -27749,8 +27749,8 @@ if (s != nil)
 exit (0);
 TEST499
      if uname | fgrep CYGWIN >/dev/null; then
-        echo '      ' "$DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@  $test_file 37 >$stdout"
-        if $DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@ $test_file 37 >$stdout; then
+        echo '      ' "$DINO -LMODULES/.libs/d_ipcerr-$version.dll -LMODULES/.libs/d_socket-$version.dll -I@srcdir@/MODULES  $test_file 37 >$stdout"
+        if $DINO -LMODULES/.libs/d_ipcerr-$version.dll -LMODULES/.libs/d_socket-$version.dll -I@srcdir@/MODULES $test_file 37 >$stdout; then
                 echo '      ' test -z "\`cat $stdout\`" '|| egrep ^".+"\[".+"\]37"tcp"$' $stdout
                 if test -z "`cat $stdout`" || egrep '^".+"\[".+"\]37"tcp"$' $stdout; then
                         result=ok
@@ -27761,8 +27761,8 @@ TEST499
                 result=fail
         fi
      else
-        echo '      ' "$DINO -L.libs/d_ipcerr-$version.so -L.libs/d_socket-$version.so -I@srcdir@  $test_file 37 >$stdout"
-        if $DINO -L.libs/d_ipcerr-$version.so -L.libs/d_socket-$version.so -I@srcdir@ $test_file 37 >$stdout; then
+        echo '      ' "$DINO -LMODULES/.libs/d_ipcerr-$version.so -LMODULES/.libs/d_socket-$version.so -I@srcdir@/MODULES  $test_file 37 >$stdout"
+        if $DINO -LMODULES/.libs/d_ipcerr-$version.so -LMODULES/.libs/d_socket-$version.so -I@srcdir@/MODULES $test_file 37 >$stdout; then
                 echo '      ' test -z "\`cat $stdout\`" '|| egrep ^".+"\[".+"\]37"tcp"$' $stdout
                 if test -z "`cat $stdout`" || egrep '^".+"\[".+"\]37"tcp"$' $stdout; then
                         result=ok
@@ -27787,8 +27787,8 @@ if (s != nil)
 exit (0);
 TEST500
      if uname | fgrep CYGWIN >/dev/null; then
-        echo '      ' "$DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@  $test_file abracadabra >$stdout"
-        if $DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@ $test_file abracadabra >$stdout; then
+        echo '      ' "$DINO -LMODULES/.libs/d_ipcerr-$version.dll -LMODULES/.libs/d_socket-$version.dll -I@srcdir@/MODULES  $test_file abracadabra >$stdout"
+        if $DINO -LMODULES/.libs/d_ipcerr-$version.dll -LMODULES/.libs/d_socket-$version.dll -I@srcdir@/MODULES $test_file abracadabra >$stdout; then
                 echo '      ' $CMP - $stdout
                 if cat >$ftemp2 <<'OUTPUT500' && $CMP $stdout $ftemp2; then
 OUTPUT500
@@ -27800,8 +27800,8 @@ OUTPUT500
                 result=fail
         fi
      else
-        echo '      ' "$DINO -L.libs/d_ipcerr-$version.so -L.libs/d_socket-$version.so -I@srcdir@  $test_file abracadabra >$stdout"
-        if $DINO -L.libs/d_ipcerr-$version.so -L.libs/d_socket-$version.so -I@srcdir@ $test_file abracadabra >$stdout; then
+        echo '      ' "$DINO -LMODULES/.libs/d_ipcerr-$version.so -LMODULES/.libs/d_socket-$version.so -I@srcdir@/MODULES  $test_file abracadabra >$stdout"
+        if $DINO -LMODULES/.libs/d_ipcerr-$version.so -LMODULES/.libs/d_socket-$version.so -I@srcdir@/MODULES $test_file abracadabra >$stdout; then
                 echo '      ' $CMP - $stdout
                 if cat >$ftemp2 <<'OUTPUT500a' && $CMP $stdout $ftemp2; then
 OUTPUT500a
@@ -27827,8 +27827,8 @@ if (s != nil)
 exit (0);
 TEST501
      if uname | fgrep CYGWIN >/dev/null; then
-        echo '      ' "$DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@  $test_file 313131 >$stdout"
-        if $DINO -L.libs/d_ipcerr-$version.dll -L.libs/d_socket-$version.dll -I@srcdir@ $test_file 313131 >$stdout; then
+        echo '      ' "$DINO -LMODULES/.libs/d_ipcerr-$version.dll -LMODULES/.libs/d_socket-$version.dll -I@srcdir@/MODULES  $test_file 313131 >$stdout"
+        if $DINO -LMODULES/.libs/d_ipcerr-$version.dll -LMODULES/.libs/d_socket-$version.dll -I@srcdir@/MODULES $test_file 313131 >$stdout; then
                 echo '      ' $CMP - $stdout
                 if cat >$ftemp2 <<'OUTPUT501' && $CMP $stdout $ftemp2; then
 OUTPUT501
@@ -27840,8 +27840,8 @@ OUTPUT501
                 result=fail
         fi
      else
-        echo '      ' "$DINO -L.libs/d_ipcerr-$version.so -L.libs/d_socket-$version.so -I@srcdir@  $test_file 313131 >$stdout"
-        if $DINO -L.libs/d_ipcerr-$version.so -L.libs/d_socket-$version.so -I@srcdir@ $test_file 313131 >$stdout; then
+        echo '      ' "$DINO -LMODULES/.libs/d_ipcerr-$version.so -LMODULES/.libs/d_socket-$version.so -I@srcdir@/MODULES  $test_file 313131 >$stdout"
+        if $DINO -LMODULES/.libs/d_ipcerr-$version.so -LMODULES/.libs/d_socket-$version.so -I@srcdir@/MODULES $test_file 313131 >$stdout; then
                 echo '      ' $CMP - $stdout
                 if cat >$ftemp2 <<'OUTPUT501a' && $CMP $stdout $ftemp2; then
 OUTPUT501a

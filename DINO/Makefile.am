@@ -1,7 +1,9 @@
 # Cygwin can not find dll without changing PATH
 PATH := ${PATH}:../AMMUNITION/.libs
 
-lib_LTLIBRARIES = libdino.la d_mpi.la d_ieee.la d_ipcerr.la d_socket.la
+SUBDIRS = . MODULES
+
+lib_LTLIBRARIES = libdino.la
 libdino_la_SOURCES = d_dino.h d_errors.h d_common.h d_built.h d_yacc.h d_runtab.h d_bcio.h\
 		     d_types.h d_context.h d_inference.h d_conv.h d_udb.h d_func.h d_eval.h\
 		     d_errors.c d_heap.c d_runtab.c\
@@ -11,7 +13,6 @@ nodist_libdino_la_SOURCES = d_yacc.c d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h
 CC = @CC@
 DINO_VERSION=$(VERSION)
 DINO_LANG_VERSION=@DINO_LANG_VERSION@
-DINO_MODULE_VERSION=@DINO_MODULE_VERSION@
 DINO_VERSION_SUFFIX=@DINO_VERSION_SUFFIX@
 DINO_MODULE_VERSION_SUFFIX=@DINO_MODULE_VERSION_SUFFIX@
 DINO_MODULE_SUFFIX=@DINO_MODULE_SUFFIX@
@@ -37,34 +38,13 @@ dino_DEPENDENCIES = libdino.la
 dino_CFLAGS = $(libdino_la_CFLAGS)
 dino_LDFLAGS = -lgmp -lm -export-dynamic @DINO_LIB_LDFLAGS@ \
                libdino.la ../ONIGURUMA/libonig.la ../AMMUNITION/libcocom.la
-BUILT_SOURCES = d_ir.h d_bc.h d_run.h d_extern.h d_kw.c d_enc.c d_bcn.c d_bcf.c
-d_mpi_la_SOURCES = d_mpi.c
-d_mpi_la_CFLAGS = -shared -I. -I$(srcdir) -I$(srcdir)/../AMMUNITION
-d_mpi_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ ../AMMUNITION/libcocom.la -release $(DINO_MODULE_VERSION)
-nodist_d_mpi_la_SOURCES = d_extern.h
-EXTRA_d_mpi_la_DEPENDENCIES=libdino.la
-d_ieee_la_SOURCES = d_ieee.c
-d_ieee_la_CFLAGS = -shared -DIEEE_QUAD -I. -I$(srcdir) -I$(srcdir)/../AMMUNITION
-d_ieee_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ ../AMMUNITION/libcocom.la -release $(DINO_MODULE_VERSION)
-nodist_d_ieee_la_SOURCES = d_extern.h
-EXTRA_d_ieee_la_DEPENDENCIES=libdino.la
-d_ipcerr_la_SOURCES = d_ipcerr.c
-d_ipcerr_la_CFLAGS = -shared -I. -I$(srcdir)
-d_ipcerr_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ -release $(DINO_MODULE_VERSION)
-nodist_d_ipcerr_la_SOURCES = d_extern.h
-EXTRA_d_ipcerr_la_DEPENDENCIES=libdino.la
-d_socket_la_SOURCES = d_socket.c
-d_socket_la_CFLAGS = -shared -I. -I$(srcdir)
-d_socket_la_LDFLAGS = -shared -module @DINO_MOD_LDFLAGS@ -release $(DINO_MODULE_VERSION)
-nodist_d_socket_la_SOURCES = d_extern.h
-EXTRA_d_socket_la_DEPENDENCIES=libdino.la
+BUILT_SOURCES = d_ir.h d_bc.h d_run.h d_bcn.c d_bcf.c d_kw.c d_enc.c
 dist_doc_DATA = dino.txt dino.info dino.html dino-1.html dino-2.html\
 	        dino-3.html dino-4.html dino-5.html dino-6.html dino-7.html\
 	        dino-8.html dino-9.html dino-10.html dino-11.html\
 	        dino.pdf dino.dvi dino.ps
 dist_man_MANS = dino.1
-include_HEADERS = d_types.h mpi.d ieee.d ipcerr.d socket.d
-nodist_include_HEADERS = d_extern.h d_config.h d_extern.i d_gen.i
+nodist_include_HEADERS = d_api.h d_gen.i
 EXTRA_DIST =  d_gen.c d_yacc.y d_ir.sprut d_bc.sprut d_extern.sprut d_run.sprut\
 	      d_kw.shilka d_enc.shilka d_bcn.shilka d_bcf.shilka dino.tst.in UnicodeDB.c\
 	      compare.tst README INSTALL d_minimize.d d_flatten.d\
@@ -76,18 +56,18 @@ SHILKA = ../SHILKA/shilka
 MSTA = ../MSTA/msta
 check : test
 
-all-local: d_extern.i d_gen.i
-dist-local:
+clean-local:
+	rm -f d_gen.tmp d_api.tmp
 
 # Delete all not needed for distribution.
-distclean-local:
-	rm -f d_genheader.i d_extern.h d_extern.i d_gen.i\
+distclean-local: clean-local
+	rm -f d_genheader.i d_extern.h d_api.h d_gen.i\
 	      dino.sgml dino.tmp dino.tex dino.log dino.aux dino.toc quality.tst dino.tst dino.out
 
-d_extern.i: dino$(EXEEXT) d_extern.h d_config.h $(srcdir)/d_types.h $(srcdir)/d_flatten.d
-	@if test d_extern.i -ot d_extern.h;then\
+d_api.h: dino$(EXEEXT) d_extern.h d_config.h $(srcdir)/d_types.h $(srcdir)/d_flatten.d
+	@if test d_api.h -ot d_extern.h;then\
            echo Flatten d_extern.h;\
-           ./dino $(srcdir)/d_flatten.d d_extern.h $(srcdir) > d_gen.tmp && mv d_gen.tmp $@;\
+           ./dino $(srcdir)/d_flatten.d d_extern.h $(srcdir) > d_api.tmp && mv d_api.tmp $@;\
         fi
 
 d_gen.i : dino$(EXEEXT) d_genheader.i $(srcdir)/d_minimize.d

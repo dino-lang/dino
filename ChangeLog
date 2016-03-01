@@ -1,3 +1,26 @@
+2016-02-29  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/MODULES/Makefile.{am, in}: New.
+	* DINO/MODULES/d_ieee.c: Move from DINO.  Include d_api.h.
+	* DINO/MODULES/{d_ipcerr, d_mpi, d_socket}.c: Ditto.
+	* DINO/Makefile.am: Move module code into DINO/Makefile.am.  Add
+	SUBDIRS.
+	(BUILT_SOURCES): Remove d_extern.h.
+	(include_HEADERS): Remove d_types.h.
+	(nodist_include_HEADERS): Remove d_extern.h d_config.h d_extern.i.
+	Add d_api.h.
+	(all-local): Remove.
+	(clean-local): Add.
+	(distclean-local): Use clean_local.
+	(d_extern.i): Change onto d_api.h.
+	* DINO/Makefile.in: Update.
+	* DINO/compare.tst: Add MODULES in -L and -I.
+	* DINO/configure.ac (AC_CONFIG_FILES): Add MODULES/Makefile.
+	* DINO/configure: Update.
+	* DINO/d_dino.h (STANDARD_DINO_EXTERN_FILE_NAME): Use d_api.h.
+	* DINO/dino.tst.in: Add MODULES in -L and -I.
+	* O: Remove recursively.
+
 2016-02-28  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_flatten.d: New.

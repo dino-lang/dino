@@ -22,10 +22,7 @@
 
 */
 
-#ifdef HAVE_CONFIG_H
-#include "d_config.h"
-#endif /* #ifdef HAVE_CONFIG_H */
-#include "d_extern.h"
+#include "d_api.h"
 #include <errno.h>
 
 val_t _eaddrinuse_no, _eaddrnotavail_no, _eafnosupport_no,
