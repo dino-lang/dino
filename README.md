@@ -634,7 +634,7 @@ val asbtract_tree = p.parse (token_vector, syntax_error);
       val_t f (int npars, val_t *args);
 ```
 
-* The file `d_extern.h` provides C descriptions of Dino internals (the
+* The file `d_api.h` provides C descriptions of Dino internals (the
   type `val_t`, functions to create vectors, tables etc).  The file is
   generated from SPRUT description `d_extern.d`
 * The external C code is responsible for providing correct Dino
@@ -648,7 +648,7 @@ val asbtract_tree = p.parse (token_vector, syntax_error);
 * C code for *pre-compiled* way should look like
 
 ```
-      #include d_extern.h
+      #include d_api.h
       ...
       val_t v;
       ...
@@ -689,7 +689,7 @@ val asbtract_tree = p.parse (token_vector, syntax_error);
 
 * All C code between pairs of brackets `%{` and `%}` in one Dino file
   is *concatenated*
-* The result code with pre-appended code from `d_extern.h` is compiled
+* The result code with pre-appended code from `d_api.h` is compiled
   when the execution the first time achieves the location of the first
   `%{`
 * The result shared object is loaded and external variables and

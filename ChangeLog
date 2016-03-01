@@ -1,5 +1,9 @@
 2016-02-29  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* README.md: Use d_api.h instead of d_extern.h.
+
+2016-02-29  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/MODULES/Makefile.{am, in}: New.
 	* DINO/MODULES/d_ieee.c: Move from DINO.  Include d_api.h.
 	* DINO/MODULES/{d_ipcerr, d_mpi, d_socket}.c: Ditto.
