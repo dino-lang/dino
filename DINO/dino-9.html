@@ -267,7 +267,7 @@ returns <CODE>nil</CODE>.</LI>
 by a block instance or an object for the given parameter value
 which should be a function, a class, a thread, a block
 instance, or an object.</LI>
-<LI><CODE>inside (par1, par2[, flag])</CODE>.  The goal for
+<LI><CODE>inside (par1, par2, flag = 0)</CODE>.  The goal for
 function usage is to check that something is declared inside
 something other.  If the third parameter value after implicit
 integer conversion is given and nonzero, it is checked with
@@ -319,42 +319,44 @@ example illustrates usage of <CODE>isa</CODE>.
 </CODE></BLOCKQUOTE>
 
 The calls of <CODE>isa</CODE> in the example return 1.</LI>
-<LI><CODE>subv (vect, index[, length])</CODE>.  The function is
+<LI><CODE>subv (vect, index, length = -1)</CODE>.  The function is
 used to extract a sub-vector.  The first parameter value should
 be a vector after implicit string conversion.  The second and
 third parameter values should be integers after implicit
 integer conversion. The function extracts only an element or
-the part of the sub-vector existing in the vector (so you can use
-any values of the index and the length).  ?If index is
-negative, it is considered to be equal to zero.  If the length
-is negative, the sub-vector will finish on the vector end.  The
-function returns a new vector which is the sub-vector.  The result
-vector is immutable only when the original vector is immutable.</LI>
-<LI><CODE>del (vect, index[, length]) or del (tab, key)</CODE>.
+the part of the sub-vector existing in the vector (so you can
+use any values of the index and the length).  If index is
+negative, it refers to an element anologous to a slice bound.
+In other words, <CODE>-1</CODE> corresponds to the vector
+length, <CODE>-2</CODE> corresponds to the vector length -
+1, <CODE>-3</CODE> corresponds to the vector length -2, and so on.
+If the length is negative, the sub-vector will finish on the
+vector end.  The function returns a new vector which is the
+sub-vector.  The result vector is immutable only when the
+original vector is immutable.</LI>
+<LI><CODE>del (vect, index, length = 1) or del (tab, key)</CODE>.
 The first form of the function is used to remove the vector
 element or a sub-vector from the mutable vector
 <CODE>vect</CODE>.  The second and the third parameter values
 should be integers after implicit integer conversion.  The
 function removes only an element or the part of the sub-vector
 existing in the vector (so you can use any values of the index
-and the length).  ?If index is negative, it is considered to be
-equal to zero.  If the length is negative, the sub-vector will
-finish on the vector end.  The second form of the function is
-used to remove the element (if it exists) with the given key
+and the length).  Negative index has the same meaning as
+in <CODE>subv</CODE>.  If the length is negative, the sub-vector
+will finish on the vector end.  The second form of the function
+is used to remove the element (if it exists) with the given key
 from the mutable table.  The function generates the exception
 <CODE>immutable</CODE> if we are trying to remove from an immutable
 vector or table.  The function returns the modified vector.</LI>
-<LI><CODE>ins (vect, el[, index])</CODE>.  The function inserts the
-element given by the second parameter into the vector given by
-the first parameter on the place given by the third parameter.
-If the third parameter is not given it is believed to be zero.
-The third parameter should be an integer after implicit integer
-conversion.  ?If the third parameter is negative or equal to or
-greater than the vector length, the element is inserted at the
-end of the vector.  The function generates the exception
-<CODE>immutable</CODE> if we are trying to insert into an immutable
-vector.  The function returns the modified vector.</LI>
-<LI><CODE>insv (vect, vect[, index])</CODE>.  The function is
+<LI><CODE>ins (vect, el, index = -1)</CODE>.  The function inserts
+the element given by the second parameter into the vector given
+by the first parameter on the place given by the third
+parameter.  The third parameter should be an integer after
+implicit integer conversion.  Negative index has the same
+meaning as in <CODE>subv</CODE>.  The function generates the
+exception <CODE>immutable</CODE> if we are trying to insert into an
+immutable vector.  The function returns the modified vector.</LI>
+<LI><CODE>insv (vect, vect, index = -1)</CODE>.  The function is
 analogous to the function <CODE>ins</CODE> but it is used for
 insertion of all vector elements into the vector given as the
 first parameter.  So the second parameter value should be a
@@ -376,24 +378,23 @@ equal.  If the first vector is a prefix of the second vector,
 the function returns -1.  If the second vector is a prefix of
 the first vector, the function returns 1, so it is in fact
 generalized lexicographical order.</LI>
-<LI><CODE>filter (f, v [, d])</CODE>.  The function expects
+<LI><CODE>filter (f, v, d = 1)</CODE>.  The function expects
 function <CODE>f</CODE>, vector <CODE>v</CODE>, and optional
 integer <CODE>d</CODE> after integer conversion.  Otherwise
-exception <CODE>partype</CODE> is generated.  If <CODE>d</CODE> is not
-given, it is believed to be 1.  The function processes v's
-elements if <CODE>d</CODE> is equal one, elements of vectors which
-are v's elements if <CODE>d</CODE> is equal to 2 and so on.  In
-other words, <CODE>d</CODE> is level on which vector elements are
-processed.  If v has no structure necessary for processing,
-exception <CODE>vecform</CODE> is generated.  If <CODE>d</CODE> is zero
-or negative, the function just returns <CODE>v</CODE>.  Otherwise
-the function creates new mutable vector having the same
-structure as <CODE>v</CODE> with only elements on level <CODE>d</CODE>
-for which function <CODE>f</CODE> returns nonzero value after
-integer conversion.  If the result of function <CODE>f</CODE> after
-the integer conversion is not integer,
-exception <CODE>invresult</CODE> is generated.  The following
-example illustrates usage of <CODE>filter</CODE>.
+exception <CODE>partype</CODE> is generated.  The function
+processes v's elements if <CODE>d</CODE> is equal one, elements of
+vectors which are v's elements if <CODE>d</CODE> is equal to 2 and
+so on.  In other words, <CODE>d</CODE> is level on which vector
+elements are processed.  If v has no structure necessary for
+processing, exception <CODE>vecform</CODE> is generated.
+If <CODE>d</CODE> is zero or negative, the function just
+returns <CODE>v</CODE>.  Otherwise the function creates new mutable
+vector having the same structure as <CODE>v</CODE> with only
+elements on level <CODE>d</CODE> for which function <CODE>f</CODE>
+returns nonzero value after integer conversion.  If the result
+of function <CODE>f</CODE> after the integer conversion is not
+integer, exception <CODE>invresult</CODE> is generated.  The
+following example illustrates usage of <CODE>filter</CODE>.
 <BLOCKQUOTE><CODE>
 <PRE>
           var i, v = [0, 1, -2, 3, -4];
@@ -403,7 +404,7 @@ example illustrates usage of <CODE>filter</CODE>.
 </PRE>
 </CODE></BLOCKQUOTE>
 </LI>
-<LI><CODE>map (f, v [, d])</CODE>.  The meaning of function
+<LI><CODE>map (f, v, d = 1)</CODE>.  The meaning of function
 parameters and constraints to their values are analogous to
 ones of function <CODE>filter</CODE>.  Only function <CODE>f</CODE> can
 return any value.  The elements processed by
@@ -417,7 +418,7 @@ of <CODE>map</CODE>.
 </PRE>
 </CODE></BLOCKQUOTE>
 </LI>
-<LI><CODE>fold (f, v, init [, d])</CODE>.  The meaning of function
+<LI><CODE>fold (f, v, init, d = 1)</CODE>.  The meaning of function
 parameters <CODE>f</CODE>, <CODE>v</CODE>, and <CODE>d</CODE> and
 constraints to their values are analogous to ones of
 function <CODE>filter</CODE>.  The function processes all elements

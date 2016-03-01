@@ -1134,19 +1134,19 @@ TEST33
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT33' && $CMP $stdout $ftemp2; then
 [1, 2, 3, 4, 5, 6]
+[2, 3, 4, 5, 6, 1]
 [1, 2, 3, 4, 5, 6]
 [1, 2, 3, 4, 5, 6]
 [1, 2, 3, 4, 5, 6]
-[1, 2, 3, 4, 5, 6]
-[1, 2, 3, 4, 5, 6]
+[2, 3, 4, 5, 6, 1]
 [1, 2, 3, 4, 5, 6]
 [1, 2, 3, 4, 5, 6]
 [nil]
 [nil]
 [nil]
 [nil]
-[2, '1', '2', '3', '4', '5', '6']
-["+++", '1', '2', '3', '4', '5', '6']
+['1', '2', '3', '4', '5', '6', 2]
+['1', '2', '3', '4', '5', '6', "+++"]
 ['1', '2', '3', '4', '5', '6', "+++"]
 ['1', '2', '3', '4', '5', '6', "+++"]
 []
@@ -1211,15 +1211,15 @@ TEST34
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT34' && $CMP $stdout $ftemp2; then
 [1, 2, 3, 4, 5, 6]
+[2, 3, 4, 5, 6, 1]
 [1, 2, 3, 4, 5, 6]
 [1, 2, 3, 4, 5, 6]
 [1, 2, 3, 4, 5, 6]
+[2, 3, 4, 5, 6, 1]
 [1, 2, 3, 4, 5, 6]
 [1, 2, 3, 4, 5, 6]
 [1, 2, 3, 4, 5, 6]
-[1, 2, 3, 4, 5, 6]
-[1, 2, 3, 4, 5, 6]
-[1, 2, 3, 4, 5, 6]
+[3, 4, 5, 6, 1, 2]
 [1, 2, 3, 4, 5, 6, 7]
 [1, 2, 3, 4, 5, 6]
 [10]
@@ -1230,7 +1230,7 @@ TEST34
 [10]
 [10]
 [10]
-+++123456
+123456+++
 123456+++
 123456+++
 []
@@ -1532,12 +1532,12 @@ TEST41
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT41' && $CMP $stdout $ftemp2; then
 [1, 2, 4, 5, 6]
-[3, 4, 5, 6]
+[1, 2, 3, 4, 5]
 [1, 2, 5, 6]
 [1, 2]
 [1, 2, 3, 4, 5, 6]
 [1, 2, 4, 5, 6]
-[3, 4, 5, 6]
+[1, 2, 3, 4, 5]
 [1, 2, 5, 6]
 [1, 2]
 [1, 2, 3, 4, 5, 6]
@@ -1547,7 +1547,7 @@ TEST41
 []
 []
 1256
-3456
+12345
 tab [1:1, 3:3, 4:4, 5:5, 6:6]
 []
 OUTPUT41
@@ -21504,12 +21504,12 @@ TEST381
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT381' && $CMP $stdout $ftemp2; then
 [3, 4, 5, 6]
-[1, 2]
+[6]
 [3, 4]
 [3, 4, 5, 6]
 []
 [3, 4, 5, 6]
-[1, 2]
+[6]
 [3, 4]
 [3, 4, 5, 6]
 []
@@ -21519,7 +21519,7 @@ TEST381
 []
 []
 34
-12
+6
 ""
 [1, 1]
 OUTPUT381
@@ -51432,6 +51432,27 @@ OUTPUT917
                 else
                         result=fail
                 fi
+        fi
+fi
+
+# Test 918.
+if test $result = ok -a $start_test_number -le 918; then
+	echo test 918: Nested anonymous functions
+        cat >$test_file <<'TEST918'
+putln (fun (a = fun (b) {10*b;}(4)) {a + 2;} ());
+TEST918
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout ; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT918' && $CMP $stdout $ftemp2; then
+42
+OUTPUT918
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
         fi
 fi
 

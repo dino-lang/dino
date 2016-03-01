@@ -17,7 +17,7 @@ for (;;) {
 	  && ! try (newf = open (newfname, "r"))) {
 	fputln (stderr, "error in open ", newfname); exit (1);
       }
-      ins (streams, [f, n + 1, fname], -1);
+      ins (streams, [f, n + 1, fname]);
       f = newf; fname = newfname; n = 0;
       putln (`#line 1 "`, fname, `"`);
     case _:
@@ -30,7 +30,7 @@ for (;;) {
   var [prevf, prevn, prevfname] = streams[#streams - 1];
   f = prevf; n = prevn; fname = prevfname;
   putln ("#line ", n, ` "`, fname, `"`);
-  del (streams, #streams - 1);
+  del (streams, -2); // delete last
 }
 
 exit (0);

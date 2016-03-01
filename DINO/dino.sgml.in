@@ -5,7 +5,7 @@
 
 <title>The Programming Language DINO
 <author>Vladimir Makarov, <tt>vmakarov@gcc.gnu.org</tt>.
-<date>Feb. 28, 2016
+<date>Mar. 01, 2016
 <abstract>
 This document describes the programming language DINO -- the
 development version of the future release 0.97.
@@ -2524,7 +2524,7 @@ The following functions are declared in space <tt>lang</tt>:
        by a block instance or an object for the given parameter value
        which should be a function, a class, a thread, a block
        instance, or an object.
-     <item><tt>inside (par1, par2[, flag])</tt>.  The goal for
+     <item><tt>inside (par1, par2, flag = 0)</tt>.  The goal for
        function usage is to check that something is declared inside
        something other.  If the third parameter value after implicit
        integer conversion is given and nonzero, it is checked with
@@ -2570,42 +2570,44 @@ The following functions are declared in space <tt>lang</tt>:
           isa (subc (), c);
 </verb></tscreen>
        The calls of <tt>isa</tt> in the example return 1.
-     <item><tt>subv (vect, index[, length])</tt>.  The function is
+     <item><tt>subv (vect, index, length = -1)</tt>.  The function is
        used to extract a sub-vector.  The first parameter value should
        be a vector after implicit string conversion.  The second and
        third parameter values should be integers after implicit
        integer conversion. The function extracts only an element or
-       the part of the sub-vector existing in the vector (so you can use
-       any values of the index and the length).  ?If index is
-       negative, it is considered to be equal to zero.  If the length
-       is negative, the sub-vector will finish on the vector end.  The
-       function returns a new vector which is the sub-vector.  The result
-       vector is immutable only when the original vector is immutable.
-     <item><tt>del (vect, index[, length]) or del (tab, key)</tt>.
+       the part of the sub-vector existing in the vector (so you can
+       use any values of the index and the length).  If index is
+       negative, it refers to an element anologous to a slice bound.
+       In other words, <tt>-1</tt> corresponds to the vector
+       length, <tt>-2</tt> corresponds to the vector length -
+       1, <tt>-3</tt> corresponds to the vector length -2, and so on.
+       If the length is negative, the sub-vector will finish on the
+       vector end.  The function returns a new vector which is the
+       sub-vector.  The result vector is immutable only when the
+       original vector is immutable.
+     <item><tt>del (vect, index, length = 1) or del (tab, key)</tt>.
        The first form of the function is used to remove the vector
        element or a sub-vector from the mutable vector
        <tt>vect</tt>.  The second and the third parameter values
        should be integers after implicit integer conversion.  The
        function removes only an element or the part of the sub-vector
        existing in the vector (so you can use any values of the index
-       and the length).  ?If index is negative, it is considered to be
-       equal to zero.  If the length is negative, the sub-vector will
-       finish on the vector end.  The second form of the function is
-       used to remove the element (if it exists) with the given key
+       and the length).  Negative index has the same meaning as
+       in <tt>subv</tt>.  If the length is negative, the sub-vector
+       will finish on the vector end.  The second form of the function
+       is used to remove the element (if it exists) with the given key
        from the mutable table.  The function generates the exception
        <tt>immutable</tt> if we are trying to remove from an immutable
        vector or table.  The function returns the modified vector.
-     <item><tt>ins (vect, el[, index])</tt>.  The function inserts the
-       element given by the second parameter into the vector given by
-       the first parameter on the place given by the third parameter.
-       If the third parameter is not given it is believed to be zero.
-       The third parameter should be an integer after implicit integer
-       conversion.  ?If the third parameter is negative or equal to or
-       greater than the vector length, the element is inserted at the
-       end of the vector.  The function generates the exception
-       <tt>immutable</tt> if we are trying to insert into an immutable
-       vector.  The function returns the modified vector.
-     <item><tt>insv (vect, vect[, index])</tt>.  The function is
+     <item><tt>ins (vect, el, index = -1)</tt>.  The function inserts
+       the element given by the second parameter into the vector given
+       by the first parameter on the place given by the third
+       parameter.  The third parameter should be an integer after
+       implicit integer conversion.  Negative index has the same
+       meaning as in <tt>subv</tt>.  The function generates the
+       exception <tt>immutable</tt> if we are trying to insert into an
+       immutable vector.  The function returns the modified vector.
+     <item><tt>insv (vect, vect, index = -1)</tt>.  The function is
        analogous to the function <tt>ins</tt> but it is used for
        insertion of all vector elements into the vector given as the
        first parameter.  So the second parameter value should be a
@@ -2627,31 +2629,30 @@ The following functions are declared in space <tt>lang</tt>:
        the function returns -1.  If the second vector is a prefix of
        the first vector, the function returns 1, so it is in fact
        generalized lexicographical order.
-     <item><tt>filter (f, v [, d])</tt>.  The function expects
+     <item><tt>filter (f, v, d = 1)</tt>.  The function expects
        function <tt>f</tt>, vector <tt>v</tt>, and optional
        integer <tt>d</tt> after integer conversion.  Otherwise
-       exception <tt>partype</tt> is generated.  If <tt>d</tt> is not
-       given, it is believed to be 1.  The function processes v's
-       elements if <tt>d</tt> is equal one, elements of vectors which
-       are v's elements if <tt>d</tt> is equal to 2 and so on.  In
-       other words, <tt>d</tt> is level on which vector elements are
-       processed.  If v has no structure necessary for processing,
-       exception <tt>vecform</tt> is generated.  If <tt>d</tt> is zero
-       or negative, the function just returns <tt>v</tt>.  Otherwise
-       the function creates new mutable vector having the same
-       structure as <tt>v</tt> with only elements on level <tt>d</tt>
-       for which function <tt>f</tt> returns nonzero value after
-       integer conversion.  If the result of function <tt>f</tt> after
-       the integer conversion is not integer,
-       exception <tt>invresult</tt> is generated.  The following
-       example illustrates usage of <tt>filter</tt>.
+       exception <tt>partype</tt> is generated.  The function
+       processes v's elements if <tt>d</tt> is equal one, elements of
+       vectors which are v's elements if <tt>d</tt> is equal to 2 and
+       so on.  In other words, <tt>d</tt> is level on which vector
+       elements are processed.  If v has no structure necessary for
+       processing, exception <tt>vecform</tt> is generated.
+       If <tt>d</tt> is zero or negative, the function just
+       returns <tt>v</tt>.  Otherwise the function creates new mutable
+       vector having the same structure as <tt>v</tt> with only
+       elements on level <tt>d</tt> for which function <tt>f</tt>
+       returns nonzero value after integer conversion.  If the result
+       of function <tt>f</tt> after the integer conversion is not
+       integer, exception <tt>invresult</tt> is generated.  The
+       following example illustrates usage of <tt>filter</tt>.
 <tscreen><verb>
           var i, v = [0, 1, -2, 3, -4];
           println (filter (fun (a) {a > 0;}, v));
           v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
           println (filter (fun (a) {a > 0;}, v, 2));
 </verb></tscreen>
-    <item><tt>map (f, v [, d])</tt>.  The meaning of function
+    <item><tt>map (f, v, d = 1)</tt>.  The meaning of function
        parameters and constraints to their values are analogous to
        ones of function <tt>filter</tt>.  Only function <tt>f</tt> can
        return any value.  The elements processed by
@@ -2662,7 +2663,7 @@ The following functions are declared in space <tt>lang</tt>:
           var i, v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
           println (map (fun (a) {a < 0 ? nil : a;}, v, 2));
 </verb></tscreen>
-     <item><tt>fold (f, v, init [, d])</tt>.  The meaning of function
+     <item><tt>fold (f, v, init, d = 1)</tt>.  The meaning of function
        parameters <tt>f</tt>, <tt>v</tt>, and <tt>d</tt> and
        constraints to their values are analogous to ones of
        function <tt>filter</tt>.  The function processes all elements

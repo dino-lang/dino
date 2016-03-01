@@ -1,3 +1,24 @@
+2016-03-01  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_yacc.y (create_try_expr): New parameter.  Merge
+	additional stmts of the executive stmt.
+	(expr): Pass new arg to create_try_expr.
+	* DINO/dino.tst.in: Change expected output for ins, insv, subv,
+	del.  Add test for nested aninymous functions.
+	* DINO/d_func.c (process_neg_index): New.
+	(subv_call, dell_call): Use it.
+	(general_ins_call): Ditto.  Make -1 as default.
+	* DINO/compare.tst: Remove -1 in ins/insv calls.
+	* DINO/process_ucodedb.d: Ditto.
+	* DINO/d_flatten.d: Ditto. Use -2 for del.
+	* DINO/Examples/forest-fire.d (forest): Remove -1 in ins call.
+	* DINO/dino.sgml.in (inside, filter, map, fold): Use default
+	value.
+	(subv, del): Ditto.  New negative index meaning.
+	(ins, insv): Ditto.  New default values for index.
+	* DINO/dino.{dvi, html, info, pdf, ps, txt}: Update.
+	* DINO/dino-9.html: Update.
+
 2016-02-29  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_eval.c (process_slice_extract): Remove immutable check.

@@ -8431,7 +8431,7 @@ fun test_lists {
   // append to right side of Li3 (preserving order)
 
   for (;#Li2;) {
-    ins (Li3, Li2 [0], -1);
+    ins (Li3, Li2 [0]);
     del (Li2, 0);
   }
 
@@ -8439,7 +8439,7 @@ fun test_lists {
   // remove each individual item from right side of Li3 and
   // append to right side of Li2 (reversing list)
   for (;#Li3;) {
-    ins (Li2, Li3 [#Li3 - 1], -1);
+    ins (Li2, Li3 [#Li3 - 1]);
     del (Li3, #Li3 - 1);
   }
   Li1 = rev (Li1);
@@ -8477,7 +8477,7 @@ fun test_lists !jit {
   // append to right side of Li3 (preserving order)
 
   for (;#Li2;) {
-    ins (Li3, Li2 [0], -1);
+    ins (Li3, Li2 [0]);
     del (Li2, 0);
   }
 
@@ -8485,7 +8485,7 @@ fun test_lists !jit {
   // remove each individual item from right side of Li3 and
   // append to right side of Li2 (reversing list)
   for (;#Li3;) {
-    ins (Li2, Li3 [#Li3 - 1], -1);
+    ins (Li2, Li3 [#Li3 - 1]);
     del (Li3, #Li3 - 1);
   }
   Li1 = rev (Li1);
@@ -99692,7 +99692,7 @@ var i, n = argv [0] < 1 ? 1 : int (argv [0]);
 var str = new "";
 var add = "hello\n";
 for (i = 0; i < n; i++)
-  insv (str, add, -1);
+  insv (str, add);
 
 putln (#str);
 EOF

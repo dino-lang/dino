@@ -1558,6 +1558,18 @@ compare_elements (ER_node_mode_t el_type, const void *el1, const void *el2)
     }
 }
 
+static inline rint_t 
+process_neg_index (rint_t index, size_t len)
+{
+  if (index < 0)
+    {
+      index = (rint_t) len + index + 1;
+      if (index < 0)
+	index = 0;
+    }
+  return index;
+}
+
 void
 subv_call (int pars_number)
 {
@@ -1600,8 +1612,7 @@ subv_call (int pars_number)
   vect = ER_vect (IVAL (ctop, -pars_number + 1));
   GO_THROUGH_REDIR (vect);
   vect_length = ER_els_number (vect);
-  if (start < 0)
-    start = 0;
+  start = process_neg_index (start, vect_length);
   if (start < vect_length && (length < 0 || start + length >= vect_length))
     /* Get tail. */
     length = vect_length - start;
@@ -1785,8 +1796,7 @@ del_call (int pars_number)
 	eval_error (immutable_bc_decl, call_pos (),
 		    DERR_immutable_vector_modification);
       vect_length = ER_els_number (vect);
-      if (start < 0)
-	start = 0;
+      start = process_neg_index (start, vect_length);
       if (start < vect_length && (length < 0 || start + length >= vect_length))
 	{
 	  /* Remove tail */
@@ -1890,7 +1900,7 @@ general_ins_call (int pars_number, int vector_flag)
   if (index_val != NULL)
     index = ER_i (index_val);
   else
-    index = 0;
+    index = -1;
   vect = ER_vect (vect_val);
   GO_THROUGH_REDIR (vect);
   if (vector_flag)
@@ -1937,8 +1947,10 @@ general_ins_call (int pars_number, int vector_flag)
     addition = ER_els_number (el_vect);
   vect_length = ER_els_number (vect);
   vect = expand_vector (vect, vect_length + addition);
-  if (index < 0 || index > vect_length)
+  if (index > vect_length)
     index = vect_length;
+  else
+    index = process_neg_index (index, vect_length);
   if (index < vect_length)
     {
       /* Move */

@@ -26,7 +26,7 @@ class forest (height, width) {
 	pmatch (spot[i][j]) {
 	case Empty + 0: if (rand () < p) spot[i][j] = Tree;
 	case Tree + 0: if (rand () < f) spot[i][j] = Heating;
-	case Heating + 0: spot[i][j] = Burning; ins (heat, [i,j], -1);
+	case Heating + 0: spot[i][j] = Burning; ins (heat, [i,j]);
 	case _: spot[i][j] = Empty;
 	}
     for (var k = 0; k < #heat; k++) {

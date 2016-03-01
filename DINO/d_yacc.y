@@ -71,7 +71,8 @@ static void finish_catch_block (IR_node_t catch_block, IR_node_t block,
 				IR_node_t excepts, IR_node_t friend_list);
 static IR_node_t create_try_expr (IR_node_t try_block, IR_node_t stmt,
 				  IR_node_t excepts,
-				  position_t lpar_pos, position_t rpar_pos);
+				  position_t lpar_pos, position_t rpar_pos,
+				  IR_node_t additional_stmts_before_try);
 
 /* The following vars are used by yacc analyzer. */
 
@@ -83,7 +84,8 @@ static IR_node_t current_scope;
 
 /* Pointer to cycle list of stmts which should be included before the
    current stmt.  They are generated from anonymous
-   functions/class/threads/classes in the current stmt.  */
+   functions/class/threads/classes or from try-expr in the current
+   stmt.  */
 static IR_node_t additional_stmts;
 
 /* This var is used as second attribute of nonterminal actual_parameters.
@@ -516,8 +518,7 @@ expr : NUMBER        {$$ = $1;}
 	 }
        set_flag2  executive_stmt  except_class_list_opt  ')'
          {
-	   additional_stmts = $<pointer>4;
-	   $$ = create_try_expr ($<pointer>3, $6, $7, $2, $8);
+	   $$ = create_try_expr ($<pointer>3, $6, $7, $2, $8, $<pointer>4);
 	 }
      | TRY '(' error
           {
@@ -1913,10 +1914,15 @@ finish_catch_block (IR_node_t catch_block, IR_node_t block,
 
    TRY_BLOCK is already created block for the try-statement. LPAR_POS
    and RPAR_POS are positions of correspondingly left and right
-   parenthesis in try-expr.  */
+   parenthesis in try-expr.
+
+   ADDITIONAL_STMTS_BEFORE_TRY are stmts should be before the
+   try-expr, while ADDITIONAL_STMTS are stmts should be before the
+   stmt in the try-expr.  */
 static IR_node_t
 create_try_expr (IR_node_t try_block, IR_node_t stmt, IR_node_t excepts,
-		 position_t lpar_pos, position_t rpar_pos)
+		 position_t lpar_pos, position_t rpar_pos,
+		 IR_node_t additional_stmts_before_try)
 {
   IR_node_t fun, stmt_list, catch_block, fun_expr, call;
   
@@ -1925,6 +1931,7 @@ create_try_expr (IR_node_t try_block, IR_node_t stmt, IR_node_t excepts,
   /* Create <executive_stmt>; return 1; */
   if (stmt != NULL)
     IR_set_next_stmt (stmt, stmt);
+  stmt = merge_additional_stmts (stmt);
   stmt_list = create_node_with_pos (IR_NM_return_with_result, rpar_pos);
   IR_set_returned_expr (stmt_list, get_int_node (1, rpar_pos));
   IR_set_next_stmt (stmt_list, stmt_list);
@@ -1958,7 +1965,7 @@ create_try_expr (IR_node_t try_block, IR_node_t stmt, IR_node_t excepts,
   /* Move (header, block) before the current statement: */
   IR_set_next_stmt (try_block, try_block);
   additional_stmts
-    = merge_stmt_lists (additional_stmts,
+    = merge_stmt_lists (additional_stmts_before_try,
 			process_header_block (NULL, try_block, NO_HINT));
   /* create function call  */
   fun_expr = IR_ident (fun);

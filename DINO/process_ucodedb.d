@@ -24,7 +24,7 @@ for (var i = 0; i < #lns; i++) {
   var up = #fs[12] == 0 ? c : int ("0x" @ fs[12]);
   var lo = #fs[13] == 0 ? c : int ("0x" @ fs[13]);
   var mid = #fs[14] == 0 ? c : int ("0x" @ fs[14]);
-  ins (all, [c, name, cat_str, lo, up, mid], -1);
+  ins (all, [c, name, cat_str, lo, up, mid]);
 }
 
 // Print header
@@ -90,11 +90,11 @@ var ranges = [], startc = 0, starti = 0, lastc = 0;
 for (i = 0; i < #all; i++) {
   var c = all[i][0];
   if (c - startc + 1 > 255) { // new range
-    ins (ranges, [#ranges, starti, startc, lastc], -1); startc = c; starti = i;
+    ins (ranges, [#ranges, starti, startc, lastc]); startc = c; starti = i;
   }
   lastc = c;
 }
-ins (ranges, [#ranges, starti, startc, lastc], -1);
+ins (ranges, [#ranges, starti, startc, lastc]);
 
 fun print_range (n, starti, startc, lastc) {
   var prevc = startc, name = "uc_ind" @ n;

@@ -10,7 +10,7 @@ The Programming Language DINO
 *****************************
 
      Vladimir Makarov, `vmakarov@gcc.gnu.org'.
-     Feb. 28, 2016
+     Mar. 01, 2016
 
    This document describes the programming language DINO - the
 development version of the future release 0.97.
@@ -2614,7 +2614,7 @@ The following functions are declared in space 'lang':
      _Declarations and Scope Rules_) represented by a block instance or
      an object for the given parameter value which should be a function,
      a class, a thread, a block instance, or an object.
-   * 'inside (par1, par2[, flag])'.  The goal for function usage is to
+   * 'inside (par1, par2, flag = 0)'.  The goal for function usage is to
      check that something is declared inside something other.  If the
      third parameter value after implicit integer conversion is given
      and nonzero, it is checked with taking contexts into account.  The
@@ -2657,41 +2657,40 @@ The following functions are declared in space 'lang':
                     isa (subc (), c);
 
      The calls of 'isa' in the example return 1.
-   * 'subv (vect, index[, length])'.  The function is used to extract a
-     sub-vector.  The first parameter value should be a vector after
+   * 'subv (vect, index, length = -1)'.  The function is used to extract
+     a sub-vector.  The first parameter value should be a vector after
      implicit string conversion.  The second and third parameter values
      should be integers after implicit integer conversion.  The function
      extracts only an element or the part of the sub-vector existing in
      the vector (so you can use any values of the index and the length).
-     ?If index is negative, it is considered to be equal to zero.  If
-     the length is negative, the sub-vector will finish on the vector
-     end.  The function returns a new vector which is the sub-vector.
-     The result vector is immutable only when the original vector is
-     immutable.
-   * 'del (vect, index[, length]) or del (tab, key)'.  The first form of
-     the function is used to remove the vector element or a sub-vector
-     from the mutable vector 'vect'.  The second and the third parameter
-     values should be integers after implicit integer conversion.  The
-     function removes only an element or the part of the sub-vector
-     existing in the vector (so you can use any values of the index and
-     the length).  ?If index is negative, it is considered to be equal
-     to zero.  If the length is negative, the sub-vector will finish on
-     the vector end.  The second form of the function is used to remove
-     the element (if it exists) with the given key from the mutable
-     table.  The function generates the exception 'immutable' if we are
-     trying to remove from an immutable vector or table.  The function
-     returns the modified vector.
-   * 'ins (vect, el[, index])'.  The function inserts the element given
-     by the second parameter into the vector given by the first
-     parameter on the place given by the third parameter.  If the third
-     parameter is not given it is believed to be zero.  The third
+     If index is negative, it refers to an element anologous to a slice
+     bound.  In other words, '-1' corresponds to the vector length, '-2'
+     corresponds to the vector length - 1, '-3' corresponds to the
+     vector length -2, and so on.  If the length is negative, the
+     sub-vector will finish on the vector end.  The function returns a
+     new vector which is the sub-vector.  The result vector is immutable
+     only when the original vector is immutable.
+   * 'del (vect, index, length = 1) or del (tab, key)'.  The first form
+     of the function is used to remove the vector element or a
+     sub-vector from the mutable vector 'vect'.  The second and the
+     third parameter values should be integers after implicit integer
+     conversion.  The function removes only an element or the part of
+     the sub-vector existing in the vector (so you can use any values of
+     the index and the length).  Negative index has the same meaning as
+     in 'subv'.  If the length is negative, the sub-vector will finish
+     on the vector end.  The second form of the function is used to
+     remove the element (if it exists) with the given key from the
+     mutable table.  The function generates the exception 'immutable' if
+     we are trying to remove from an immutable vector or table.  The
+     function returns the modified vector.
+   * 'ins (vect, el, index = -1)'.  The function inserts the element
+     given by the second parameter into the vector given by the first
+     parameter on the place given by the third parameter.  The third
      parameter should be an integer after implicit integer conversion.
-     ?If the third parameter is negative or equal to or greater than the
-     vector length, the element is inserted at the end of the vector.
-     The function generates the exception 'immutable' if we are trying
-     to insert into an immutable vector.  The function returns the
-     modified vector.
-   * 'insv (vect, vect[, index])'.  The function is analogous to the
+     Negative index has the same meaning as in 'subv'.  The function
+     generates the exception 'immutable' if we are trying to insert into
+     an immutable vector.  The function returns the modified vector.
+   * 'insv (vect, vect, index = -1)'.  The function is analogous to the
      function 'ins' but it is used for insertion of all vector elements
      into the vector given as the first parameter.  So the second
      parameter value should be a vector.  The function returns the
@@ -2711,26 +2710,26 @@ The following functions are declared in space 'lang':
      -1.  If the second vector is a prefix of the first vector, the
      function returns 1, so it is in fact generalized lexicographical
      order.
-   * 'filter (f, v [, d])'.  The function expects function 'f', vector
+   * 'filter (f, v, d = 1)'.  The function expects function 'f', vector
      'v', and optional integer 'd' after integer conversion.  Otherwise
-     exception 'partype' is generated.  If 'd' is not given, it is
-     believed to be 1.  The function processes v's elements if 'd' is
-     equal one, elements of vectors which are v's elements if 'd' is
-     equal to 2 and so on.  In other words, 'd' is level on which vector
-     elements are processed.  If v has no structure necessary for
-     processing, exception 'vecform' is generated.  If 'd' is zero or
-     negative, the function just returns 'v'.  Otherwise the function
-     creates new mutable vector having the same structure as 'v' with
-     only elements on level 'd' for which function 'f' returns nonzero
-     value after integer conversion.  If the result of function 'f'
-     after the integer conversion is not integer, exception 'invresult'
-     is generated.  The following example illustrates usage of 'filter'.
+     exception 'partype' is generated.  The function processes v's
+     elements if 'd' is equal one, elements of vectors which are v's
+     elements if 'd' is equal to 2 and so on.  In other words, 'd' is
+     level on which vector elements are processed.  If v has no
+     structure necessary for processing, exception 'vecform' is
+     generated.  If 'd' is zero or negative, the function just returns
+     'v'.  Otherwise the function creates new mutable vector having the
+     same structure as 'v' with only elements on level 'd' for which
+     function 'f' returns nonzero value after integer conversion.  If
+     the result of function 'f' after the integer conversion is not
+     integer, exception 'invresult' is generated.  The following example
+     illustrates usage of 'filter'.
 
                     var i, v = [0, 1, -2, 3, -4];
                     println (filter (fun (a) {a > 0;}, v));
                     v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
                     println (filter (fun (a) {a > 0;}, v, 2));
-   * 'map (f, v [, d])'.  The meaning of function parameters and
+   * 'map (f, v, d = 1)'.  The meaning of function parameters and
      constraints to their values are analogous to ones of function
      'filter'.  Only function 'f' can return any value.  The elements
      processed by function 'f' is changed onto the result of function
@@ -2738,9 +2737,9 @@ The following functions are declared in space 'lang':
 
                     var i, v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
                     println (map (fun (a) {a < 0 ? nil : a;}, v, 2));
-   * 'fold (f, v, init [, d])'.  The meaning of function parameters 'f',
-     'v', and 'd' and constraints to their values are analogous to ones
-     of function 'filter'.  The function processes all elements of
+   * 'fold (f, v, init, d = 1)'.  The meaning of function parameters
+     'f', 'v', and 'd' and constraints to their values are analogous to
+     ones of function 'filter'.  The function processes all elements of
      vectors on level 'd' and returns value 'f (f (f (f (init, el0),
      el1), ...)  , eln)' where 'el0', ..., 'eln' are vector elements on
      level 'd' taken from left to right.  If 'd' is zero or negative or
@@ -5070,38 +5069,38 @@ Node: Versions99593
 Node: Threads100206
 Node: Exception classes100739
 Node: Functions of space `lang'106485
-Node: Space `io'118570
-Node: Exception classes of space `io'119157
-Node: Class `file'120074
-Node: Files120825
-Node: Functions for work with files121627
-Node: File output functions125644
-Node: File input functions138100
-Node: Encoding functions141941
-Node: Functions for work with directories142755
-Node: Functions for access to file/directory information144323
-Node: Miscellaneous functions149029
-Node: Space `sys'149749
-Node: Exceptions in space `sys'150180
-Node: Variable `time_format'155895
-Node: Time functions156293
-Node: Functions for access to information about OS processes159296
-Node: Function `system (command)'160842
-Node: Space `re'161273
-Node: Exception class `invregex'161649
-Node: Variable `split_regex'162111
-Node: Pattern matching162512
-Node: Space `math'186037
-Node: Mathematical functions186303
-Node: Other space `math' functions187866
-Node: Space `yaep'189180
-Node: Exception classes of space `yaep'191308
-Node: Class parser192163
-Node: Class `token'201257
-Node: Class `anode'202011
-Node: Variables `nil_anode' and `error_anode'204120
-Node: Example of Earley parser usage-204564
-Node: Appendix A- Syntax of Dino207472
-Node: Appendix B- Implementation212870
+Node: Space `io'118544
+Node: Exception classes of space `io'119131
+Node: Class `file'120048
+Node: Files120799
+Node: Functions for work with files121601
+Node: File output functions125618
+Node: File input functions138074
+Node: Encoding functions141915
+Node: Functions for work with directories142729
+Node: Functions for access to file/directory information144297
+Node: Miscellaneous functions149003
+Node: Space `sys'149723
+Node: Exceptions in space `sys'150154
+Node: Variable `time_format'155869
+Node: Time functions156267
+Node: Functions for access to information about OS processes159270
+Node: Function `system (command)'160816
+Node: Space `re'161247
+Node: Exception class `invregex'161623
+Node: Variable `split_regex'162085
+Node: Pattern matching162486
+Node: Space `math'186011
+Node: Mathematical functions186277
+Node: Other space `math' functions187840
+Node: Space `yaep'189154
+Node: Exception classes of space `yaep'191282
+Node: Class parser192137
+Node: Class `token'201231
+Node: Class `anode'201985
+Node: Variables `nil_anode' and `error_anode'204094
+Node: Example of Earley parser usage-204538
+Node: Appendix A- Syntax of Dino207446
+Node: Appendix B- Implementation212844
 
 End Tag Table
