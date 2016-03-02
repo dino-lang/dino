@@ -2629,8 +2629,8 @@ gen_cfblock (BC_node_t fblock)
 #define CC_COMPILE_OPTIONS  " -O2 -DHAVE_CONFIG_H -w -fPIC -shared -pipe -g"
 #define CC_COMPILE_OPTIONS2 " -O2 -DHAVE_CONFIG_H -w -fPIC -shared -pipe -xc -"
 #elif defined(__APPLE__)
-#define CC_COMPILE_OPTIONS  " -O2 -DHAVE_CONFIG_H -w -Wl,-undefined -Wl,dynamic_lookup -bundle -pipe -g"
-#define CC_COMPILE_OPTIONS2 " -O2 -DHAVE_CONFIG_H -w -Wl,-undefined -Wl,dynamic_lookup -bundle -pipe -xc -"
+#define CC_COMPILE_OPTIONS  " -O2 -I/usr/local/include -L/usr/local/lib -DHAVE_CONFIG_H -w -Wl,-undefined -Wl,dynamic_lookup -bundle -pipe -g"
+#define CC_COMPILE_OPTIONS2 " -O2 -I/usr/local/include -L/usr/local/lib -DHAVE_CONFIG_H -w -Wl,-undefined -Wl,dynamic_lookup -bundle -pipe -xc -"
 #elif defined(__CYGWIN__)
 #define CC_COMPILE_OPTIONS  " -O2 -DHAVE_CONFIG_H -w -shared -pipe -g"
 #define CC_COMPILE_OPTIONS2 " -O2 -DHAVE_CONFIG_H -w -shared -pipe -xc - -xnone"

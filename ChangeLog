@@ -1,3 +1,9 @@
+2016-03-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_bc.sprut (CC_COMPILE_OPTIONS, CC_COMPILE_OPTIONS2): Add
+	-I/usr/local/include and -L/usr/local/lib for Apple.
+	* DINO/dino.tst.in (919): Change fp constant.
+
 2016-03-01  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* README.md: Use _ in long numbers.

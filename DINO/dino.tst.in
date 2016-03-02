@@ -51460,13 +51460,13 @@ fi
 if test $result = ok -a $start_test_number -le 919; then
 	echo test 919: Underline in numbers
         cat >$test_file <<'TEST919'
-putln (100_000, 07__000__000__, 2_3.5_6);
+putln (100_000, 07__000__000__, 2_3.7_5);
 TEST919
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout ; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT919' && $CMP $stdout $ftemp2; then
-100000183500823.56
+100000183500823.75
 OUTPUT919
                         result=ok
                 else
