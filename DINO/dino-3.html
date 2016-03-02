@@ -67,19 +67,26 @@ contain <CODE>8</CODE> or <CODE>9</CODE>.  If an integer number has
 suffix <CODE>l</CODE> or <CODE>L</CODE>, it is a long number (see long
 values in section "Types and Values").  Floating point numbers
 are distinguished from decimal integer numbers by the presence
-of decimal point <CODE>.</CODE> or an exponent in the number.
+of decimal point <CODE>.</CODE> or an exponent in the number.  You
+can put <CODE>_</CODE> in number digit sequences unless it is the
+first symbol of the sequence.  It can be useful for
+readability of long digit sequences.
 <BLOCKQUOTE><CODE>
 <PRE>
           Number = Integer | Long | FloatingPointNumber
 
-          Integer = Digit {Digit} | "0" ("x" | "X") HexDigit { HexDigit }
+          DigitSeq = Digit { Digit | "_" }
+
+          HexDigitSeq = HexDigit { HexDigit "_" }
+          
+          Integer = DigitSeq | "0" ("x" | "X") HexDigitSeq
 
           Long = Integer ("l" | "L")
 
-          FloatingPointNumber = Digit {Digit} "." { Digit } [Exponent]
-                              | Digit {Digit} [Exponent]
+          FloatingPointNumber = DigitSeq "." [ DigitSeq ] [Exponent]
+                              | DigitSeq [Exponent]
 
-          Exponent = ("e" | "E") [ "+" | "-" ] Digit { Digit }
+          Exponent = ("e" | "E") [ "+" | "-" ] DigitSeq
 </PRE>
 </CODE></BLOCKQUOTE>
 
@@ -88,10 +95,12 @@ Examples:
 <PRE>
           10
           10L
-          22222222222222222222222222222222222222222222222222222222l
+          222_222_222_222_222_222_222_222_222_222_222_222_222_222_222_222l
           100.
           1e2
-          100.0E+0
+          1000.000_1E+0
+          1___000__000_000
+          0xafad_1f34_17ff_
 </PRE>
 </CODE></BLOCKQUOTE>
 </LI>

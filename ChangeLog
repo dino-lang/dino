@@ -1,5 +1,16 @@
 2016-03-01  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* README.md: Use _ in long numbers.
+	* DINO/d_dino.c (read_dino_number): Permit '_' in digit sequence.
+	Check presence of digits after e[-|+].
+	* DINO/dino.tst (169): Add _ to a number.
+	(919): New.
+	* DINO/dino.sgml.in (NUMBER): Permit '_' in a digit sequence.
+	* DINO/dino.{dvi, info, pdf, ps, txt}: Update.
+	* DINO/dino-3.html: Update.
+
+2016-03-01  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/d_yacc.y (create_try_expr): New parameter.  Merge
 	additional stmts of the executive stmt.
 	(expr): Pass new arg to create_try_expr.

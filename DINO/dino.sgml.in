@@ -109,27 +109,36 @@ letters are considered to be distinct.
         suffix <tt>l</tt> or <tt>L</tt>, it is a long number (see long
         values in section "Types and Values").  Floating point numbers
         are distinguished from decimal integer numbers by the presence
-        of decimal point <tt>.</tt> or an exponent in the number.
+        of decimal point <tt>.</tt> or an exponent in the number.  You
+        can put <tt>_</tt> in number digit sequences unless it is the
+        first symbol of the sequence.  It can be useful for
+        readability of long digit sequences.
 <tscreen><verb>
           Number = Integer | Long | FloatingPointNumber
 
-          Integer = Digit {Digit} | "0" ("x" | "X") HexDigit { HexDigit }
+	  DigitSeq = Digit { Digit | "_" }
+
+	  HexDigitSeq = HexDigit { HexDigit "_" }
+	  
+          Integer = DigitSeq | "0" ("x" | "X") HexDigitSeq
 
           Long = Integer ("l" | "L")
 
-          FloatingPointNumber = Digit {Digit} "." { Digit } [Exponent]
-                              | Digit {Digit} [Exponent]
+          FloatingPointNumber = DigitSeq "." [ DigitSeq ] [Exponent]
+                              | DigitSeq [Exponent]
 
-          Exponent = ("e" | "E") [ "+" | "-" ] Digit { Digit }
+          Exponent = ("e" | "E") [ "+" | "-" ] DigitSeq
 </verb></tscreen>
         Examples:
 <tscreen><verb>
           10
           10L
-          22222222222222222222222222222222222222222222222222222222l
+          222_222_222_222_222_222_222_222_222_222_222_222_222_222_222_222l
           100.
           1e2
-          100.0E+0
+          1000.000_1E+0
+	  1___000__000_000
+	  0xafad_1f34_17ff_
 </verb></tscreen>
      <item>A Dino <em>character constant</em> denotes an Unicode
         character.  The following sequences starting with the ASCII

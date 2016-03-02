@@ -107,7 +107,7 @@
       fun even;
       fun odd  (i) {i == 0 ? 0 : even (i - 1);}
       fun even (i) {i == 0 ? 1 : odd (i - 1);}
-      putln (odd (1000000));
+      putln (odd (1_000_000));
 ```
 
 * Anonymous functions:

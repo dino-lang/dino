@@ -580,14 +580,15 @@ read_dino_number (int c, int get_ch (void), void unget_ch (int),
   dec_p = hex_p = FALSE;
   for (;;)
     {
-      VLO_ADD_BYTE (number_text, c);
+      if (c != '_')
+	VLO_ADD_BYTE (number_text, c);
       c = get_ch ();
       (*read_ch_num)++;
       if (c == '8' || c == '9')
 	dec_p = TRUE;
       hex_char_p = (('a' <= c && c <= 'f')
 		    || ('A' <= c && c <= 'F'));
-      if (! isdigit_ascii (c) && (*base != 16 || ! hex_char_p))
+      if (c != '_' && ! isdigit_ascii (c) && (*base != 16 || ! hex_char_p))
 	break;
       if (hex_char_p)
 	hex_p = TRUE;
@@ -598,11 +599,12 @@ read_dino_number (int c, int get_ch (void), void unget_ch (int),
       *float_p = TRUE;
       do
 	{
-	  VLO_ADD_BYTE (number_text, c);
+	  if (c != '_')
+	    VLO_ADD_BYTE (number_text, c);
 	  c = get_ch ();
 	  (*read_ch_num)++;
 	}
-      while (isdigit_ascii (c));
+      while (isdigit_ascii (c) || c == '_');
     }
   if (c == 'e' || c == 'E')
     {
@@ -614,13 +616,24 @@ read_dino_number (int c, int get_ch (void), void unget_ch (int),
       else
 	{
 	  VLO_ADD_BYTE (number_text, 'e');
-	  do
+	  if (c == '+' || c == '-')
 	    {
-	      VLO_ADD_BYTE (number_text, c);
+	      if (c == '-')
+		VLO_ADD_BYTE (number_text, '-');
 	      c = get_ch ();
 	      (*read_ch_num)++;
+	      if (!isdigit_ascii (c))
+		err_code = ABSENT_EXPONENT;
 	    }
-	  while (isdigit_ascii (c));
+	  if (err_code == NUMBER_OK)
+	    do
+	      {
+		if (c != '_')
+		  VLO_ADD_BYTE (number_text, c);
+		c = get_ch ();
+		(*read_ch_num)++;
+	      }
+	    while (isdigit_ascii (c) || c == '_');
 	}
     }
   else if (! *float_p && (c == 'l' || c == 'L'))
