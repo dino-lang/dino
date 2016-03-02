@@ -243,7 +243,7 @@ extern int check_encoding_on_ascii (const char *encoding);
 
 extern void dino_finish (int code);
 
-extern int incompatible_version_p (rint_t major, rint_t minor);
+extern int incompatible_lang_version_p (double v);
 
 #define SET_SOURCE_POSITION(ref)     (source_position = IR_pos (ref))
 

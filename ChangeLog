@@ -1,3 +1,9 @@
+2016-03-02  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* DINO/d_common.h (incompatible_version_p): Rename to
+	incompatible_lang_version_p.  Change prototype.
+	* DINO/d_dino.c (incompatible_lang_version_p): Change prototype.
+
 2016-03-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* ONIGURUMA/config.guess: Update.

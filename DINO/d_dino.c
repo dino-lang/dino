@@ -1530,10 +1530,12 @@ check_encoding_on_ascii (const char *encoding)
 #define DEFAULT_DINO_ENCODING RAW_STRING
 #endif
 
+/* If a language version became incompatible with the current one, put
+   its number here.  */
 static rfloat_t incompatible_lang_versions[] = {};
 
 int
-incompatible_lang_version_p (rfloat_t v)
+incompatible_lang_version_p (double v)
 {
   rfloat_t epsilon = 0.001; /* we consider only 2 digits after point */
   int i;
