@@ -39,7 +39,6 @@ check_vector_index_value (ER_node_t vect, rint_t index_value)
 static rint_t do_always_inline
 check_vector_index (ER_node_t vect, ER_node_t index)
 {
-  rint_t index_value;
   val_t tvar;
 
   if (doubt (ER_NODE_MODE (index) != ER_NM_int))
@@ -948,7 +947,7 @@ static void do_inline
 execute_a_period_operation (int block_decl_ident_number, ER_node_t res,
 			    ER_node_t op, int lvalue_p, int lvalue_val_p)
 {
-  BC_node_t block, fblock, decl;
+  BC_node_t block, decl;
   ER_node_t stack, ref, val;
 
   if (ER_NODE_MODE (op) == ER_NM_stack)
@@ -1724,8 +1723,8 @@ ibcall (ER_node_t op1, int op2n, int from_c_code_p)
 static void do_always_inline
 mcall (ER_node_t op1, int op2n, ER_node_t op3, int op4n, int from_c_code_p)
 {
-  BC_node_t block, fblock, decl;
-  ER_node_t stack, ref, val;
+  BC_node_t block, decl;
+  ER_node_t stack;
 
   if (ER_NODE_MODE (op3) != ER_NM_stack)
     eval_error (accessop_bc_decl, get_cpos (),
@@ -2901,8 +2900,6 @@ ibt (ER_node_t op1)
   return ER_i (op1) != 0;
 }
 
-static void out (void);
-
 static int do_always_inline
 bend (void)
 {
@@ -3142,8 +3139,6 @@ foreach2 (ER_node_t tv, ER_node_t start, ER_node_t container, ER_node_t element)
     }
   return FALSE;
 }
-
-static int except (void);
 
 static int do_always_inline
 chvec (ER_node_t op1, pc_t target)

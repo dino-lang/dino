@@ -36,8 +36,8 @@ dino_SOURCES = d_main.c
 CLEANFILES = sgramm.c d_yacc.c d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_kw.c d_enc.c d_bcn.c d_bcf.c
 dino_DEPENDENCIES = libdino.la
 dino_CFLAGS = $(libdino_la_CFLAGS)
-dino_LDFLAGS = -lgmp -lm -export-dynamic @DINO_LIB_LDFLAGS@ \
-               libdino.la ../ONIGURUMA/libonig.la ../AMMUNITION/libcocom.la
+dino_LDFLAGS = -export-dynamic @DINO_LIB_LDFLAGS@ \
+               libdino.la ../ONIGURUMA/libonig.la ../AMMUNITION/libcocom.la -lgmp -lm
 BUILT_SOURCES = d_ir.h d_bc.h d_run.h d_bcn.c d_bcf.c d_kw.c d_enc.c
 dist_doc_DATA = dino.txt dino.info dino.html dino-1.html dino-2.html\
 	        dino-3.html dino-4.html dino-5.html dino-6.html dino-7.html\

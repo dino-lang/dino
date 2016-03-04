@@ -1,3 +1,13 @@
+2016-03-04  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/dino.tst.in (909, 910): Add stdio.h.
+	* DINO/Makefile.am (dino_LDFLAGS): Put -lm and -gpm at the end.
+	* DINO/Makefile.in: Update.
+	* DINO/d_gen.c (check_vector_index): Remove index_value.
+	(execute_a_period_operation): Remove fblock.
+	(mcall): Remove fblock, ref, val.
+	(out): Remove.
+
 2016-03-02  Vladimir Makarov  <vmakarov@redhat.com>
 
 	* DINO/d_common.h (incompatible_version_p): Rename to

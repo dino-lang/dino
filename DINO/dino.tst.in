@@ -51195,7 +51195,7 @@ if test $result = ok -a $start_test_number -le 909; then
 %}
 
 %{
-
+  #include <stdio.h>
   val_t f (int npars, val_t *vals) {
     val_t val;
     ER_node_t res = (ER_node_t) &val;
@@ -51235,7 +51235,7 @@ if test $result = ok -a $start_test_number -le 910; then
         cat >$test_file <<'TEST910'
 for (var i = 0; i < 1000000; i++) {
   %{
-
+     #include <stdio.h>
      static int incr10 (int i) {return i + 10;}
      val_t f (int npars, val_t *vals) {
        val_t val;
