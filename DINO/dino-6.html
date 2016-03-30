@@ -14,12 +14,12 @@
 <HR>
 <H2><A NAME="s6">6.</A> <A HREF="dino.html#toc6">Patterns</A></H2>
 
-<P>Patterns have form of expressions.  They are used to match an
+<P>Patterns have a form of expressions.  They are used to match an
 expression and decompose it.  Pattern can have form a vector value, a
-table value, a function call, identifier, or special <EM>wildcard</EM>
-symbol <CODE>"_"</CODE>.  Anything else is treated as an expression.  The
-simplest way is to treat a pattern, e.g. identfier, as an expression
-is to put it into paretheses.
+table value, a function call, an identifier, or a special
+<EM>wildcard</EM> symbol <CODE>"_"</CODE>.  Anything else in the pattern
+is treated as an expression.  The simplest way is to treat a pattern,
+e.g. identfier, as an expression is to put it into paretheses.
 <BLOCKQUOTE><CODE>
 <PRE>
            Pattern = Expr
@@ -29,8 +29,9 @@ is to put it into paretheses.
 </P>
 <P>A separate wildcard matches any value.  Identifier also matches any
 value but additionally the matched value is assigned to
-the <EM>pattern variable</EM> denoted by the identifier.  Expression
-pattern matches any value equal to the the expression value.</P>
+the <EM>pattern variable</EM> denoted by the identifier.  An
+expression in a pattern matches any value equal to the the expression
+value.</P>
 <P>A <EM>vector pattern</EM> matches a <EM>vector value</EM>.  All vector
 pattern elements should match all subsequent elements of the vector
 value.  If a vector pattern element has a form of another pattern than
@@ -39,12 +40,12 @@ pattern matches the corresponding element value of the vector value.</P>
 <P>A vector pattern element can also have a form <CODE>expr ":"
 pattern</CODE>.  The value of the expression before <CODE>":"</CODE> is
 converted into an integer value by default.  If the value after the
-conversion is not integer, exception <CODE>optype</CODE> is generated.
+conversion is not integer, the exception <CODE>optype</CODE> is generated.
 The value can be zero or negative.  In this case matching the pattern
 element is always successful and this matching does not correspond any
 element of the matched vector value.  Othewise, the pattern
-after <CODE>":"</CODE> should match corresponding elements in the vector
-value.  The exact number of the elements is defined by expression
+after <CODE>":"</CODE> should match the corresponding elements in the vector
+value.  The exact number of the elements is defined by the expression
 value before <CODE>":"</CODE>.  The matched element values should be equal
 unless the pattern after <CODE>":"</CODE> is a wildcard <CODE>"_"</CODE>.</P>
 <P>The last element of the vector pattern can be <CODE>"..."</CODE>.  It
@@ -53,7 +54,7 @@ are examples of vector patterns (a, b, and c are identifies of pattern
 variables):
 <BLOCKQUOTE><CODE>
 <PRE>
-           [a, b] // a and b are pattern variables
+           [a, b]   // a and b are pattern variables
            [(a), b] // value of earlier declared a is used
            [a, ...]
            [2, [a, b], 3 : c, 4 : _]
@@ -70,8 +71,8 @@ element with a key given by the expression.  Additionally the element
 value with given key should match the pattern after <CODE>":"</CODE>.</P>
 <P>The last element of the table pattern can be <CODE>"..."</CODE>.  It
 matches the rest elements in the matched table value.  The following
-are examples of table patterns (a, b, and c are identifies of pattern
-variables):
+are examples of table patterns (a, b, and c are identifies of the
+pattern variables):
 <BLOCKQUOTE><CODE>
 <PRE>
            tab ["k1", "k2"]
@@ -80,19 +81,20 @@ variables):
 </PRE>
 </CODE></BLOCKQUOTE>
 </P>
-<P>An object pattern has a form of function/class call.  A <EM>object
+<P>An object pattern has a form of function/class call.  An <EM>object
 pattern</EM> matches a class/function instance.  The function/class
 should be a subtype of class/function given by the value of the
-expression before <CODE>"("</CODE>.  The parameters in the pattern should
-match all corresponding instance parameter values.  The number of the
-values is taken from function/class given by the expression
-before <CODE>"("</CODE>, not from function class of the instance.
-Remember that arguments corresponding to <CODE>"..."</CODE> in
-function/class parameter definitions become one array value.</P>
+expression in the pattern before <CODE>"("</CODE>.  The parameters in the
+pattern should match all corresponding instance parameter values.  The
+number of the values is taken from function/class given by the
+expression in the pattern before <CODE>"("</CODE>, not from function class
+of the instance.  Remember that the arguments corresponding
+to <CODE>"..."</CODE> in function/class parameter definitions become one
+array value.</P>
 <P>The last parameter of the object pattern can be <CODE>"..."</CODE>.  It
 matches the rest arguments of the corresponding object.  The following
-are examples of object patterns (a, b, and c are identifies of pattern
-variables):
+are examples of object patterns (<CODE>a, b</CODE>, and <CODE>c</CODE> are
+identifies of the pattern variables):
 <BLOCKQUOTE><CODE>
 <PRE>
            leaf (10)

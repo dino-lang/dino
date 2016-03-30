@@ -1,3 +1,59 @@
+2016-03-30  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* README.md: Use fiber instead of thread wherever it is
+	appropriate.
+	* DINO/compare.tst: Use fiber instead of thread for Dino.
+	* DINO/d_bc.sprut (fblock): Use fiber_p instead of thread_p.
+	* DINO/d_bcio.c (dump_code): Ditto.
+	(thread_p): Rename to fiber_p.
+	(init_fields, read_bc_program): Ditto.
+	* DINO/d_bcf.shilka: Use fiber instead of thread and thread
+	instead of process.
+	* DINO/d_context.c (first_expr_processing, check_decl_matching):
+	Ditto.
+	(create_pattern_vars, ir2er_type, second_expr_processing): Ditto.
+	(generate_case, second_block_passing): Ditto.
+	* DINO/d_errors.h (ERR_jit_hint_for_thread): Rename to
+	ERR_jit_hint_for_fiber.
+	(ERR_invalid_class_fun_thread_designator): Rename to
+	ERR_invalid_class_fun_fiber_designator.
+	(ERR_return_with_result_in_thread): Rename to
+	ERR_return_with_result_in_fiber.
+	(DERR_thread_call_in_sync_stmt): Rename to
+	DERR_fiber_call_in_sync_stmt.
+	* DINO/d_errors.c (ERR_jit_hint_for_thread): Ditto.
+	(ERR_invalid_class_fun_thread_designator): Ditto.
+	(ERR_return_with_result_in_thread, DERR_thread_call_in_sync_stmt):
+	Ditto.
+	(DERR_deadlock): Use fiber in the message.
+	* DINO/d_eval.c (load_packed_vector_element): Use thread instead
+	of process.
+	(store_packed_vector_element, process_slice_extract): Ditto.
+	(common_eq_ne_op, execute_identity_op, call_fun_class): Ditto.
+	(evaluate_program): Ditto.
+	(process_slice_assign): Ditto.  Move setting done_p up.
+	(find_catch_pc): Use fiber instead of thread and thread instead of
+	process.
+	* DINO/d_extern.sprut: Use thread instead of process everywhere.
+	(enum type_val): Use fiber instead of thread.
+	* DINO/d_func.c: Use thread instead of process everywhere.
+	(print_val, process_fun_call): Use fiber instead of thread.
+	* DINO/d_gen.c (process_imm_fun_call): Use fiber instead of
+	thread.
+	(fblock_end, waitcond): Use thread instead of process.
+	* DINO/d_heap.c: Use thread instead of process everywhere.
+	* DINO/d_ir.sprut: Use fiber instead of thread and thread instead
+	of process everywhere.
+	* DINO/d_kw.shilka: Ditto.
+	* DINO/d_run.sprut: Ditto.
+	* DINO/d_yacc.y: Ditto.
+	* DINO/dino.tst.in: Ditto.
+	(920): New test for a found bug.
+	* DINO/dino.sgml.in: Do editing.  Add try-operator description.
+	* DINO/dino.1: Change the date.
+	* DINO/dino-{1-11}.html: Update.
+	* DINO/dino.{html, info, ps, pdf, txt}: Update.
+
 2016-03-04  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/dino.tst.in (909, 910): Add stdio.h.

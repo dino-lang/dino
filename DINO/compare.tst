@@ -6081,7 +6081,7 @@ var produced = 0;
 var data = 0;
 var consumer_finish = 0, producer_finish = 0;
 
-thread consumer (n) {
+fiber consumer (n) {
   var i;
 
   for (;;) {
@@ -6095,7 +6095,7 @@ thread consumer (n) {
   consumer_finish = 1;
 }
 
-thread producer (n) {
+fiber producer (n) {
   var i;
 
   for (i = 0; i < n; i++) {

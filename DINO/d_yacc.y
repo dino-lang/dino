@@ -84,7 +84,7 @@ static IR_node_t current_scope;
 
 /* Pointer to cycle list of stmts which should be included before the
    current stmt.  They are generated from anonymous
-   functions/class/threads/classes or from try-expr in the current
+   functions/classes/fibers or from try-expr in the current
    stmt.  */
 static IR_node_t additional_stmts;
 
@@ -124,8 +124,8 @@ static int repl_can_process_p (void);
 
 %token <pointer> NUMBER CHARACTER STRING IDENT CODE
 %token <pos> BREAK CASE CATCH CHAR CLASS CONTINUE ELSE EXPOSE EXTERN
-       FINAL FLOAT FOR FORMER FRIEND FUN HIDE HIDEBLOCK IF IN INT
-       LONG LATER NEW NIL OBJ PMATCH PRIV PROCESS PUB REQUIRE RETURN RMATCH
+       FIBER FINAL FLOAT FOR FORMER FRIEND FUN HIDE HIDEBLOCK IF IN INT
+       LONG LATER NEW NIL OBJ PMATCH PRIV PUB REQUIRE RETURN RMATCH
        TAB THIS THREAD THROW TRY TYPE USE VAL VAR VEC WAIT
 %token <pos> LOGICAL_OR LOGICAL_AND EQ NE IDENTITY UNIDENTITY LE GE
              LSHIFT RSHIFT ASHIFT
@@ -169,7 +169,7 @@ static int repl_can_process_p (void);
                 block_stmt try_block_stmt catch_list catch except_class_list
                 header declaration expose_clause qual_ident expose_qual_ident
                 use_clause_list use_item_list use_item alias_opt extern_list
-                extern_item fun_thread_class fun_thread_class_start else_part
+                extern_item fun_fiber_class fun_fiber_class_start else_part
                 expr_empty opt_step par_list par_list_empty par
                 formal_parameters block stmt_list program inclusion
 %type <flag> clear_flag set_flag  set_flag2 par_kind
@@ -403,7 +403,7 @@ expr : NUMBER        {$$ = $1;}
         }
      | expr actual_parameters %prec '('
         {
-	  $$ = create_node_with_pos (IR_NM_class_fun_thread_call,
+	  $$ = create_node_with_pos (IR_NM_class_fun_fiber_call,
 				     actual_parameters_construction_pos);
 	  IR_set_fun_expr ($$, $1);
 	  IR_set_actuals ($$, $2);
@@ -501,7 +501,7 @@ expr : NUMBER        {$$ = $1;}
 
 	   /* Create anonymous fun: */
 	   fun = create_node (IR_NM_fun);
-	   IR_set_thread_flag (fun, FALSE);
+	   IR_set_fiber_flag (fun, FALSE);
 	   IR_set_pos (fun, $2);
 	   IR_set_final_flag (fun, TRUE);
 	   IR_set_args_flag (fun, FALSE);
@@ -541,17 +541,17 @@ type : CHAR          {$$ = create_node_with_pos (IR_NM_char_type, $1);}
      | HIDEBLOCK     {$$ = create_node_with_pos (IR_NM_hideblock_type, $1);}
      | VEC           {$$ = create_node_with_pos (IR_NM_vec_type, $1);}
      | TAB           {$$ = create_node_with_pos (IR_NM_tab_type, $1);}
-     | fun_thread_class %prec ':'
+     | fun_fiber_class %prec ':'
          {
 	   $$ = create_node_with_pos (IR_NODE_MODE ($1) == IR_NM_fun
 				      ? IR_NM_fun_type
 				      : IR_NODE_MODE ($1) == IR_NM_class
 				      ? IR_NM_class_type
-				      : IR_NM_thread_type,
+				      : IR_NM_fiber_type,
 				      IR_pos ($1));
 	 }
      | OBJ           {$$ = create_node_with_pos (IR_NM_stack_type, $1);}
-     | PROCESS       {$$ = create_node_with_pos (IR_NM_process_type, $1);}
+     | THREAD        {$$ = create_node_with_pos (IR_NM_thread_type, $1);}
      | TYPE          {$$ = create_node_with_pos (IR_NM_type_type, $1);}
      ;
 except_class_list_opt :  {
@@ -562,13 +562,13 @@ except_class_list_opt :  {
                          }
                       | ',' except_class_list  { $$ = $2; }
 	              ;
-aheader : fun_thread_class
+aheader : fun_fiber_class
             {
 	      IR_set_final_flag ($1, TRUE);
 	      process_header (TRUE, $1, get_new_ident (IR_pos ($1)));
 	      $$ = process_formal_parameters ($1, NULL);
             }
-        | fun_thread_class '('
+        | fun_fiber_class '('
             {
 	      IR_set_final_flag ($1, TRUE);
               process_header (TRUE, $1, get_new_ident (IR_pos ($1)));
@@ -1135,7 +1135,7 @@ declaration : access VAL {$<access>$ = $1;} set_flag
                 {
 		  $$ = process_header_block ($1, $3, $2);
 		}
-            | fun_thread_class_start IDENT
+            | fun_fiber_class_start IDENT
                 {
 		  IR_set_pos ($1, IR_pos ($2));
 		  $<flag>$ = $<flag>0;
@@ -1334,13 +1334,13 @@ end_exec_stmt : end_simple_stmt
 		      }
                   }
               ;
-header : fun_thread_class_start IDENT
+header : fun_fiber_class_start IDENT
            {
 	     IR_set_pos ($1, IR_pos ($2));
 	     process_header (TRUE, $1, $2);
 	     $$ = process_formal_parameters ($1, NULL);
 	   }
-       | fun_thread_class_start IDENT
+       | fun_fiber_class_start IDENT
            {
 	     IR_set_pos ($1, IR_pos ($2));
 	     process_header (TRUE, $1, $2);
@@ -1349,41 +1349,41 @@ header : fun_thread_class_start IDENT
            { $$ = process_formal_parameters ($1, $5); }
        ;
 /* Access is flatten out for resolving conflicts on OBJ and FINAL.  */
-fun_thread_class_start : fun_thread_class
-                           {$$ = process_fun_start ($1, FALSE, DEFAULT_ACCESS);}
-                       | PRIV fun_thread_class
-                           {$$ = process_fun_start ($2, FALSE, PRIVATE_ACCESS);}
-                       | PUB fun_thread_class
-                           {$$ = process_fun_start ($2, FALSE, PUBLIC_ACCESS);}
-                       | FINAL fun_thread_class
-                           {$$ = process_fun_start ($2, TRUE, DEFAULT_ACCESS);}
-                       | FINAL PRIV fun_thread_class
-                           {$$ = process_fun_start ($3, TRUE, PRIVATE_ACCESS);}
-                       | FINAL PUB fun_thread_class
-                           {$$ = process_fun_start ($3, TRUE, PUBLIC_ACCESS);}
-                       | PRIV FINAL fun_thread_class
-                           {$$ = process_fun_start ($3, TRUE, PRIVATE_ACCESS);}
-                       | PUB FINAL fun_thread_class
-                           {$$ = process_fun_start ($3, TRUE, PUBLIC_ACCESS);}
-                       ;
-fun_thread_class : FUN
-                     {
-		       $$ = create_node (IR_NM_fun);
-		       IR_set_thread_flag ($$, FALSE);
-		       IR_set_pos ($$, $1);
-		     }
-       	         | THREAD
-                     {
-                       $$ = create_node (IR_NM_fun);
-		       IR_set_thread_flag ($$, TRUE);
-		       IR_set_pos ($$, $1);
-		     }
-       	         | CLASS
-		     {
-		       $$ = create_node (IR_NM_class);
-		       IR_set_pos ($$, $1);
-		     }
-      	         ;
+fun_fiber_class_start : fun_fiber_class
+                          {$$ = process_fun_start ($1, FALSE, DEFAULT_ACCESS);}
+                      | PRIV fun_fiber_class
+                          {$$ = process_fun_start ($2, FALSE, PRIVATE_ACCESS);}
+                      | PUB fun_fiber_class
+                          {$$ = process_fun_start ($2, FALSE, PUBLIC_ACCESS);}
+                      | FINAL fun_fiber_class
+                          {$$ = process_fun_start ($2, TRUE, DEFAULT_ACCESS);}
+                      | FINAL PRIV fun_fiber_class
+                          {$$ = process_fun_start ($3, TRUE, PRIVATE_ACCESS);}
+                      | FINAL PUB fun_fiber_class
+                          {$$ = process_fun_start ($3, TRUE, PUBLIC_ACCESS);}
+                      | PRIV FINAL fun_fiber_class
+                          {$$ = process_fun_start ($3, TRUE, PRIVATE_ACCESS);}
+                      | PUB FINAL fun_fiber_class
+                          {$$ = process_fun_start ($3, TRUE, PUBLIC_ACCESS);}
+                      ;
+fun_fiber_class : FUN
+                    {
+		      $$ = create_node (IR_NM_fun);
+		      IR_set_fiber_flag ($$, FALSE);
+		      IR_set_pos ($$, $1);
+		    }
+       	        | FIBER
+                    {
+                      $$ = create_node (IR_NM_fun);
+		      IR_set_fiber_flag ($$, TRUE);
+		      IR_set_pos ($$, $1);
+		    }
+       	        | CLASS
+		    {
+		      $$ = create_node (IR_NM_class);
+		      IR_set_pos ($$, $1);
+		    }
+      	        ;
 else_part :                                    {$$ = NULL;}
           | ELSE {$<flag>$ = $<flag>-1;} stmt  {$$ = uncycle_stmt_list ($3);}
           ;
@@ -1708,7 +1708,7 @@ process_var_pattern (access_val_t access, IR_node_t pattern,
   return res;
 }
 
-/* Process function/thread/class header.  */
+/* Process function/fiber/class header.  */
 static void
 process_header (int create_block_p, IR_node_t decl, IR_node_t ident)
 {
@@ -1732,7 +1732,7 @@ process_header (int create_block_p, IR_node_t decl, IR_node_t ident)
   current_scope = block;
 }
 
-/* Process formal parameters PARS of fun/thread/class DECL.  Return
+/* Process formal parameters PARS of fun/fiber/class DECL.  Return
    the parameters.  */
 static IR_node_t
 process_formal_parameters (IR_node_t decl, IR_node_t pars)
@@ -1781,7 +1781,7 @@ get_hint (IR_node_t ident)
     }
 }
 
-/* Process BLOCK of fun/thread/class/obj HEADER decl.  Return the
+/* Process BLOCK of fun/fiber/class/obj HEADER decl.  Return the
    block.  */
 static IR_node_t
 process_header_block (IR_node_t header, IR_node_t block, hint_val_t hint)
@@ -1790,15 +1790,15 @@ process_header_block (IR_node_t header, IR_node_t block, hint_val_t hint)
   IR_node_t fun = IR_fun_class (res);
 
   if (fun != NULL && (hint == PURE_HINT || hint == INLINE)
-      && (! IR_IS_OF_TYPE (fun, IR_NM_fun) || IR_thread_flag (fun)))
+      && (! IR_IS_OF_TYPE (fun, IR_NM_fun) || IR_fiber_flag (fun)))
     {
       error (FALSE, IR_pos (fun), ERR_wrong_hint_for_non_fun);
       hint = NO_HINT;
     }
   else if (fun != NULL && hint == JIT_HINT
-	   && IR_IS_OF_TYPE (fun, IR_NM_fun) && IR_thread_flag (fun))
+	   && IR_IS_OF_TYPE (fun, IR_NM_fun) && IR_fiber_flag (fun))
     {
-      error (FALSE, IR_pos (fun), ERR_jit_hint_for_thread);
+      error (FALSE, IR_pos (fun), ERR_jit_hint_for_fiber);
       hint = NO_HINT;
     }
   IR_set_hint (res, hint);
@@ -1845,7 +1845,7 @@ process_obj_block (IR_node_t ident, IR_node_t class_ident,
   IR_set_block_stmts (block, uncycle_stmt_list (block_stmts));
   IR_set_friend_list (block, uncycle_friend_list (IR_friend_list (block)));
   current_scope = IR_block_scope (block);
-  expr = create_node_with_pos (IR_NM_class_fun_thread_call, source_position);
+  expr = create_node_with_pos (IR_NM_class_fun_fiber_call, source_position);
   IR_set_fun_expr (expr, class_ident);
   IR_set_actuals (expr, NULL);
   val = process_var_decl (access, ident, TRUE, block,
@@ -1969,7 +1969,7 @@ create_try_expr (IR_node_t try_block, IR_node_t stmt, IR_node_t excepts,
 			process_header_block (NULL, try_block, NO_HINT));
   /* create function call  */
   fun_expr = IR_ident (fun);
-  call = create_node_with_pos (IR_NM_class_fun_thread_call, rpar_pos);
+  call = create_node_with_pos (IR_NM_class_fun_fiber_call, rpar_pos);
   IR_set_fun_expr (call, fun_expr);
   IR_set_actuals (call, NULL);
   return call;

@@ -356,8 +356,8 @@ load_packed_vector_element (ER_node_t to, ER_node_t vect, rint_t index_val)
       GO_THROUGH_REDIR (t);
       ER_set_tab (to, t);
       break;
-    case ER_NM_process:
-      ER_set_process
+    case ER_NM_thread:
+      ER_set_thread
 	(to, ((ER_node_t *) ER_pack_els (vect)) [index_val]);
       break;
     case ER_NM_stack:
@@ -451,8 +451,8 @@ store_packed_vector_element (ER_node_t vect, rint_t index_val, ER_node_t val)
     case ER_NM_tab:
       ((ER_node_t *) ER_pack_els (vect)) [index_val] = ER_tab (val);
       break;
-    case ER_NM_process:
-      ((ER_node_t *) ER_pack_els (vect)) [index_val] = ER_process (val);
+    case ER_NM_thread:
+      ((ER_node_t *) ER_pack_els (vect)) [index_val] = ER_thread (val);
       break;
     case ER_NM_stack:
       ((ER_node_t *) ER_pack_els (vect)) [index_val] = ER_stack (val);
@@ -682,7 +682,7 @@ process_slice_extract (ER_node_t container1, ER_node_t start_val1, int dim1,
 	    case ER_NM_long:
 	    case ER_NM_vect:
 	    case ER_NM_tab:
-	    case ER_NM_process:
+	    case ER_NM_thread:
 	    case ER_NM_stack:
 	      for (i = 0, i1 = start1; i1 != bound1; i++, i1 += step1)
 		((ER_node_t *) pack_els) [i] = ((ER_node_t *) pack_els1) [i1];
@@ -868,11 +868,11 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int dim1,
 		case ER_NM_tab:
 		  v2 = ER_tab (container2);
 		  goto node_common1;
-		case ER_NM_process:
-		  v2 = ER_process (container2);
+		case ER_NM_thread:
+		  v2 = ER_thread (container2);
 		  goto node_common1;
 		case ER_NM_stack:
-		  v2 = ER_process (container2);
+		  v2 = ER_thread (container2);
 		node_common1:
 		  for (i1 = start1; i1 != bound1; i1 += step1)
 		    ((ER_node_t *) pack_els1) [i1] = v2;
@@ -890,8 +890,8 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int dim1,
 		default:
 		  d_unreachable ();
 		}
+	      done_p = TRUE;
 	    }
-	  done_p = TRUE;
 	}
       if (! done_p)
 	{
@@ -973,7 +973,7 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int dim1,
 	      break;
 	    case ER_NM_vect:
 	    case ER_NM_tab:
-	    case ER_NM_process:
+	    case ER_NM_thread:
 	    case ER_NM_stack:
 	      for (i1 = start1, i2 = 0; i1 != bound1; i1 += step1, i2++)
 		((ER_node_t *) pack_els1) [i1] = ((ER_node_t *) pack_els2) [i2];
@@ -1142,9 +1142,9 @@ find_catch_pc (ER_node_t except)
 	  elem.pc = ER_call_pc (cstack);
 	  VLO_ADD_MEMORY (trace_stack, &elem, sizeof (elem));
 	}
-      if (BC_NODE_MODE (block) == BC_NM_fblock && BC_thread_p (block))
+      if (BC_NODE_MODE (block) == BC_NM_fblock && BC_fiber_p (block))
 	/* It can change cstack.  */
-	delete_cprocess_during_exception ();
+	delete_cthread_during_exception ();
       if (cstack != uppest_stack)
 	heap_pop ();
       if (ER_c_stack_p (cstack))
@@ -1162,7 +1162,7 @@ find_catch_pc (ER_node_t except)
 	  ER_set_stack (ctop, except);
 	  /* For catch deadlock.  The first catch statement is always
              block. */
-	  ER_set_process_status (cprocess, PS_READY);
+	  ER_set_thread_status (cthread, PS_READY);
 	  if (trace_flag)
 	    VLO_NULLIFY (trace_stack);
 	  if (jump_p)
@@ -1614,8 +1614,8 @@ common_eq_ne_op (BC_node_mode_t cmp_op, ER_node_t op1, ER_node_t op2)
 	   equal.  */
 	cmp = ER_efdecl (r) == ER_efdecl (l);
 	break;
-      case ER_NM_process:
-	cmp = ER_process (r) == ER_process (l);
+      case ER_NM_thread:
+	cmp = ER_thread (r) == ER_thread (l);
 	break;
       case ER_NM_stack:
 	cmp = eq_stack (ER_stack (r), ER_stack (l));
@@ -1801,8 +1801,8 @@ execute_identity_op (int identity_p,
 	   identical.  */
 	cmp = (ER_efdecl (op1) == ER_efdecl (op2));
 	break;
-      case ER_NM_process:
-	cmp = ER_process (op1) == ER_process (op2);
+      case ER_NM_thread:
+	cmp = ER_thread (op1) == ER_thread (op2);
 	break;
       case ER_NM_stack:
 	cmp = ER_stack (op1) == ER_stack (op2);
@@ -4958,12 +4958,12 @@ call_fun_class (BC_node_t code, ER_node_t context, int pars_number,
 {
   pc_t saved_cpc;
   pc_t saved_next_pc;
-  int saved_process_number;
+  int saved_thread_number;
 
   saved_cpc = cpc;
   saved_next_pc = BC_next (cpc);
   BC_set_next (cpc, NULL);
-  saved_process_number = ER_process_number (cprocess);
+  saved_thread_number = ER_thread_number (cthread);
   DECR_CTOP (pars_number);
   if (BC_implementation_fun (code) != NULL)
     process_imm_ifun_call (code, pars_number, from_c_code_p);
@@ -4981,8 +4981,8 @@ call_fun_class (BC_node_t code, ER_node_t context, int pars_number,
     {
       if (cpc != NULL)
 	evaluate_code ();
-      if (saved_process_number != ER_process_number (cprocess))
-	delete_cprocess ();
+      if (saved_thread_number != ER_thread_number (cthread))
+	delete_cthread ();
       else
 	break;
     }
@@ -5020,7 +5020,7 @@ evaluate_program (pc_t start_pc, int init_p, int last_p)
       initiate_funcs ();
       sync_flag = FALSE;
       create_uppest_stack (cpc);
-      initiate_processes (cpc);
+      initiate_threads (cpc);
 #ifndef NO_PROFILE
       if (profile_flag)
 	{
@@ -5054,7 +5054,7 @@ evaluate_program (pc_t start_pc, int init_p, int last_p)
 	  eval_long_jump_set_flag = FALSE;
 	  return;
 	}
-      delete_cprocess ();
+      delete_cthread ();
     }
   d_unreachable ();
 }

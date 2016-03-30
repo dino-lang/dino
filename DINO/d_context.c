@@ -229,8 +229,8 @@ enum pattern_type
 
 /* The following recursive func passes (correctly setting up
    SOURCE_POSITION) EXPR (it may be NULL) sets up members parts_number
-   and class_func_thread_call_parameters_number in vector node (table
-   node) and class_func_thread_call node.  PATERN says how to treat
+   and class_func_fiber_call_parameters_number in vector node (table
+   node) and class_func_fiber_call node.  PATERN says how to treat
    the expression.  */
 static void
 first_expr_processing (IR_node_t expr, enum pattern_type pattern)
@@ -256,9 +256,9 @@ first_expr_processing (IR_node_t expr, enum pattern_type pattern)
     case IR_NM_tab_type:
     case IR_NM_fun_type:
     case IR_NM_class_type:
-    case IR_NM_thread_type:
+    case IR_NM_fiber_type:
     case IR_NM_stack_type:
-    case IR_NM_process_type:
+    case IR_NM_thread_type:
     case IR_NM_type_type:
       break;
     case IR_NM_this:
@@ -395,7 +395,7 @@ first_expr_processing (IR_node_t expr, enum pattern_type pattern)
     case IR_NM_vecof:
     case IR_NM_tabof:
     case IR_NM_funof:
-    case IR_NM_threadof:
+    case IR_NM_fiberof:
     case IR_NM_classof:
     case IR_NM_paren:
       SET_SOURCE_POSITION (expr);
@@ -464,7 +464,7 @@ first_expr_processing (IR_node_t expr, enum pattern_type pattern)
       first_expr_processing (IR_bound (expr), no_patterns);
       first_expr_processing (IR_step (expr), no_patterns);
       break;
-    case IR_NM_class_fun_thread_call:
+    case IR_NM_class_fun_fiber_call:
       SET_SOURCE_POSITION (expr);
       {
 	IR_node_t elist, next, elist_expr;
@@ -486,7 +486,7 @@ first_expr_processing (IR_node_t expr, enum pattern_type pattern)
 		&& IR_IS_OF_TYPE (elist_expr, IR_NM_dots) && next != NULL)
 	      cont_err (IR_pos (elist_expr), ERR_dots_in_the_list_middle);
 	  }
-	IR_set_class_fun_thread_call_parameters_number
+	IR_set_class_fun_fiber_call_parameters_number
 	  (expr, parameters_number);
 	break;
       case IR_NM_wildcard:
@@ -748,7 +748,7 @@ check_decl_matching (IR_node_t prev_decl, IR_node_t decl)
 {
   if (IR_NODE_MODE (decl) != IR_NODE_MODE (prev_decl)
       || (IR_NODE_MODE (decl) == IR_NM_fun
-	  && IR_thread_flag (prev_decl) != IR_thread_flag (decl)))
+	  && IR_fiber_flag (prev_decl) != IR_fiber_flag (decl)))
     {
       cont_err_start
 	(IR_pos (decl),
@@ -1187,7 +1187,7 @@ create_pattern_vars (IR_node_t pattern_from, IR_node_t expr, IR_node_t last)
       for (elist = IR_elist (expr); elist != NULL; elist = IR_next_elist (elist))
 	last = create_pattern_vars (pattern_from, IR_expr (elist), last);
       break;
-    case IR_NM_class_fun_thread_call:
+    case IR_NM_class_fun_fiber_call:
       for (elist = IR_actuals (expr); elist != NULL; elist = IR_next_elist (elist))
 	{
 	  d_assert (IR_repetition_key (elist) == NULL);
@@ -2431,9 +2431,9 @@ ir2er_type (IR_node_mode_t irnm)
     case IR_NM_tab_type: return type_tab;
     case IR_NM_fun_type: return type_fun;
     case IR_NM_class_type: return type_class;
-    case IR_NM_thread_type: return type_thread;
+    case IR_NM_fiber_type: return type_fiber;
     case IR_NM_stack_type: return type_obj;
-    case IR_NM_process_type: return type_process;
+    case IR_NM_thread_type: return type_thread;
     case IR_NM_type_type: return type_type;
     default:
       d_unreachable ();
@@ -2706,9 +2706,9 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
     case IR_NM_tab_type:
     case IR_NM_fun_type:
     case IR_NM_class_type:
-    case IR_NM_thread_type:
+    case IR_NM_fiber_type:
     case IR_NM_stack_type:
-    case IR_NM_process_type:
+    case IR_NM_thread_type:
     case IR_NM_type_type:
       bc = new_bc_code_with_src (BC_NM_ldtp, expr);
       BC_set_op1 (bc, setup_result_var_number (result, curr_temp_vars_num));
@@ -3160,7 +3160,7 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
       IR_set_value_type (expr, unary_slice_p (l) ? EVT_SLICE : EVT_TAB);
       break;
     case IR_NM_funof:
-    case IR_NM_threadof:
+    case IR_NM_fiberof:
     case IR_NM_classof:
       process_unary_op (expr, result, curr_temp_vars_num);
       IR_set_value_type (expr, EVT_UNKNOWN); /* May be nil */
@@ -3343,7 +3343,7 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	IR_set_value_type (expr, EVT_SLICE);
 	break;
       }
-    case IR_NM_class_fun_thread_call:
+    case IR_NM_class_fun_fiber_call:
       {
 	int pars_num, call_start;
 	pc_t saved_prev_pc;
@@ -3385,8 +3385,8 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	      = ((! env_p
 		  && (IR_args_flag (fun_decl)
 		      || (IR_IS_OF_TYPE (fun_decl, IR_NM_fun)
-			  && IR_thread_flag (fun_decl))
-		      || (IR_class_fun_thread_call_parameters_number (expr)
+			  && IR_fiber_flag (fun_decl))
+		      || (IR_class_fun_fiber_call_parameters_number (expr)
 			  != IR_parameters_number (fun_decl))))
 		 || (env_p && ! top_p));
 	  }
@@ -3437,8 +3437,8 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	    if (env_p
 		|| IR_args_flag (fun_decl)
 		|| (IR_IS_OF_TYPE (fun_decl, IR_NM_fun)
-		    && IR_thread_flag (fun_decl))
-		|| (IR_class_fun_thread_call_parameters_number (expr)
+		    && IR_fiber_flag (fun_decl))
+		|| (IR_class_fun_fiber_call_parameters_number (expr)
 		    != IR_parameters_number (fun_decl)))
 	      {
 		bc = new_bc_code_with_src (BC_NM_omcall, expr);
@@ -3479,7 +3479,7 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	if (!IT_IS_OF_TYPE (IR_fun_expr (expr), EVT_FUN)
 	    && !IT_IS_OF_TYPE (IR_fun_expr (expr), EVT_CLASS))
 	  cont_err (source_position,
-		    ERR_invalid_class_fun_thread_designator);
+		    ERR_invalid_class_fun_fiber_designator);
 	IR_set_value_type (expr, EVT_UNKNOWN);
 	break;
       }
@@ -3907,7 +3907,7 @@ generate_case (IR_node_t case_block, IR_node_t cexpr, int op,
   if (cexpr == NULL)
     return;
   vec_p = IR_IS_OF_TYPE (cexpr, IR_NM_vec);
-  call_p = IR_IS_OF_TYPE (cexpr, IR_NM_class_fun_thread_call);
+  call_p = IR_IS_OF_TYPE (cexpr, IR_NM_class_fun_fiber_call);
   if (match_mode == IR_NM_pmatch_stmt && IR_IS_OF_TYPE (cexpr, IR_NM_ident))
     {
       decl = IR_decl (cexpr);
@@ -4027,7 +4027,7 @@ generate_case (IR_node_t case_block, IR_node_t cexpr, int op,
 	      break;
 	    }
 	  else if (IR_IS_OF_TYPE (expr, IR_NM_vec_tab)
-		   || IR_IS_OF_TYPE (expr, IR_NM_class_fun_thread_call))
+		   || IR_IS_OF_TYPE (expr, IR_NM_class_fun_fiber_call))
 	    {
 	      el_op = get_temp_stack_slot (&temp_start);
 	      if (vec_p)
@@ -4260,14 +4260,14 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	  if (repl_flag && IR_block_scope (curr_scope) == NULL)
 	    bc = (new_bc_code_with_src
 		  (IR_IS_OF_TYPE (IR_stmt_expr (stmt),
-				  IR_NM_class_fun_thread_call)
+				  IR_NM_class_fun_fiber_call)
 		   ? BC_NM_rpr_def : BC_NM_rpr, stmt));
 	  /* Last expr-stmt of fun is returned.  */
 	  else if (block_p
 		   && next_stmt == NULL
 		   && (temp = IR_fun_class (curr_scope)) != NULL
 		   && IR_IS_OF_TYPE (temp, IR_NM_fun)
-		   && ! IR_thread_flag (temp))
+		   && ! IR_fiber_flag (temp))
 	    {
 	      bc = new_bc_code_with_src (BC_NM_ret, stmt);
 	      /* Make tail calls  */
@@ -4424,7 +4424,7 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	      if (expr != NULL
 		  /* Local or top level variable or call: */
 		  && (result < IR_vars_number (curr_scope) + IR_vars_base (curr_scope)
-		      || IR_IS_OF_TYPE (expr, IR_NM_class_fun_thread_call)))
+		      || IR_IS_OF_TYPE (expr, IR_NM_class_fun_fiber_call)))
 		{
 		  if (bc_node_mode == BC_NM_sts)
 		    BC_SET_MODE (bc, BC_NM_stsu);
@@ -4758,9 +4758,9 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 		  cont_err (source_position,
 			    ERR_return_with_result_in_class);
 		else if (IR_IS_OF_TYPE (fun_class, IR_NM_fun)
-			 && IR_thread_flag (fun_class))
+			 && IR_fiber_flag (fun_class))
 		  cont_err (source_position,
-			    ERR_return_with_result_in_thread);
+			    ERR_return_with_result_in_fiber);
 		result = not_defined_result;
 		IR_set_returned_expr
 		  (stmt,
@@ -4920,18 +4920,18 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 		BC_set_simple_p (bc, FALSE);
 		BC_set_fun_p (bc,
 			      IR_IS_OF_TYPE (fun_class, IR_NM_fun)
-			      && ! IR_thread_flag (fun_class));
+			      && ! IR_fiber_flag (fun_class));
 		BC_set_class_p (bc, IR_IS_OF_TYPE (fun_class, IR_NM_class));
-		BC_set_thread_p (bc,
-				 IR_IS_OF_TYPE (fun_class, IR_NM_fun)
-				 && IR_thread_flag (fun_class));
+		BC_set_fiber_p (bc,
+				IR_IS_OF_TYPE (fun_class, IR_NM_fun)
+				&& IR_fiber_flag (fun_class));
 		BC_set_args_p (bc, IR_args_flag (fun_class));
 		BC_set_pars_num (bc, IR_parameters_number (fun_class));
 		BC_set_min_pars_num
 		  (bc, IR_min_actual_parameters_number (fun_class));
 		BC_set_ext_life_p (bc,
 				   (IR_IS_OF_TYPE (fun_class, IR_NM_class)
-				    || IR_thread_flag (fun_class)
+				    || IR_fiber_flag (fun_class)
 				    || IR_extended_life_context_flag (stmt)));
 		BC_set_fmode
 		  (bc, IR_hint (stmt) == JIT_HINT ? BC_gen : BC_no_gen);

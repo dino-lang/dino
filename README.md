@@ -63,8 +63,8 @@
     * Associative tables with possibility to delete elements
     * Powerful and safe class composition operation for (multiple)
       inheritance and traits description
-    * First class functions, classes, and threads with closures,
-      anonymous functions, classes, threads
+    * First class functions, classes, and fibers with closures,
+      anonymous functions, classes, fibers
     * Exception handling
     * Concurrency
     * Pattern matching
@@ -126,10 +126,10 @@
 ---
 
 # Threads
-* Thread: a function with concurrent execution
+* Fiber: a function with concurrent execution
 
 ```
-      thread t (n) {for (var i = 0; i < n; i++) putln (i);}
+      fiber t (n) {for (var i = 0; i < n; i++) putln (i);}
       t(100); // the following code don't wait for t finish
       for (var i = 0; i < 1000; i++) putln (“main”, i);
 ```
@@ -449,7 +449,7 @@ val asbtract_tree = p.parse (token_vector, syntax_error);
 * Byte Code (Bcode) consists of
     * Declarations
         * vdecl (variable)
-        * fdecl (functions, classes, threads)
+        * fdecl (functions, classes, fibers)
     * Multi-operand instructions
         * Operations (1-5 ops, usually 3-ops)
         * Control flow insns (blocks, branches, calls etc)

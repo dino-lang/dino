@@ -599,8 +599,8 @@ dump_code (BC_node_t infos, int indent)
 		  printf (" fun_p=1");
 		if (BC_class_p (bc))
 		  printf (" class_p=1");
-		if (BC_thread_p (bc))
-		  printf (" thread_p=1");
+		if (BC_fiber_p (bc))
+		  printf (" fiber_p=1");
 		if (BC_args_p (bc))
 		  printf (" args_p=1");
 		if (BC_simple_p (bc))
@@ -1262,7 +1262,7 @@ get_token (void)
 static const char *fn, *fn2, *fn3;
 static int ln, ln2, ln3, pos, pos2, pos3, decl_num;
 static int public_p, ext_life_p;
-static int fun_p, class_p, thread_p, args_p, simple_p, pure_fun_p, forward_p;
+static int fun_p, class_p, fiber_p, args_p, simple_p, pure_fun_p, forward_p;
 static int fmode, pars_num, min_pars_num;
 
 /* Init fields which may have a default value. */
@@ -1270,7 +1270,7 @@ static void
 init_fields (void)
 {
   public_p = ext_life_p = fun_p = class_p
-    = thread_p = args_p = simple_p = pure_fun_p = forward_p = fmode = 0;
+    = fiber_p = args_p = simple_p = pure_fun_p = forward_p = fmode = 0;
   pars_num = min_pars_num = 0;
 }
 
@@ -1612,9 +1612,9 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	      if (check_fld (BC_NM_fblock, D_INT)) goto fail;
 	      class_p = token_attr.i;
 	      break;
-	    case FR_thread_p:
+	    case FR_fiber_p:
 	      if (check_fld (BC_NM_fblock, D_INT)) goto fail;
-	      thread_p = token_attr.i;
+	      fiber_p = token_attr.i;
 	      break;
 	    case FR_args_p:
 	      if (check_fld (BC_NM_fblock, D_INT)) goto fail;
@@ -1931,7 +1931,7 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	{
 	  BC_set_fun_p (curr_node, fun_p != 0);
 	  BC_set_class_p (curr_node, class_p != 0);
-	  BC_set_thread_p (curr_node, thread_p != 0);
+	  BC_set_fiber_p (curr_node, fiber_p != 0);
 	  BC_set_args_p (curr_node, args_p != 0);
 	  BC_set_simple_p (curr_node, simple_p != 0);
 	  BC_set_pure_fun_p (curr_node, pure_fun_p != 0);

@@ -18,7 +18,7 @@
 <EM>compound</EM> statements.  Simple statements do not consist of any
 parts that are statements themselves.  They are the assignment,
 procedure call, return, break, continue, throw, and the wait
-statements.  Analogous to the C language the last symbol of a Dino
+statements.  Analogous to the language C the last symbol of a Dino
 simple statement is semicolon <CODE>;</CODE>.  Compound statements
 consists of parts that are statements themselves.  They are used to
 express sequencing, exception handling, conditional, and repetitive
@@ -27,15 +27,15 @@ execution.</P>
 <H2><A NAME="ss7.1">7.1</A> <A HREF="dino.html#toc7.1">Empty statement</A>
 </H2>
 
-<P>There is also the empty statement in Dino.  It denotes no action.  The
+<P>There is an empty statement in Dino.  It denotes no action.  The
 empty statement is included in Dino for convenience.
 <BLOCKQUOTE><CODE>
 <PRE>
           ExecutiveStmt = ";"
 </PRE>
 </CODE></BLOCKQUOTE>
-
-Example: Usage of an empty statement in a for-statement:
+</P>
+<P>Example: Usage of an empty statement in a for-statement:
 <BLOCKQUOTE><CODE>
 <PRE>
           for (i = 0; a[i] == 0; i++)
@@ -49,7 +49,7 @@ Example: Usage of an empty statement in a for-statement:
 
 <P>A block-statement is simply a block and can used to group statements
 into one statement and/or describe local declarations.  For details on
-how the block is executed see section <EM>Declaration and Scope
+how the block is executed see the section <EM>Declaration and Scope
 Rules</EM>.
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -58,8 +58,8 @@ Rules</EM>.
           BlockStmt = Block
 </PRE>
 </CODE></BLOCKQUOTE>
-
-Example: Usage of a block-statement in a for-statement:
+</P>
+<P>Example: Usage of a block-statement in a for-statement:
 <BLOCKQUOTE><CODE>
 <PRE>
           sum = 0;
@@ -78,22 +78,22 @@ Example: Usage of a block-statement in a for-statement:
 
 <P>Dino has an expression statement.  Although it seems that the
 expression value is not used, the expression evaluation can results in
-side-effects, e.g. through calling a function/class.
-Expression-statement as the last statement in the function block means
-return of the expression value as the function call result.  In REPL
-(see Appendix B. Implementation), execution of an expression-statement
-results in printing the expression value.
+side-effects, e.g. through calling a function/class.  An
+expression-statement as textually the last statement in the function
+block means a return of the expression value as the function call
+result.  In REPL (see Appendix B. Implementation), execution of an
+expression-statement results in printing the expression value.
 <BLOCKQUOTE><CODE>
 <PRE>
           ExecutiveStmt = Expr ";"
 </PRE>
 </CODE></BLOCKQUOTE>
-
-Examples:
+</P>
+<P>Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
           putln ("percent=" @ percent @ "%");
-          newthread ();
+          newfiber ();
           5 + 10;
 </PRE>
 </CODE></BLOCKQUOTE>
@@ -105,14 +105,15 @@ Examples:
 <P>Assignment-statements are used to change variable values or element
 values of a structured value which are referred through a designator
 (see sub-section <EM>Designator</EM> in section <EM>Expressions</EM>.
-The designator can not denote a final variable (see section
+The designator can not denote a final variable (see the section
 <EM>Variable Declaration</EM>).  You can not change the element value
-of an immutable value (see section <EM>Types and Values</EM>).  In
-this case exception <CODE>immutable</CODE> is generated.  Assignment to a
-table element has a side effect, the element key becomes immutable.</P>
+of an immutable value (see the section <EM>Types and Values</EM>).  In
+this case the exception <CODE>immutable</CODE> is generated.  Assignment
+to a table element has a side effect, the element key becomes
+immutable.</P>
 <P>A simple assignment statement looks like <CODE>Designator = Expr;</CODE>.
-That means that the expression value is assigned to variable or
-element of structured type value denoted by the designator.  For the
+That means that the expression value is assigned to a variable or
+element of a structured type value denoted by the designator.  For the
 convenience of C programmers there are also the Dino assignments
 <CODE>Designator op= Expr;</CODE>, <CODE>Designator++;</CODE>,
 <CODE>++Designator;</CODE>, <CODE>Designator--;</CODE>, and
@@ -142,8 +143,8 @@ have <EM>side effects</EM> in the statement.
                  | "|="
 </PRE>
 </CODE></BLOCKQUOTE>
-
-Examples:
+</P>
+<P>Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
           v = [10, 20];
@@ -155,13 +156,13 @@ Examples:
 </CODE></BLOCKQUOTE>
 </P>
 <P>If the designator is a slice and the expression value is a slice too,
-they both should have the same <EM>form</EM>,
-otherwise <CODE>sliceform</CODE> exception is generated.  In this case
-each element referenced by the designator slice gets value of the
-corresponding element referenced by the expression slice.  If the
-designator is a slice but the expression value is not, each element
-referenced by the designator slice gets the expression value.  Examples
-of the slice assignment:
+they both should have the same <EM>form</EM>, otherwise the
+exception <CODE>sliceform</CODE> is generated.  In this case each element
+referenced by the designator slice gets value of the corresponding
+element referenced by the expression slice.  If the designator is a
+slice but the expression value is not, each element referenced by the
+designator slice gets the expression value.  Examples of the slice
+assignment:
 <BLOCKQUOTE><CODE>
 <PRE>
           v = [1, 2, 3, 4];
@@ -175,21 +176,21 @@ of the slice assignment:
 </H2>
 
 <P>The Dino if-statement is analogous to the C language one.  First, the
-expression after <CODE>if</CODE> is evaluated and arithmetic conversion is
-done to it.  The value should be an integer, a long integer, or a
+expression after <CODE>if</CODE> is evaluated and an arithmetic conversion
+is done to it.  The value should be an integer, a long integer, or a
 floating-point number, otherwise the exception <CODE>optype</CODE> is
 generated.  If the value is nonzero the first statement is executed,
 otherwise the statement after <CODE>else</CODE> is executed (if any).  The
-problem with
-<EM>dangling else</EM> is resolved analogous to the C language --
-<CODE>else</CODE> is associated with the closest <CODE>if</CODE>.
+problem with <EM>dangling else</EM> is resolved analogous to the
+language C -- <CODE>else</CODE> part is associated with the
+closest <CODE>if</CODE>.
 <BLOCKQUOTE><CODE>
 <PRE>
           ExecutiveStmt = if  "(" Expr ")" Stmt [ else Stmt ]
 </PRE>
 </CODE></BLOCKQUOTE>
-
-Examples:
+</P>
+<P>Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
           if (i &lt; 0) i = 0;
@@ -204,24 +205,27 @@ Examples:
 <P>The Dino for-statement is analogous to the C language one.  The
 statement is executed in the following way.
 <OL>
-<LI>Execution of the first statement in the parentheses.</LI>
-<LI>The expression (<EM>for-guard</EM>) is evaluated and
-implicit arithmetic conversion is made.  The value should be
-an integer, a long integer, or a floating point number.  If
-this is not true, exception <CODE>optype</CODE> is generated.</LI>
+<LI>Execution of the first statement in the parentheses is
+done.</LI>
+<LI>The expression (<EM>for-guard</EM>) is evaluated and an
+implicit arithmetic conversion is applied to its value.  The
+result value should be an integer, a long integer, or a
+floating point number.  If this is not true, the
+exception <CODE>optype</CODE> is generated.</LI>
 <LI>If the value of for-guard is nonzero, the body of the loop
 (the last statement) is executed.  Otherwise, the
 for-statement execution finishes.</LI>
 <LI>When the body has been executed, the second statement in
-the parentheses is executed and steps 2,3,4 (one iteration) are
-repeated.</LI>
+the parentheses is executed and steps 2,3,4 (one iteration)
+are repeated again.</LI>
 </OL>
 
 If the second statement is a simple statement, the statement semicolon
-can be omitted.  The for-statement also can be finished by execution
-of the statement <CODE>break</CODE> in the body.  The body can be finished
-by execution of statement <CODE>continue</CODE>.  In this case, the
-for-statement execution continues with the step 4.
+can be omitted.  The for-statement also can be finished by an
+execution of the statement <CODE>break</CODE> in the body.  The rest body
+execution can be skipped by an execution of the
+statement <CODE>continue</CODE>.  In this case, the for-statement
+execution continues with the step 4.
 <BLOCKQUOTE><CODE>
 <PRE>
           ExecutiveStmt = for  "(" Stmt ForGuardExpr ";"  Stmt ")" Stmt
@@ -229,8 +233,8 @@ for-statement execution continues with the step 4.
           ForGuardExpr = [Expr]
 </PRE>
 </CODE></BLOCKQUOTE>
-
-Examples:
+</P>
+<P>Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
           for (i = 0; i &lt; 10; i++;) sum += v [i];
@@ -244,8 +248,8 @@ Examples:
 </H2>
 
 <P>This statement is used to execution of the foreach-statement body (the
-statement) for all keys of table which is value of the expression.
-The expression value should be a table.  If this is not true,
+statement) for all keys of table which is a value of the expression.
+The expression value should be a table.  If this is not true, the
 exception <CODE>keyop</CODE> is generated.  The current key value on each
 iteration is assigned to the designator.  The order in which the key
 values are assigned on each iteration is undefined.  One iteration can
@@ -257,8 +261,8 @@ foreach-statement can be finished by execution of statement
           ExecutiveStmt = for  "(" Designator in Expr ")" Stmt
 </PRE>
 </CODE></BLOCKQUOTE>
-
-Examples:
+</P>
+<P>Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
           putln ("The table is");
@@ -275,36 +279,38 @@ Examples:
 <H2><A NAME="ss7.8">7.8</A> <A HREF="dino.html#toc7.8">Match-statements</A>
 </H2>
 
-<P>There are two kinds of match-statement.  One is used for pattern
+<P>There are two kinds of the match-statement.  One is used for pattern
 matching and another one is used for regular expression matching.
 They have practically the same syntax.  They differ in usage of
 different start keywords <CODE>pmatch</CODE> and <CODE>rmatch</CODE>
-correspondingly for pattern and regular expression matching.</P>
+correspondingly for the pattern and regular expression matching.</P>
 <P>The pattern or regular expression match statement is used to try
-matching match-expression value (it is evaluated only once) and the
-patterns or regular expressions in given order and execute the
+matching the match-expression value (it is evaluated only once) and
+the patterns or regular expressions in given order and execute the
 statements corresponding to the first matched case.</P>
-<P>Each case forms an own scope.  Pattern variables in pattern match
-statement are declared in the corresponding case scope.  Each case
-scope of regular expression match statement contains implicitly
-declared variable <CODE>m</CODE>.  If the case regular expression
-successfully matches the match-expression, value of the corresponding
-variable <CODE>m</CODE> is vector of indexes describing matched substring
-(see the result of function <CODE>match</CODE> for details).</P>
-<P>In case of regular expression matching the string conversion is
+<P>Each case forms an own scope.  The pattern variables in the pattern
+match statement are declared in the corresponding case scope.  Each
+case scope of the regular expression match statement contains an
+implicitly declared variable <CODE>m</CODE>.  If a regular expression in
+the case successfully matches the match-expression, value of the
+corresponding variable <CODE>m</CODE> is a vector of indexes describing
+matched substrings (see the result of function <CODE>match</CODE> for
+details).</P>
+<P>In the case of regular expression matching the string conversion is
 implicitly applied to the match-expression and the case expression
 values.  The exception <CODE>optype</CODE> occurs if the conversion
-results are not strings.  Case with wildcard <CODE>_</CODE> also can occur
-in rmatch-statement.  Matching with such case is always successful but
-value of variable <CODE>m</CODE> is undefined in this case.</P>
-<P>Execution of continue-statement in case-statements results in
-continuing the process of matching match-expression value with the
-subsequent patterns or regular expressions.  Execution of
-break-statement in case-statements results in finishing the
-match-statement execution.  There is implicit break at the end of each
-case statement list.</P>
-<P>If optional case condition is given, then it is evaluated after
-succesfull matching with the corresponding pattern and arithmetic
+results are not strings.  A case with wildcard <CODE>_</CODE> also can
+occur in a rmatch-statement.  Matching with such case is always
+successful but the value of the variable <CODE>m</CODE> is undefined in
+this case.</P>
+<P>Execution of a continue-statement in the case-statements results in
+continuing the process of matching the match-expression value with the
+subsequent patterns or regular expressions.  Execution of a
+break-statement in the case-statements results in finishing the
+match-statement execution.  There is an implicit break at the end of
+each case statement list.</P>
+<P>If an optional case condition is given, then it is evaluated after the
+succesfull matching with the corresponding pattern and an arithmetic
 conversion is done to it.  The value should be an integer, a long
 integer, or a floating-point number, otherwise the
 exception <CODE>optype</CODE> is generated.  If the value is nonzero the
@@ -317,8 +323,8 @@ patterns are tried.
           CaseCond = if Expr
 </PRE>
 </CODE></BLOCKQUOTE>
-
-Examples:
+</P>
+<P>Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
           class c (a1, a2) {}
@@ -344,20 +350,20 @@ Examples:
 <H2><A NAME="ss7.9">7.9</A> <A HREF="dino.html#toc7.9">Break- and continue-statement</A>
 </H2>
 
-<P>Statements <CODE>break</CODE> and <CODE>continue</CODE> are used
+<P>The statements <CODE>break</CODE> and <CODE>continue</CODE> are used
 correspondingly to finish execution of the closest-containing for-,
-foreach-, or match-statement covering the statement and to finish one iteration
-of the body of the for- or foreach-statement and to continue trying
-subsequent cases for match-statement.  These statement can be
-used only inside a for-, foreach-, or match-statement.
+foreach-, or match-statement covering the statement and to finish one
+iteration of the body of the for- or foreach-statement and to continue
+trying subsequent cases for the match-statement.  These statement can
+be used only inside a for-, foreach-, or match-statement.
 <BLOCKQUOTE><CODE>
 <PRE>
           ExecutiveStmt = break ";"
                         | continue ";"
 </PRE>
 </CODE></BLOCKQUOTE>
-
-Examples:
+</P>
+<P>Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
           for (i = 0; i &lt; 10; i++) {
@@ -384,20 +390,20 @@ Examples:
 <H2><A NAME="ss7.10">7.10</A> <A HREF="dino.html#toc7.10">Return-statement</A>
 </H2>
 
-<P>Return-statement is used to finish execution of a function, a thread,
+<P>A return-statement is used to finish execution of a function, a fiber,
 or class block.  The statement corresponds to the closest-containing
-function, thread-function, or class covering the statement, so the
-return-statement can be placed only in a function, a function-thread,
-or a class.  The expression in a return-statement can be given only
-for functions.  In this case, the expression value will be the value
-of the function call (instead of undefined value).
+function, fiber, or class covering the statement, so the
+return-statement can be placed only in a function, a fiber, or a
+class.  The expression in a return-statement can be given only for
+functions.  In this case, the expression value will be the value of
+the function call (instead of undefined value).
 <BLOCKQUOTE><CODE>
 <PRE>
           ExecutiveStmt = return  [ Expr ] ";"
 </PRE>
 </CODE></BLOCKQUOTE>
-
-Examples:
+</P>
+<P>Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
           return;
@@ -411,17 +417,16 @@ Examples:
 
 <P>This statement generates an exception which is given by value of the
 expression.  The expression should evaluate to an object of
-predeclared class <CODE>except</CODE> or an object of a class declared
-somewhere in predeclared class <CODE>except</CODE>.  If this is not true,
-exception <CODE>optype</CODE> is generated.  How exceptions are processed
-is described in the following section.
+predeclared class <CODE>except</CODE> or of its sub-class.  If this is not
+true, the exception <CODE>optype</CODE> is generated.  How exceptions are
+processed is described in the following section.
 <BLOCKQUOTE><CODE>
 <PRE>
           ExecutiveStmt = throw  Expr ";"
 </PRE>
 </CODE></BLOCKQUOTE>
-
-Examples:
+</P>
+<P>Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
           class myexcept (msg) {use error former msg;}
@@ -437,28 +442,26 @@ Examples:
 conditions are not satisfied, by predeclared Dino functions, by other
 OS processes, by user interruptions, or by the user with the aid of a
 throw-statement.  Actually, the exceptions are represented by an
-object of the predeclared class <CODE>except</CODE> or by an object of a
-class declared inside the predeclared class <CODE>except</CODE>.  All
-predeclared exceptions are described in the section <EM>Predeclared
-Identifiers</EM>.  To detect and process exceptions, a try-block can
-be used.</P>
+object of the predeclared class <CODE>except</CODE> or by an object of its
+sub-class.  All predeclared exceptions are described in the
+section <EM>Predeclared Identifiers</EM>.  To detect and process
+exceptions, a try-block can be used.</P>
 <P>When an exception is generated, the closest-containing try-block which
 is covering the statement generating the exception or currently being
 executed (when this is is generated by an OS process or by an user
 interruption) is searched for.  Then, expressions in the catch list
 elements are processed.  The expression value in the catch list
 element being currently processed should be the predeclared class
-<CODE>except</CODE> or a class declared inside the predeclared class
-<CODE>except</CODE>.  If the expression being processed is a class and the
-exception is an object of the class or an object of a class declared
-inside the class, the block corresponding to the given catch list
-element is executed.  If there is no such catch expression, the
+<CODE>except</CODE> or its sub-class.  If the expression being processed
+is a class and the exception is an object of the class or an object of
+a sub-class of the class, the block corresponding to the given catch
+list element is executed.  If there is no such catch expression, the
 closest-containing try-block covering the current try-block is
 searched for and processing the exception is repeated.  If there are
 no more try-blocks, the program finishes with a diagnostic message
 which is dependent on the generated exception.</P>
 <P>Blocks corresponding to catch list elements have a predeclared
-variable <CODE>e</CODE>.  When block execution starts, the variable
+variable <CODE>e</CODE>.  When the block execution starts, the variable
 contains the object representing the exception.
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -471,8 +474,8 @@ contains the object representing the exception.
           ExceptClassList = Expr { "," Expr }
 </PRE>
 </CODE></BLOCKQUOTE>
-
-Examples:
+</P>
+<P>Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
           try {
@@ -497,25 +500,25 @@ Examples:
 
 <P>This statement is used for the synchronization of different threads in
 a Dino program.  The expression can not contain a function, class, or
-a thread-function call.  The thread in which the statement has been
-executed waits until the expression value becomes nonzero.  The
-expression value (after implicit arithmetic conversion) should be an
-integer, a long integer, or a floating point number.  Otherwise the
+a fiber call.  The thread in which the statement has been executed
+waits until the expression value becomes nonzero.  The expression
+value (after an implicit arithmetic conversion) should be an integer,
+a long integer, or a floating point number.  Otherwise the
 exception <CODE>optype</CODE> is generated.  When the expression value
-becomes nonzero, the statement after the expression (it is called
-sync-statement) is executed without interruption by other process.  It
-is used as critical region for process synchronization.  In a critical
-region execution of wait-statement is prohibited (it results in
-generation of exception <CODE>syncwait</CODE>).  Also thread calls inside
-a critical region result in generation exception
-<CODE>syncthreadcall</CODE>.
+becomes nonzero, the statement after the expression (it is called a
+sync-statement) is executed without interruption by other threads.  It
+is used as a critical region for the thread synchronization.  In a
+critical region an execution of wait-statement is prohibited (it
+results in generation of the exception <CODE>syncwait</CODE>).  Also fiber
+calls inside a critical region result in generation of the
+exception <CODE>syncthreadcall</CODE>.
 <BLOCKQUOTE><CODE>
 <PRE>
           ExecutiveStmt = wait  "(" Expr ")" Stmt
 </PRE>
 </CODE></BLOCKQUOTE>
-
-An example:
+</P>
+<P>An example:
 <BLOCKQUOTE><CODE>
 <PRE>
           wait (!empty);
@@ -528,9 +531,10 @@ An example:
 
 <P>All C code between pairs of brackets <CODE>%{</CODE> and <CODE>%}</CODE> in
 one Dino file is <EM>concatenated</EM> in the same order as they occur
-in the file.  The result code with pre-appended C code providing
+in the file.  The result code with some pre-appended C code providing
 an interface to the Dino interpreter internal data representation is
-compiled when the execution <EM>the first time</EM> achieves the location of the first
+compiled when the execution <EM>the first time</EM> achieves the
+location of the first
 <CODE>%{</CODE> in the file.  The result shared object is loaded and
 external variables and functions are searched lately in the same order
 as the shared objects are loaded.
@@ -539,9 +543,9 @@ as the shared objects are loaded.
           ExecutiveStmt = C_CODE
 </PRE>
 </CODE></BLOCKQUOTE>
-
-If an error during the compilation or loading the shared object file
-occurs, exception <CODE>compile</CODE> is generated.</P>
+</P>
+<P>If an error during the compilation or loading the shared object file
+occurs, the exception <CODE>compile</CODE> is generated.</P>
 <P>An example:
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -549,7 +553,7 @@ occurs, exception <CODE>compile</CODE> is generated.</P>
             #include &lt;math.h>
             val_t isnan_p (int npars, val_t *vals) {
               val_t val;
-              ER_node_t res = (ER_node_t) 
+              ER_node_t res = (ER_node_t) &amp; val;
 
               ER_SET_MODE (res, ER_NM_int);
               ER_set_i (res, 0);

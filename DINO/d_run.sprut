@@ -130,10 +130,10 @@ struct trace_stack_elem
 
 extern vlo_t trace_stack;
 
-extern ER_node_t cprocess;
+extern ER_node_t cthread;
 extern int context_number;
-extern int process_number;
-extern ER_node_t first_process_not_started;
+extern int thread_number;
+extern ER_node_t first_thread_not_started;
 
 #define GO_THROUGH_REDIR(ref)\
  while (ER_NODE_MODE (ref) == ER_NM_heap_redir) (ref) = ER_redir (ref)
@@ -187,17 +187,17 @@ extern unsigned int tab_expansions;
 extern void initiate_tables (void);
 
 extern int executed_stmts_count;
-extern int process_quantum;
+extern int thread_quantum;
 
 extern unsigned long higher_prime_number (unsigned long number);
 
-extern ER_node_t create_process (pc_t start_process_pc, BC_node_t fun,
-	                         ER_node_t fun_context);
+extern ER_node_t create_thread (pc_t start_thread_pc, BC_node_t fun,
+				ER_node_t fun_context);
 extern void interrupt (pc_t first_resume_pc);
-extern void block_cprocess (pc_t first_resume_pc, int wait_stmt_flag);
-extern void delete_cprocess (void);
-extern int delete_cprocess_during_exception (void);
-extern void initiate_processes (pc_t start_pc);
+extern void block_cthread (pc_t first_resume_pc, int wait_stmt_flag);
+extern void delete_cthread (void);
+extern int delete_cthread_during_exception (void);
+extern void initiate_threads (pc_t start_pc);
 
 extern void store_handle (void *handle);
 extern void *external_address (BC_node_t decl);
@@ -242,7 +242,7 @@ mode_to_type (ER_node_mode_t mode)
     case ER_NM_tab: return type_tab;
     case ER_NM_code: return type_fun;
     case ER_NM_stack: return type_obj;
-    case ER_NM_process: return type_process;
+    case ER_NM_thread: return type_thread;
     case ER_NM_type: return type_type;
     default:
       d_unreachable ();
@@ -261,8 +261,8 @@ code_type (BC_node_t code)
     return type_class;
   else
     {
-      d_assert (BC_thread_p (code));
-      return type_thread;
+      d_assert (BC_fiber_p (code));
+      return type_fiber;
     }
 }
 
@@ -312,7 +312,7 @@ do_call (BC_node_t fblock, int from_c_code_p)
     {
       void *addr;
       
-      d_assert (! BC_thread_p (fblock));
+      d_assert (! BC_fiber_p (fblock));
       if ((addr = BC_implementation_fun (fblock)) == NULL)
 	{
 	  addr = gen_cfblock (fblock);
@@ -351,8 +351,8 @@ setup_new_cstack (ER_node_t stack, int vars_num, int offset)
     reset_vars (IVAL (cvars, offset), IVAL (ctop, 1));
   /* We set them only here because we need to set mode before.
      Remeber about possible field checking. */
-  if (cprocess != NULL)
-    ER_set_saved_cstack (cprocess, cstack);
+  if (cthread != NULL)
+    ER_set_saved_cstack (cthread, cstack);
 }
 
 /* The following func allocates heap memory for stack frame (heap

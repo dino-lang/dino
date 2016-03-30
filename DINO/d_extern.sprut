@@ -30,7 +30,7 @@
 
 %type bool_t size_t hide_t ucode_t int_t rint_t unsigned_rint_t rfloat_t char_ptr_t
       entry_t entry_ptr_t bcid_t stack_state_t BC_hidden_node_t ER_node_mode_t type_val_t
-      process_status_t stack_ptr_t hidden_pc_t gmp_t
+      thread_status_t stack_ptr_t hidden_pc_t gmp_t
 
 %import {
 
@@ -64,27 +64,27 @@ enum stack_state
 
 typedef enum stack_state stack_state_t;
 
-/* This enumeration declares all possible states of process. */
-enum process_status
+/* This enumeration declares all possible states of thread. */
+enum thread_status
 {
-  /* Process is not blocked.  Created process has also this status.
+  /* Thread is not blocked.  Created thread has also this status.
      Remember that we automatically zero all free memory.  Maximum one
-     process can have status PS_READY or PS_STARTED.  This state can
+     thread can have status PS_READY or PS_STARTED.  This state can
      come only from the 3 last states. */
   PS_READY = 1,
   /* It can come from only PS_READY after execution of a stmt. */
   PS_STARTED,
-  /* Process is blocked because its quantum has been exhausted.  It can
+  /* Thread is blocked because its quantum has been exhausted.  It can
      come from only PS_STARTED after execution of a stmt. */
   PS_BLOCKED_BY_QUANTUM_SWITCH,
-  /* Process is blocked by wait-stmt. It can come from only
+  /* Thread is blocked by wait-stmt. It can come from only
      PS_STARTED. */
   PS_BLOCKED_BY_WAIT,
-  /* Process is blocked by wait-stmt.  It can come from only PS_READY. */
+  /* Thread is blocked by wait-stmt.  It can come from only PS_READY. */
   PS_NOT_STARTED
 };
 
-typedef enum process_status process_status_t;
+typedef enum thread_status thread_status_t;
 
 typedef struct ER_node **stack_ptr_t;
 
@@ -103,9 +103,9 @@ enum type_val
   type_tab,
   type_fun,
   type_class,
-  type_thread,
+  type_fiber,
   type_obj,
-  type_process,
+  type_thread,
   type_type
 };
 
@@ -144,7 +144,7 @@ typedef union
     _ER_tab tab;
     _ER_empty_el ee;
     _ER_stack stack;
-    _ER_process process;
+    _ER_thread thread;
     _ER_external_var_ref external_var_ref;
   } val_t;
 
@@ -237,10 +237,10 @@ static const entry_t MAX_TAB_ELS_NUMBER = UINT_MAX - 1;
 #endif
 
 #if defined(NDEBUG)
-#define ER_stacks_table(process)\
-  ((stack_ptr_t) ((char *) (process) + ALLOC_SIZE (sizeof (_ER_heap_process))))
+#define ER_stacks_table(thread)\
+  ((stack_ptr_t) ((char *) (thread) + ALLOC_SIZE (sizeof (_ER_heap_thread))))
 #else
-#define ER_stacks_table(process) _stacks_table (process)
+#define ER_stacks_table(thread) _stacks_table (thread)
 #endif
 
 #if defined(NDEBUG)
@@ -285,7 +285,7 @@ extern ER_node_t _stack_vars (ER_node_t stack);
 
 extern BC_hidden_node_t _stack_block (ER_node_t stack);
 
-extern stack_ptr_t _stacks_table (ER_node_t process);
+extern stack_ptr_t _stacks_table (ER_node_t thread);
 
 extern ER_node_t _indexed_val (ER_node_t first_var, int index);
 
@@ -436,7 +436,7 @@ context_heap_obj :: heap_obj
   /* May contains more vars than it is really necessary for the block.  */
   all_block_vars_num : int_t
   /* Context in which the variables are searched for.  See also
-     comment for heap_process. */
+     comment for heap_thread. */
   context : context_heap_obj
   block_node : BC_hidden_node_t /* Pointer to corresponding block node. */
 ;
@@ -458,21 +458,21 @@ heap_stack :: context_heap_obj
      Temporary vars are placed after all permanent vars. */
 ;
 
-heap_process :: context_heap_obj
+heap_thread :: context_heap_obj
 %other
-  /* Here context is context of the function (thread) which is called
-     during process creation. */
-  process_block : BC_hidden_node_t
-  process_status : process_status_t
-  /* Pointer to the process which immediatelly started this process. */
-  father : heap_process
-  /* All processes form double linked loop list with these members. */
-  prev, next : heap_process
-  /* Value of cstack which will be after the resuming the process. */
+  /* Here context is context of the function (fiber) which is called
+     during thread creation. */
+  thread_block : BC_hidden_node_t
+  thread_status : thread_status_t
+  /* Pointer to the thread which immediatelly started this thread. */
+  father : heap_thread
+  /* All threades form double linked loop list with these members. */
+  prev, next : heap_thread
+  /* Value of cstack which will be after the resuming the thread. */
   saved_cstack : heap_stack
-  /* Unique process number. */
-  process_number : int_t
-  /* Program counter which will be first after the resuming the process. */
+  /* Unique thread number. */
+  thread_number : int_t
+  /* Program counter which will be first after the resuming the thread. */
   saved_pc : hidden_pc_t
 ;
 
@@ -593,9 +593,9 @@ stack :: val
 ;
 
 /*%final*/
-process :: val
+thread :: val
 %other
-  process : heap_process
+  thread : heap_thread
 ;
 
 /* The following may be stored only in temporary vars (in left side of

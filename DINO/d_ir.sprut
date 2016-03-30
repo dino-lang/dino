@@ -664,7 +664,7 @@ cond :: expr
 const, new, not, unary_plus, unary_minus, bitwise_not, length,
   fold_plus, fold_mult, fold_and, fold_xor, fold_or, fold_concat,
   typeof, charof, intof, longof, floatof, vecof, tabof,
-  funof, threadof, classof :: unary_operation
+  funof, fiberof, classof :: unary_operation
 ;
 
 /* It is surrounding an expression by parentheses  */
@@ -708,8 +708,8 @@ type :: expr
 /* The following nodes represent different types.  Type of nil is used
    only in the evaluator.  Actually there is no nodes `nil_type'. */
 nil_type, hide_type, hideblock_type, char_type, int_type, long_type, float_type,
-   vec_type, tab_type, fun_type, class_type, thread_type,
-   stack_type, process_type, type_type :: type
+   vec_type, tab_type, fun_type, class_type, fiber_type,
+   stack_type, thread_type, type_type :: type
 ;
 
 /* The following structure represents vec, tab construction
@@ -737,7 +737,7 @@ elist_element :: generic_pos
         next_elist : elist_element
 ;
 
-class_fun_thread_call :: expr
+class_fun_fiber_call :: expr
 %other
         /* Reference to expr that defines the called fun. */
         fun_expr : expr
@@ -968,8 +968,8 @@ fun_or_class :: fun_class
    represented by var nodes.  Its scope is this block. */
 fun :: fun_or_class
 %other
-	/* Thrue if this true. */
-	thread_flag : bool_t
+	/* Fiber if this true. */
+	fiber_flag : bool_t
 ;
 
 /* See commentaries for fun node. */
@@ -1045,10 +1045,10 @@ vec_tab
         parts_number : int_t
 ;
 
-class_fun_thread_call
+class_fun_fiber_call
 %other
         /* Number of elements in the list actuals. */
-        class_fun_thread_call_parameters_number : int_t
+        class_fun_fiber_call_parameters_number : int_t
 ;
 
 slice

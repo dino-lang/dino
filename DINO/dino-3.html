@@ -14,20 +14,20 @@
 <HR>
 <H2><A NAME="s3">3.</A> <A HREF="dino.html#toc3">Vocabulary and Representation</A></H2>
 
-<P>Wherever it is possible, we use also EBNF for description of lexical
-symbols through ASCII set characters.  Otherwise, we will use natural
-language sentences in <CODE>&lt;</CODE> and <CODE>></CODE>.  Lexical symbols are
-identifiers, numbers, character constants, strings, operators,
-delimiters, and comments.  White characters (blanks and line breaks)
-must not occur within the symbols (except in comments, and blanks in
-strings).  White characters are ignored unless they are essential to
-separate two consecutive lexical symbols.  Upper- and lower-case
-letters are considered to be distinct.
+<P>Wherever it is possible, we use also the EBNF for description of
+lexical symbols through ASCII set characters.  Otherwise, we will use
+natural language sentences in <CODE>&lt;</CODE> and <CODE>></CODE>.</P>
+<P>Lexical symbols are identifiers, numbers, character constants,
+strings, operators, delimiters, and comments.  White characters
+(blanks and line breaks) must not occur within the symbols (except in
+comments, and as the blanks in strings).  The white characters are
+ignored unless they are essential to separate two consecutive lexical
+symbols.  Upper- and lower-case letters are considered to be distinct.
 <OL>
 <LI>An <EM>identifier</EM> is a sequence of letters and digits
 starting with a letter.  The underline is believed to be a
 valid letter in an identifier.  A single underline is fixed
-for other usage (see wildcard in section "Patterns").
+for other usage (see a wildcard in section "Patterns").
 <BLOCKQUOTE><CODE>
 <PRE>
           Ident = Letter {Letter | Digit}
@@ -50,27 +50,28 @@ for other usage (see wildcard in section "Patterns").
 </PRE>
 </CODE></BLOCKQUOTE>
 
-Examples:
+<P>Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
           line  line2  next_line  NextLine
 </PRE>
 </CODE></BLOCKQUOTE>
-
+</P>
 </LI>
 <LI><EM>Numbers</EM> are (unsigned) integer or floating point
 numbers.  Numbers start with a digit.  Numbers starting with
-prefix <CODE>0x</CODE> or <CODE>0X</CODE> are hexadecimal integer
-numbers.  Otherwise integer numbers starting with <CODE>0</CODE>
+the prefix <CODE>0x</CODE> or <CODE>0X</CODE> are hexadecimal integer
+numbers.  Otherwise, integer numbers starting with <CODE>0</CODE>
 are octal integer numbers.  Octal integer numbers should not
 contain <CODE>8</CODE> or <CODE>9</CODE>.  If an integer number has
-suffix <CODE>l</CODE> or <CODE>L</CODE>, it is a long number (see long
-values in section "Types and Values").  Floating point numbers
-are distinguished from decimal integer numbers by the presence
-of decimal point <CODE>.</CODE> or an exponent in the number.  You
-can put <CODE>_</CODE> in number digit sequences unless it is the
-first symbol of the sequence.  It can be useful for
-readability of long digit sequences.
+the suffix <CODE>l</CODE> or <CODE>L</CODE>, it is a long number (see
+long values in the section "Types and Values").  Floating
+point numbers are distinguished from decimal integer numbers
+by the presence of the decimal point <CODE>.</CODE> or an exponent
+in the number representation.  You can put <CODE>_</CODE> in
+number digit sequences unless it is the first symbol of the
+sequence.  It can be useful for readability of long digit
+sequences.
 <BLOCKQUOTE><CODE>
 <PRE>
           Number = Integer | Long | FloatingPointNumber
@@ -90,7 +91,7 @@ readability of long digit sequences.
 </PRE>
 </CODE></BLOCKQUOTE>
 
-Examples:
+<P>Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
           10
@@ -103,28 +104,29 @@ Examples:
           0xafad_1f34_17ff_
 </PRE>
 </CODE></BLOCKQUOTE>
+</P>
 </LI>
 <LI>A Dino <EM>character constant</EM> denotes an Unicode
 character.  The following sequences starting with the ASCII
 backslash have a special meaning inside a Dino character
 constant:
 <UL>
-<LI><CODE><B>\a</B>    - </CODE> ASCII character alert</LI>
-<LI><CODE><B>\b</B>     -</CODE> ASCII character backspace</LI>
-<LI><CODE><B>\f</B>     -</CODE> ASCII character form feed</LI>
-<LI><CODE><B>\n</B>     -</CODE> ASCII character new line</LI>
-<LI><CODE><B>\r</B>     -</CODE> ASCII character carriage return</LI>
-<LI><CODE><B>\t</B>     -</CODE> ASCII character horizontal tab</LI>
-<LI><CODE><B>\v</B>     -</CODE> ASCII character vertical tab</LI>
-<LI><CODE><B>\code</B>  -</CODE> Character with code given
-up to tree octal digits</LI>
-<LI><CODE><B>\xcode</B> -</CODE> Character with code given
-by two hexdecimal digits</LI>
-<LI><CODE><B>\ucode</B> -</CODE> Character with code given
-by four hexdecimal digits</LI>
-<LI><CODE><B>\Ucode</B> -</CODE> Character with code given
-by eight hexdecimal digits</LI>
-<LI><CODE><B>\char</B>  -</CODE> Character char for all
+<LI><CODE><B>\a</B>       -</CODE> ASCII character alert</LI>
+<LI><CODE><B>\b</B>       -</CODE> ASCII character backspace</LI>
+<LI><CODE><B>\f</B>       -</CODE> ASCII character form feed</LI>
+<LI><CODE><B>\n</B>       -</CODE> ASCII character new line</LI>
+<LI><CODE><B>\r</B>       -</CODE> ASCII character carriage return</LI>
+<LI><CODE><B>\t</B>       -</CODE> ASCII character horizontal tab</LI>
+<LI><CODE><B>\v</B>       -</CODE> ASCII character vertical tab</LI>
+<LI><CODE><B>\code</B>    -</CODE> A character with the code
+given by up to tree octal digits</LI>
+<LI><CODE><B>\xcode</B>   -</CODE> A character with the code
+given by two hexdecimal digits</LI>
+<LI><CODE><B>\ucode</B>   -</CODE> A character with the code
+given by four hexdecimal digits</LI>
+<LI><CODE><B>\Ucode</B>   -</CODE> A character with the code
+given by eight hexdecimal digits</LI>
+<LI><CODE><B>\char</B>    -</CODE> The character char for all
 remaining characters</LI>
 </UL>
 
@@ -146,8 +148,8 @@ character constant, use two consecutive ASCII backslashes.
           OctalEscapeSeq = "\" OctalDigit [ OctalDigit [ OctalDigit ] ]
 </PRE>
 </CODE></BLOCKQUOTE>
-
-Examples:
+</P>
+<P>Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
           'a'  '\''  '\\'  '\12'  '"'
@@ -155,64 +157,67 @@ Examples:
 </CODE></BLOCKQUOTE>
 </P>
 </LI>
-<LI>A <EM>string</EM> is sequence of characters enclosed
-in double quotes. There are the same sequences of
-characters with special meaning as in a character constant.
-To denote a double quote mark use sequence <CODE>\"</CODE>.  The
-single quote mark can be represented either by <CODE>\'</CODE> or
-simply by <CODE>'</CODE>.  To represent a backslash inside the
-character constant, use two consecutive ASCII backslashes.
+<LI>A <EM>string</EM> is a sequence of characters enclosed in
+double quotes. There are the same sequences of characters with
+special meaning as in a character constant.  To denote a
+double quote mark use the sequence <CODE>\"</CODE>.  The single
+quote mark can be represented either by <CODE>\'</CODE> or simply
+by <CODE>'</CODE>.  To represent a backslash inside the character
+constant, use two consecutive ASCII backslashes.
 <BLOCKQUOTE><CODE>
 <PRE>
           String = '"' {Char} '"'
 </PRE>
 </CODE></BLOCKQUOTE>
 
-Examples:
+<P>Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
           "This is Dino"  "Don't worry\n"
 </PRE>
 </CODE></BLOCKQUOTE>
-
-Another variant of string representation uses
-back-quotes <CODE>`</CODE>.  A character inside the back-quotes are
-present in the string as it is, in other words, the escape
-sequences do now work in such representation.  To denote
-back-quote in such string representation use double back-qoutes.
-The newline may not be in such string representation.  It
-means that string with back-quotes can reside only on one line.
+</P>
+<P>Another variant of a string representation uses
+back-quotes <CODE>`</CODE>.  A character inside the back-quotes
+are present in the string as it is, in other words, the escape
+sequences do not work in such representation.  To denote the
+back-quote in such string representation use double
+back-qoutes.  The newline may not be in such string
+representation.  It means that a string with back-quotes can
+reside only on one program line.
 <BLOCKQUOTE><CODE>
 <PRE>
           String = '`' {Char} '`'
 </PRE>
 </CODE></BLOCKQUOTE>
-
-Examples:
+</P>
+<P>Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
           `\p{Greek}+`  `back qoute `` is here`
 </PRE>
 </CODE></BLOCKQUOTE>
+</P>
 </LI>
-<LI>A <EM>C code</EM> is sequence characters enclosed in
-special brackets <CODE>%{</CODE> and <CODE>%}</CODE>.  It represents a
-C code fragment which is compiled and loaded in Dino
+<LI>A <EM>C code</EM> is a sequence of characters enclosed in
+the special brackets <CODE>%{</CODE> and <CODE>%}</CODE>.  It represents a
+C code fragment which is compiled and loaded into Dino
 interpreter during the program execution
 <BLOCKQUOTE><CODE>
 <PRE>
-          C_CODE = "%{"  {Char} "%}"
+          C_CODE = "%{" &lt;any char sequence not containing pair %}> "%}"
 </PRE>
 </CODE></BLOCKQUOTE>
 
-And example:
+<P>An example:
 <BLOCKQUOTE><CODE>
 <PRE>
           %{ static val_t dino_var; %}
 </PRE>
 </CODE></BLOCKQUOTE>
+</P>
 </LI>
-<LI>The remaining essential symbols are called
+<LI>The remaining essential lexical symbols are called
 <EM>operators</EM> and <EM>delimiters</EM>.  Operators are
 used for forming expressions, delimiters are used for forming
 syntax constructions.  There is a special kind of operators
@@ -234,22 +239,21 @@ Keywords can not be used in the place of an identifier.
 
           Keyword = "_" | "break" | "case" | "catch" | "char" | "class"
                   | "continue" | "else" | "expose" | "extern" | "final"
-                  | "float" | "for" | "former" | "friend" | "fun" | "hide"
-                  | "hideblock" | "if" | "in" | "int" | "later" | "long"
-                  | "new" | "nil" | "obj" | "pmatch" | "priv"
-                  | "process" | "pub" | "return" | "rmatch" | "tab"
-                  | "thread" | "this" | "throw" | "try" | "type"
+                  | "fiber" | "float" | "for" | "former" | "friend" | "fun"
+                  | "hide" | "hideblock" | "if" | "in" | "int"
+                  | "later" | "long" | "new" | "nil" | "obj"
+                  | "pmatch" | "priv" | "pub" | "return" | "rmatch" 
+                  | "tab" | "thread" | "this" | "throw" | "try" | "type"
                   | "use" | "val" | "var" | "vec" | "wait"
 </PRE>
 </CODE></BLOCKQUOTE>
-
 </LI>
 <LI><EM>Comments</EM> are considered analogous to blanks on the
-syntax level of the program.  There are two types of comments.
-The first type is an arbitrary character sequence starting
-with <CODE>/*</CODE> and finishing with <CODE>*/</CODE>.  The second
-type of comment starts with <CODE>//</CODE> and finishes with the
-first line break or with the end of file.
+syntax level of the program.  There are two types of the
+comments.  The first type is an arbitrary character sequence
+starting with <CODE>/*</CODE> and finishing with <CODE>*/</CODE>.  The
+second type comment starts with <CODE>//</CODE> and finishes with
+the first line break or with the end of file.
 <BLOCKQUOTE><CODE>
 <PRE>
           Comment = "/*" &lt;arbitrary char. sequence not containing pair */> "*/"

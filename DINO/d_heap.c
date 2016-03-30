@@ -59,19 +59,19 @@ vlo_t temp_vlobj2;
 
 vlo_t dl_handle_vlo;
 
-/* Current (active) process. */
-ER_node_t cprocess;
+/* Current (active) thread. */
+ER_node_t cthread;
 
 /* Variable used to assign unique number to the contexts. */
 int context_number;
 
-/* Variable used to assign unique number to the processes. */
-int process_number;
+/* Variable used to assign unique number to the threads. */
+int thread_number;
 
-/* The following variable value is the first process blocked by a wait
-   stmt and there is no process started after this.  This variable is
+/* The following variable value is the first thread blocked by a wait
+   stmt and there is no thread started after this.  This variable is
    used for searching deadlocks. */
-ER_node_t first_process_not_started;
+ER_node_t first_thread_not_started;
 
 
 
@@ -96,7 +96,7 @@ initiate_int_tables (void)
   type_size_table [ER_NM_float] = sizeof (rfloat_t);
   type_size_table [ER_NM_type] = sizeof (ER_node_mode_t);
   type_size_table [ER_NM_tab]
-    = type_size_table [ER_NM_process]
+    = type_size_table [ER_NM_thread]
     = type_size_table [ER_NM_stack] = sizeof (ER_node_t);
   type_size_table [ER_NM_vect] = sizeof (ER_node_t);
   type_size_table [ER_NM_code] = sizeof (_ER_code);
@@ -116,8 +116,8 @@ initiate_int_tables (void)
   val_displ_table [ER_NM_type] = (char *) &((_ER_type *) v)->type - (char *) v;
   val_displ_table [ER_NM_vect] = (char *) &((_ER_vect *) v)->vect - (char *) v;
   val_displ_table [ER_NM_tab] = (char *) &((_ER_tab *) v)->tab - (char *) v;
-  val_displ_table [ER_NM_process]
-    = (char *) &((_ER_process *) v)->process - (char *) v;
+  val_displ_table [ER_NM_thread]
+    = (char *) &((_ER_thread *) v)->thread - (char *) v;
   val_displ_table [ER_NM_code] = 0;
   val_displ_table [ER_NM_efun]
     = (char *) &((_ER_efun *) v)->efdecl - (char *) v;
@@ -232,13 +232,13 @@ _stack_block (ER_node_t stack)
 }
 
 stack_ptr_t
-_stacks_table (ER_node_t process)
+_stacks_table (ER_node_t thread)
 {
   stack_ptr_t res;
   
-  d_assert (ER_NODE_MODE (process) == ER_NM_heap_process);
-  res = (stack_ptr_t) ((char *) process
-		       + ALLOC_SIZE (sizeof (_ER_heap_process)));
+  d_assert (ER_NODE_MODE (thread) == ER_NM_heap_thread);
+  res = (stack_ptr_t) ((char *) thread
+		       + ALLOC_SIZE (sizeof (_ER_heap_thread)));
   return res;
 }
 
@@ -548,8 +548,8 @@ final_call_destroy_functions (void)
 			      + BC_vars_num (block_node)
 			      * sizeof (val_t) - sizeof (val_t));
 	  cpc = BC_next (ER_call_pc (cstack));
-	  if (cprocess != NULL)
-	    ER_set_saved_cstack (cprocess, cstack);
+	  if (cthread != NULL)
+	    ER_set_saved_cstack (cthread, cstack);
 	}
       destroy_stacks ();
     }
@@ -638,8 +638,8 @@ heap_object_size (ER_node_t obj)
     case ER_NM_heap_stack:
       size = stack_size (obj);
       break;
-    case ER_NM_heap_process:
-      size = ALLOC_SIZE (sizeof (_ER_heap_process));
+    case ER_NM_heap_thread:
+      size = ALLOC_SIZE (sizeof (_ER_heap_thread));
       break;
     case ER_NM_heap_hideblock:
       size = (ALLOC_SIZE (sizeof (_ER_heap_hideblock))
@@ -801,8 +801,8 @@ traverse_used_var (ER_node_t var)
       return;
     case ER_NM_efun:
       return;
-    case ER_NM_process:
-      traverse_used_heap_object (ER_process (var));
+    case ER_NM_thread:
+      traverse_used_heap_object (ER_thread (var));
       return;
     case ER_NM_stack:
       traverse_used_heap_object (ER_stack (var));
@@ -846,7 +846,7 @@ traverse_used_heap_object (ER_node_t obj)
 	el_size = type_size_table [el_type];
 	if (el_type == ER_NM_hideblock || el_type == ER_NM_long
 	    || el_type == ER_NM_vect || el_type == ER_NM_tab 
-	    || el_type == ER_NM_process || el_type == ER_NM_stack)
+	    || el_type == ER_NM_thread || el_type == ER_NM_stack)
 	  for (i = 0; i < ER_els_number (obj); i++)
 	    traverse_used_heap_object
 	      (*(ER_node_t *) (ER_pack_els (obj) + i * el_size));
@@ -900,7 +900,7 @@ traverse_used_heap_object (ER_node_t obj)
 	  traverse_used_var (var);
 	return;
       }
-    case ER_NM_heap_process:
+    case ER_NM_heap_thread:
       traverse_used_heap_object (ER_context (obj));
       traverse_used_heap_object (ER_father (obj));
       traverse_used_heap_object (ER_prev (obj));
@@ -966,9 +966,9 @@ mark_used_heap_objects (void)
     traverse_used_heap_object (GET_TEMP_REF (i));
   for (i = 0; i < VLO_LENGTH (external_vars) / sizeof (void *); i++)
     traverse_used_var ((ER_node_t) ((void **) VLO_BEGIN (external_vars)) [i]);
-  /* Current stack table is traversed with cprocess. */
-  traverse_used_heap_object (cprocess);
-  traverse_used_heap_object (first_process_not_started);
+  /* Current stack table is traversed with cthread. */
+  traverse_used_heap_object (cthread);
+  traverse_used_heap_object (first_thread_not_started);
   /* Traverse all stacks which needs to be destroyed. */
   return mark_stacks_need_destroying (TRUE);
 }
@@ -1079,7 +1079,7 @@ change_val (ER_node_mode_t mode, ER_node_t *val_addr)
       return;
     case ER_NM_long:
     case ER_NM_hideblock:
-    case ER_NM_process:
+    case ER_NM_thread:
     case ER_NM_stack:
     case ER_NM_code:
       CHANGE_REF (*val_addr);
@@ -1124,8 +1124,8 @@ change_var (ER_node_t var)
     case ER_NM_code:
       CHANGE_REF (((_ER_code *) var)->code_context);
       return;
-    case ER_NM_process:
-      CHANGE_REF (((_ER_process *) var)->process);
+    case ER_NM_thread:
+      CHANGE_REF (((_ER_thread *) var)->thread);
       return;
     case ER_NM_stack:
       CHANGE_REF (((_ER_stack *) var)->stack);
@@ -1159,7 +1159,7 @@ change_obj_refs (ER_node_t obj)
 	  el_size = type_size_table [el_type];
 	  if (el_type == ER_NM_hideblock || el_type == ER_NM_long
 	      || el_type == ER_NM_vect || el_type == ER_NM_tab
-	      || el_type == ER_NM_process || el_type == ER_NM_stack)
+	      || el_type == ER_NM_thread || el_type == ER_NM_stack)
 	    for (i = 0; i < ER_els_number (obj); i++)
 	      change_val (el_type,
 			  (ER_node_t *) (ER_pack_els (obj) + i * el_size));
@@ -1210,12 +1210,12 @@ change_obj_refs (ER_node_t obj)
 	       + ALLOC_SIZE (sizeof (_ER_heap_stack)) + diff);
 	  break;
 	}
-      case ER_NM_heap_process:
-	CHANGE_REF (((_ER_heap_process *) obj)->_ER_M_context_heap_obj.context);
-	CHANGE_REF (((_ER_heap_process *) obj)->father);
-	CHANGE_REF (((_ER_heap_process *) obj)->prev);
-	CHANGE_REF (((_ER_heap_process *) obj)->next);
-	CHANGE_REF (((_ER_heap_process *) obj)->saved_cstack);
+      case ER_NM_heap_thread:
+	CHANGE_REF (((_ER_heap_thread *) obj)->_ER_M_context_heap_obj.context);
+	CHANGE_REF (((_ER_heap_thread *) obj)->father);
+	CHANGE_REF (((_ER_heap_thread *) obj)->prev);
+	CHANGE_REF (((_ER_heap_thread *) obj)->next);
+	CHANGE_REF (((_ER_heap_thread *) obj)->saved_cstack);
 	break;
       case ER_NM_heap_gmp:
       case ER_NM_heap_hideblock:
@@ -1266,8 +1266,8 @@ change_refs (void)
     CHANGE_VECT_TAB_REF (GET_TEMP_REF (i));
   for (i = 0; i < VLO_LENGTH (external_vars) / sizeof (void *); i++)
     change_var ((ER_node_t) ((void **) VLO_BEGIN (external_vars)) [i]);
-  CHANGE_REF (cprocess);
-  CHANGE_REF (first_process_not_started);
+  CHANGE_REF (cthread);
+  CHANGE_REF (first_thread_not_started);
 }
 
 static do_inline char *
@@ -1632,7 +1632,7 @@ heap_pop (void)
 	  *(val_t *) res = *(val_t *) IVAL (ctop, 1);
 	}
     }
-  ER_set_saved_cstack (cprocess, cstack);
+  ER_set_saved_cstack (cthread, cstack);
 }
 
 /* Number of vars in previous version of the top block.  */
@@ -1684,17 +1684,17 @@ expand_uppest_stack (void)
 void
 clear_c_stack_flags (void)
 {
-  ER_node_t process, stack;
+  ER_node_t thread, stack;
   
   if (generated_c_function_calls_num == 0)
     return;
-  for (process = cprocess;;)
+  for (thread = cthread;;)
     {
-      stack = process == cprocess ? cstack : ER_saved_cstack (process);
+      stack = thread == cthread ? cstack : ER_saved_cstack (thread);
       for (; stack != NULL; stack = ER_prev_stack (stack))
 	ER_set_c_stack_p (stack, FALSE);
-      process = ER_next (process);
-      if (process == cprocess)
+      thread = ER_next (thread);
+      if (thread == cthread)
 	break;
     }
 }
@@ -2353,8 +2353,8 @@ hash_val (ER_node_t val)
 			     (size_t) ER_unique_number (ER_code_context (val))));
     case ER_NM_efun:
       return (size_t) ER_efdecl (val);
-    case ER_NM_process:
-      return (size_t) ER_unique_number (ER_process (val));
+    case ER_NM_thread:
+      return (size_t) ER_unique_number (ER_thread (val));
     case ER_NM_stack:
       return (size_t) ER_unique_number (ER_stack (val));
     default:
@@ -2382,7 +2382,7 @@ hash_key (ER_node_t key)
     case ER_NM_hide:
     case ER_NM_code:
     case ER_NM_efun:
-    case ER_NM_process:
+    case ER_NM_thread:
       hash = hash_val (key);
       break;
     case ER_NM_vect:
@@ -2491,8 +2491,8 @@ eq_key (ER_node_t entry_key, ER_node_t key)
 	      && ER_code_id (key) == ER_code_id (entry_key));
     case ER_NM_efun:
       return ER_efdecl (key) == ER_efdecl (entry_key);
-    case ER_NM_process:
-      return ER_process (key) == ER_process (entry_key);
+    case ER_NM_thread:
+      return ER_thread (key) == ER_thread (entry_key);
     case ER_NM_stack:
       return eq_stack (ER_stack (key), ER_stack (entry_key));
     default:
@@ -2890,54 +2890,54 @@ make_immutable (ER_node_t obj)
 
 
 ER_node_t
-create_process (pc_t start_process_pc, BC_node_t block, ER_node_t fun_context)
+create_thread (pc_t start_thread_pc, BC_node_t block, ER_node_t fun_context)
 {
-  ER_node_t process;
+  ER_node_t thread;
 
-  process = (ER_node_t) heap_allocate (ALLOC_SIZE (sizeof (_ER_heap_process)),
-				       FALSE);
-  ER_SET_MODE (process, ER_NM_heap_process);
-  ER_set_context (process, fun_context);
-  ER_set_context_number (process, context_number);
+  thread = (ER_node_t) heap_allocate (ALLOC_SIZE (sizeof (_ER_heap_thread)),
+				      FALSE);
+  ER_SET_MODE (thread, ER_NM_heap_thread);
+  ER_set_context (thread, fun_context);
+  ER_set_context_number (thread, context_number);
   context_number++;
-  ER_set_process_block (process, block);
-  ER_set_process_status (process, PS_READY);
-  ER_set_process_number (process, process_number);
-  process_number++;
-  ER_set_saved_pc (process, start_process_pc);
-  ER_set_saved_cstack (process, cstack);
-  ER_set_father (process, cprocess);
-  if (cprocess == NULL)
+  ER_set_thread_block (thread, block);
+  ER_set_thread_status (thread, PS_READY);
+  ER_set_thread_number (thread, thread_number);
+  thread_number++;
+  ER_set_saved_pc (thread, start_thread_pc);
+  ER_set_saved_cstack (thread, cstack);
+  ER_set_father (thread, cthread);
+  if (cthread == NULL)
     {
-      ER_set_prev (process, process);
-      ER_set_next (process, process);
+      ER_set_prev (thread, thread);
+      ER_set_next (thread, thread);
     }
   else
     {
-      ER_set_prev (process, ER_prev (cprocess));
-      ER_set_next (ER_prev (process), process);
-      ER_set_prev (cprocess, process);
-      ER_set_next (process, cprocess);
+      ER_set_prev (thread, ER_prev (cthread));
+      ER_set_next (ER_prev (thread), thread);
+      ER_set_prev (cthread, thread);
+      ER_set_next (thread, cthread);
     }
-  return process;
+  return thread;
 }
 
 static void
-activate_given_process (ER_node_t process, int first_p)
+activate_given_thread (ER_node_t thread, int first_p)
 {
   ER_node_t var;
 
 #if ! defined (NO_PROFILE) && !HAVE_SETITIMER
-  if (cprocess != process && profile_flag)
+  if (cthread != thread && profile_flag)
     {
       BC_node_t block;
 
-      for (block = ER_block_node (ER_saved_cstack (cprocess));
+      for (block = ER_block_node (ER_saved_cstack (cthread));
 	   BC_ident (block) == NULL;
 	   block = BC_block_scope (block))
 	;
       ticker_off (&BC_exec_time (block));
-      for (block = ER_block_node (ER_saved_cstack (process));
+      for (block = ER_block_node (ER_saved_cstack (thread));
 	   BC_ident (block) == NULL;
 	   block = BC_block_scope (block))
 	;
@@ -2946,122 +2946,122 @@ activate_given_process (ER_node_t process, int first_p)
       ticker_on (&BC_exec_time (block));
     }
 #endif
-  cprocess = process;
-  cpc = ER_saved_pc (cprocess);
+  cthread = thread;
+  cpc = ER_saved_pc (cthread);
   if (cstack != NULL)
     ER_set_ctop (cstack, (char *) ctop);
-  cstack = ER_saved_cstack (cprocess);
+  cstack = ER_saved_cstack (cthread);
   cvars = ER_stack_vars (cstack);
   ctop = (ER_node_t) ER_ctop (cstack);
 #ifndef NO_CONTAINER_CACHE
   current_cached_container_tick++;
 #endif
-  ER_set_process_status (cprocess, PS_READY);
+  ER_set_thread_status (cthread, PS_READY);
   if (! first_p)
     {
       var = IVAL (ER_stack_vars (get_obj_stack (lang_bc_decl)),
 		  BC_var_num (curr_thread_bc_decl));
-      ER_SET_MODE (var, ER_NM_process);
-      ER_set_process (var, cprocess);
+      ER_SET_MODE (var, ER_NM_thread);
+      ER_set_thread (var, cthread);
     }
 }
 
-/* It is important for block_cprocess that the search of process for
-   activation starts with process after cprocess. */
+/* It is important for block_cthread that the search of thread for
+   activation starts with thread after cthread. */
 static void
-activate_process (int first_p)
+activate_thread (int first_p)
 {
-  activate_given_process (ER_next (cprocess), first_p);
-  if (first_process_not_started == cprocess)
+  activate_given_thread (ER_next (cthread), first_p);
+  if (first_thread_not_started == cthread)
     eval_error (deadlock_bc_decl, get_cpos (), DERR_deadlock);
-  executed_stmts_count = -process_quantum; /* start new quantum */
+  executed_stmts_count = -thread_quantum; /* start new quantum */
 }
 
 void
-block_cprocess (pc_t first_resume_pc, int wait_stmt_flag)
+block_cthread (pc_t first_resume_pc, int wait_stmt_flag)
 {
-  d_assert (cprocess != NULL);
+  d_assert (cthread != NULL);
   if (sync_flag)
     {
-      executed_stmts_count = -process_quantum; /* start new quantum */
+      executed_stmts_count = -thread_quantum; /* start new quantum */
       return;
     }
-  ER_set_saved_pc (cprocess, first_resume_pc);
-  ER_set_saved_cstack (cprocess, cstack);
-  if (executed_stmts_count != -process_quantum)
-    ER_set_process_status (cprocess, PS_STARTED);
+  ER_set_saved_pc (cthread, first_resume_pc);
+  ER_set_saved_cstack (cthread, cstack);
+  if (executed_stmts_count != -thread_quantum)
+    ER_set_thread_status (cthread, PS_STARTED);
   if (!wait_stmt_flag)
     {
-      d_assert (ER_process_status (cprocess) == PS_STARTED);
-      ER_set_process_status (cprocess, PS_BLOCKED_BY_QUANTUM_SWITCH);
-      first_process_not_started = NULL;
+      d_assert (ER_thread_status (cthread) == PS_STARTED);
+      ER_set_thread_status (cthread, PS_BLOCKED_BY_QUANTUM_SWITCH);
+      first_thread_not_started = NULL;
     }
   else
     {
-      if (ER_process_status (cprocess) == PS_READY)
+      if (ER_thread_status (cthread) == PS_READY)
 	{
-	  ER_set_process_status (cprocess, PS_NOT_STARTED);
-	  if (first_process_not_started == NULL)
-	    first_process_not_started = cprocess;
+	  ER_set_thread_status (cthread, PS_NOT_STARTED);
+	  if (first_thread_not_started == NULL)
+	    first_thread_not_started = cthread;
 	}
       else
 	{
-	  d_assert (ER_process_status (cprocess) == PS_STARTED);
-	  ER_set_process_status (cprocess, PS_BLOCKED_BY_WAIT);
-	  first_process_not_started = NULL;
+	  d_assert (ER_thread_status (cthread) == PS_STARTED);
+	  ER_set_thread_status (cthread, PS_BLOCKED_BY_WAIT);
+	  first_thread_not_started = NULL;
 	}
     }
-  activate_process (FALSE);
+  activate_thread (FALSE);
 }
 
 void
-delete_cprocess (void)
+delete_cthread (void)
 {
-  first_process_not_started = NULL;
-  if (ER_next (cprocess) == cprocess)
+  first_thread_not_started = NULL;
+  if (ER_next (cthread) == cthread)
     dino_finish (0);
   else
     {
-      ER_set_prev (ER_next (cprocess), ER_prev (cprocess));
-      ER_set_next (ER_prev (cprocess), ER_next (cprocess));
-      cprocess = ER_prev (cprocess);
-      activate_process (FALSE);
+      ER_set_prev (ER_next (cthread), ER_prev (cthread));
+      ER_set_next (ER_prev (cthread), ER_next (cthread));
+      cthread = ER_prev (cthread);
+      activate_thread (FALSE);
     }
 }
 
-/* Delete current process because of an exception. */
+/* Delete current thread because of an exception. */
 int
-delete_cprocess_during_exception (void)
+delete_cthread_during_exception (void)
 {
-  if (ER_next (cprocess) == cprocess || ER_father (cprocess) == NULL)
+  if (ER_next (cthread) == cthread || ER_father (cthread) == NULL)
     return FALSE;
   else
     {
-      first_process_not_started = NULL;
-      ER_set_prev (ER_next (cprocess), ER_prev (cprocess));
-      ER_set_next (ER_prev (cprocess), ER_next (cprocess));
-      activate_given_process (ER_father (cprocess), FALSE);
+      first_thread_not_started = NULL;
+      ER_set_prev (ER_next (cthread), ER_prev (cthread));
+      ER_set_next (ER_prev (cthread), ER_next (cthread));
+      activate_given_thread (ER_father (cthread), FALSE);
       return TRUE;
     }
 }
 
-/* The following variables for switching process to prevent
+/* The following variables for switching thread to prevent
    starvation.  The first one is approximate number of executed stmts
-   after starting the process minus process quantum.  The second one is
-   maximal number of stmts executed in a process without switching. */
+   after starting the thread minus thread quantum.  The second one is
+   maximal number of stmts executed in a thread without switching. */
 int executed_stmts_count;
-int process_quantum;
+int thread_quantum;
 
 void 
-initiate_processes (pc_t start_pc)
+initiate_threads (pc_t start_pc)
 {
-  cprocess = NULL;
-  process_number = 0;
-  process_quantum = 700;
-  executed_stmts_count = -process_quantum;
-  cprocess = create_process (start_pc, NULL, NULL);
-  first_process_not_started = NULL;
-  activate_process (TRUE);
+  cthread = NULL;
+  thread_number = 0;
+  thread_quantum = 700;
+  executed_stmts_count = -thread_quantum;
+  cthread = create_thread (start_pc, NULL, NULL);
+  first_thread_not_started = NULL;
+  activate_thread (TRUE);
 }
 
 
@@ -3071,7 +3071,7 @@ void
 interrupt (pc_t first_resume_pc)
 {
   if (GC_executed_stmts_count > 0)
-    block_cprocess (first_resume_pc, FALSE);
+    block_cthread (first_resume_pc, FALSE);
   else
     {
       /* It is actually interrupt for GC.  */ 

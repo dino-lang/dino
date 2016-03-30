@@ -1633,7 +1633,7 @@ process_imm_fun_call (val_t *call_start, BC_node_t code, ER_node_t context,
   
   d_assert (BC_NODE_MODE (code) == BC_NM_fblock
 	    && BC_fmode (code) != BC_builtin
-	    && ! BC_thread_p (code) && ! BC_args_p (code)
+	    && ! BC_fiber_p (code) && ! BC_args_p (code)
 	    && actuals_num == BC_pars_num (code));
   real_fun_call_pc = cpc;
   res_p = FALSE;
@@ -2959,9 +2959,9 @@ fblock_end (BC_node_t bc_node)
   if (BC_fun_p (bc_node))
     ER_SET_MODE (IVAL (ER_ctop (ER_prev_stack (cstack)), 1),
 		 ER_NM_undef);
-  else if (BC_thread_p (bc_node))
+  else if (BC_fiber_p (bc_node))
     {
-      delete_cprocess ();
+      delete_cthread ();
       return FALSE;
     }
   else if (BC_class_p (bc_node))
@@ -3043,7 +3043,7 @@ waitcond (ER_node_t op1)
     eval_error (syncwait_bc_decl, get_cpos (), DERR_wait_in_sync_stmt);
   true_p = non_zero_p (op1, DERR_invalid_wait_guard_expr_type);
   if (! true_p)
-    block_cprocess (BC_pc (cpc), TRUE);
+    block_cthread (BC_pc (cpc), TRUE);
   else
     {
       INCREMENT_PC ();

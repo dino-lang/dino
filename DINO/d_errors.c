@@ -57,7 +57,7 @@ char ERR_eof_in_C_code[] = "C code is not finished (EOF)";
 char ERR_unknown_hint[] = "unknown hint %s";
 char ERR_wrong_hint_for_non_fun[]
   = "inline or pure hint is permitted only for fun";
-char ERR_jit_hint_for_thread[] = "jit hint is not permitted for thread";
+char ERR_jit_hint_for_fiber[] = "jit hint is not permitted for fiber";
 char ERR_default_value_parameter_and_dots[]
   = "usage of parameter default value and `...'";
 char ERR_default_value_parameters_should_be_last[]
@@ -179,8 +179,8 @@ char ERR_invalid_slice_bound_type []
   = "invalid type of bound in vector slice access (`[:]')";
 char ERR_invalid_slice_step_type []
   = "invalid type of step in vector slice access (`[:]')";
-char ERR_invalid_class_fun_thread_designator []
-  = "invalid class, function, or thread designator in class or function call";
+char ERR_invalid_class_fun_fiber_designator []
+  = "invalid class, function, or fiber designator in class or function call";
 char ERR_invalid_if_expr_type [] = "invalid type of if-expr";
 char ERR_invalid_for_guard_expr_type [] = "invalid type of for-expr";
 char ERR_invalid_wait_guard_expr_type [] = "invalid type of wait-expr";
@@ -203,8 +203,8 @@ char ERR_return_outside_fun_class []
   = "statement return is not in function or class";
 char ERR_return_with_result_in_class []
   = "statement return with result is in class";
-char ERR_return_with_result_in_thread []
-  = "statement return with result is in thread";
+char ERR_return_with_result_in_fiber []
+  = "statement return with result is in fiber";
 char ERR_function_call_in_wait_stmt []
   = "function call is present in wait statement";
 
@@ -306,7 +306,7 @@ char DERR_invalid_for_guard_expr_type []
 char DERR_invalid_wait_guard_expr_type []
   = "run time error - invalid wait-guard expression type";
 char DERR_wait_in_sync_stmt [] = "wait in sync-statement";
-char DERR_thread_call_in_sync_stmt [] = "thread call in sync-statement";
+char DERR_fiber_call_in_sync_stmt [] = "fiber call in sync-statement";
 char DERR_no_exception_after_throw []
   = "run time - an except instance must be after throw";
 char DERR_index_is_not_int []
@@ -455,7 +455,7 @@ char DERR_rmatch_expr_type []
   = "run time error - rmatch expression is not a string";
 char DERR_rmatch_case_expr_type []
   = "run time error - rmatch case expression is not a string";;
-char DERR_deadlock [] = "run time error - process deadlock";
+char DERR_deadlock [] = "run time error - thread deadlock";
 char DERR_unprocessed_exception []
   = "run time error - exception %s has not been processed";
 char DERR_C_code_compilation_failure []

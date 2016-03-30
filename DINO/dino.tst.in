@@ -1262,7 +1262,7 @@ println (c);
 println (c ());
 var stop;
 stop = 0;
-thread t {wait (stop);}
+fiber t {wait (stop);}
 println (t());
 wait (1) stop = 1;
 
@@ -1345,14 +1345,14 @@ fi
 if test $result = ok -a $start_test_number -le 37; then
 	echo test 37
         cat >$test_file <<'TEST37'
-thread t1 {
+fiber t1 {
   var i;
   for (i = 0; i < 1000; i++)
      if (i % 100 == 0)
        putln ("thread 1 ", i);
 }
 
-thread t2 {
+fiber t2 {
   var i;
   for (i = 0; i < 1000; i++)
      if (i % 100 == 0)
@@ -1405,7 +1405,7 @@ if test $result = ok -a $start_test_number -le 38; then
 	echo test 38
         cat >$test_file <<'TEST38'
 class c(){
-thread f (start, iter) {var i;
+fiber f (start, iter) {var i;
   for (; iter >= 0; iter--){
     println (start);
     start++;
@@ -12256,7 +12256,7 @@ fun f ()
 }
 println (type (f));
 var flag;
-thread t ()
+fiber t ()
 {
   wait (flag != nil);
 }
@@ -12284,10 +12284,10 @@ float
 vector
 table
 fun
-thread
+fiber
 class
 obj
-process
+thread
 obj
 type
 OUTPUT60
@@ -12312,7 +12312,7 @@ println (closure ([]));
 println (closure (tab []));
 fun f {}
 println (closure (f));
-thread t {}
+fiber t {}
 println (closure (t));
 class c {}
 println (closure (c ()));
@@ -12521,7 +12521,7 @@ println (context (i).l);
 
 {
   pub var l;
-  thread t { wait (l);};
+  fiber t { wait (l);};
   i = t ();
   try {wait (1) l = 0;}
 }
@@ -16240,11 +16240,11 @@ fi
 if test $result = ok -a $start_test_number -le 189; then
 	echo test 189
         cat >$test_file <<'TEST189'
-thread t1 {
+fiber t1 {
   put ("thread 1: ");print (curr_thread); put (" "); println (main_thread);
 }
 
-thread t2 {
+fiber t2 {
   put ("thread 2: ");print (curr_thread); put (" "); println (main_thread);
 }
 
@@ -20260,7 +20260,7 @@ fi
 if test $result = ok -a $start_test_number -le 346; then
 	echo test 346
         cat >$test_file <<'TEST346'
-thread f {
+fiber f {
   return 10;
 }
 
@@ -20274,7 +20274,7 @@ TEST346
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT346' && $CMP $stderr $ftemp2; then
-test.d:2:3: statement return with result is in thread
+test.d:2:3: statement return with result is in fiber
 OUTPUT346
                         result=ok
                 else
@@ -20287,7 +20287,7 @@ fi
 if test $result = ok -a $start_test_number -le 347; then
 	echo test 347
         cat >$test_file <<'TEST347'
-thread f {
+fiber f {
   {
     return 10;
   }
@@ -20303,7 +20303,7 @@ TEST347
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT347' && $CMP $stderr $ftemp2; then
-test.d:3:5: statement return with result is in thread
+test.d:3:5: statement return with result is in fiber
 OUTPUT347
                         result=ok
                 else
@@ -20324,7 +20324,7 @@ TEST348
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT348' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - process deadlock
+test.d:1:7: run time error - thread deadlock
 OUTPUT348
                         result=ok
                 else
@@ -20337,7 +20337,7 @@ fi
 if test $result = ok -a $start_test_number -le 349; then
 	echo test 349
         cat >$test_file <<'TEST349'
-thread t { wait (0);}
+fiber t { wait (0);}
 var p;
 p = t ();
 wait (0);
@@ -20348,11 +20348,11 @@ TEST349
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT349' && $CMP $stderr $ftemp2; then
-test.d:4:7: run time error - process deadlock
+test.d:4:7: run time error - thread deadlock
 OUTPUT349
                         result=ok
                 elif cat >$ftemp2 <<'OUTPUT349-1' && $CMP $stderr $ftemp2; then
-test.d:1:18: run time error - process deadlock
+test.d:1:17: run time error - thread deadlock
 OUTPUT349-1
                         result=ok
                 else
@@ -20365,7 +20365,7 @@ fi
 if test $result = ok -a $start_test_number -le 350; then
 	echo test 350
         cat >$test_file <<'TEST350'
-thread t { wait (0);}
+fiber t { wait (0);}
 var p;
 p = t ();
 TEST350
@@ -20375,7 +20375,7 @@ TEST350
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT350' && $CMP $stderr $ftemp2; then
-test.d:1:18: run time error - process deadlock
+test.d:1:17: run time error - thread deadlock
 OUTPUT350
                         result=ok
                 else
@@ -20507,14 +20507,14 @@ fun waitfor (n, t){
     }
 }
 
-thread output {
+fiber output {
   waitfor ("output", 2.0);
   putln ("output 1");
   waitfor ("output", 4.0);
   putln ("output 2");
 }
 
-thread move {
+fiber move {
    waitfor ("move", 1.0);
    putln ("move 1");
    waitfor ("move", 3.0);
@@ -20597,7 +20597,7 @@ class back_leg(side){
     rotate (side @ "_back_hoof", Z, angle);
   }
 
-  thread move (start_ctime, steps_number) {
+  fiber move (start_ctime, steps_number) {
     waitfor (side, start_ctime);
     var i;
     for (i=0; i<steps_number; i = i+1)
@@ -20605,7 +20605,7 @@ class back_leg(side){
   }
 }     
 
-thread output(interval) {
+fiber output(interval) {
   var i, cont;
   for (i=0; i<interval; i=i+1) {
     waitfor ("output", i + 0.0);
@@ -27178,7 +27178,7 @@ put (sprintln (c));
 put (sprintln (c ()));
 var stop;
 stop = 0;
-thread t {wait (stop);}
+fiber t {wait (stop);}
 put (sprintln (t()));
 wait (1) stop = 1;
 TEST486
@@ -32205,7 +32205,7 @@ var first = nil, second = nil;
 
 // Create a very social creature.
 class creature (my_color, creatures_met = 0) {
-  thread be {
+  fiber be {
     for (;my_color != faded;) {
       var other;
 
@@ -32266,7 +32266,7 @@ var N = int (#argv < 1 ? 10 : argv [0]);
 var cont_p = 1, i, t, first = nil, last = nil, count = 0;
 
 class thread_node (next = nil, n = -1) {
-  thread start {
+  fiber start {
     for (; cont_p;) {
       wait (n >= 0 || ! cont_p);
       if (next != nil) {next.n = n + 1; n = -1;}
@@ -32309,7 +32309,7 @@ var N = int (#argv < 1 ? 10 : argv [0]);
 var cont_p = 1, i, t, first = nil, last = nil, count = 0;
 
 class thread_node (next = nil, n = -1) {
-  thread start {
+  fiber start {
     for (; cont_p;) {
       wait (n >= 0 || ! cont_p);
       if (next != nil) {next.n = n + 1; n = -1;}
@@ -34582,7 +34582,7 @@ if test $result = ok -a $start_test_number -le 574; then
 	echo test 574: Sync-statement
         cat >$test_file <<'TEST574'
 var f = 1;
-thread t {
+fiber t {
   wait (1) {
     var i;
 
@@ -34627,7 +34627,7 @@ if test $result = ok -a $start_test_number -le 575; then
         cat >$test_file <<'TEST575'
 var flag = 0;
 
-thread f {
+fiber f {
   wait (1) {
     wait (flag);
     flag = 0;
@@ -34660,7 +34660,7 @@ if test $result = ok -a $start_test_number -le 576; then
         cat >$test_file <<'TEST576'
 var flag = 0;
 
-thread f {
+fiber f {
   try {
     wait (1) wait (flag);
   } catch (syncwait) {
@@ -34692,11 +34692,11 @@ fi
 
 # Test 577.
 if test $result = ok -a $start_test_number -le 577; then
-	echo test 577: Thread call in sync-statement
+	echo test 577: Fiber call in sync-statement
         cat >$test_file <<'TEST577'
 var flag = 0;
 
-thread f {
+fiber f {
 }
 
 wait (1) f ();
@@ -34708,7 +34708,7 @@ TEST577
         else
                 echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT577' && $CMP $stderr $ftemp2; then
-test.d:6:12: thread call in sync-statement
+test.d:6:12: fiber call in sync-statement
 OUTPUT577
                         result=ok
                 else
@@ -34719,11 +34719,11 @@ fi
 
 # Test 578.
 if test $result = ok -a $start_test_number -le 578; then
-	echo test 578: Catching thread call in sync-statement
+	echo test 578: Catching fiber call in sync-statement
         cat >$test_file <<'TEST578'
 var flag = 0;
 
-thread f {
+fiber f {
 }
 
 try {
@@ -36093,7 +36093,7 @@ if test $result = ok -a $start_test_number -le 597; then
 	echo test 597: A bug with extended life block
         cat >$test_file <<'TEST597'
 var o = nil;
-thread t {class tc {}; o = tc ();}
+fiber t {class tc {}; o = tc ();}
 fun f {class fc {};return fc();}
 fun main {
   var one, two;
@@ -36310,13 +36310,13 @@ fi
 
 # Test 605.
 if test $result = ok -a $start_test_number -le 605; then
-	echo test 605: Anonymous func/class/thread
+	echo test 605: Anonymous func/class/fiber
         cat >$test_file <<'TEST605'
 putln (fun (a,b) {return a < b ? a : b;} (3, 5));
 fun (a,b) {putln (a > b ? a : b);} (3, 5);
 var o = class (c) {};
 putln (o (42).c);
-thread {put ("Wait... "); wait (o==nil); putln ("Continue");} ();
+fiber {put ("Wait... "); wait (o==nil); putln ("Continue");} ();
 o = nil;
 TEST605
         echo '      ' $DINO -t $test_file "2>$stderr"
@@ -37134,7 +37134,7 @@ if test $result = ok -a $start_test_number -le 635; then
         cat >$test_file <<'TEST635'
 var i; fun f {i = this;}
 class c {i = this;}
-thread t {i = this;}
+fiber t {i = this;}
 TEST635
         echo '      ' $DINO $test_file "2>$stdout"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -44868,9 +44868,9 @@ fi
 
 # Test 726
 if test $result = ok -a $start_test_number -le 726; then
-	echo test 726: Inline for thread
+	echo test 726: Inline for fiber
         cat >$test_file <<'TEST726'
-thread t !inline {}
+fiber t !inline {}
 TEST726
         echo '      ' "$DINO $test_file 2>$stderr >$stdout"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -44878,7 +44878,7 @@ TEST726
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT726' && $CMP $stderr $ftemp2; then
-test.d:1:8: inline or pure hint is permitted only for fun
+test.d:1:7: inline or pure hint is permitted only for fun
 OUTPUT726
                     echo '      ' $CMP - $stdout
                     if cat >$ftemp2 <<'OUTPUT726-2' && $CMP $stdout $ftemp2; then
@@ -44922,9 +44922,9 @@ fi
 
 # Test 728
 if test $result = ok -a $start_test_number -le 728; then
-	echo test 728: Pure for thread
+	echo test 728: Pure for fiber
         cat >$test_file <<'TEST728'
-thread t !pure {}
+fiber t !pure {}
 TEST728
         echo '      ' "$DINO $test_file 2>$stderr >$stdout"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -44932,7 +44932,7 @@ TEST728
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT728' && $CMP $stderr $ftemp2; then
-test.d:1:8: inline or pure hint is permitted only for fun
+test.d:1:7: inline or pure hint is permitted only for fun
 OUTPUT728
                     echo '      ' $CMP - $stdout
                     if cat >$ftemp2 <<'OUTPUT728-2' && $CMP $stdout $ftemp2; then
@@ -44976,9 +44976,9 @@ fi
 
 # Test 730
 if test $result = ok -a $start_test_number -le 730; then
-	echo test 730: Pure for thread
+	echo test 730: Pure for fiber
         cat >$test_file <<'TEST730'
-thread t !jit {}
+fiber t !jit {}
 TEST730
         echo '      ' "$DINO $test_file 2>$stderr >$stdout"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -44986,7 +44986,7 @@ TEST730
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT730' && $CMP $stderr $ftemp2; then
-test.d:1:8: jit hint is not permitted for thread
+test.d:1:7: jit hint is not permitted for fiber
 OUTPUT730
                     echo '      ' $CMP - $stdout
                     if cat >$ftemp2 <<'OUTPUT730-2' && $CMP $stdout $ftemp2; then
@@ -51468,6 +51468,29 @@ TEST919
                 if cat >$ftemp2 <<'OUTPUT919' && $CMP $stdout $ftemp2; then
 100000183500823.75
 OUTPUT919
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 920.
+if test $result = ok -a $start_test_number -le 920; then
+	echo test 920: A bug in a slice assignment
+        cat >$test_file <<'TEST920'
+var v=[0,1,2];
+v[0:-1]='a';
+println (v);
+TEST920
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout ; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT920' && $CMP $stdout $ftemp2; then
+"aaa"
+OUTPUT920
                         result=ok
                 else
                         result=fail

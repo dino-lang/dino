@@ -2,7 +2,7 @@
 <HTML>
 <HEAD>
  <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.66">
- <TITLE>The Programming Language DINO: Appendix A. Syntax of Dino</TITLE>
+ <TITLE>The Programming Language DINO: Appendix A. The Dino syntax</TITLE>
  <LINK HREF="dino-11.html" REL=next>
  <LINK HREF="dino-9.html" REL=previous>
  <LINK HREF="dino.html#toc10" REL=contents>
@@ -12,7 +12,7 @@
 <A HREF="dino-9.html">Previous</A>
 <A HREF="dino.html#toc10">Contents</A>
 <HR>
-<H2><A NAME="s10">10.</A> <A HREF="dino.html#toc10">Appendix A. Syntax of Dino</A></H2>
+<H2><A NAME="s10">10.</A> <A HREF="dino.html#toc10">Appendix A. The Dino syntax</A></H2>
 
 <P>
 <BLOCKQUOTE><CODE>
@@ -72,10 +72,10 @@ Expr = Expr "?"  Expr ":" Expr
      | vec
      | tab
      | fun
-     | thread
+     | fiber
      | class
      | obj
-     | process
+     | thread
      | type
      | this
      | char "(" Expr ")"
@@ -85,6 +85,7 @@ Expr = Expr "?"  Expr ":" Expr
      | tab "(" Expr ")"
      | type "(" Expr ")"
      | AnonHeader FormalParameters Block
+     | try "(" ExecutiveStmt [ ","  ExceptClassList] ")"
      | "_"
      | "..."
 
@@ -102,7 +103,7 @@ Call = Designator ActualParameters
 
 ActualParameters = "(" [ Expr { "," Expr } ] ")"
         
-AnonHeader = [Qualifiers] FuncThreadClass
+AnonHeader = [Qualifiers] FuncFiberClass
                           
 Stmt = ExecutiveStmt
      | Declaration
@@ -185,15 +186,15 @@ ExternItems = ExternItem { "," ExternItem }
 ExternItem = IDENT 
            | IDENT  "(" ")"
 
-Header = [Qualifiers] FuncThreadClass IDENT
+Header = [Qualifiers] FuncFiberClass IDENT
 
 Qualifiers = pub | priv | final
            | pub final | priv final
            | final pub | final priv
 
-FuncThreadClass = fun 
-                | thread 
-                | class 
+FuncFiberClass = fun 
+               | fiber 
+               | class 
         
 FormalParameters =
                  | "(" [ ParList ] ")"

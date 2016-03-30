@@ -611,8 +611,8 @@ context_call (int pars_number)
     context = ER_context (ER_stack (val));
   else if (ER_NODE_MODE (val) == ER_NM_code)
     context = ER_code_context (val);
-  else if (ER_NODE_MODE (val) == ER_NM_process)
-    context = ER_context (ER_process (val));
+  else if (ER_NODE_MODE (val) == ER_NM_thread)
+    context = ER_context (ER_thread (val));
   else
     eval_error (partype_bc_decl, call_pos (),
 		DERR_parameter_type, CONTEXT_NAME);
@@ -3098,8 +3098,8 @@ print_val (ER_node_t val, int quote_flag, int full_p, int byte_p)
 	add_string_to_print ("fun ", byte_p);
       else if (BC_class_p (code))
 	add_string_to_print ("class ", byte_p);
-      else if (BC_thread_p (code))
-	add_string_to_print ("thread ", byte_p);
+      else if (BC_fiber_p (code))
+	add_string_to_print ("fiber ", byte_p);
       if (print_context (ER_code_context (val), byte_p))
 	add_string_to_print (".", byte_p);
       if (BC_NODE_MODE (code) == BC_NM_fblock)
@@ -3117,21 +3117,21 @@ print_val (ER_node_t val, int quote_flag, int full_p, int byte_p)
 	print_context (ER_stack (val), byte_p);
 	break;
       }
-    case ER_NM_process:
-      if (ER_process_block (ER_process (val)) == NULL)
+    case ER_NM_thread:
+      if (ER_thread_block (ER_thread (val)) == NULL)
 	add_string_to_print ("main thread", byte_p);
       else
 	{
 	  ER_node_t stack;
 
-	  for (stack = ER_saved_cstack (ER_process (val));
+	  for (stack = ER_saved_cstack (ER_thread (val));
 	       stack != NULL;
 	       stack = ER_prev_stack (stack))
 	    if (BC_NODE_MODE (ER_stack_block (stack)) == BC_NM_fblock
-		&& BC_thread_p (ER_stack_block (stack)))
+		&& BC_fiber_p (ER_stack_block (stack)))
 	      break;
 	  sprintf (str, "thread %ld ",
-		   (long int) ER_process_number (ER_process (val)));
+		   (long int) ER_thread_number (ER_thread (val)));
 	  add_string_to_print (str, byte_p);
 	  if (!print_context (stack, byte_p))
 	    d_unreachable ();
@@ -3173,14 +3173,14 @@ print_val (ER_node_t val, int quote_flag, int full_p, int byte_p)
 	case type_class:
 	  string = "class";
 	  break;
-	case type_thread:
-	  string = "thread";
+	case type_fiber:
+	  string = "fiber";
 	  break;
 	case type_obj:
 	  string = "obj";
 	  break;
-	case type_process:
-	  string = "process";
+	case type_thread:
+	  string = "thread";
 	  break;
 	case type_type:
 	  string = "type";
@@ -6086,13 +6086,13 @@ initiate_vars (void)
   d_assert (BC_decl_scope (main_thread_bc_decl) == ER_block_node (ostack));
   var = IVAL (ER_stack_vars (ostack),
 	      BC_var_num (main_thread_bc_decl));
-  ER_SET_MODE (var, ER_NM_process);
-  ER_set_process (var, cprocess);
+  ER_SET_MODE (var, ER_NM_thread);
+  ER_set_thread (var, cthread);
   d_assert (BC_decl_scope (curr_thread_bc_decl) == ER_block_node (ostack));
   var = IVAL (ER_stack_vars (ostack),
 	      BC_var_num (curr_thread_bc_decl));
-  ER_SET_MODE (var, ER_NM_process);
-  ER_set_process (var, cprocess);
+  ER_SET_MODE (var, ER_NM_thread);
+  ER_set_thread (var, cthread);
 }
 
 /* This function is a trick to fullfil initiations after execution of
@@ -6235,11 +6235,11 @@ process_fun_call (val_t *par_start, BC_node_t code, ER_node_t context,
   BC_node_t block = code;
   int vars_number = BC_vars_num (block);
   
-  if (BC_thread_p (code) && sync_flag)
+  if (BC_fiber_p (code) && sync_flag)
     /* We check it before creating a stack (see
        find_catch_pc).  */
     eval_error (syncthreadcall_bc_decl, get_cpos (),
-		DERR_thread_call_in_sync_stmt);
+		DERR_fiber_call_in_sync_stmt);
   real_fun_call_pc = cpc;
   d_assert (BC_NODE_MODE (code) == BC_NM_fblock
 	    && BC_fmode (code) != BC_builtin);
@@ -6258,20 +6258,20 @@ process_fun_call (val_t *par_start, BC_node_t code, ER_node_t context,
     heap_push (block, context, -1);
   setup_pars (block, actuals_num, cvars, par_start, vars_number);
   do_call (block, from_c_code_p);
-  if (BC_thread_p (code))
+  if (BC_fiber_p (code))
     {
-      ER_node_t process;
+      ER_node_t thread;
       
-      process = create_process (cpc, code, context);
+      thread = create_thread (cpc, code, context);
       cpc = BC_next (ER_call_pc (cstack));
       ER_set_ctop (cstack, (char *) ctop);
       cstack = ER_prev_stack (cstack);
-      ER_set_saved_cstack (cprocess, cstack);
+      ER_set_saved_cstack (cthread, cstack);
       cvars = ER_stack_vars (cstack);
       ctop = (ER_node_t) ER_ctop (cstack);
       TOP_UP;
-      ER_SET_MODE (ctop, ER_NM_process);
-      ER_set_process (ctop, process);
+      ER_SET_MODE (ctop, ER_NM_thread);
+      ER_set_thread (ctop, thread);
       TOP_DOWN;
     }
 }
@@ -6297,7 +6297,7 @@ process_imm_ifun_call (BC_node_t code, int actuals_num, int from_c_code_p)
 }
 
 
-/* A general function processing tail (if TAIL_FLAG) fun/thread/class
+/* A general function processing tail (if TAIL_FLAG) fun/fiber/class
    call of fun FDECL in CONTEXT with ACTUALS_NUM paramaters starting
    with ACTUALS_START and all call related data starting with
    CALL_START.  If CALL_START refers to the fun value if it is present
@@ -6371,7 +6371,7 @@ process_fun_class_call (BC_node_t fdecl, ER_node_t context,
     }
 }
 
-/* A general function processing tail (if TAIL_FLAG) fun/thread/class
+/* A general function processing tail (if TAIL_FLAG) fun/fiber/class
    call of fun with ACTUALS_NUM paramaters starting with
    CALL_START.  */
 void

@@ -39,9 +39,9 @@ typedef struct ER_node *ER_hidden_node_t;
 
 typedef enum
 {
-  /* Regular function/class/thread: */
+  /* Regular function/class/fiber: */
   BC_no_gen,
-  /* Try to generate C code.  This can not be used for threads.
+  /* Try to generate C code.  This can not be used for fibers.
      If the generation failed, we mark it as BC_no_gen.  */
   BC_gen,
   /* Implementation function:  */
@@ -936,7 +936,7 @@ fblock :: block
         /* For forward decl fun without definition the field `next' is
 	   always NULL.  */
         fdecl : fdecl
-        fun_p, class_p, thread_p, args_p : bool_t
+        fun_p, class_p, fiber_p, args_p : bool_t
         simple_p, pure_fun_p, forward_p : bool_t
         pars_num, min_pars_num : int_t
         fmode : fun_mode_t {$ = BC_no_gen;}

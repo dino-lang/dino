@@ -16,10 +16,10 @@
 
 <P>A Dino program is simply a sequence of statements.  There is a special
 declaration useful for writing programs consisting of several files or
-for making Dino packages.  This is the include-declaration.  Before
+for making Dino packages.  This is an include-declaration.  Before
 execution of any statements all include-declarations are replaced by
 files whose base names are given by the strings.  It is made
-recursively, i.e.  the files themselves can contain other
+recursively, i.e. the files themselves can contain other
 include-declarations.  There should be no infinite recursion in this.
 If <CODE>+</CODE> is present in the include-declaration, the file is
 inserted in any case.  Without <CODE>+</CODE> the file is inserted only if
@@ -31,26 +31,24 @@ it has been yet not inserted into the block of the declaration.
           IncludeDeclaration = include ["+"] STRING ";"
 </PRE>
 </CODE></BLOCKQUOTE>
-
-Examples:</P>
+</P>
+<P>Examples:</P>
 <P>The following program outputs the first 24 Fibonachi numbers:
 <BLOCKQUOTE><CODE>
 <PRE>
           // Recursive function to compute Fibonacci numbers
-          fun fibonacci (n)
-            {
+          fun fibonacci (n) {
                if (n &lt;= 1) return 1;
                return (fibonacci(n-1) + fibonacci(n-2));
-            }
+          }
           
           var i, fibnum;
           
           fibnum = 0;
-          for (i = 0; i &lt;= 24; i++) 
-            {
+          for (i = 0; i &lt;= 24; i++) {
               fibnum = fibonacci(i);
               putln (i @ " " @ fibnum); 
-            }
+          }
 </PRE>
 </CODE></BLOCKQUOTE>
 </P>
@@ -66,19 +64,17 @@ than 8190:
           for (i = 0; i &lt;= SieveSize; i++)
             flags[i] = 1;
           for (i = 0; i &lt;= SieveSize; i++)
-            if (flags[i])
-              {
+            if (flags[i]) {
                 prime = i + i + 3;
                 k = i + prime;
-                for (;1;;)
-                  {
+                for (;1;) {
                       if (k > SieveSize)
-                      break;
+                        break;
                     flags[k] = 0;
                     k += prime;
-                  }
+                }
                 count++;
-              }
+            }
           println (count);
 </PRE>
 </CODE></BLOCKQUOTE>
@@ -87,7 +83,7 @@ than 8190:
 different numbers and identifiers in stdin:
 <BLOCKQUOTE><CODE>
 <PRE>
-          var i, key, voc = {};
+          var i, key, voc = tab[];
           for (;;)
             try {
               var ln, a;
@@ -97,7 +93,7 @@ different numbers and identifiers in stdin:
                 continue;
               a = split (ln, "[^[:alnum:]]");
               for (i = 0; i &lt; #a; i++)
-                voc {a[i]} = (a[i] in voc ? voc {a[i]} + 1 : 1);
+                voc {a[i]} = (a[i] in voc ? voc [a[i]] + 1 : 1);
             } catch (eof) {
               break;
             }
@@ -106,7 +102,7 @@ different numbers and identifiers in stdin:
           }
           key = sort (keys (voc), comp);
           for (i = 0; i &lt; #key; i++)
-            putln (key[i], " : ", voc{key[i]});
+            putln (key[i], " : ", voc[key[i]]);
 </PRE>
 </CODE></BLOCKQUOTE>
 </P>

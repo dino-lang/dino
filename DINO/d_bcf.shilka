@@ -51,7 +51,7 @@ ext_life_p
 fdecl
 fun_p
 class_p
-thread_p
+fiber_p
 args_p
 simple_p
 pure_fun_p
