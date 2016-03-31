@@ -1690,7 +1690,7 @@ File: msta.info,  Node: Appendix 2 - Example of MSTA scanner description file,  
          fprintf (stderr, "%d - %s\n", token, lexema);
      #else
        lineno = 1;
-       yylex_start (_flag);
+       yylex_start (& error_flag);
        if (error_flag)
          {
            fprintf (stderr, "no memory for scanner arrays");
@@ -1761,6 +1761,6 @@ Node: MSTA Usage46273
 Node: Future of MSTA development61238
 Node: Appendix 1 - Syntax of MSTA description file (YACC description)61665
 Node: Appendix 2 - Example of MSTA scanner description file67163
-Node: Appendix 3 - Run of MSTA on the previous description file70471
+Node: Appendix 3 - Run of MSTA on the previous description file70478
 
 End Tag Table

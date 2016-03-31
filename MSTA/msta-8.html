@@ -139,7 +139,7 @@ main (int argc, char **argv)
     fprintf (stderr, "%d - %s\n", token, lexema);
 #else
   lineno = 1;
-  yylex_start (_flag);
+  yylex_start (&amp; error_flag);
   if (error_flag)
     {
       fprintf (stderr, "no memory for scanner arrays");

@@ -1178,7 +1178,7 @@ or `IR_END_IR_node_t'.
 By default initialization macros have definition
 <BLOCKQUOTE><CODE>
 <PRE>
-           `bzero ( sizeof (a))'
+           `bzero (&amp; (a), sizeof (a))'
 </PRE>
 </CODE></BLOCKQUOTE>
 
@@ -1234,10 +1234,10 @@ from prefixes `IR_INPUT_' and `IR_OUTPUT_' and name of the
 type.  By default the macros have definitions
 <BLOCKQUOTE><CODE>
 <PRE>
-        `(fwrite ( sizeof (field), 1, (file))
+        `(fwrite (&amp; (field), sizeof (field), 1, (file))
                           != sizeof (field))'
 
-        and `(fread ( sizeof (field), 1, (file))
+        and `(fread (&amp; (field), sizeof (field), 1, (file))
                           != sizeof (field))'
 </PRE>
 </CODE></BLOCKQUOTE>

@@ -93,6 +93,7 @@ doc :
                      {while ((getline line < \"$(srcdir)/yaep_part++.sgml.in\") > 0)\
                         print line;close(\"$(srcdir)/yaep_part++.sgml.in\")}\
                  else print;}" $(srcdir)/ammunition++.sgml.in >ammunition++.sgml
+	linuxdoc -B txt --papersize=letter -f ammunition++.sgml
 	mv ammunition++.txt $(srcdir)
 	linuxdoc -B html --papersize=letter ammunition++.sgml
 	if test -f ammunition++-1.html;then\

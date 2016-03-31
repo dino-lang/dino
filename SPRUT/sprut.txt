@@ -1531,7 +1531,7 @@
      By default initialization macros have definition
 
 
-                  `bzero ( sizeof (a))'
+                  `bzero (& (a), sizeof (a))'
 
 
 
@@ -1584,10 +1584,10 @@
      default the macros have definitions
 
 
-               `(fwrite ( sizeof (field), 1, (file))
+               `(fwrite (& (field), sizeof (field), 1, (file))
                                  != sizeof (field))'
 
-               and `(fread ( sizeof (field), 1, (file))
+               and `(fread (& (field), sizeof (field), 1, (file))
                                  != sizeof (field))'
 
 

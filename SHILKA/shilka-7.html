@@ -24,38 +24,38 @@
 }
 %type keyword_t
 %%
-if            {static struct keyword res = {KR_if, 0}; return }
-do            {static struct keyword res = {KR_do, 0}; return }
-int           {static struct keyword res = {KR_int, 1}; return }
-for           {static struct keyword res = {KR_for, 0}; return }
-case          {static struct keyword res = {KR_case, 0}; return }
-char     1600 {static struct keyword res = {KR_char, 1}; return }
-auto          {static struct keyword res = {KR_auto, 0}; return }
-goto          {static struct keyword res = {KR_goto, 0}; return }
-else     5700 {static struct keyword res = {KR_else, 0}; return }
-long          {static struct keyword res = {KR_long, 0}; return }
-void     8200 {static struct keyword res = {KR_void, 1}; return }
-enum          {static struct keyword res = {KR_void, 0}; return }
-float         {static struct keyword res = {KR_float, 1}; return }
-short         {static struct keyword res = {KR_short, 0}; return }
-union         {static struct keyword res = {KR_union, 0}; return }
-break         {static struct keyword res = {KR_break, 0}; return }
-while         {static struct keyword res = {KR_while, 0}; return }
-const         {static struct keyword res = {KR_const, 0}; return }
-double        {static struct keyword res = {KR_double, 0}; return }
-static   7300 {static struct keyword res = {KR_static, 0}; return }
-extern        {static struct keyword res = {KR_extern, 0}; return }
-struct        {static struct keyword res = {KR_struct, 0}; return }
-return   1000 {static struct keyword res = {KR_return, 0}; return }
-sizeof   1100 {static struct keyword res = {KR_sizeof, 0}; return }
-switch        {static struct keyword res = {KR_switch, 0}; return }
-signed        {static struct keyword res = {KR_signed, 0}; return }
-typedef       {static struct keyword res = {KR_typedef, 0}; return }
-default       {static struct keyword res = {KR_default, 0}; return }
-unsigned      {static struct keyword res = {KR_unsigned, 0}; return }
-continue      {static struct keyword res = {KR_continue, 0}; return }
-register      {static struct keyword res = {KR_register, 0}; return }
-volatile      {static struct keyword res = {KR_volatile, 0}; return }
+if            {static struct keyword res = {KR_if, 0}; return &amp; res;}
+do            {static struct keyword res = {KR_do, 0}; return &amp; res;}
+int           {static struct keyword res = {KR_int, 1}; return &amp; res;}
+for           {static struct keyword res = {KR_for, 0}; return &amp; res;}
+case          {static struct keyword res = {KR_case, 0}; return &amp; res;}
+char     1600 {static struct keyword res = {KR_char, 1}; return &amp; res;}
+auto          {static struct keyword res = {KR_auto, 0}; return &amp; res;}
+goto          {static struct keyword res = {KR_goto, 0}; return &amp; res;}
+else     5700 {static struct keyword res = {KR_else, 0}; return &amp; res;}
+long          {static struct keyword res = {KR_long, 0}; return &amp; res;}
+void     8200 {static struct keyword res = {KR_void, 1}; return &amp; res;}
+enum          {static struct keyword res = {KR_void, 0}; return &amp; res;}
+float         {static struct keyword res = {KR_float, 1}; return &amp; res;}
+short         {static struct keyword res = {KR_short, 0}; return &amp; res;}
+union         {static struct keyword res = {KR_union, 0}; return &amp; res;}
+break         {static struct keyword res = {KR_break, 0}; return &amp; res;}
+while         {static struct keyword res = {KR_while, 0}; return &amp; res;}
+const         {static struct keyword res = {KR_const, 0}; return &amp; res;}
+double        {static struct keyword res = {KR_double, 0}; return &amp; res;}
+static   7300 {static struct keyword res = {KR_static, 0}; return &amp; res;}
+extern        {static struct keyword res = {KR_extern, 0}; return &amp; res;}
+struct        {static struct keyword res = {KR_struct, 0}; return &amp; res;}
+return   1000 {static struct keyword res = {KR_return, 0}; return &amp; res;}
+sizeof   1100 {static struct keyword res = {KR_sizeof, 0}; return &amp; res;}
+switch        {static struct keyword res = {KR_switch, 0}; return &amp; res;}
+signed        {static struct keyword res = {KR_signed, 0}; return &amp; res;}
+typedef       {static struct keyword res = {KR_typedef, 0}; return &amp; res;}
+default       {static struct keyword res = {KR_default, 0}; return &amp; res;}
+unsigned      {static struct keyword res = {KR_unsigned, 0}; return &amp; res;}
+continue      {static struct keyword res = {KR_continue, 0}; return &amp; res;}
+register      {static struct keyword res = {KR_register, 0}; return &amp; res;}
+volatile      {static struct keyword res = {KR_volatile, 0}; return &amp; res;}
 %other        {return NULL;}                                                  
 </PRE>
 </CODE></BLOCKQUOTE>

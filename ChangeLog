@@ -1,5 +1,23 @@
 2016-03-30  Vladimir Makarov  <vmakarov@redhat.com>
 
+	* AMMUNITION/Makefile.am (doc): Call linuxdoc for
+	ammunition++.txt.
+	* AMMUNITION/Makefile.in: Update.
+	* AMMUNITION/ammunition[++].{pdf, ps, dvi}: Update.
+	* DINO/dino.{pdf, ps, dvi}: Update.
+	* MSTA/msta.sgml.in: Add space after &.
+	* MSTA/msta{-8.html, .info, .ps, .pdf, .dvi, .txt}: Update.
+	* NONA/nona.{pdf, ps, dvi}: Update.
+	* OKA/oka.{pdf, ps, dvi}: Update.
+	* SHILKA/shilka.sgml.in: Add space after &.
+	* SHILKA/shilka{-7.html, .info, .ps, .pdf, .dvi, .txt}: Update.
+	* SPRUT/sprut.sgml.in: Add space after &.
+	* SPRUT/sprut{-3.html, .info, .ps, .pdf, .dvi, .txt}: Update.
+	* cocom.sgml.in: Change date.
+	* cocom{.html, .info, .ps, .pdf, .dvi, .txt}: Update.
+
+2016-03-30  Vladimir Makarov  <vmakarov@redhat.com>
+
 	* README.md: Use fiber instead of thread wherever it is
 	appropriate.
 	* DINO/compare.tst: Use fiber instead of thread for Dino.

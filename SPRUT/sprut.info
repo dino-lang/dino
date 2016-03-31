@@ -1325,7 +1325,7 @@ redefined.  There are the following field type specific macros.
 
      By default initialization macros have definition
 
-                     `bzero ( sizeof (a))'
+                     `bzero (& (a), sizeof (a))'
 
      where 'a' is the macros argument.  Finalization macros do nothing.
      It is very important for correct work of double linked fields that
@@ -1365,10 +1365,10 @@ redefined.  There are the following field type specific macros.
      prefixes 'IR_INPUT_' and 'IR_OUTPUT_' and name of the type.  By
      default the macros have definitions
 
-                  `(fwrite ( sizeof (field), 1, (file))
+                  `(fwrite (& (field), sizeof (field), 1, (file))
                                     != sizeof (field))'
 
-                  and `(fread ( sizeof (field), 1, (file))
+                  and `(fread (& (field), sizeof (field), 1, (file))
                                     != sizeof (field))'
 
      where 'file' and 'field' are the macros parameters.  The
@@ -1757,8 +1757,8 @@ Node: C++ SPI39722
 Node: C++ SPI types variables macros40240
 Node: C++ Functions43666
 Node: Type specific macros62867
-Node: Storage management macros66602
-Node: SPRUT Usage68216
-Node: Appendix 1 - Syntax of internal representation description language77178
+Node: Storage management macros66628
+Node: SPRUT Usage68242
+Node: Appendix 1 - Syntax of internal representation description language77204
 
 End Tag Table

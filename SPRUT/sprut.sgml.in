@@ -1362,7 +1362,7 @@ redefined.  There are the following field type specific macros.
 
         By default initialization macros have definition
 <tscreen><verb>
-           `bzero (&(a), sizeof (a))'
+           `bzero (& (a), sizeof (a))'
 </verb></tscreen>
         where `a' is the macros argument.  Finalization macros do
         nothing.  It is very important for correct work of double
@@ -1406,10 +1406,10 @@ redefined.  There are the following field type specific macros.
         from prefixes `IR_INPUT_' and `IR_OUTPUT_' and name of the
         type.  By default the macros have definitions
 <tscreen><verb>
-        `(fwrite (&(field), sizeof (field), 1, (file))
+        `(fwrite (& (field), sizeof (field), 1, (file))
                           != sizeof (field))'
 
-        and `(fread (&(field), sizeof (field), 1, (file))
+        and `(fread (& (field), sizeof (field), 1, (file))
                           != sizeof (field))'
 </verb></tscreen>
         where `file' and `field' are the macros parameters.  The

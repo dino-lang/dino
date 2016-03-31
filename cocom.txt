@@ -1,6 +1,6 @@
   COCOM tool set
   Vladimir Makarov, vmakarov@gcc.gnu.org
-  Feb 28, 2016
+  March 30, 2016
 
   This document describes COCOM tool set oriented towards the creation
   of compilers, cross-compilers, interpreters, and other language pro-
@@ -362,10 +362,6 @@
      for description of movement of dinosaurs in an project. It has been
      considerably redesigned and implemented with the aid of COCOM tool
      set.
-
-  In future, I am going to implement more libraries fo DINO. Any help in
-  this will be appreciated. I am also going to use DINO for compiler
-  prototyping.
 
   Current state: Implemented, documented, and tested. Experimental
   status.
