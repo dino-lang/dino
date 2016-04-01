@@ -50124,6 +50124,15 @@ TEST865
 10
 OUTPUT865
                         result=ok
+# Some targets does not generate zero division exceptions
+                elif cat >$ftemp2 <<'OUTPUT865' && $CMP $stdout $ftemp2; then
+1
+1
+1
+1
+10
+OUTPUT865
+                        result=ok
                 else
                         result=fail
                 fi

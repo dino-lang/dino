@@ -1,3 +1,8 @@
+2016-03-31  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* DINO/dino.tst.in (865): Add expected output for targets w/o
+	sigfpe.
+
 2016-03-30  Vladimir Makarov  <vmakarov@redhat.com>
 
 	* AMMUNITION/Makefile.am (doc): Call linuxdoc for
