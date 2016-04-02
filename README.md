@@ -1,10 +1,10 @@
 # Programming language Dino and its implementation
 
-### The development version of the future release 0.97
+### Release 0.97
 
 ### Vladimir Makarov, vmakarov@gcc.gnu.org
 
-### Feb 28, 2016
+### Apr 2, 2016
 
 # Description Layout
 * Introduction to Dino
@@ -27,11 +27,9 @@
 * 1993: Original language design and implementation ![Dino logo](Dino.jpg "Dino logo")
     * Was used in russian computer game company ANIMATEK as a simple
       scripting language for describing dinosaurus movements
-* 1998, 2002, 2007 : Major language and implementation revisions
-* The next major release is planed to be done in spring of 2016.
-  * This document describes the current state of Dino language
-    and implementation. The document will be changed as the current
-    Dino state is changing.
+* 1998, 2002, 2007, 2106 : Major language and implementation revisions
+* This document describes the state of Dino language (version 0.5) and
+  its implementation (version 0.97).
 
 # The first taste of Dino
   * Eratosthenes sieve:

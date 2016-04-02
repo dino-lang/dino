@@ -10,7 +10,7 @@ The Programming Language DINO
 *****************************
 
      Vladimir Makarov, `vmakarov@gcc.gnu.org'.
-     Mar. 30, 2016
+     Apr 2, 2016
 
    This document describes the programming language DINO - the language
 version 0.5.
@@ -4944,7 +4944,7 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- The Dino 
 
 
      NAME
-            dino - the interpreter of the programming language Dino
+            dino - the interpreter of the programming language Dino (ver. 0.97)
 
      SYNOPSIS
             dino [ -h --help -s --statistics -t --trace -m size -Idirname -Lpath -O
@@ -5111,93 +5111,93 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- The Dino 
 
 
 
-     Dino                              30 Mar 2016                          Dino(1)
+     Dino                              2 Apr 2016                           Dino(1)
 
 
 
 Tag Table:
 Node: Top95
-Node: Introduction635
-Node: Syntax1982
-Node: Vocabulary and Representation2893
-Node: Declarations and Scope Rules11955
-Node: Variable Declarations17406
-Node: External Declarations19183
-Node: Functions and Classes20607
-Node: Use-Clause29733
-Node: Singleton Object32365
-Node: Expose-clause33358
-Node: Expressions35054
-Node: Types and Values35594
-Node: Designators44950
-Node: Calls50310
-Node: Operators52398
-Node: Logical operators56672
-Node: Bit operators58489
-Node: Comparison operators59624
-Node: Arithmetic operators61695
-Node: Miscellaneous operators62914
-Node: Slice Operators67111
-Node: Current block instance70050
-Node: Anonymous Functions and Classes70517
-Node: Try-operator71388
-Node: Patterns72429
-Node: Executive statements76550
-Node: Empty statement77495
-Node: Block-statement77909
-Node: Expression-statement78632
-Node: Assignment statements79427
-Node: If-statement82088
-Node: For-statement82951
-Node: Foreach-statement84501
-Node: Match-statements85502
-Node: Break- and continue-statement88723
-Node: Return-statement89998
-Node: Throw-statement90743
-Node: Try-block91397
-Node: Wait-statement93743
-Node: C code94875
-Node: Program96290
-Node: Predeclared identifiers99739
-Node: Space `lang'101204
-Node: Predeclared variables101522
-Node: Arguments and environment101881
-Node: Versions102562
-Node: Threads103170
-Node: Exception classes103707
-Node: Functions of the space `lang'109513
-Node: Space `io'121825
-Node: Exception classes of the space `io'122416
-Node: Class `file'123371
-Node: Files124152
-Node: Functions for work with files124969
-Node: File output functions129035
-Node: File input functions141883
-Node: Encoding functions145749
-Node: Functions for work with directories146573
-Node: Functions for access to file/directory information148193
-Node: Miscellaneous functions152934
-Node: Space `sys'153670
-Node: Exceptions in space `sys'154100
-Node: Variable `time_format'159887
-Node: Time functions160285
-Node: Functions for access to information about OS processes163298
-Node: Function `system (command)'164855
-Node: Space `re'165294
-Node: Exception class `invregex'165678
-Node: Variable `split_regex'166147
-Node: Pattern matching166554
-Node: Space `math'190162
-Node: Mathematical functions190428
-Node: Other space `math' functions191994
-Node: Space `yaep'193312
-Node: Exception classes of space `yaep'195462
-Node: Class parser196332
-Node: Class `token'205563
-Node: Class `anode'206348
-Node: Variables `nil_anode' and `error_anode'208508
-Node: Example of Earley parser usage-208952
-Node: Appendix A- The Dino syntax211901
-Node: Appendix B- Implementation217356
+Node: Introduction633
+Node: Syntax1980
+Node: Vocabulary and Representation2891
+Node: Declarations and Scope Rules11953
+Node: Variable Declarations17404
+Node: External Declarations19181
+Node: Functions and Classes20605
+Node: Use-Clause29731
+Node: Singleton Object32363
+Node: Expose-clause33356
+Node: Expressions35052
+Node: Types and Values35592
+Node: Designators44948
+Node: Calls50308
+Node: Operators52396
+Node: Logical operators56670
+Node: Bit operators58487
+Node: Comparison operators59622
+Node: Arithmetic operators61693
+Node: Miscellaneous operators62912
+Node: Slice Operators67109
+Node: Current block instance70048
+Node: Anonymous Functions and Classes70515
+Node: Try-operator71386
+Node: Patterns72427
+Node: Executive statements76548
+Node: Empty statement77493
+Node: Block-statement77907
+Node: Expression-statement78630
+Node: Assignment statements79425
+Node: If-statement82086
+Node: For-statement82949
+Node: Foreach-statement84499
+Node: Match-statements85500
+Node: Break- and continue-statement88721
+Node: Return-statement89996
+Node: Throw-statement90741
+Node: Try-block91395
+Node: Wait-statement93741
+Node: C code94873
+Node: Program96288
+Node: Predeclared identifiers99737
+Node: Space `lang'101202
+Node: Predeclared variables101520
+Node: Arguments and environment101879
+Node: Versions102560
+Node: Threads103168
+Node: Exception classes103705
+Node: Functions of the space `lang'109511
+Node: Space `io'121823
+Node: Exception classes of the space `io'122414
+Node: Class `file'123369
+Node: Files124150
+Node: Functions for work with files124967
+Node: File output functions129033
+Node: File input functions141881
+Node: Encoding functions145747
+Node: Functions for work with directories146571
+Node: Functions for access to file/directory information148191
+Node: Miscellaneous functions152932
+Node: Space `sys'153668
+Node: Exceptions in space `sys'154098
+Node: Variable `time_format'159885
+Node: Time functions160283
+Node: Functions for access to information about OS processes163296
+Node: Function `system (command)'164853
+Node: Space `re'165292
+Node: Exception class `invregex'165676
+Node: Variable `split_regex'166145
+Node: Pattern matching166552
+Node: Space `math'190160
+Node: Mathematical functions190426
+Node: Other space `math' functions191992
+Node: Space `yaep'193310
+Node: Exception classes of space `yaep'195460
+Node: Class parser196330
+Node: Class `token'205561
+Node: Class `anode'206346
+Node: Variables `nil_anode' and `error_anode'208506
+Node: Example of Earley parser usage-208950
+Node: Appendix A- The Dino syntax211899
+Node: Appendix B- Implementation217354
 
 End Tag Table

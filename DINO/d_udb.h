@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2015 Vladimir Makarov.
+   Copyright (C) 2015-2016 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@gcc.gnu.org>
 

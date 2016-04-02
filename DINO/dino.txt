@@ -1,6 +1,6 @@
   The Programming Language DINO
   Vladimir Makarov, vmakarov@gcc.gnu.org.
-  Mar. 30, 2016
+  Apr 2, 2016
 
   This document describes the programming language DINO -- the language
   version 0.5.
@@ -5329,7 +5329,7 @@
 
 
        NAME
-              dino - the interpreter of the programming language Dino
+              dino - the interpreter of the programming language Dino (ver. 0.97)
 
        SYNOPSIS
               dino [ -h --help -s --statistics -t --trace -m size -Idirname -Lpath -O
@@ -5496,7 +5496,7 @@
 
 
 
-       Dino                              30 Mar 2016                          Dino(1)
+       Dino                              2 Apr 2016                           Dino(1)
 
 
 
