@@ -1,5 +1,9 @@
 2016-04-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* README.md: Fix typo.
+
+2016-04-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* README.md: Release mentioning.  Change date.
 	* DINO/dino.1: Ditto.
 	* cocom.sgml.in: Change date.

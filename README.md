@@ -27,7 +27,7 @@
 * 1993: Original language design and implementation ![Dino logo](Dino.jpg "Dino logo")
     * Was used in russian computer game company ANIMATEK as a simple
       scripting language for describing dinosaurus movements
-* 1998, 2002, 2007, 2106 : Major language and implementation revisions
+* 1998, 2002, 2007, 2016 : Major language and implementation revisions
 * This document describes the state of Dino language (version 0.5) and
   its implementation (version 0.97).
 
