@@ -10,10 +10,10 @@ The Programming Language DINO
 *****************************
 
      Vladimir Makarov, `vmakarov@gcc.gnu.org'.
-     Mar. 30, 2016
+     Apr 2, 2016
 
-   This document describes the programming language DINO - the language
-version 0.5.
+   This document describes the programming language DINO - the current
+language version.
 
 * Menu:
 
@@ -4944,7 +4944,8 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- The Dino 
 
 
      NAME
-            dino - the interpreter of the programming language Dino
+            dino  -  the  interpreter of the programming language Dino (development
+            version)
 
      SYNOPSIS
             dino [ -h --help -s --statistics -t --trace -m size -Idirname -Lpath -O
@@ -4952,62 +4953,62 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- The Dino 
             | -i dump-file ) dino-program-arguments
 
      DESCRIPTION
-            dino  interprets  a program in the Dino programming language.  The pro‐
+            dino interprets a program in the Dino programming language.   The  pro‐
             gram file (and include files) must have the suffix .d
 
-            The program encodings are defined by the  current  encoding.   You  can
-            change   the  current  input  encoding  defining  environment  variable
-            DINO_ENCODING or calling DINO function set_encoding in  case  of  REPL.
-            Each  program file can define own encoding putting  -*- coding: <encod‐
+            The  program  encodings  are  defined by the current encoding.  You can
+            change  the  current  input  encoding  defining  environment   variable
+            DINO_ENCODING  or  calling  DINO function set_encoding in case of REPL.
+            Each program file can define own encoding putting  -*- coding:  <encod‐
             ing-name> -*-  anywhere on the first two lines of the file.
 
-            The description of Dino language is in the report  of  the  Programming
+            The  description  of  Dino language is in the report of the Programming
             Language Dino.
 
      OPTIONS
-            Calling  the interpreter without arguments is to call REPL (an interac‐
-            tive environment for execution of  Dino  statements  and  printing  the
+            Calling the interpreter without arguments is to call REPL (an  interac‐
+            tive  environment  for  execution  of  Dino statements and printing the
             results of the statement execution).  The options which the Dino inter‐
             preter recognizes are:
 
             -c program
-                   Execute the Dino program given on the command line as the  argu‐
+                   Execute  the Dino program given on the command line as the argu‐
                    ment.
 
             -h, --help
                    Output information about Dino command line options.
 
             -m number
-                   Determine  the  size  of the heap chunks used by the Dino inter‐
-                   preter.  The size can be given in bytes (e.g. 32000),  in  kilo‐
-                   bytes  (e.g.  64k), or in megabytes (e.g. 1m).  The default size
-                   is 1 Megabyte.  Initially,  the  Dino  interpreter  creates  one
-                   chunk.   It  allocates one additional chunk (as rule of the same
-                   size) whenever there is no additional memory after garbage  col‐
+                   Determine the size of the heap chunks used by  the  Dino  inter‐
+                   preter.   The  size can be given in bytes (e.g. 32000), in kilo‐
+                   bytes (e.g. 64k), or in megabytes (e.g. 1m).  The  default  size
+                   is  1  Megabyte.   Initially,  the  Dino interpreter creates one
+                   chunk.  It allocates one additional chunk (as rule of  the  same
+                   size)  whenever there is no additional memory after garbage col‐
                    lection.
 
             -s, --statistics
                    Output some statistics of interpreter work into stderr.  Statis‐
-                   tics contain the maximal heap size, number of heap  chunks,  and
-                   number  of  collisions  in  hash  tables  which are used for the
+                   tics  contain  the maximal heap size, number of heap chunks, and
+                   number of collisions in hash  tables  which  are  used  for  the
                    implementation of Dino tables.
 
             -t, --trace
-                   Output information about call stack of the program  into  stderr
+                   Output  information  about call stack of the program into stderr
                    for unprocessed exception or calling exit function.  This output
                    sometimes can be different from what people would expect because
                    of tail call elimination.
 
             -Idirname
-                   Define  the  directory  in  which  Dino  include  files  will be
-                   searched for.  The order of searching in directories given  with
+                   Define the  directory  in  which  Dino  include  files  will  be
+                   searched  for.  The order of searching in directories given with
                    this option is the same as the one on the command line.
 
             -Ldirname
                    Define  where  to  search  for  external  libraries  (if  shared
-                   libraries are implemented on  the  system.   This  is  true  for
+                   libraries  are  implemented  on  the  system.   This is true for
                    Linux, Solaris, Irix, OSF, and Windows) in which the Dino exter‐
-                   nal variables and functions will be searched for.  The order  of
+                   nal  variables and functions will be searched for.  The order of
                    searching in libraries given with this option is the same as one
                    on the command line.
 
@@ -5017,7 +5018,7 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- The Dino 
             -d, --dump
                    Output Dino byte code to the standard output.
 
-            -i     Read  Dino  byte code from a given file and execute it.  You can
+            -i     Read Dino byte code from a given file and execute it.   You  can
                    use this option instead of providing Dino program file.
 
             --check
@@ -5025,15 +5026,15 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- The Dino 
                    also checks all C-code fragments in the Dino program.
 
             --save-temps
-                   If  a  Dino  function processed by JIT compiler, the generated C
-                   source code and PIC object code can  be  saved  after  finishing
-                   Dino  interpreter  in directory /tmp with this option.  The file
-                   names will contain identifier number of the  corresponding  Dino
+                   If a Dino function processed by JIT compiler,  the  generated  C
+                   source  code  and  PIC  object code can be saved after finishing
+                   Dino interpreter in directory /tmp with this option.   The  file
+                   names  will  contain identifier number of the corresponding Dino
                    interpreter process.
 
             -p, --profile
-                   Output  profile  information  into  stderr.  Profile information
-                   contains the number of calls and execution times of  all  called
+                   Output profile information  into  stderr.   Profile  information
+                   contains  the  number of calls and execution times of all called
                    functions and classes.
 
      FILES
@@ -5044,60 +5045,60 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- The Dino 
             mpi.d
                    the DINO file implementing multiple precision arithmetic.
             mpi.so
-                   the  DINO  shared library used for implementing MPI on some Unix
+                   the DINO shared library used for implementing MPI on  some  Unix
                    systems.
             ieee.d
-                   the Dino file implementing IEEE standard floating  point  arith‐
+                   the  Dino  file implementing IEEE standard floating point arith‐
                    metic.
             ieee.so
-                   the  Dino shared library used for implementing IEEE on some Unix
+                   the Dino shared library used for implementing IEEE on some  Unix
                    systems.
             ipcerr.d
-                   the Dino file definining  exceptions  of  ipc/network  software.
+                   the  Dino  file  definining  exceptions of ipc/network software.
                    This file is used by socket.d.
             ipcerr.so
-                   the  Dino  shared  library  used for implementing IPCERR on some
+                   the Dino shared library used for  implementing  IPCERR  on  some
                    Unix systems.
             socket.d
                    the Dino file implementing work with sockets.
             socket.so
-                   the Dino shared library used for  implementing  SOCKET  on  some
+                   the  Dino  shared  library  used for implementing SOCKET on some
                    Unix systems.
-            Dino  interpreter  creates  temporary C and object files for Dino func‐
+            Dino interpreter creates temporary C and object files  for  Dino  func‐
             tions processed by JIT compiler in directory /tmp.
 
      ENVIRONMENT
-            There are the following environment variables which affect Dino  behav‐
+            There  are the following environment variables which affect Dino behav‐
             ior:
 
             DINO_HOME
-                   If  not null, it defines the places of the dino shared libraries
+                   If not null, it defines the places of the dino shared  libraries
                    (such a library may be only on some Unix systems including Linux
-                   and   Solaris),   include  files,  and  dino  standard  external
-                   libraries.  The places are defined as the  subdirectory  lib  in
-                   directory  given  by the environment variable value.  You should
-                   define the variable value on Windows if you installed the  files
+                   and  Solaris),  include  files,  and  dino   standard   external
+                   libraries.   The  places  are defined as the subdirectory lib in
+                   directory given by the environment variable value.   You  should
+                   define  the variable value on Windows if you installed the files
                    in a directory other than C:\dino\lib
 
             DINO_PATH
-                   If  not  null, it defines the places of dino include-files.  The
-                   value of the variable has more priority than DINO_HOME but  less
+                   If not null, it defines the places of dino  include-files.   The
+                   value  of the variable has more priority than DINO_HOME but less
                    priority than values given through -I options.
 
             DINO_LIB
-                   If  not  null, it defines places of dino shared library, if any.
-                   The  value  of  variable  has  more  priority  than   DINO_HOME.
+                   If not null, it defines places of dino shared library,  if  any.
+                   The   value  of  variable  has  more  priority  than  DINO_HOME.
                    DINO_EXTERN_LIBS.
 
             DINO_EXTERN_LIBS
-                   If  not  null,  it  defines  paths  of  additional Dino external
-                   libraries.  The libraries should be separated by ":"  (on  Unix)
-                   or  ";"  (on  Windows).  The value has less priority than values
+                   If not null,  it  defines  paths  of  additional  Dino  external
+                   libraries.   The  libraries should be separated by ":" (on Unix)
+                   or ";" (on Windows).  The value has less  priority  than  values
                    given in -L options.
 
             DINO_ENCODING
-                   If not null, it defines the current encoding  of  dino  program.
-                   By  defaull  the  current encoding is UTF-8 encoding.  Use iconv
+                   If  not  null,  it defines the current encoding of dino program.
+                   By defaull the current encoding is UTF-8  encoding.   Use  iconv
                    utility to get possible encoding names.
 
      DIAGNOSTICS
@@ -5111,93 +5112,93 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- The Dino 
 
 
 
-     Dino                              30 Mar 2016                          Dino(1)
+     Dino                              2 Apr 2016                           Dino(1)
 
 
 
 Tag Table:
 Node: Top95
-Node: Introduction635
-Node: Syntax1982
-Node: Vocabulary and Representation2893
-Node: Declarations and Scope Rules11955
-Node: Variable Declarations17406
-Node: External Declarations19183
-Node: Functions and Classes20607
-Node: Use-Clause29733
-Node: Singleton Object32365
-Node: Expose-clause33358
-Node: Expressions35054
-Node: Types and Values35594
-Node: Designators44950
-Node: Calls50310
-Node: Operators52398
-Node: Logical operators56672
-Node: Bit operators58489
-Node: Comparison operators59624
-Node: Arithmetic operators61695
-Node: Miscellaneous operators62914
-Node: Slice Operators67111
-Node: Current block instance70050
-Node: Anonymous Functions and Classes70517
-Node: Try-operator71388
-Node: Patterns72429
-Node: Executive statements76550
-Node: Empty statement77495
-Node: Block-statement77909
-Node: Expression-statement78632
-Node: Assignment statements79427
-Node: If-statement82088
-Node: For-statement82951
-Node: Foreach-statement84501
-Node: Match-statements85502
-Node: Break- and continue-statement88723
-Node: Return-statement89998
-Node: Throw-statement90743
-Node: Try-block91397
-Node: Wait-statement93743
-Node: C code94875
-Node: Program96290
-Node: Predeclared identifiers99739
-Node: Space `lang'101204
-Node: Predeclared variables101522
-Node: Arguments and environment101881
-Node: Versions102562
-Node: Threads103170
-Node: Exception classes103707
-Node: Functions of the space `lang'109513
-Node: Space `io'121825
-Node: Exception classes of the space `io'122416
-Node: Class `file'123371
-Node: Files124152
-Node: Functions for work with files124969
-Node: File output functions129035
-Node: File input functions141883
-Node: Encoding functions145749
-Node: Functions for work with directories146573
-Node: Functions for access to file/directory information148193
-Node: Miscellaneous functions152934
-Node: Space `sys'153670
-Node: Exceptions in space `sys'154100
-Node: Variable `time_format'159887
-Node: Time functions160285
-Node: Functions for access to information about OS processes163298
-Node: Function `system (command)'164855
-Node: Space `re'165294
-Node: Exception class `invregex'165678
-Node: Variable `split_regex'166147
-Node: Pattern matching166554
-Node: Space `math'190162
-Node: Mathematical functions190428
-Node: Other space `math' functions191994
-Node: Space `yaep'193312
-Node: Exception classes of space `yaep'195462
-Node: Class parser196332
-Node: Class `token'205563
-Node: Class `anode'206348
-Node: Variables `nil_anode' and `error_anode'208508
-Node: Example of Earley parser usage-208952
-Node: Appendix A- The Dino syntax211901
-Node: Appendix B- Implementation217356
+Node: Introduction637
+Node: Syntax1984
+Node: Vocabulary and Representation2895
+Node: Declarations and Scope Rules11957
+Node: Variable Declarations17408
+Node: External Declarations19185
+Node: Functions and Classes20609
+Node: Use-Clause29735
+Node: Singleton Object32367
+Node: Expose-clause33360
+Node: Expressions35056
+Node: Types and Values35596
+Node: Designators44952
+Node: Calls50312
+Node: Operators52400
+Node: Logical operators56674
+Node: Bit operators58491
+Node: Comparison operators59626
+Node: Arithmetic operators61697
+Node: Miscellaneous operators62916
+Node: Slice Operators67113
+Node: Current block instance70052
+Node: Anonymous Functions and Classes70519
+Node: Try-operator71390
+Node: Patterns72431
+Node: Executive statements76552
+Node: Empty statement77497
+Node: Block-statement77911
+Node: Expression-statement78634
+Node: Assignment statements79429
+Node: If-statement82090
+Node: For-statement82953
+Node: Foreach-statement84503
+Node: Match-statements85504
+Node: Break- and continue-statement88725
+Node: Return-statement90000
+Node: Throw-statement90745
+Node: Try-block91399
+Node: Wait-statement93745
+Node: C code94877
+Node: Program96292
+Node: Predeclared identifiers99741
+Node: Space `lang'101206
+Node: Predeclared variables101524
+Node: Arguments and environment101883
+Node: Versions102564
+Node: Threads103172
+Node: Exception classes103709
+Node: Functions of the space `lang'109515
+Node: Space `io'121827
+Node: Exception classes of the space `io'122418
+Node: Class `file'123373
+Node: Files124154
+Node: Functions for work with files124971
+Node: File output functions129037
+Node: File input functions141885
+Node: Encoding functions145751
+Node: Functions for work with directories146575
+Node: Functions for access to file/directory information148195
+Node: Miscellaneous functions152936
+Node: Space `sys'153672
+Node: Exceptions in space `sys'154102
+Node: Variable `time_format'159889
+Node: Time functions160287
+Node: Functions for access to information about OS processes163300
+Node: Function `system (command)'164857
+Node: Space `re'165296
+Node: Exception class `invregex'165680
+Node: Variable `split_regex'166149
+Node: Pattern matching166556
+Node: Space `math'190164
+Node: Mathematical functions190430
+Node: Other space `math' functions191996
+Node: Space `yaep'193314
+Node: Exception classes of space `yaep'195464
+Node: Class parser196334
+Node: Class `token'205565
+Node: Class `anode'206350
+Node: Variables `nil_anode' and `error_anode'208510
+Node: Example of Earley parser usage-208954
+Node: Appendix A- The Dino syntax211903
+Node: Appendix B- Implementation217358
 
 End Tag Table

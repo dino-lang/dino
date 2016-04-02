@@ -1,4 +1,4 @@
-// Copyright (C) 2015 Vladimir Makarov.
+// Copyright (C) 2015-2016 Vladimir Makarov.
 // This is a script to minimize a header file necessary for C code
 // generation of Dino functions.  It is done by repetitive removing
 // declarations and checking that it is still a correct version by

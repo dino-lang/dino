@@ -10,7 +10,7 @@ COCOM tool set
 **************
 
      Vladimir Makarov, `vmakarov@gcc.gnu.org'
-     March 30, 2016
+     Apr 2, 2016
 
    This document describes COCOM tool set oriented towards the creation
 of compilers, cross-compilers, interpreters, and other language
