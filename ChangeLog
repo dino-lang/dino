@@ -1,5 +1,30 @@
 2016-04-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/d_dino.c (dino_main): Add development to printing version.
+	* DINO/d_extern.sprut (entry_t): Make it size_t.
+	(EMPTY_ENTRY, DELETED_ENTRY): Use size_t.
+	* DINO/d_func.c (higher_prime_number): Move from d_heap.c.
+	* DINO/d_heap.c (higher_prime_number): Move to d_func.c.
+	(heap_allocate): Use 64 chunks to make GC.
+	(ucodevect_to_bytevect_if_possible, hash_val, tailor_tab): Remove
+	unused vars.
+	(OCCUPANCY_FACTOR): Use 4.  Add check.
+	(get_power2, hash_entry, secondary_hash): New.
+	(create_tab): Size as power of 2.
+	(find_tab_entry_num): Use power of 2 and the new functions.
+	* DINO/d_run.sprut (higher_prime_number): Remove.
+	* DINO/dino.sgml.in: Use 0.98 for version.
+	* INSTALL: Ditto.
+	* cocom.dsc: Ditto.
+	* cocom.spec: Ditto.
+	* configure.ac: Ditto.
+	* configure: Update.
+	* cocom.{dvi, pdf, ps}: Update.
+	* DINO/dino.{dvi, info, pdf, ps, txt}: Update.
+	* DINO/dino-9.html: Update.
+
+2016-04-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* README.md: Development version mentioning.  Change date.
 	* DINO/dino.1: Ditto.
 	* cocom.sgml.in: Change date.

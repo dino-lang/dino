@@ -65,12 +65,12 @@ In other cases do follows:
 
   2. Specify where to find `configure' when you run it:
 
-          ../dino-0.97/configure ...
+          ../dino-0.98/configure ...
 
   3. Specify where to find the sources, as an argument `--srcdir' to
      `configure':
 
-          ../dino-0.97/configure --srcdir=../dino-0.97
+          ../dino-0.98/configure --srcdir=../dino-0.98
 
 
 Debugging mode

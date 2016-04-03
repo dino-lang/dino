@@ -2451,8 +2451,8 @@ number and the language version, the final variables
 <tt>version</tt> and <tt>lang_version</tt> can be used
 correspondingly.  The variable values are the versions as floating
 point numbers.  For example, if the current Dino interpreter version
-is 0.97 and the Dino language version is 0.5, the variable values will
-be 0.97 and 0.5.
+is 0.98 and the Dino language version is 0.5, the variable values will
+be 0.98 and 0.5.
 
 <sect3>Threads
 <p>

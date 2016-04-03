@@ -1752,7 +1752,7 @@ dino_main (int argc, char *argv[], char *envp[])
     {
       int first_p;
 
-      printf ("Dino interpreter, version %.2f, language version %.2f\n",
+      printf ("Dino interpreter, development version %.2f, language version %.2f\n",
 	      DINO_VERSION, DINO_LANG_VERSION);
       printf ("Copyright (c) 1997-2016, Vladimir Makarov, vmakarov@gcc.gnu.org\n");
       printf ("Use \"exit(<int>);\" or Ctrl-D to exit\n");

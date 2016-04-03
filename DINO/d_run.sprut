@@ -189,8 +189,6 @@ extern void initiate_tables (void);
 extern int executed_stmts_count;
 extern int thread_quantum;
 
-extern unsigned long higher_prime_number (unsigned long number);
-
 extern ER_node_t create_thread (pc_t start_thread_pc, BC_node_t fun,
 				ER_node_t fun_context);
 extern void interrupt (pc_t first_resume_pc);

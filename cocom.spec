@@ -1,6 +1,6 @@
 Summary: COCOM
 Name: cocom
-Version: 0.997
+Version: 0.98
 Release: 1
 Source0: %{name}-%{version}.tar.gz
 License: GPL and LGPL
@@ -30,7 +30,7 @@ make DESTDIR=$RPM_BUILD_ROOT install
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%define dino_version 0.91
+%define dino_version 0.98
 
 %files
 %defattr(0644,root,root) 

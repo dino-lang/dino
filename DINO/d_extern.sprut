@@ -47,7 +47,7 @@ typedef struct BC_node *hidden_pc_t;
 typedef char *char_ptr_t;
 
 /* The hash table entry.  */
-typedef unsigned int entry_t;
+typedef size_t entry_t;
 /* The pointer to hash table entry.  */
 typedef entry_t *entry_ptr_t;
 
@@ -203,8 +203,8 @@ extern void *get_library_search_function (const char *name);
 #endif
 
 /* Reserved values of the entries.  */
-static const entry_t EMPTY_ENTRY = UINT_MAX - 1;
-static const entry_t DELETED_ENTRY = UINT_MAX;
+static const entry_t EMPTY_ENTRY = (~(size_t) 0) - 1;
+static const entry_t DELETED_ENTRY = ~(size_t) 0;
 /* Maximal number of elements in the hash table.  */
 static const entry_t MAX_TAB_ELS_NUMBER = UINT_MAX - 1;
 

@@ -2748,8 +2748,8 @@
   number and the language version, the final variables version and
   lang_version can be used correspondingly. The variable values are the
   versions as floating point numbers. For example, if the current Dino
-  interpreter version is 0.97 and the Dino language version is 0.5, the
-  variable values will be 0.97 and 0.5.
+  interpreter version is 0.98 and the Dino language version is 0.5, the
+  variable values will be 0.98 and 0.5.
 
   9.1.1.3.  Threads
 

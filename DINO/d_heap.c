@@ -588,7 +588,7 @@ heap_allocate (size_t size, int stack_p)
     {
       /* We need GC.  Flag this.  */
       d_assert (executed_stmts_count <= 0);
-      if (heap_chunks_number >= 16)
+      if (heap_chunks_number >= 64)
 	{
 	  GC_executed_stmts_count = executed_stmts_count;
 	  executed_stmts_count = 0;
@@ -596,7 +596,7 @@ heap_allocate (size_t size, int stack_p)
 	}
       if (curr_heap_chunk->chunk_stack_top - curr_heap_chunk->chunk_free
 	  < size)
-	new_heap_chunk (size > heap_chunk_size ? size : heap_chunk_size);
+	new_heap_chunk (size > heap_chunk_size ? size: heap_chunk_size);
     }
   else if (allocs_after_GC > 1000 && gmp_memory_size > 16 * heap_chunk_size)
     {
@@ -2110,7 +2110,7 @@ bytevect_to_ucodevect (ER_node_t vect)
 static void
 ucodevect_to_bytevect_if_possible (ER_node_t vect)
 {
-  size_t i, els_num, el_size;
+  size_t i, els_num;
   const ucode_t *char_els;
   byte_t *els;
   
@@ -2121,7 +2121,6 @@ ucodevect_to_bytevect_if_possible (ER_node_t vect)
   for (i = 0; i < els_num; i++)
     if (! in_byte_range_p (char_els[i]))
       return;
-  el_size = type_size_table [ER_NM_byte];
   els = (byte_t *) ER_pack_els (vect) - ER_disp (vect);
   for (i = 0; i < els_num; i++)
     els [i] = char_els [i];
@@ -2311,7 +2310,6 @@ static size_t
 hash_val (ER_node_t val)
 {
   size_t hash;
-  size_t i;
   size_t length;
   unsigned char *string;
 
@@ -2369,7 +2367,6 @@ hash_key (ER_node_t key)
   size_t i;
   size_t length;
   unsigned char *string;
-  int shift;
 
   switch (ER_NODE_MODE (key))
     {
@@ -2501,30 +2498,28 @@ eq_key (ER_node_t entry_key, ER_node_t key)
   return FALSE; /* No warnings */
 }
 
-/* Initial table occupancy factor.  It means that at first we have 3
+/* Initial table occupancy factor.  It means that at first we have 4
    times more entries than number of elements.  Maximum occupancy will
-   be 2/3.  See function create_tab.  */
-#define OCCUPANCY_FACTOR 3
+   be 1/2.  See function create_tab.  */
+#define OCCUPANCY_FACTOR 4
+
+#if OCCUPANCY_FACTOR < 3
+#error "OCCUPANCY_FACTOR should be > 2"
+#endif
 
 /* Initial number of table entries for expected N elements.  */
 #define START_ENTRIES_NUMBER(n) \
  (OCCUPANCY_FACTOR * (n) < 300 ? 300 : OCCUPANCY_FACTOR * (n))
 
-/* The following function returns the nearest prime number which is
-   greater than given source number. */
-unsigned long
-higher_prime_number (unsigned long number)
+/* Return smallest such 2^n > SIZE.  */
+static int
+get_power2 (size_t size)
 {
-  unsigned long i;
+  unsigned int n;
 
-  for (number = (number / 2) * 2 + 3;; number += 2)
-    {
-      for (i = 3; i * i <= number; i += 2)
-        if (number % i == 0)
-          break;
-      if (i * i > number)
-        return number;
-    }
+  for (n = 0; size != 0; n++)
+    size >>= 1;
+  return n >= sizeof (size_t) * CHAR_BIT  ? sizeof (size_t) * CHAR_BIT - 1 : n;
 }
 
 /* This function creates table with length slightly longer than given
@@ -2535,14 +2530,13 @@ create_tab (size_t size)
 {
   size_t entries_number, max_els_number;
   size_t els_size, allocated_length;
-  ER_node_t result, tab_els, el_key;
+  ER_node_t result;
   entry_ptr_t entries;
-  size_t i;
+  size_t i, n;
 
-  entries_number = higher_prime_number (START_ENTRIES_NUMBER (size));
-  max_els_number = (entries_number / OCCUPANCY_FACTOR) * 2 + 1;
-  if (max_els_number > MAX_TAB_ELS_NUMBER)
-    max_els_number = MAX_TAB_ELS_NUMBER;
+  n = get_power2 (START_ENTRIES_NUMBER (size));
+  entries_number = 1 << n;
+  max_els_number = entries_number >> 1;
   els_size = 2 * max_els_number * sizeof (val_t);
   allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_tab))
 		      + els_size + entries_number * sizeof (entry_t));
@@ -2589,6 +2583,34 @@ get_empty_elem_index (ER_node_t tab)
   return result;
 }
 
+/* Return the index of table TAB bin corresponding to
+   HASH_VALUE.  */
+static inline size_t
+hash_entry (size_t hash_value, ER_node_t tab)
+{
+  return hash_value & (ER_entries_number (tab) - 1);
+}
+
+/* Return the next secondary hash index for table TAB using previous
+   index IND and PERTERB.  Finally modulo of the function becomes a
+   full *cycle linear congruential generator*, in other words it
+   guarantees traversing all table bins in extreme case.
+
+   According the Hull-Dobell theorem a generator
+   "Xnext = (a*Xprev + c) mod m" is a full cycle generator iff
+     o m and c are relatively prime
+     o a-1 is divisible by all prime factors of m
+     o a-1 is divisible by 4 if m is divisible by 4.
+
+   For our case a is 5, c is 1, and m is a power of two.  */
+static inline size_t
+secondary_hash (size_t ind, ER_node_t tab, size_t *perterb)
+{
+  *perterb >>= 11;
+  ind = (ind << 2) + ind + *perterb + 1;
+  return hash_entry (ind, tab);
+}
+
 /* Find entry of TAB for elements with KEY.  Return the entry number.
    If the element is not found, return number of entry when it will
    be placed if RESERVE.  Otherwise just return the first found empty
@@ -2599,8 +2621,8 @@ find_tab_entry_num (ER_node_t tab, ER_node_t key, int reserve)
 {
   ER_node_t el_key;
   entry_ptr_t entries;
-  entry_t entry_num, entry_step, first_deleted_entry_index;
-  size_t hash_value;
+  entry_t entry_num, first_deleted_entry_index;
+  size_t hash_value, peterb;
   entry_t el_index;
   int int_p;
 
@@ -2609,10 +2631,9 @@ find_tab_entry_num (ER_node_t tab, ER_node_t key, int reserve)
   if (reserve && ER_els_bound (tab) >= ER_els_space_bound (tab))
     tab = tailor_tab (tab);
   d_assert (! reserve || first_empty_elem (tab) != EMPTY_ENTRY);
-  hash_value = (ER_NODE_MODE (key) == ER_NM_int
-		? int_hash_val (ER_i (key)) : hash_key (key));
-  entry_step = 1 + hash_value % (ER_entries_number (tab) - 2);
-  entry_num = hash_value % ER_entries_number (tab);
+  peterb = hash_value = (ER_NODE_MODE (key) == ER_NM_int
+			 ? int_hash_val (ER_i (key)) : hash_key (key));
+  entry_num = hash_entry (hash_value, tab);
   first_deleted_entry_index = EMPTY_ENTRY;
   entries = ER_tab_entries (tab);
   for (;;)
@@ -2646,9 +2667,7 @@ find_tab_entry_num (ER_node_t tab, ER_node_t key, int reserve)
         }
       else if (first_deleted_entry_index == EMPTY_ENTRY)
 	first_deleted_entry_index = entry_num;
-      entry_num += entry_step;
-      if (entry_num >= ER_entries_number (tab))
-        entry_num -= ER_entries_number (tab);
+      entry_num = secondary_hash (entry_num, tab, &peterb);
       tab_collisions++;
     }
   return entry_num;
@@ -2732,7 +2751,6 @@ tailor_tab (ER_node_t tab)
   ER_node_t new_tab;
   int immutable;
   size_t allocated_length;
-  size_t i;
 
   immutable = ER_immutable (tab);
   tab_expansions++;

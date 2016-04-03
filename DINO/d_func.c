@@ -302,6 +302,23 @@ finish_subst_map (void)
   free_subst_map ();
 }
 
+/* The following function returns the nearest prime number which is
+   greater than given source number. */
+static unsigned long
+higher_prime_number (unsigned long number)
+{
+  unsigned long i;
+
+  for (number = (number / 2) * 2 + 3;; number += 2)
+    {
+      for (i = 3; i * i <= number; i += 2)
+        if (number % i == 0)
+          break;
+      if (i * i > number)
+        return number;
+    }
+}
+
 /* Prepare the map to work with at most ELS_NUM elements.  */
 static void
 start_subst_map (size_t els_num)
