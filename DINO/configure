@@ -16697,7 +16697,7 @@ fi
 
 fi
 if test $found = yes; then
-  	  LDFLAGS="$LDLAGS -liconv"
+  	  LDFLAGS="$LDFLAGS -liconv"
 fi
 
 # Checks for header files.

@@ -78,7 +78,7 @@ if test $found = no; then
   AC_CHECK_LIB(iconv, libiconv_open, found=yes,found=no)
 fi
 if test $found = yes; then
-  	  LDFLAGS="$LDLAGS -liconv"
+  	  LDFLAGS="$LDFLAGS -liconv"
 fi
 
 # Checks for header files.
