@@ -1,3 +1,8 @@
+2016-05-21  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/configure.ac: Fix typo LDLAGS.
+	* DINO/configure: Update.
+
 2016-04-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* README.md: Fix typo.
