@@ -1658,7 +1658,7 @@ output_trie_node_switch (IR_node_t trie_node, int nest_level)
 }
 
 static void
-output_strcaseq_function ()
+output_strcaseq_function (void)
 {
   output_string (output_implementation_file, "static int\n");
   output_strcaseq_function_name (output_implementation_file);
@@ -2104,7 +2104,7 @@ generate (void)
   output_interface_finish_code_insertions ();
   output_implementation_start_code_insertions ();
   if (case_flag)
-    output_strcaseq_function (length_flag);
+    output_strcaseq_function ();
   output_find_keyword_function ();
   output_reset_function ();
   output_statistics_function ();
