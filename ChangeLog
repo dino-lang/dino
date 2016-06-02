@@ -1,3 +1,9 @@
+2016-06-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* SHILKA/gen.c (output_strcaseq_function): Mak an argument void.
+	(generate): Remove the parameter from the call of
+	output_strcaseq_function.
+
 2016-05-21  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/configure.ac: Fix typo LDLAGS.
