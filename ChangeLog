@@ -1,5 +1,10 @@
 2016-06-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/configure.ac (DINO_LIB_LDFLAGS): Add src/ to libonig.la.
+	* DINO/configure: Update.
+
+2016-06-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/Makefile.am (libdino_la_CFLAGS): Add ONIGURUMA/src.
 	* DINO/Makefile.in: Update.
 

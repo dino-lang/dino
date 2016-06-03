@@ -11918,12 +11918,12 @@ case $system in
 	  ;;
 	Darwin*)
 	  DINO_LIB_CFLAGS='-shared'
-          DINO_LIB_LDFLAGS='-shared ../AMMUNITION/libcocom.la ../ONIGURUMA/libonig.la'
+          DINO_LIB_LDFLAGS='-shared ../AMMUNITION/libcocom.la ../ONIGURUMA/src/libonig.la'
 	  CFLAGS="`echo $CFLAGS` -I/usr/include -I/usr/local/include -L/usr/lib -L/usr/local/lib"
           ;;
 	CYGWIN*)
 	  DINO_LIB_CFLAGS='-shared'
-          DINO_LIB_LDFLAGS='-shared ../AMMUNITION/libcocom.la ../ONIGURUMA/libonig.la -no-undefined'
+          DINO_LIB_LDFLAGS='-shared ../AMMUNITION/libcocom.la ../ONIGURUMA/src/libonig.la -no-undefined'
 	  DINO_MOD_LDFLAGS='../libdino.la -no-undefined'
 	  CFLAGS="`echo $CFLAGS` -I/usr/include -I/usr/local/include -L/usr/lib -L/usr/local/lib"
 	  DINO_VERSION_SUFFIX="-`echo $VERSION|sed 's/\./-/'`"
