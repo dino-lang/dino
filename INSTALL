@@ -115,5 +115,13 @@ to install gmp package additionally.  After that the installation is
 analogous to Linux one.
 
 
+Installing DINO/COCOM on MacPorts
+********************************
+
+Use CPPFLAGS="-I/opt/local/include" LDFLAGS="-L/opt/local/lib" for the
+configurations as MacPorts default install directory is /opt/local.
+If you use MacPorts libiconv, add -DLIBICONV_PLUG for CPPFLAGS to
+solve the problem of unresolved symbols `libiconv_close`.
+
 Vladimir Makarov 	(vmakarov@gcc.gnu.org) 
 
