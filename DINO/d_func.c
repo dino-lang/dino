@@ -986,7 +986,7 @@ find_regex (const void *pat, int pat_ucode_p, int str_ucode_p, regex_t **result,
 static void
 initiate_regex_tab (void)
 {
-  onig_init ();
+  onig_initialize (NULL, 0);
   region = onig_region_new ();
   OS_CREATE (regex_os, 0);
   VLO_CREATE (regex_vlo, 0);
