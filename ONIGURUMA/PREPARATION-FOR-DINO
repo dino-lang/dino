@@ -1,4 +1,4 @@
-1. Add the following code to Oniguruma configure.in before AC_OUTPUT:
+1. Add the following code to Oniguruma configure.ac before AC_OUTPUT:
 
 if test "$GCC" = yes; then
   my_save_cflags="$CFLAGS"
@@ -19,6 +19,6 @@ if test "$GCC" = yes; then
   fi
 fi
 
-2. Update configure and config.h:
+2. Update:
 
-autoconf;autoconf;autoheader;autoheader
+autoreconf
