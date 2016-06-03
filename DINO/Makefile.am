@@ -22,7 +22,7 @@ ieee_lib=d_ieee$(dino_module_full_suffix)
 ipcerr_lib=d_ipcerr$(dino_module_full_suffix)
 socket_lib=d_socket$(dino_module_full_suffix)
 DINO_EXTERN_LIBS_PATH=\"$(mpi_lib):$(ieee_lib):$(ipcerr_lib):$(socket_lib)\"
-libdino_la_CFLAGS = -I$(srcdir)/../ONIGURUMA -I$(srcdir)/../AMMUNITION\
+libdino_la_CFLAGS = -I$(srcdir)/../ONIGURUMA/src -I$(srcdir)/../ONIGURUMA -I$(srcdir)/../AMMUNITION\
         	    @DINO_LIB_CFLAGS@ -DCC='"$(CC)"'\
 		    -DDINO_VERSION=$(DINO_VERSION) -DDINO_LANG_VERSION=$(DINO_LANG_VERSION)\
                     -DSTANDARD_DINO_INCLUDE_DIRECTORY='"$(includedir)"'\

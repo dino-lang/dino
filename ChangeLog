@@ -1,5 +1,10 @@
 2016-06-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/Makefile.am (libdino_la_CFLAGS): Add ONIGURUMA/src.
+	* DINO/Makefile.in: Update.
+
+2016-06-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/Makefile.am (d_genheader.i): Add $(CPPFLAGS).
 	* INSTALL: Add a part for building on MacPorts.
 	* DINO/Makefile.in: Update.
