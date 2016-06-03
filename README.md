@@ -587,7 +587,7 @@ val asbtract_tree = p.parse (token_vector, syntax_error);
     * AMMUNITION - different packages (source position handling, error reporting,
       Earley parser etc)
 * GMP - multi-precision integer library
-* Oniguruma regexp library
+* Oniguruma regexp library (version 6.0.0)
 
 ---
 
