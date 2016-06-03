@@ -1,3 +1,7 @@
+2016-06-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* ONIGURUMA/missing: Use a fresher version.
+
 2016-06-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* SHILKA/gen.c (output_strcaseq_function): Mak an argument void.
