@@ -1,3 +1,10 @@
+2016-07-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* yaep.h (YAEP_LOOKAHEAD_TRANSLATION): New.
+	* yaep.c (yaep_read_grammar): Check error
+	YAEP_LOOKAHEAD_TRANSLATION.
+	* yaep.tst.in (55-58): New tests.
+
 2016-07-13  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* sgramm.y (struct slookahead, slookaheads, slaterms): New.

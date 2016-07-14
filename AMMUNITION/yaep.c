@@ -3586,8 +3586,17 @@ yaep_read_grammar (struct grammar *g, int strict_p,
 		 el, lhs);
 	    else
 	      {
-		rule->order [el] = i;
-		rule->trans_len++;
+		symb = rule->rhs[el];
+		if (symb->laguard_p)
+		  yaep_error
+		    (YAEP_LOOKAHEAD_TRANSLATION,
+		     "requested translation of lookahead (symbol number %d) in rule for `%s'",
+		     el, lhs);
+		else
+		  {
+		    rule->order [el] = i;
+		    rule->trans_len++;
+		  }
 	      }
 	  assert (i < rule->rhs_len || transl [i] < 0);
 	}
