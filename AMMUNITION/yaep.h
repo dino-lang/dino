@@ -46,19 +46,22 @@ struct grammar;
 #define YAEP_UNDEFINED_OR_BAD_GRAMMAR      2
 #define YAEP_DESCRIPTION_SYNTAX_ERROR_CODE 3
 #define YAEP_FIXED_NAME_USAGE              4
-#define YAEP_REPEATED_TERM_DECL            5
+#define YAEP_REPEATED_TERM_LOOKAHEAD_DECL  5
 #define YAEP_NEGATIVE_TERM_CODE            6
 #define YAEP_REPEATED_TERM_CODE            7
-#define YAEP_NO_RULES                      8
-#define YAEP_TERM_IN_RULE_LHS              9
-#define YAEP_INCORRECT_TRANSLATION         10
-#define YAEP_NEGATIVE_COST                 11
-#define YAEP_INCORRECT_SYMBOL_NUMBER       12
-#define YAEP_REPEATED_SYMBOL_NUMBER        13
-#define YAEP_UNACCESSIBLE_NONTERM          14
-#define YAEP_NONTERM_DERIVATION            15
-#define YAEP_LOOP_NONTERM                  16
-#define YAEP_INVALID_TOKEN_CODE            17
+#define YAEP_UNDECLARED_LOOKAHEAD_TERM     8
+#define YAEP_NOT_TERM_IN_LOOKAHEAD         9
+#define YAEP_NO_RULES                      10
+#define YAEP_TERM_IN_RULE_LHS              11
+#define YAEP_LOOKAHEAD_IN_RULE_LHS         12
+#define YAEP_INCORRECT_TRANSLATION         13
+#define YAEP_NEGATIVE_COST                 14
+#define YAEP_INCORRECT_SYMBOL_NUMBER       15
+#define YAEP_REPEATED_SYMBOL_NUMBER        16
+#define YAEP_UNACCESSIBLE_NONTERM          17
+#define YAEP_NONTERM_DERIVATION            18
+#define YAEP_LOOP_NONTERM                  19
+#define YAEP_INVALID_TOKEN_CODE            20
 
 /* The following describes the type of parse tree node. */
 enum yaep_tree_node_type
@@ -164,6 +167,15 @@ extern const char *yaep_error_message (struct grammar *g);
    read the function returns NULL.  The return code should be
    nonnegative.
 
+   READ_LOOKAHEAD is function for reading lookahead sets.  This
+   function is called after function read_terminal but before function
+   read_rule.  The function should return the lookahead name, array of
+   the lookahead terminals (the array end marker should be NULL), and
+   flag that the lookahead is actually any terminals excluding
+   terminals given in the returned array.  If all lookaheads have been
+   read the function returns NULL.  The return code should be
+   nonnegative.
+
    READ_RULE is function called to read the next rule.  This function
    is called after function read_terminal.  The function should return
    the name of LHS rule and array of names of symbols in RHS of the
@@ -188,6 +200,8 @@ extern const char *yaep_error_message (struct grammar *g);
 extern int
 yaep_read_grammar (struct grammar *g, int strict_p,
 		   const char *(*read_terminal) (int *code),
+		   const char *(*read_lookahead) (int *exclude_p,
+						  const char ***terms),
 		   const char *(*read_rule) (const char ***rhs,
 					     const char **abs_node,
                                              int *anode_cost,
@@ -334,11 +348,13 @@ public:
 
   /* See comments for function yaep_read_grammar. */
   int read_grammar (int strict_p,
-			   const char *(*read_terminal) (int *code),
-			   const char *(*read_rule) (const char ***rhs,
-						     const char **abs_node,
-						     int *anode_cost,
-						     int **transl));
+		    const char *(*read_terminal) (int *code),
+		    const char *(*read_lookahead) (int *exclude_p,
+						   const char ***terms),
+		    const char *(*read_rule) (const char ***rhs,
+					      const char **abs_node,
+					      int *anode_cost,
+					      int **transl));
 
   /* See comments for function yaep_parse_grammar. */
   int parse_grammar (int strict_p, const char *description);

@@ -20,18 +20,6 @@
 
 */
 
-/* ??? optimize grammar-> rules-> symbs->. */
-/* This file implements parsing any CFG with minimal error recovery
-   and syntax directed translation.  The algorithm is originated from
-   Earley's algorithm.  The algorithm is sufficiently fast to be used
-   in serious language processors.
-
-   The code is distributed under GNU GENERAL PUBLIC LICENSE (not GNU
-   GENERAL PUBLIC LIBRARY LICENSE).  So any program using this code or
-   its modifications should be distributed with sources.
-
-   Vladimir Makarov (vmakarov@gcc.gnu.org), 2001. */
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #else /* In this case we are oriented to ANSI C */
@@ -63,11 +51,13 @@
 
 #ifndef NO_INLINE
 #ifdef __GNUC__
+#define ATTR_UNUSED __attribute__((unused))
 #define MAKE_INLINE 1
 #ifndef INLINE
 #define INLINE __inline__
 #endif
 #else /* #ifdef __GNUC__ */
+#define ATTR_UNUSED
 #if MAKE_INLINE
 #ifndef INLINE
 #define INLINE
@@ -125,7 +115,6 @@
 static const unsigned jauquet_prime_mod32 = 2053222611;
 /* Shift used for hash calculations.  */
 static const unsigned hash_shift = 611;
-
 
 /* The following is major structure which stores information about
    grammar. */
@@ -200,6 +189,7 @@ static struct grammar *grammar;
 static struct symbs *symbs_ptr;
 static struct term_sets *term_sets_ptr;
 static struct rules *rules_ptr;
+
 
 /* The following is set up the parser amnd used globally. */
 static int (*read_token) (void **attr);
@@ -281,6 +271,19 @@ struct symb
       } term;
       struct
       {
+	/* The following value is the lookahead exclusion flag (any
+	   terminal except ones in the array TERMS below). */
+	int exclude_p;
+	/* The following member is order number of the lookahead. */
+	int laguard_num;
+	/* The following is a null-terminated array of terminals in
+	   the lookahead. */
+	struct symb **terms;
+	/* The following member is a set of terminals in the lookahead. */
+	term_set_el_t *term_set;
+      } laguard;
+      struct
+      {
 	/* The following refers for all rules with the nonterminal
 	   symbol is in the left hand side of the rules. */
 	struct rule *rules;
@@ -295,8 +298,10 @@ struct symb
 	term_set_el_t *first, *follow;
       } nonterm;
     } u;
-  /* The following member is TRUE if it is nonterminal. */
+  /* The following member is TRUE if it is a nonterminal. */
   char term_p;
+  /* The following member is TRUE if it is a lookahead match guard. */
+  char laguard_p;
   /* The following member value (if defined) is TRUE if the symbol is
      accessible (derivated) from the axiom. */
   char access_p;
@@ -319,9 +324,9 @@ struct symb
    vocabulary. */
 struct symbs
 {
-  /* The following is number of all symbols and terminals.  The
-     variables can be read externally. */
-  int n_terms, n_nonterms;
+  /* The following is number of all terminals, lookahead guards, and
+     non-terminals.  The variables can be read externally. */
+  int n_terms, n_laguards, n_nonterms;
   
   /* All symbols are placed in the following object. */
 #ifndef __cplusplus
@@ -330,17 +335,28 @@ struct symbs
   os_t *symbs_os;
 #endif
 
-  /* All references to the symbols, terminals, nonterminals are stored
-     in the following vlos.  The indexes in the arrays are the same as
-     corresponding symbol, terminal, and nonterminal numbers. */
+  /* All references to the symbols, terminals, lookaheads,
+     nonterminals are stored in the following vlos.  The indexes in
+     the arrays are the same as corresponding symbol, terminal, and
+     nonterminal numbers. */
 #ifndef __cplusplus
   vlo_t symbs_vlo;
   vlo_t terms_vlo;
+  vlo_t lookaheads_vlo;
   vlo_t nonterms_vlo;
 #else  
   vlo_t *symbs_vlo;
   vlo_t *terms_vlo;
+  vlo_t *lookaheads_vlo;
   vlo_t *nonterms_vlo;
+#endif
+
+  /* All arrays of terminal symbol pointers of lookaheads are placed
+     in the following object. */
+#ifndef __cplusplus
+  os_t lookahead_terms_os;
+#else  
+  os_t *lookahead_terms_os;
 #endif
 
   /* The following are tables to find terminal by its code and symbol by
@@ -350,7 +366,7 @@ struct symbs
 #ifdef SYMB_CODE_TRANS_VECT
   /* If terminal symbol codes are not spared (in this case the member
      value is not NULL, we use translation vector instead of hash
-     table.  */
+     table).  */
   struct symb **symb_code_trans_vect;
   int symb_code_trans_vect_start;
 #endif
@@ -408,8 +424,10 @@ symb_init (void)
   MALLOC (mem, sizeof (struct symbs));
   result = (struct symbs *) mem;
   OS_CREATE (result->symbs_os, 0);
+  OS_CREATE (result->lookahead_terms_os, 0);
   VLO_CREATE (result->symbs_vlo, 1024);
   VLO_CREATE (result->terms_vlo, 512);
+  VLO_CREATE (result->lookaheads_vlo, 512);
   VLO_CREATE (result->nonterms_vlo, 512);
   result->repr_to_symb_tab
     = create_hash_table (300, symb_repr_hash, symb_repr_eq);
@@ -418,7 +436,7 @@ symb_init (void)
 #ifdef SYMB_CODE_TRANS_VECT
   result->symb_code_trans_vect = NULL;
 #endif
-  result->n_nonterms = result->n_terms = 0;
+  result->n_nonterms = result->n_laguards = result->n_terms = 0;
   return result;
 }
 
@@ -467,7 +485,8 @@ symb_add_term (const char *name, int code)
 
   symb.repr = name;
   symb.term_p = TRUE;
-  symb.num = symbs_ptr->n_nonterms + symbs_ptr->n_terms;
+  symb.laguard_p = FALSE;
+  symb.num = symbs_ptr->n_nonterms + symbs_ptr->n_laguards + symbs_ptr->n_terms;
   symb.u.term.code = code;
   symb.u.term.term_num = symbs_ptr->n_terms++;
   symb.empty_p = FALSE;
@@ -488,6 +507,40 @@ symb_add_term (const char *name, int code)
   return result;
 }
 
+/* The function creates new lookahead symbol with flag EXCLUDE_P and
+   N_TERMS terminal symbols TERMS and returns reference for it.  The
+   symbol should be not in the tables.  The function should create own
+   copy of name for the new symbol and the terminal symbols. */
+static struct symb *
+symb_add_lookahead (const char *name, int exclude_p, struct symb **terms, int n_terms)
+{
+  struct symb symb, *result;
+  hash_table_entry_t *repr_entry;
+
+  symb.repr = name;
+  symb.term_p = FALSE;
+  symb.laguard_p = TRUE;
+  symb.num = symbs_ptr->n_nonterms + symbs_ptr->n_laguards + symbs_ptr->n_terms;
+  symb.u.laguard.exclude_p = exclude_p;
+  symb.u.laguard.laguard_num = symbs_ptr->n_laguards++;
+  symb.empty_p = TRUE;
+  repr_entry = find_hash_table_entry (symbs_ptr->repr_to_symb_tab, &symb, TRUE);
+  assert (*repr_entry == NULL);
+  OS_TOP_ADD_STRING (symbs_ptr->symbs_os, name);
+  symb.repr = (char *) OS_TOP_BEGIN (symbs_ptr->symbs_os);
+  OS_TOP_FINISH (symbs_ptr->symbs_os);
+  OS_TOP_ADD_MEMORY (symbs_ptr->symbs_os, &symb, sizeof (struct symb));
+  result = (struct symb *) OS_TOP_BEGIN (symbs_ptr->symbs_os);
+  OS_TOP_FINISH (symbs_ptr->symbs_os);
+  *repr_entry = (hash_table_entry_t) result;
+  VLO_ADD_MEMORY (symbs_ptr->symbs_vlo, &result, sizeof (struct symb *));
+  VLO_ADD_MEMORY (symbs_ptr->lookaheads_vlo, &result, sizeof (struct symb *));
+  OS_TOP_ADD_MEMORY (symbs_ptr->lookahead_terms_os, terms, sizeof (struct symb *) * n_terms);
+  result->u.laguard.terms = (struct symb **) OS_TOP_BEGIN (symbs_ptr->lookahead_terms_os);
+  OS_TOP_FINISH (symbs_ptr->lookahead_terms_os);
+  return result;
+}
+
 /* The function creates new nonterminal symbol and returns reference
    for it.  The symbol should be not in the table.  The function
    should create own copy of name for the new symbol. */
@@ -499,7 +552,8 @@ symb_add_nonterm (const char *name)
 
   symb.repr = name;
   symb.term_p = FALSE;
-  symb.num = symbs_ptr->n_nonterms + symbs_ptr->n_terms;
+  symb.laguard_p = FALSE;
+  symb.num = symbs_ptr->n_nonterms + symbs_ptr->n_laguards + symbs_ptr->n_terms;
   symb.u.nonterm.rules = NULL;
   symb.u.nonterm.loop_p = 0;
   symb.u.nonterm.nonterm_num = symbs_ptr->n_nonterms++;
@@ -543,7 +597,7 @@ term_get (int n)
 		/ sizeof (struct symb *) <= (size_t) n))
     return NULL;
   symb = ((struct symb **) VLO_BEGIN (symbs_ptr->terms_vlo)) [n];
-  assert (symb->term_p && symb->u.term.term_num == n);
+  assert (symb->term_p && !symb->laguard_p && symb->u.term.term_num == n);
   return symb;
 }
 
@@ -558,7 +612,7 @@ nonterm_get (int n)
 		<= (size_t) n))
     return NULL;
   symb = ((struct symb **) VLO_BEGIN (symbs_ptr->nonterms_vlo)) [n];
-  assert (!symb->term_p && symb->u.nonterm.nonterm_num == n);
+  assert (!symb->term_p && !symb->laguard_p && symb->u.nonterm.nonterm_num == n);
   return symb;
 }
 
@@ -622,10 +676,12 @@ symb_empty (struct symbs *symbs)
   empty_hash_table (symbs->repr_to_symb_tab);
   empty_hash_table (symbs->code_to_symb_tab);
   VLO_NULLIFY (symbs->nonterms_vlo);
+  VLO_NULLIFY (symbs->lookaheads_vlo);
   VLO_NULLIFY (symbs->terms_vlo);
   VLO_NULLIFY (symbs->symbs_vlo);
+  OS_EMPTY (symbs->lookahead_terms_os);
   OS_EMPTY (symbs->symbs_os);
-  symbs->n_nonterms = symbs->n_terms = 0;
+  symbs->n_nonterms = symbs->n_laguards = symbs->n_terms = 0;
 }
 
 /* Finalize work with symbols. */
@@ -642,7 +698,9 @@ symb_fin (struct symbs *symbs)
   delete_hash_table (symbs_ptr->code_to_symb_tab);
   VLO_DELETE (symbs_ptr->nonterms_vlo);
   VLO_DELETE (symbs_ptr->terms_vlo);
+  VLO_DELETE (symbs_ptr->lookaheads_vlo);
   VLO_DELETE (symbs_ptr->symbs_vlo);
+  OS_DELETE (symbs_ptr->lookahead_terms_os);
   OS_DELETE (symbs_ptr->symbs_os);
   FREE (symbs);
   symbs = NULL;
@@ -724,24 +782,6 @@ term_set_eq (hash_table_entry_t s1, hash_table_entry_t s2)
   return TRUE;
 }
 
-/* Initialize work with terminal sets and returns storage for terminal
-   sets. */
-static struct term_sets *
-term_set_init (void)
-{
-  void *mem;
-  struct term_sets *result;
-
-  MALLOC (mem, sizeof (struct term_sets));
-  result = (struct term_sets *) mem;
-  OS_CREATE (result->term_set_os, 0);
-  result->term_set_tab
-    = create_hash_table (1000, term_set_hash, term_set_eq);
-  VLO_CREATE (result->tab_term_set_vlo, 4096);
-  result->n_term_sets = result->n_term_sets_size = 0;
-  return result;
-}
-
 /* Return new terminal SET.  Its value is undefined. */
 static term_set_el_t *
 term_set_create (void)
@@ -759,6 +799,24 @@ term_set_create (void)
   OS_TOP_FINISH (term_sets_ptr->term_set_os);
   term_sets_ptr->n_term_sets++;
   term_sets_ptr->n_term_sets_size += size;
+  return result;
+}
+
+/* Initialize work with terminal sets and returns storage for terminal
+   sets. */
+static struct term_sets *
+term_set_init (void)
+{
+  void *mem;
+  struct term_sets *result;
+
+  MALLOC (mem, sizeof (struct term_sets));
+  result = (struct term_sets *) mem;
+  OS_CREATE (result->term_set_os, 0);
+  result->term_set_tab
+    = create_hash_table (1000, term_set_hash, term_set_eq);
+  VLO_CREATE (result->tab_term_set_vlo, 4096);
+  result->n_term_sets = result->n_term_sets_size = 0;
   return result;
 }
 
@@ -820,6 +878,29 @@ term_set_or (term_set_el_t *set, term_set_el_t *op)
   return changed_p;
 }
 
+/* SET = SET & OP.  Return TRUE if SET has been changed. */
+#if MAKE_INLINE
+INLINE
+#endif
+static int
+term_set_and (term_set_el_t *set, term_set_el_t *op)
+{
+  term_set_el_t *bound;
+  int size, changed_p;
+
+  size = ((symbs_ptr->n_terms + CHAR_BIT * sizeof (term_set_el_t) - 1)
+	  / (CHAR_BIT * sizeof (term_set_el_t)));
+  bound = set + size;
+  changed_p = 0;
+  while (set < bound)
+    {
+      if ((*set & *op) != *set)
+	changed_p = 1;
+      *set++ &= *op++;
+    }
+  return changed_p;
+}
+
 /* Add terminal with number NUM to SET.  Return TRUE if SET has been
    changed. */
 #if MAKE_INLINE
@@ -836,6 +917,25 @@ term_set_up (term_set_el_t *set, int num)
   bit = ((term_set_el_t) 1) << (num % (CHAR_BIT * sizeof (term_set_el_t)));
   changed_p = (set [ind] & bit ? 0 : 1);
   set [ind] |= bit;
+  return changed_p;
+}
+
+/* Remove terminal with number NUM from SET.  Return TRUE if SET has
+   been changed. */
+#if MAKE_INLINE
+INLINE
+#endif
+static int
+term_set_down (term_set_el_t *set, int num)
+{
+  int ind, changed_p;
+  term_set_el_t bit;
+
+  assert (num < symbs_ptr->n_terms);
+  ind = num / (CHAR_BIT * sizeof (term_set_el_t));
+  bit = ((term_set_el_t) 1) << (num % (CHAR_BIT * sizeof (term_set_el_t)));
+  changed_p = (set [ind] & bit ? 1 : 0);
+  set [ind] &= ~bit;
   return changed_p;
 }
 
@@ -1021,7 +1121,7 @@ rule_new_start (struct symb *lhs, const char *anode, int anode_cost)
   struct rule *rule;
   struct symb *empty;
 
-  assert (!lhs->term_p);
+  assert (!lhs->term_p && !lhs->laguard_p);
   OS_TOP_EXPAND (rules_ptr->rules_os, sizeof (struct rule));
   rule = (struct rule *) OS_TOP_BEGIN (rules_ptr->rules_os);
   OS_TOP_FINISH (rules_ptr->rules_os);
@@ -1264,6 +1364,10 @@ struct sit
      FIRST (the situation tail || FOLLOW (lhs)) for static lookaheads
      and FIRST (the situation tail || context) for dynamic ones. */
   term_set_el_t *lookahead;
+  /* The following member is the intersection of lookahead guards on
+     the head part of the situation tail which can derive an empty
+     string.  NULL if we have no any lookahead guards. */
+  term_set_el_t *la_match_set;
 };
 
 /* The following contains current number of unique situations.  It can
@@ -1301,14 +1405,15 @@ sit_init (void)
   sit_table = (struct sit ***) VLO_BEGIN (sit_table_vlo);
 }
 
-/* The following function sets up lookahead of situation SIT.  The
-   function returns TRUE if the situation tail may derive empty
-   string. */
+/* The following function sets up lookahead and lookahead match guard
+   set of the situation SIT.  The function returns TRUE if the
+   situation tail may derive empty string. */
 static int
 sit_set_lookahead (struct sit *sit)
 {
   struct symb *symb, **symb_ptr;
 
+  sit->la_match_set = NULL;
   if (grammar->lookahead_level == 0)
     sit->lookahead = NULL;
   else
@@ -1323,8 +1428,18 @@ sit_set_lookahead (struct sit *sit)
 	{
 	  if (symb->term_p)
 	    term_set_up (sit->lookahead, symb->u.term.term_num);
-	  else
+	  else if (! symb->laguard_p)
 	    term_set_or (sit->lookahead, symb->u.nonterm.first);
+	}
+      if (symb->laguard_p)
+	{
+	  if (sit->la_match_set != NULL)
+	    term_set_and (sit->la_match_set, symb->u.laguard.term_set);
+	  else
+	    {
+	      sit->la_match_set = term_set_create ();
+	      term_set_copy (sit->la_match_set, symb->u.laguard.term_set);
+	    }
 	}
       if (!symb->empty_p)
 	break;
@@ -2666,18 +2781,18 @@ core_symb_vect_addr_get (struct set_core *set_core, struct symb *symb)
 	{
 #ifndef __cplusplus
 	  OS_TOP_EXPAND (core_symb_tab_rows,
-			 (symbs_ptr->n_terms + symbs_ptr->n_nonterms)
+			 (symbs_ptr->n_terms + symbs_ptr->n_laguards + symbs_ptr->n_nonterms)
 			 * sizeof (struct core_symb_vect *));
 	  *ptr = OS_TOP_BEGIN (core_symb_tab_rows);
 	  OS_TOP_FINISH (core_symb_tab_rows);
 #else
 	  core_symb_tab_rows->top_expand
-	    ((symbs_ptr->n_terms + symbs_ptr->n_nonterms)
+	    ((symbs_ptr->n_terms + symbs_ptr->n_laguards + symbs_ptr->n_nonterms)
 	     * sizeof (struct core_symb_vect *));
 	  *ptr = (struct core_symb_vect **) core_symb_tab_rows->top_begin ();
 	  core_symb_tab_rows->top_finish ();
 #endif
-	  for (i = 0; i < symbs_ptr->n_terms + symbs_ptr->n_nonterms; i++)
+	  for (i = 0; i < symbs_ptr->n_terms + symbs_ptr->n_laguards + symbs_ptr->n_nonterms; i++)
 	    (*ptr) [i] = NULL;
 	  ptr++;
 	}
@@ -3092,7 +3207,7 @@ create_first_follow_sets (void)
 		      changed_p |= term_set_up (symb->u.nonterm.first,
 						rhs_symb->u.term.term_num);
 		  }
-		else
+		else if (! rhs_symb->laguard_p)
 		  {
 		    if (first_continue_p)
 		      changed_p |= term_set_or (symb->u.nonterm.first,
@@ -3104,7 +3219,7 @@ create_first_follow_sets (void)
 			  changed_p
 			    |= term_set_up (rhs_symb->u.nonterm.follow,
 					    next_rhs_symb->u.term.term_num);
-			else
+			else if (!next_rhs_symb->laguard_p)
 			  changed_p
 			    |= term_set_or (rhs_symb->u.nonterm.follow,
 					    next_rhs_symb->u.nonterm.first);
@@ -3136,8 +3251,8 @@ set_empty_access_derives (void)
 
   for (i = 0; (symb = symb_get (i)) != NULL; i++)
     {
-      symb->empty_p = 0;
-      symb->derivation_p = (symb->term_p ? 1 : 0);
+      symb->empty_p = (symb->laguard_p ? 1 : 0);
+      symb->derivation_p = (symb->term_p || symb->laguard_p ? 1 : 0);
       symb->access_p = 0;
     }
   grammar->axiom->access_p = 1;
@@ -3190,7 +3305,7 @@ set_loop_p (void)
      strings. */
   for (rule = rules_ptr->first_rule; rule != NULL; rule = rule->next)
     for (i = 0; i < rule->rhs_len; i++)
-      if (!(symb = rule->rhs [i])->term_p)
+      if (!(symb = rule->rhs [i])->term_p && !symb->laguard_p)
 	{
 	  for (j = 0; j < rule->rhs_len; j++)
 	    if (i == j)
@@ -3214,7 +3329,8 @@ set_loop_p (void)
 		 rule != NULL;
 		 rule = rule->lhs_next)
 	      for (j = 0; j < rule->rhs_len; j++)
-		if (!(symb = rule->rhs [j])->term_p && symb->u.nonterm.loop_p)
+		if (!(symb = rule->rhs [j])->term_p && !symb->laguard_p
+		    && symb->u.nonterm.loop_p)
 		  {
 		    for (k = 0; k < rule->rhs_len; k++)
 		      if (j == k)
@@ -3280,27 +3396,34 @@ check_grammar (int strict_p)
 #define END_MARKER_CODE -1
 #define TERM_ERROR_CODE -2
 
-/* The following function reads terminals/rules.  The function returns
-   pointer to the grammar (or NULL if there were errors in
-   grammar). */
+/* The following function reads terminals/lookaheads/rules.  The
+   function returns pointer to the grammar (or NULL if there were
+   errors in grammar). */
 #ifdef __cplusplus
 static
 #endif
 int
 yaep_read_grammar (struct grammar *g, int strict_p,
 		   const char *(*read_terminal) (int *code),
+		   const char *(*read_lookahead) (int *exclude_p,
+						  const char ***terms),
 		   const char *(*read_rule) (const char ***rhs,
 					     const char **abs_node,
 					     int *anode_cost,
 					     int **transl))
 {
-  const char *name, *lhs, **rhs, *anode;
-  struct symb *symb, *start;
+  const char *name, *term_name, *lhs, **terms, **rhs, *anode;
+  struct symb *symb, *start, *term;
   struct rule *rule;
   int anode_cost;
   int *transl;
-  int i, el, code;
-
+  int i, n, el, code, exclude_p; 
+#ifndef __cplusplus
+  vlo_t la_terms_vlo;
+#else
+  vlo_t *la_terms_vlo;
+#endif
+  
   assert (g != NULL);
   init_error_func_for_allocate
     = change_allocation_error_function (error_func_for_allocate);
@@ -3316,6 +3439,7 @@ yaep_read_grammar (struct grammar *g, int strict_p,
     }
   if (!grammar->undefined_p)
     yaep_empty_grammar ();
+  /* Read terminals: */
   while ((name = (*read_terminal) (&code)) != NULL)
     {
       if (code < 0)
@@ -3323,15 +3447,14 @@ yaep_read_grammar (struct grammar *g, int strict_p,
 		    "term `%s' has negative code", name);
       symb = symb_find_by_repr (name);
       if (symb != NULL)
-	yaep_error (YAEP_REPEATED_TERM_DECL,
-		    "repeated declaration of term `%s'", name);
+	yaep_error (YAEP_REPEATED_TERM_LOOKAHEAD_DECL,
+		    "repeated declaration of term or lookahead `%s'", name);
       if (symb_find_by_code (code) != NULL)
 	yaep_error (YAEP_REPEATED_TERM_CODE,
 		    "repeated code %d in term `%s'", code, name);
       symb_add_term (name, code);
     }
-
-  /* Adding error symbol. */
+  /* Adding error symbol: */
   if (symb_find_by_repr (TERM_ERROR_NAME) != NULL)
     yaep_error (YAEP_FIXED_NAME_USAGE,
 		"do not use fixed name `%s'", TERM_ERROR_NAME);
@@ -3339,6 +3462,54 @@ yaep_read_grammar (struct grammar *g, int strict_p,
     abort ();
   grammar->term_error = symb_add_term (TERM_ERROR_NAME, TERM_ERROR_CODE);
   grammar->term_error_num = grammar->term_error->u.term.term_num;
+  if (read_lookahead != NULL)
+    {
+      /* Read lookahead guards: */
+      VLO_CREATE (la_terms_vlo, 64);
+      while ((name = (*read_lookahead) (&exclude_p, &terms)) != NULL)
+	{
+	  symb = symb_find_by_repr (name);
+	  if (symb != NULL)
+	    {
+	      yaep_error (YAEP_REPEATED_TERM_LOOKAHEAD_DECL,
+			  "repeated declaration of term or lookahead guard `%s'", name);
+	      continue;
+	    }
+	  VLO_NULLIFY (symbs_ptr->lookaheads_vlo);
+	  for (i = n = 0; (term_name = terms[i]) != NULL; i++)
+	    if ((symb = symb_find_by_repr (term_name)) == NULL)
+	      yaep_error (YAEP_UNDECLARED_LOOKAHEAD_TERM,
+			  "undeclared lookahead guard terminal `%s'", term_name);
+	    else if (! symb->term_p)
+	      yaep_error (YAEP_NOT_TERM_IN_LOOKAHEAD,
+			  "not a terminal `%s' in lookahead guard `%s'", term_name, name);
+	    else
+	      {
+		VLO_ADD_MEMORY (la_terms_vlo, &symb, sizeof (struct symb *));
+		n++;
+	      }
+	  symb = NULL;
+	  VLO_ADD_MEMORY (la_terms_vlo, &symb, sizeof (struct symb *));
+	  symb = symb_add_lookahead (name, exclude_p, (struct symb **) VLO_BEGIN (la_terms_vlo), n + 1);
+	  symb->u.laguard.term_set = term_set_create ();
+	  term_set_clear (symb->u.laguard.term_set);
+	  if (exclude_p)
+	    {
+	      for (i = 0; i < symbs_ptr->n_terms; i++)
+		term_set_up (symb->u.laguard.term_set, i);
+	    }
+	  for (i = 0; (term = symb->u.laguard.terms[i]) != NULL; i++)
+	    {
+	      assert (term->term_p);
+	      if (!exclude_p)
+		term_set_up (symb->u.laguard.term_set, term->u.term.term_num);
+	      else
+		term_set_down (symb->u.laguard.term_set, term->u.term.term_num);
+	    }
+	}
+      VLO_DELETE (la_terms_vlo);
+    }
+  /* Read rules: */
   grammar->axiom = grammar->end_marker = NULL;
   while ((lhs = (*read_rule) (&rhs, &anode, &anode_cost, &transl)) != NULL)
     {
@@ -3348,6 +3519,9 @@ yaep_read_grammar (struct grammar *g, int strict_p,
       else if (symb->term_p)
 	yaep_error (YAEP_TERM_IN_RULE_LHS,
 		    "term `%s' in the left hand side of rule", lhs);
+      else if (symb->laguard_p)
+	yaep_error (YAEP_LOOKAHEAD_IN_RULE_LHS,
+		    "lookahead `%s' in the left hand side of rule", lhs);
       if (anode == NULL
 	  && transl != NULL && *transl >= 0 && transl [1] >= 0)
 	yaep_error (YAEP_INCORRECT_TRANSLATION,
@@ -3608,13 +3782,15 @@ read_toks (void)
 /* The following function add start situations which is formed from
    given start situation SIT with distance DIST by reducing symbol
    which can derivate empty string and which is placed after dot in
-   given situation.  The function returns TRUE if the dot is placed on
-   the last position in given situation or in the added situations. */
+   given situation.  The current lookahead term is LOOKAHEAD_TERM_NUM.
+   The function returns TRUE if the dot is placed on the last position
+   in given situation or in the added situations. */
 #if MAKE_INLINE
 INLINE
 #endif
 static void
-add_derived_nonstart_sits (struct sit *sit, int parent)
+add_derived_nonstart_sits (struct sit *sit, int parent,
+			   int lookahead_term_num ATTR_UNUSED)
 {
   struct symb *symb;
   struct rule *rule = sit->rule;
@@ -3622,7 +3798,11 @@ add_derived_nonstart_sits (struct sit *sit, int parent)
   int i;
   
   for (i = sit->pos; (symb = rule->rhs [i]) != NULL && symb->empty_p; i++)
-    set_add_new_nonstart_sit (sit_create (rule, i + 1, context), parent);
+    {
+      set_add_new_nonstart_sit (sit_create (rule, i + 1, context), parent);
+      assert (! symb->laguard_p || lookahead_term_num < 0
+	      || term_set_test (symb->u.laguard.term_set, lookahead_term_num));
+    }
 }
 
 #ifdef TRANSITIVE_TRANSITION
@@ -3712,18 +3892,31 @@ form_transitive_transition_vectors (void)
 }
 #endif
 
+/* Return TRUE if the situation SIT has a lookahead guard which does not
+   match term LOOKAHEAD_TERM_NUM.  */
+#if MAKE_INLINE
+INLINE
+#endif
+static int
+ignore_la_sit_p (struct sit *sit, int lookahead_term_num)
+{
+  return (sit->la_match_set != NULL && lookahead_term_num >= 0
+	  && !term_set_test (sit->la_match_set, lookahead_term_num));
+}
+
 /* The following function adds the rest (non-start) situations to the
    new set and and forms triples (set core, symbol, indexes) for
    further fast search of start situations from given core by
    transition on given symbol (see comment for abstract data
-   `core_symb_vect'). */
+   `core_symb_vect').  The current lookahead term is
+   LOOKAHEAD_TERM_NUM. */
 #if MAKE_INLINE
 INLINE
 #endif
 static void
-expand_new_start_set (void)
+expand_new_start_set (int lookahead_term_num)
 {
-  struct sit *sit;
+  struct sit *sit, *new_sit;
   struct symb *symb;
   struct core_symb_vect *core_symb_vect;
   struct rule *rule;
@@ -3731,7 +3924,7 @@ expand_new_start_set (void)
 
   /* Add non start situations with nonzero distances. */
   for (i = 0; i < new_n_start_sits; i++)
-    add_derived_nonstart_sits (new_sits [i], i);
+    add_derived_nonstart_sits (new_sits [i], i, lookahead_term_num);
   /* Add non start situations and form transitions vectors. */
   for (i = 0; i < new_core->n_sits; i++)
     {
@@ -3744,15 +3937,23 @@ expand_new_start_set (void)
 	  if (core_symb_vect == NULL)
 	    {
 	      core_symb_vect = core_symb_vect_new (new_core, symb);
-	      if (!symb->term_p)
+	      if (!symb->term_p && !symb->laguard_p)
 		for (rule = symb->u.nonterm.rules;
 		     rule != NULL;
 		     rule = rule->lhs_next)
-		  set_new_add_initial_sit (sit_create (rule, 0, 0));
+		  {
+		    new_sit = sit_create (rule, 0, 0);
+		    if (! ignore_la_sit_p (new_sit, lookahead_term_num))
+		      set_new_add_initial_sit (new_sit);
+		  }
 	    }
 	  core_symb_vect_new_add_transition_el (core_symb_vect, i);
 	  if (symb->empty_p && i >= new_core->n_all_dists)
-	    set_new_add_initial_sit (sit_create (sit->rule, sit->pos + 1, 0));
+	    {
+	      new_sit = sit_create (sit->rule, sit->pos + 1, 0);
+	      if (! ignore_la_sit_p (new_sit, lookahead_term_num))
+		set_new_add_initial_sit (new_sit);
+	    }
 	}
     }
   /* Now forming reduce vectors. */
@@ -3824,7 +4025,8 @@ build_start_set (void)
   struct sit *sit;
   term_set_el_t *context_set;
   int context;
-
+  int lookahead_term_num;
+  
   set_new_start ();
   if (grammar->lookahead_level <= 1)
     context = 0;
@@ -3845,7 +4047,7 @@ build_start_set (void)
     }
   if (!set_insert ())
     assert (FALSE);
-  expand_new_start_set ();
+  expand_new_start_set (toks_len != 0 ? toks [0].symb->u.term.term_num  : -1);
   pl [0] = new_set;
 #ifndef NO_YAEP_DEBUG_PRINT
   if (grammar->debug_level > 2)
@@ -3870,7 +4072,8 @@ build_new_set (struct set *set, struct core_symb_vect *core_symb_vect,
   struct sit *sit, *new_sit, **prev_sits;
   struct core_symb_vect *prev_core_symb_vect;
   int local_lookahead_level, dist, sit_ind, new_dist;
-  int i, place;
+  int i, place, pos;
+  struct rule *rule;
   struct vect *transitions;
     
   local_lookahead_level = (lookahead_term_num < 0
@@ -3888,10 +4091,14 @@ build_new_set (struct set *set, struct core_symb_vect *core_symb_vect,
     {
       sit_ind = transitions->els [i];
       sit = set_core->sits [sit_ind];
-      new_sit = sit_create (sit->rule, sit->pos + 1, sit->context);
+      pos = sit->pos;
+      rule = sit->rule;
+      new_sit = sit_create (rule, pos + 1, sit->context);
       if (local_lookahead_level != 0
 	  && !term_set_test (new_sit->lookahead, lookahead_term_num)
 	  && !term_set_test (new_sit->lookahead, grammar->term_error_num))
+	continue;
+      if (ignore_la_sit_p (new_sit, lookahead_term_num))
 	continue;
 #ifndef ABSOLUTE_DISTANCES
       dist = 0;
@@ -3961,6 +4168,10 @@ build_new_set (struct set *set, struct core_symb_vect *core_symb_vect,
 		  && !term_set_test (new_sit->lookahead,
 				     grammar->term_error_num))
 		continue;
+	      /* Ignore situations with non-matching lookahead guards
+		 on the tail. */
+	      if (ignore_la_sit_p (new_sit, lookahead_term_num))
+		continue;
 #ifndef ABSOLUTE_DISTANCES
 	      dist = 0;
 #else
@@ -3987,7 +4198,7 @@ build_new_set (struct set *set, struct core_symb_vect *core_symb_vect,
     }
   if (set_insert ())
     {
-      expand_new_start_set ();
+      expand_new_start_set (lookahead_term_num);
       new_core->term = core_symb_vect->symb;
     }
 }
@@ -5478,6 +5689,7 @@ make_parse (int *ambiguous_p)
       disp = rule->order [pos];
       pl_ind = state->pl_ind;
       orig = state->orig;
+    new_pos:
       if (pos < 0)
 	{
 	  /* We've processed all rhs of the rule. */
@@ -5552,6 +5764,12 @@ make_parse (int *ambiguous_p)
 	  if (pos != 0)
 	    state->pl_ind = pl_ind;
 	  continue;
+	}
+      else if (symb->laguard_p)
+	{
+	  /* Just skip it */
+	  pos = --state->pos;
+	  goto new_pos;
 	}
       /* Nonterminal before dot: */
       set = pl [pl_ind];
@@ -5954,9 +6172,9 @@ yaep_parse (struct grammar *g,
 #ifndef NO_YAEP_DEBUG_PRINT
   if (grammar->debug_level > 0)
     {
-      fprintf (stderr, "%sGrammar: #terms = %d, #nonterms = %d, ",
+      fprintf (stderr, "%sGrammar: #terms = %d, #lookaheads = %d, #nonterms = %d, ",
 	       *ambiguous_p ? "AMBIGUOUS " : "",
-	       symbs_ptr->n_terms, symbs_ptr->n_nonterms);
+	       symbs_ptr->n_terms, symbs_ptr->n_laguards, symbs_ptr->n_nonterms);
       fprintf (stderr, "#rules = %d, rules size = %d\n",
 	       rules_ptr->n_rules, rules_ptr->n_rhs_lens + rules_ptr->n_rules);
       fprintf (stderr,
@@ -6034,9 +6252,9 @@ yaep_free_grammar (struct grammar *g)
 
 
 /* This page contains a test code for Earley's algorithm.  To use it,
-   define macro YAEP_TEST during compilation. */
+   define macro YAEP_TEST1 or YAEP_TEST2 during compilation. */
 
-#ifdef YAEP_TEST
+#if defined(YAEP_TEST1) || defined(YAEP_TEST2)
 
 /* All parse_alloc memory is contained here. */
 #ifndef __cplusplus
@@ -6073,6 +6291,9 @@ read_terminal (int *code)
     case 3: *code = '*'; return "*";
     case 4: *code = '('; return "(";
     case 5: *code = ')'; return ")";
+#ifdef YAEP_TEST2
+    case 6: *code = 'f'; return "f";
+#endif
     default: return NULL;
     }
 }
@@ -6086,6 +6307,12 @@ static int nrule;
 const char *
 read_rule (const char ***rhs, const char **anode, int *anode_cost, int **transl)
 {
+#if defined(YAEP_TEST2)
+  static const char *rhs_m1 [] = {"G1", "E", NULL};
+  static int tr_m1 [] = {1, -1};
+  static const char *rhs_0 [] = {"G2", "E", NULL};
+  static int tr_0 [] = {1, -1};
+#endif
   static const char *rhs_1 [] = {"T", NULL};
   static int tr_1 [] = {0, -1};
   static const char *rhs_2 [] = {"E", "+", "T", NULL};
@@ -6098,10 +6325,18 @@ read_rule (const char ***rhs, const char **anode, int *anode_cost, int **transl)
   static int tr_5 [] = {0, -1};
   static const char *rhs_6 [] = {"(", "E", ")", NULL};
   static int tr_6 [] = {1, -1};
+  static const char *rhs_7 [] = {"f", NULL};
+  static int tr_7 [] = {0, -1};
 
   nrule++;
   switch (nrule)
     {
+#if defined(YAEP_TEST2)
+    case -1: *rhs = rhs_m1; *anode = "a"; *anode_cost = 0; *transl = tr_m1;
+      return "P";
+    case 0: *rhs = rhs_0; *anode = "f"; *anode_cost = 0; *transl = tr_0;
+      return "P";
+#endif
     case 1: *rhs = rhs_1; *anode = NULL; *anode_cost = 0; *transl = tr_1;
       return "E";
     case 2: *rhs = rhs_2; *anode = "plus"; *transl = tr_2;
@@ -6114,6 +6349,10 @@ read_rule (const char ***rhs, const char **anode, int *anode_cost, int **transl)
       return "F";
     case 6: *rhs = rhs_6; *anode = NULL; *anode_cost = 0; *transl = tr_6;
       return "F";
+#if defined(YAEP_TEST2)
+    case 7: *rhs = rhs_7; *anode = NULL; *anode_cost = 0; *transl = tr_7;
+      return "F";
+#endif
     default: return NULL;
     }
 }
@@ -6122,17 +6361,85 @@ read_rule (const char ***rhs, const char **anode, int *anode_cost, int **transl)
    token. */
 static int ntok;
 
+/* The following variable is the current number of next grammar
+   lookahead. */
+static int nlookahead;
+
+#if defined(YAEP_TEST1)
+
+const char input_tokens [] ="a+a*(a*a+a)";
+
+static const char *description =
+"\n"
+"TERM;\n"
+"E : T         # 0\n"
+"  | E '+' T   # plus (0 2)\n"
+"  ;\n"
+"T : F         # 0\n"
+"  | T '*' F   # mult (0 2)\n"
+"  ;\n"
+"F : 'a'       # 0\n"
+"  | '(' E ')' # 1\n"
+"  ;\n"
+  ;
+
+static const char *
+read_lookahead (int *exclude_p, const char ***terms)
+{
+  return NULL;
+}
+
+#elif defined(YAEP_TEST2)
+
+const char input_tokens [] ="f+a*(a*a+a)";
+
+static const char *description =
+"\n"
+"TERM;\n"
+"LOOKAHEAD G1 = ~{'f'} G2 = {'f'};\n"
+"P : G1 E       # a (1)\n"
+"  | G2 E       # f (1)\n"
+"  ;\n"
+"E : T         # 0\n"
+"  | E '+' T   # plus (0 2)\n"
+"  ;\n"
+"T : F         # 0\n"
+"  | T '*' F   # mult (0 2)\n"
+"  ;\n"
+"F : 'a'       # 0\n"
+"  | 'f'       # 0\n"
+"  | '(' E ')' # 1\n"
+"  ;\n"
+  ;
+
+static const char *
+read_lookahead (int *exclude_p, const char ***terms)
+{
+  static const char *terms_1 [] = {"f", NULL};
+  static const char *terms_2 [] = {"f", NULL};
+  
+  nlookahead++;
+  switch (nlookahead)
+    {
+    case 1: *exclude_p = TRUE; *terms = terms_1;
+      return "G1";
+    case 2: *exclude_p = FALSE; *terms = terms_2;
+      return "G2";
+    default: return NULL;
+    }
+}
+
+#endif
+
 /* The following function imported by Earley's algorithm (see comments
    in the interface file). */
 static int
 test_read_token (void **attr)
 {
-  const char input [] ="a+a*(a*a+a)";
-
   ntok++;
   *attr = NULL;
-  if (ntok < sizeof (input))
-    return input [ntok - 1];
+  if (ntok < sizeof (input_tokens))
+    return input_tokens [ntok - 1];
   else
     return -1;
 }
@@ -6163,7 +6470,10 @@ use_functions (int argc, char **argv)
   struct yaep_tree_node *root;
   int ambiguous_p;
 
-  nterm = nrule = 0;
+  nterm = nrule = nlookahead = 0;
+#if defined(YAEP_TEST2)
+  nrule = -2; /* two additional start rules */
+#endif
   OS_CREATE (mem_os, 0);
   fprintf (stderr, "Use functions\n");
   if ((g = yaep_create_grammar ()) == NULL)
@@ -6183,7 +6493,7 @@ use_functions (int argc, char **argv)
     yaep_set_error_recovery_flag (g, atoi (argv [3]));
   if (argc > 4)
     yaep_set_one_parse_flag (g, atoi (argv [4]));
-  if (yaep_read_grammar (g, TRUE, read_terminal, read_rule) != 0)
+  if (yaep_read_grammar (g, TRUE, read_terminal, read_lookahead, read_rule) != 0)
     {
       fprintf (stderr, "%s\n", yaep_error_message (g));
       OS_DELETE (mem_os);
@@ -6197,20 +6507,6 @@ use_functions (int argc, char **argv)
   OS_DELETE (mem_os);
 }
 #endif
-
-static const char *description =
-"\n"
-"TERM;\n"
-"E : T         # 0\n"
-"  | E '+' T   # plus (0 2)\n"
-"  ;\n"
-"T : F         # 0\n"
-"  | T '*' F   # mult (0 2)\n"
-"  ;\n"
-"F : 'a'       # 0\n"
-"  | '(' E ')' # 1\n"
-"  ;\n"
-  ;
 
 #ifndef __cplusplus
 static void
@@ -6269,4 +6565,4 @@ main (int argc, char **argv)
   exit (0);
 }
 
-#endif /* #ifdef YAEP_TEST */
+#endif /* #if defined(YAEP_TEST1) || defined(YAEP_TEST2) */

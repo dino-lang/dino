@@ -86,12 +86,14 @@ yaep::error_message (void)
 int
 yaep::read_grammar (int strict_p,
 		    const char *(*read_terminal) (int *code),
+		    const char *(*read_lookahead) (int *exclude_p,
+						   const char ***terms),
 		    const char *(*read_rule) (const char ***rhs,
 					      const char **abs_node,
 					      int *anode_cost, int **transl))
 {
   return yaep_read_grammar (this->grammar, strict_p,
-			    read_terminal, read_rule);
+			    read_terminal, read_lookahead, read_rule);
 }
 
 int
@@ -181,7 +183,7 @@ use_functions (int argc, char **argv)
     e->set_error_recovery_flag (atoi (argv [3]));
   if (argc > 4)
     e->set_one_parse_flag (atoi (argv [4]));
-  if (e->read_grammar (TRUE, read_terminal, read_rule) != 0)
+  if (e->read_grammar (TRUE, read_terminal, NULL, read_rule) != 0)
     {
       fprintf (stderr, "%s\n", e->error_message ());
       OS_DELETE (mem_os);

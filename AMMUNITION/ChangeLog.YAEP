@@ -1,3 +1,71 @@
+2016-07-13  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* sgramm.y (struct slookahead, slookaheads, slaterms): New.
+	(LOOKAHEAD, lookaheads, set, set_elements, set_element): New
+	grammar symbols and rules for them.
+	(nslookahead): New.
+	(yylex): Return {, }, ~, LOOKAHEAD.
+	(set_sgrammar): Initiate slookaheads, slaterms, nslookahead.
+	(free_sgrammar): Finish slookaheads and slaterms.
+	(add_lookahead, sread_lookahead): New.
+	(yaep_parse_grammar): Pass sread_lookahead.
+	* yaep.h (YAEP_REPEATED_TERM_DECL): Rename to
+	YAEP_REPEATED_TERM_LOOKAHEAD_DECL.
+	(YAEP_UNDECLARED_LOOKAHEAD_TERM, NOT_TERM_IN_LOOKAHEAD): New.
+	(YAEP_LOOKAHEAD_IN_RULE_LHS): New.
+	(yaep_read_grammar, read_grammar): Add arg read_lookahead.
+	* yaep.c: Remove comment with GPL.
+	(ATTR_UNUSED): New.
+	(struct symb): New members laguard and laguard_p.
+	(struct symbs): Add member n_laguards.
+	(lookaheads_vlo): New.
+	(lookahead_terms_os): New.
+	(symb_init): Initiate lookaheads_vlo, lookahead_terms_os, and
+	n_laguards.
+	(symb_add_term, symb_add_nonterm): Set up laguard_p.  Use
+	n_laguards.
+	(symb_add_lookahead): New.
+	(term_get, nonterm_get): Check laguard_p in assert.
+	(symb_empty): Nullify lookaheads_vlo, lookahead_terms_os, and
+	n_laguards.
+	(symb_fin): Delete lookaheads_vlo and lookahead_terms_os.
+	(term_set_create): Move up.
+	(term_set_and, term_set_down): New.
+	(rule_new_start): Check laguard_p in assert.
+	(struct sit): Add member la_match_set.
+	(sit_set_lookahead): Set up la_match_set.
+	(core_symb_vect_addr_get): Use n_laguards.
+	(create_first_follow_sets, set_empty_access_derives, set_loop_p):
+	Process laguards.
+	(yaep_read_grammar): Add arg read_lookahead, use it, check
+	lookahead in rule lhs.
+	(add_derived_nonstart_sits): Add arg lookahead_term_num.  Check
+	laguards and lookahead term in assert.
+	(ignore_la_sit_p): New.
+	(expand_new_start_set): Add arg lookahead_term_num.  Process
+	laguards.
+	(build_start_set): Pass lookahead term num to
+	expand_new_start_set.
+	(build_new_set): Use ignore_la_sit_p.
+	(make_parse): Skip laguards.
+	(yaep_parse): Print lookahead #.
+	(YAEP_TEST): Remove.
+	(YAEP_TEST1, YAEP_TEST): New.
+	(read_terminal, read_rule, description): Make variants depending
+	on YAEP_TEST1 or YAEP_TEST2.
+	(nlookahead, read_lookahead): New.
+	(test_read_token): Rename input to input_tokens.  Move up.  Make
+	the variants.
+	(use_functions): Initiate nlookahead.  Pass read_lookahead to
+	yaep_read_grammar.
+	* yaepcpp.C (yaep::read_grammar): Add arg
+	read_lookahead.
+	(use_functions): Pass the arg.
+	* yaep.tst.in: Add lookaheads to the expected output.
+	Pass NULL to yaep_read_grammar for read_lookahead.
+	(50, 51, 51a, 52, 52a, 52b, 53, 53a, 53b, 54, 54a): New tests.
+	* yaep++.tst.in: Pass NULL to read_grammar for read_lookahead.
+
 2016-01-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* AMMUNITION/yaep++.tst.in (comment): Make void as return type.

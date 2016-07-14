@@ -64,6 +64,17 @@ struct sterm
   int num;    /* order number. */
 };
 
+/* The following structure describes syntax grammar lookahead. */
+struct slookahead
+{
+  char *repr; /* lookahead representation. */
+  int num;    /* order number. */
+  int exclude_p;
+  /* Terminal representations in the lookahead.  The array end marker
+     is NULL. */
+  char **terms;
+};
+
 /* The following structure describes syntax grammar rule. */
 struct srule
 {
@@ -82,20 +93,21 @@ struct srule
   int *trans;
 };
 
-/* The following vlos contain all syntax terminal and syntax rule
-   structures. */
+/* The following vlos contain all syntax terminal, lookaheads, and
+   syntax rule structures. */
 #ifndef __cplusplus
-static vlo_t sterms, srules;
+static vlo_t sterms, slookaheads, srules;
 #else
-static vlo_t *sterms, *srules;
+static vlo_t *sterms, *slookaheads, *srules;
 #endif
 
-/* The following contain all right hand sides and translations arrays.
-   See members rhs, trans in structure `rule'. */
+/* The following contains all lookahead terminals, right hand sides,
+   and translations arrays.  See members terms in lookahead, rhs and
+   trans in structure `rule'. */
 #ifndef __cplusplus
-static os_t srhs, strans; 
+static os_t slaterms, srhs, strans; 
 #else
-static os_t *srhs, *strans; 
+static os_t *slaterms, *srhs, *strans; 
 #endif
 
 /* The following is cost of the last translation which contains an
@@ -110,6 +122,8 @@ extern int yyerror (const char *str);
 extern int yylex (void);
 extern int yyparse (void);
 
+static void add_lookahead (char *repr, int exclude_p, char **terms);
+
 %}
 
 %union
@@ -120,16 +134,18 @@ extern int yyparse (void);
 
 %token <ref> IDENT SEM_IDENT CHAR
 %token <num> NUMBER
-%token TERM
+%token TERM LOOKAHEAD
 
-%type <ref> trans
+%type <ref> set trans
 %type <num> number
 
 %%
 
 file : file terms opt_sem
+     | file lookaheads opt_sem
      | file rule
      | terms opt_sem
+     | lookaheads opt_sem
      | rule
      ;
 
@@ -152,6 +168,29 @@ terms : terms IDENT number
 number :            {$$ = -1;}
        | '=' NUMBER {$$ = $2;}
        ;
+
+lookaheads : lookaheads IDENT '=' set { add_lookahead ((char *) $2, FALSE, (char **) $4); }
+           | lookaheads IDENT '=' '~' set { add_lookahead ((char *) $2, TRUE, (char **) $5); }
+           | LOOKAHEAD
+	   ;
+
+set : '{' set_elements '}'
+      {
+	char *end_marker = NULL;
+	
+ 	OS_TOP_ADD_MEMORY (slaterms, &end_marker, sizeof (char *));
+	$$ = (void *) OS_TOP_BEGIN (slaterms);
+	OS_TOP_FINISH (slaterms);
+      }
+    ;
+
+set_elements : set_elements ',' set_element
+             | set_element
+	     ;
+
+set_element : IDENT  { OS_TOP_ADD_MEMORY (slaterms, &$1, sizeof (char *)); }
+            | CHAR   { OS_TOP_ADD_MEMORY (slaterms, &$1, sizeof (char *)); }
+            ;
 
 rule : SEM_IDENT {slhs = (char *) $1;} rhs opt_sem
      ;
@@ -261,7 +300,7 @@ static os_t *stoks;
 
 /* The following is number of syntax terminal and syntax rules being
    read. */
-static int nsterm, nsrule;
+static int nsterm, nslookahead, nsrule;
 
 /* The following implements lexical analyzer for yacc code. */
 int
@@ -313,6 +352,9 @@ yylex (void)
 	case '-':
 	case '(':
 	case ')':
+	case '{':
+	case '}':
+	case '~':
 	  return c;
 	case '\'':
 	  OS_TOP_ADD_BYTE (stoks, '\'');
@@ -338,6 +380,11 @@ yylex (void)
 		{
 		  OS_TOP_NULLIFY (stoks);
 		  return TERM;
+		}
+	      if (strcmp ((char *) yylval.ref, "LOOKAHEAD") == 0)
+		{
+		  OS_TOP_NULLIFY (stoks);
+		  return LOOKAHEAD;
 		}
 	      OS_TOP_FINISH (stoks);
 	      while ((c = *curr_ch++) != '\0')
@@ -406,7 +453,7 @@ sterm_num_cmp (const void *t1, const void *t2)
 
 static void free_sgrammar (void);
 
-/* The following is major function which parses the description and
+/* The following is a major function which parses the description and
    transforms it into IR. */
 static int
 set_sgrammar (const char *grammar)
@@ -426,7 +473,9 @@ set_sgrammar (const char *grammar)
     }
   OS_CREATE (stoks, 0);
   VLO_CREATE (sterms, 0);
+  VLO_CREATE (slookaheads, 0);
   VLO_CREATE (srules, 0);
+  OS_CREATE (slaterms, 0);
   OS_CREATE (srhs, 0);
   OS_CREATE (strans, 0);
   curr_ch = grammar;
@@ -469,9 +518,22 @@ set_sgrammar (const char *grammar)
       if (term->code < 0)
 	term->code = code++;
     }
-  nsterm = nsrule = 0;
+  nsterm = nslookahead = nsrule = 0;
   change_allocation_error_function (init_error_func_for_allocate);
   return 0;
+}
+
+/* Add lookahead with name REPR, flag EXCLUDE_P, and TERMS.  */
+static void
+add_lookahead (char *repr, int exclude_p, char **terms)
+{
+  struct slookahead la;
+  
+  la.repr = repr;
+  la.exclude_p = exclude_p;
+  la.terms = terms;
+  la.num = VLO_LENGTH (slookaheads) / sizeof (la);
+  VLO_ADD_MEMORY (slookaheads, &la, sizeof (la));
 }
 
 /* The following frees IR. */
@@ -480,12 +542,14 @@ free_sgrammar (void)
 {
   OS_DELETE (strans);
   OS_DELETE (srhs);
+  OS_DELETE (slaterms);
   VLO_DELETE (srules);
+  VLO_DELETE (slookaheads);
   VLO_DELETE (sterms);
   OS_DELETE (stoks);
 }
 
-/* The following two functions implements functions used by YAEP. */
+/* The following three functions implements functions used by YAEP. */
 static const char *
 sread_terminal (int *code)
 {
@@ -498,6 +562,22 @@ sread_terminal (int *code)
   *code = term->code;
   name = term->repr;
   nsterm++;
+  return name;
+}
+
+static const char *
+sread_lookahead (int *exclude_p, const char ***terms)
+{
+  struct slookahead *lookahead;
+  const char *name;
+  
+  lookahead = &((struct slookahead *) VLO_BEGIN (slookaheads)) [nslookahead];
+  if ((char *) lookahead >= (char *) VLO_BOUND (slookaheads))
+    return NULL;
+  *exclude_p = lookahead->exclude_p;
+  name = lookahead->repr;
+  *terms = (const char **) lookahead->terms;
+  nslookahead++;
   return name;
 }
 
@@ -532,7 +612,7 @@ yaep_parse_grammar (struct grammar *g, int strict_p, const char *description)
   assert (g != NULL);
   if ((code = set_sgrammar (description)) != 0)
     return code;
-  code = yaep_read_grammar (g, strict_p, sread_terminal, sread_rule);
+  code = yaep_read_grammar (g, strict_p, sread_terminal, sread_lookahead, sread_rule);
   free_sgrammar ();
   return code;
 }

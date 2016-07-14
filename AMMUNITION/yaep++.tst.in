@@ -2422,7 +2422,7 @@ int main ()
       exit (1);
     }
   ntok = 0;
-  if (e->read_grammar (1, read_terminal, read_rule) != 0)
+  if (e->read_grammar (1, read_terminal, NULL, read_rule) != 0)
     {
       fprintf (stderr, "%s\n", e->error_message ());
       delete mem_os;
@@ -2592,7 +2592,7 @@ int main ()
       exit (1);
     }
   ntok = 0;
-  if (e->read_grammar (1, read_terminal, read_rule) != 0)
+  if (e->read_grammar (1, read_terminal, NULL, read_rule) != 0)
     {
       fprintf (stderr, "%s\n", e->error_message ());
       delete mem_os;
@@ -2763,7 +2763,7 @@ int main ()
       exit (1);
     }
   ntok = 0;
-  if (e->read_grammar (1, read_terminal, read_rule) != 0)
+  if (e->read_grammar (1, read_terminal, NULL, read_rule) != 0)
     {
       fprintf (stderr, "%s\n", e->error_message ());
       delete mem_os;
@@ -2934,7 +2934,7 @@ int main ()
       exit (1);
     }
   ntok = 0;
-  if (e->read_grammar (1, read_terminal, read_rule) != 0)
+  if (e->read_grammar (1, read_terminal, NULL, read_rule) != 0)
     {
       fprintf (stderr, "%s\n", e->error_message ());
       delete mem_os;
@@ -2962,7 +2962,7 @@ TEST24
 	    else
 	        echo '      ' $cmp $temp_file $temp3_file
 	        if cat <<'OUTPUT24' >$temp3_file && $cmp $temp_file $temp3_file; then
-repeated declaration of term `a'
+repeated declaration of term or lookahead `a'
 OUTPUT24
         	        result=ok
 	        else
@@ -3104,7 +3104,7 @@ int main ()
       exit (1);
     }
   ntok = 0;
-  if (e->read_grammar (1, read_terminal, read_rule) != 0)
+  if (e->read_grammar (1, read_terminal, NULL, read_rule) != 0)
     {
       fprintf (stderr, "%s\n", e->error_message ());
       delete mem_os;
@@ -3274,7 +3274,7 @@ int main ()
       exit (1);
     }
   ntok = 0;
-  if (e->read_grammar (1, read_terminal, read_rule) != 0)
+  if (e->read_grammar (1, read_terminal, NULL, read_rule) != 0)
     {
       fprintf (stderr, "%s\n", e->error_message ());
       delete mem_os;
@@ -17238,7 +17238,7 @@ int main ()
       exit (1);
     }
   ntok = 0;
-  if (e->read_grammar (1, read_terminal, read_rule) != 0)
+  if (e->read_grammar (1, read_terminal, NULL, read_rule) != 0)
     {
       fprintf (stderr, "%s\n", e->error_message ());
       delete mem_os;
