@@ -53,7 +53,8 @@
 #define delete_hash_table(tab) delete tab
 #define find_hash_table_entry(tab, el, res_p) (tab)->find_entry(el, res_p)
 
-#ifdef YAEP_TEST
+#if defined(YAEP_TEST1) || defined(YAEP_TEST2)
+
 /* Forward declarations: */
 static void use_functions (int argc, char **argv);
 static void use_description (int argc, char **argv);
@@ -151,7 +152,7 @@ yaep::parse (int (*read_token) (void **attr),
 }
 
 
-#ifdef YAEP_TEST
+#if defined(YAEP_TEST1) || defined(YAEP_TEST2)
 
 /* The following two functions calls earley parser with two different
    ways of forming grammars. */
@@ -163,6 +164,9 @@ use_functions (int argc, char **argv)
   int ambiguous_p;
 
   nterm = nrule = 0;
+#if defined(YAEP_TEST2)
+  nrule = -2; /* two additional start rules */
+#endif
   OS_CREATE (mem_os, 0);
   fprintf (stderr, "Use functions\n");
   e = new yaep ();
@@ -183,7 +187,7 @@ use_functions (int argc, char **argv)
     e->set_error_recovery_flag (atoi (argv [3]));
   if (argc > 4)
     e->set_one_parse_flag (atoi (argv [4]));
-  if (e->read_grammar (TRUE, read_terminal, NULL, read_rule) != 0)
+  if (e->read_grammar (TRUE, read_terminal, read_lookahead, read_rule) != 0)
     {
       fprintf (stderr, "%s\n", e->error_message ());
       OS_DELETE (mem_os);
@@ -237,4 +241,4 @@ use_description (int argc, char **argv)
   OS_DELETE (mem_os);
 }
 
-#endif /* #ifdef YAEP_TEST */
+#endif /* #if defined(YAEP_TEST1) || defined(YAEP_TEST2) */

@@ -1,5 +1,14 @@
 2016-07-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* yaepcpp.C (YAEP_TEST): Remove.
+	(YAEP_TEST1, YAEP_TEST): New.
+	(use_functions): Pass read_lookahead.  Setup nrule for YAEP_TEST2.
+	* yaep++.tst.in: Add lookaheads to the expected output.
+	(50, 51, 51a, 52, 52a, 52b, 53, 53a, 53b, 54, 54a, 55-58): New
+	tests.
+
+2016-07-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* yaep.h (YAEP_LOOKAHEAD_TRANSLATION): New.
 	* yaep.c (yaep_read_grammar): Check error
 	YAEP_LOOKAHEAD_TRANSLATION.

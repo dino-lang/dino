@@ -98,8 +98,8 @@ done
 
 
 if test $start_test_number -le 5;then
-	echo '      ' $CXX $CXX_options -DYAEP_TEST $source_yaep $addfiles1 -o $outfile
-	if $CXX $CXX_options -DYAEP_TEST -DYAEP_DEBUG $source_yaep $addfiles1 -o $outfile; then
+	echo '      ' $CXX $CXX_options -DYAEP_TEST1 $source_yaep $addfiles1 -o $outfile
+	if $CXX $CXX_options -DYAEP_TEST1 -DYAEP_DEBUG $source_yaep $addfiles1 -o $outfile; then
 	      result=ok
 	else
 	      echo '***' $script_file: test is failed see file $test_file
@@ -151,7 +151,7 @@ if test $result = ok -a $start_test_number -le 2; then
         echo '      ' $cmp $temp_file $temp3_file
         if cat <<'OUTPUT2' >$temp3_file && $cmp $temp_file $temp3_file; then
 Use description
-Grammar: #terms = 7, #nonterms = 4, #rules = 8, rules size = 24
+Grammar: #terms = 7, #lookaheads = 0, #nonterms = 4, #rules = 8, rules size = 24
 Input: #tokens = 12, #unique situations = 22
        #terminal sets = 30, their size = 240
        #unique set cores = 10, #their start situations = 25
@@ -182,7 +182,7 @@ if test $result = ok -a $start_test_number -le 2; then
         echo '      ' $cmp $temp_file $temp3_file
         if cat <<'OUTPUT2a' >$temp3_file && $cmp $temp_file $temp3_file; then
 Use functions
-Grammar: #terms = 7, #nonterms = 4, #rules = 8, rules size = 24
+Grammar: #terms = 7, #lookaheads = 0, #nonterms = 4, #rules = 8, rules size = 24
 Input: #tokens = 12, #unique situations = 22
        #terminal sets = 30, their size = 240
        #unique set cores = 10, #their start situations = 25
@@ -213,7 +213,7 @@ if test $result = ok -a $start_test_number -le 3; then
         echo '      ' $cmp $temp_file $temp3_file
         if cat <<'OUTPUT3' >$temp3_file && $cmp $temp_file $temp3_file; then
 Use description
-Grammar: #terms = 7, #nonterms = 4, #rules = 8, rules size = 24
+Grammar: #terms = 7, #lookaheads = 0, #nonterms = 4, #rules = 8, rules size = 24
 Input: #tokens = 12, #unique situations = 22
        #terminal sets = 8, their size = 64
        #unique set cores = 11, #their start situations = 42
@@ -244,7 +244,7 @@ if test $result = ok -a $start_test_number -le 3; then
         echo '      ' $cmp $temp_file $temp3_file
         if cat <<'OUTPUT3a' >$temp3_file && $cmp $temp_file $temp3_file; then
 Use functions
-Grammar: #terms = 7, #nonterms = 4, #rules = 8, rules size = 24
+Grammar: #terms = 7, #lookaheads = 0, #nonterms = 4, #rules = 8, rules size = 24
 Input: #tokens = 12, #unique situations = 22
        #terminal sets = 8, their size = 64
        #unique set cores = 11, #their start situations = 42
@@ -275,7 +275,7 @@ if test $result = ok -a $start_test_number -le 3; then
         echo '      ' $cmp $temp_file $temp3_file
         if cat <<'OUTPUT3b' >$temp3_file && $cmp $temp_file $temp3_file; then
 Use functions
-Grammar: #terms = 7, #nonterms = 4, #rules = 8, rules size = 24
+Grammar: #terms = 7, #lookaheads = 0, #nonterms = 4, #rules = 8, rules size = 24
 Input: #tokens = 12, #unique situations = 22
        #terminal sets = 8, their size = 64
        #unique set cores = 11, #their start situations = 42
@@ -306,7 +306,7 @@ if test $result = ok -a $start_test_number -le 4; then
         echo '      ' $cmp $temp_file $temp3_file
         if cat <<'OUTPUT4' >$temp3_file && $cmp $temp_file $temp3_file; then
 Use description
-Grammar: #terms = 7, #nonterms = 4, #rules = 8, rules size = 24
+Grammar: #terms = 7, #lookaheads = 0, #nonterms = 4, #rules = 8, rules size = 24
 Input: #tokens = 12, #unique situations = 45
        #terminal sets = 71, their size = 568
        #unique set cores = 13, #their start situations = 30
@@ -384,7 +384,7 @@ Translation:
       8: TERMINAL: code=97, repr='a'
       6: TERMINAL: code=97, repr='a'
 
-Grammar: #terms = 7, #nonterms = 4, #rules = 8, rules size = 24
+Grammar: #terms = 7, #lookaheads = 0, #nonterms = 4, #rules = 8, rules size = 24
 Input: #tokens = 12, #unique situations = 22
        #terminal sets = 30, their size = 240
        #unique set cores = 10, #their start situations = 25
@@ -426,7 +426,7 @@ Translation:
       8: TERMINAL: code=97, repr=a
       6: TERMINAL: code=97, repr=a
 
-Grammar: #terms = 7, #nonterms = 4, #rules = 8, rules size = 24
+Grammar: #terms = 7, #lookaheads = 0, #nonterms = 4, #rules = 8, rules size = 24
 Input: #tokens = 12, #unique situations = 22
        #terminal sets = 30, their size = 240
        #unique set cores = 10, #their start situations = 25
@@ -17984,6 +17984,606 @@ OUTPUT49
         else
                 result=fail
         fi
+fi
+
+if test $start_test_number -le 54;then
+	echo '      ' $CXX $CXX_options -DYAEP_TEST2 $source_yaep $addfiles1 -o $outfile
+	if $CXX $CXX_options -DYAEP_TEST2 -DYAEP_DEBUG $source_yaep $addfiles1 -o $outfile; then
+	      result=ok
+	else
+	      echo '***' $script_file: test is failed see file $test_file
+	      exit 1
+	fi
+fi
+
+# Test 50.
+if test $result = ok -a $start_test_number -le 50; then
+    echo test 50: No statistics
+    echo '      ' $outfile 1 1 0 "2>$temp_file"
+    if $outfile 1 1 0 2>$temp_file; then
+        echo '      ' $cmp $temp_file $temp3_file
+        if cat <<'OUTPUT50' >$temp3_file && $cmp $temp_file $temp3_file; then
+Use description
+OUTPUT50
+                result=ok
+        else
+                result=fail
+        fi
+    else
+        result=fail
+    fi
+fi
+
+# Test 50a.
+if test $result = ok -a $start_test_number -le 50; then
+    echo test 50a: No statistics
+    echo '      ' $outfile 0 1 0 "2>$temp_file"
+    if $outfile 0 1 0 2>$temp_file; then
+        echo '      ' $cmp $temp_file $temp3_file
+        if cat <<'OUTPUT50a' >$temp3_file && $cmp $temp_file $temp3_file; then
+Use functions
+OUTPUT50a
+                result=ok
+        else
+                result=fail
+        fi
+    else
+        result=fail
+    fi
+fi
+
+# Test 51.
+if test $result = ok -a $start_test_number -le 51; then
+    echo test 51: Static lookahead
+    echo '      ' $outfile 1 1 1 "2>&1|fgrep -v collisions >$temp_file"
+    if $outfile 1 1 1 2>&1|fgrep -v collisions >$temp_file; then
+        echo '      ' $cmp $temp_file $temp3_file
+        if cat <<'OUTPUT51' >$temp3_file && $cmp $temp_file $temp3_file; then
+Use description
+Grammar: #terms = 8, #lookaheads = 2, #nonterms = 5, #rules = 11, rules size = 32
+Input: #tokens = 12, #unique situations = 28
+       #terminal sets = 42, their size = 336
+       #unique set cores = 10, #their start situations = 26
+       #parent indexes for some non start situations = 0
+       #unique set dist. vects = 10, their length = 26
+       #unique sets = 11, #their start situations = 27
+       #unique triples (set, term, lookahead) = 12, goto successes=0
+       #pairs(set core, symb) = 45, their trans+reduce vects length = 50
+       #unique transition vectors = 15, their length = 19
+       #unique reduce vectors = 4, their length = 4
+       #term nodes = 5, #abstract nodes = 5
+       #alternative nodes = 0, #all nodes = 10
+OUTPUT51
+                result=ok
+        else
+                result=fail
+        fi
+    else
+        result=fail
+    fi
+fi
+
+# Test 51a.
+if test $result = ok -a $start_test_number -le 51; then
+    echo test 51a: Static lookahead
+    echo '      ' $outfile 0 1 1 "2>&1|fgrep -v collisions >$temp_file"
+    if $outfile 0 1 1 2>&1|fgrep -v collisions >$temp_file; then
+        echo '      ' $cmp $temp_file $temp3_file
+        if cat <<'OUTPUT51a' >$temp3_file && $cmp $temp_file $temp3_file; then
+Use functions
+Grammar: #terms = 8, #lookaheads = 2, #nonterms = 5, #rules = 11, rules size = 32
+Input: #tokens = 12, #unique situations = 28
+       #terminal sets = 42, their size = 336
+       #unique set cores = 10, #their start situations = 26
+       #parent indexes for some non start situations = 0
+       #unique set dist. vects = 10, their length = 26
+       #unique sets = 11, #their start situations = 27
+       #unique triples (set, term, lookahead) = 12, goto successes=0
+       #pairs(set core, symb) = 45, their trans+reduce vects length = 50
+       #unique transition vectors = 15, their length = 19
+       #unique reduce vectors = 4, their length = 4
+       #term nodes = 5, #abstract nodes = 5
+       #alternative nodes = 0, #all nodes = 10
+OUTPUT51a
+                result=ok
+        else
+                result=fail
+        fi
+    else
+        result=fail
+    fi
+fi
+
+# Test 52.
+if test $result = ok -a $start_test_number -le 52; then
+    echo test 52: No lookahead
+    echo '      ' $outfile 1 0 1 "2>&1|fgrep -v collisions >$temp_file"
+    if $outfile 1 0 1 2>&1|fgrep -v collisions >$temp_file; then
+        echo '      ' $cmp $temp_file $temp3_file
+        if cat <<'OUTPUT52' >$temp3_file && $cmp $temp_file $temp3_file; then
+Use description
+Grammar: #terms = 8, #lookaheads = 2, #nonterms = 5, #rules = 11, rules size = 32
+Input: #tokens = 12, #unique situations = 28
+       #terminal sets = 14, their size = 112
+       #unique set cores = 11, #their start situations = 45
+       #parent indexes for some non start situations = 0
+       #unique set dist. vects = 11, their length = 45
+       #unique sets = 12, #their start situations = 46
+       #unique triples (set, term, lookahead) = 12, goto successes=0
+       #pairs(set core, symb) = 64, their trans+reduce vects length = 69
+       #unique transition vectors = 15, their length = 19
+       #unique reduce vectors = 4, their length = 4
+       #term nodes = 5, #abstract nodes = 5
+       #alternative nodes = 0, #all nodes = 10
+OUTPUT52
+                result=ok
+        else
+                result=fail
+        fi
+    else
+        result=fail
+    fi
+fi
+
+# Test 52a.
+if test $result = ok -a $start_test_number -le 52; then
+    echo test 52a: No lookahead
+    echo '      ' $outfile 0 0 1 "2>&1|fgrep -v collisions >$temp_file"
+    if $outfile 0 0 1 2>&1|fgrep -v collisions >$temp_file; then
+        echo '      ' $cmp $temp_file $temp3_file
+        if cat <<'OUTPUT52a' >$temp3_file && $cmp $temp_file $temp3_file; then
+Use functions
+Grammar: #terms = 8, #lookaheads = 2, #nonterms = 5, #rules = 11, rules size = 32
+Input: #tokens = 12, #unique situations = 28
+       #terminal sets = 14, their size = 112
+       #unique set cores = 11, #their start situations = 45
+       #parent indexes for some non start situations = 0
+       #unique set dist. vects = 11, their length = 45
+       #unique sets = 12, #their start situations = 46
+       #unique triples (set, term, lookahead) = 12, goto successes=0
+       #pairs(set core, symb) = 64, their trans+reduce vects length = 69
+       #unique transition vectors = 15, their length = 19
+       #unique reduce vectors = 4, their length = 4
+       #term nodes = 5, #abstract nodes = 5
+       #alternative nodes = 0, #all nodes = 10
+OUTPUT52a
+                result=ok
+        else
+                result=fail
+        fi
+    else
+        result=fail
+    fi
+fi
+
+# Test 52b.
+if test $result = ok -a $start_test_number -le 52; then
+    echo test 52b: Negative lookahead
+    echo '      ' $outfile 0 -1 1 "2>&1|fgrep -v collisions >$temp_file"
+    if $outfile 0 -1 1 2>&1|fgrep -v collisions >$temp_file; then
+        echo '      ' $cmp $temp_file $temp3_file
+        if cat <<'OUTPUT52b' >$temp3_file && $cmp $temp_file $temp3_file; then
+Use functions
+Grammar: #terms = 8, #lookaheads = 2, #nonterms = 5, #rules = 11, rules size = 32
+Input: #tokens = 12, #unique situations = 28
+       #terminal sets = 14, their size = 112
+       #unique set cores = 11, #their start situations = 45
+       #parent indexes for some non start situations = 0
+       #unique set dist. vects = 11, their length = 45
+       #unique sets = 12, #their start situations = 46
+       #unique triples (set, term, lookahead) = 12, goto successes=0
+       #pairs(set core, symb) = 64, their trans+reduce vects length = 69
+       #unique transition vectors = 15, their length = 19
+       #unique reduce vectors = 4, their length = 4
+       #term nodes = 5, #abstract nodes = 5
+       #alternative nodes = 0, #all nodes = 10
+OUTPUT52b
+                result=ok
+        else
+                result=fail
+        fi
+    else
+        result=fail
+    fi
+fi
+
+# Test 53.
+if test $result = ok -a $start_test_number -le 53; then
+    echo test 53: Dynamic lookahead
+    echo '      ' $outfile 1 2 1 "2>&1|fgrep -v collisions >$temp_file"
+    if $outfile 1 2 1 2>&1|fgrep -v collisions >$temp_file; then
+        echo '      ' $cmp $temp_file $temp3_file
+        if cat <<'OUTPUT53' >$temp3_file && $cmp $temp_file $temp3_file; then
+Use description
+Grammar: #terms = 8, #lookaheads = 2, #nonterms = 5, #rules = 11, rules size = 32
+Input: #tokens = 12, #unique situations = 55
+       #terminal sets = 89, their size = 712
+       #unique set cores = 13, #their start situations = 31
+       #parent indexes for some non start situations = 0
+       #unique set dist. vects = 10, their length = 26
+       #unique sets = 13, #their start situations = 31
+       #unique triples (set, term, lookahead) = 12, goto successes=0
+       #pairs(set core, symb) = 57, their trans+reduce vects length = 63
+       #unique transition vectors = 15, their length = 19
+       #unique reduce vectors = 4, their length = 4
+       #term nodes = 5, #abstract nodes = 5
+       #alternative nodes = 0, #all nodes = 10
+OUTPUT53
+                result=ok
+        else
+                result=fail
+        fi
+    else
+        result=fail
+    fi
+fi
+
+# Test 53a.
+if test $result = ok -a $start_test_number -le 53; then
+    echo test 53a: Dynamic lookahead
+    echo '      ' $outfile 0 2 0 "2>$temp_file"
+    if $outfile 0 2 0 2>$temp_file; then
+        echo '      ' $cmp $temp_file $temp3_file
+        if cat <<'OUTPUT53a' >$temp3_file && $cmp $temp_file $temp3_file; then
+Use functions
+OUTPUT53a
+                result=ok
+        else
+                result=fail
+        fi
+    else
+        result=fail
+    fi
+fi
+
+# Test 53b.
+if test $result = ok -a $start_test_number -le 53; then
+    echo test 53b: lookahead '>' 2
+    echo '      ' $outfile 0 3 0 "2>$temp_file"
+    if $outfile 0 3 0 2>$temp_file; then
+        echo '      ' $cmp $temp_file $temp3_file
+        if cat <<'OUTPUT53b' >$temp3_file && $cmp $temp_file $temp3_file; then
+Use functions
+OUTPUT53b
+                result=ok
+        else
+                result=fail
+        fi
+    else
+        result=fail
+    fi
+fi
+
+# Test 54.
+if test $result = ok -a $start_test_number -le 54; then
+    echo test 54: Debugging level 2 -- printing translation.
+    echo '      ' $outfile 1 1 2 "2>&1|fgrep -v collisions >$temp_file"
+    if $outfile 1 1 2 2>&1|fgrep -v collisions >$temp_file; then
+        echo '      ' $cmp $temp_file $temp3_file
+        if cat <<'OUTPUT54' >$temp3_file && $cmp $temp_file $temp3_file; then
+Use description
+Translation:
+      0: ABSTRACT: f ( 1 )
+      1: ABSTRACT: plus ( 2 3 )
+      2: TERMINAL: code=102, repr='f'
+      3: ABSTRACT: mult ( 4 5 )
+      4: TERMINAL: code=97, repr='a'
+      5: ABSTRACT: plus ( 6 7 )
+      6: ABSTRACT: mult ( 8 9 )
+      8: TERMINAL: code=97, repr='a'
+      9: TERMINAL: code=97, repr='a'
+      7: TERMINAL: code=97, repr='a'
+
+Grammar: #terms = 8, #lookaheads = 2, #nonterms = 5, #rules = 11, rules size = 32
+Input: #tokens = 12, #unique situations = 28
+       #terminal sets = 42, their size = 336
+       #unique set cores = 10, #their start situations = 26
+       #parent indexes for some non start situations = 0
+       #unique set dist. vects = 10, their length = 26
+       #unique sets = 11, #their start situations = 27
+       #unique triples (set, term, lookahead) = 12, goto successes=0
+       #pairs(set core, symb) = 45, their trans+reduce vects length = 50
+       #unique transition vectors = 15, their length = 19
+       #unique reduce vectors = 4, their length = 4
+       #term nodes = 5, #abstract nodes = 5
+       #alternative nodes = 0, #all nodes = 10
+OUTPUT54
+                result=ok
+        else
+                result=fail
+        fi
+    else
+        result=fail
+    fi
+fi
+
+# Test 54a.
+if test $result = ok -a $start_test_number -le 54; then
+    echo test 54a: Debugging level 2 -- printing translation.
+    echo '      ' $outfile 0 1 2 "2>&1|fgrep -v collisions >$temp_file"
+    if $outfile 0 1 2 2>&1|fgrep -v collisions >$temp_file; then
+        echo '      ' $cmp $temp_file $temp3_file
+        if cat <<'OUTPUT54a' >$temp3_file && $cmp $temp_file $temp3_file; then
+Use functions
+Translation:
+      0: ABSTRACT: f ( 1 )
+      1: ABSTRACT: plus ( 2 3 )
+      2: TERMINAL: code=102, repr=f
+      3: ABSTRACT: mult ( 4 5 )
+      4: TERMINAL: code=97, repr=a
+      5: ABSTRACT: plus ( 6 7 )
+      6: ABSTRACT: mult ( 8 9 )
+      8: TERMINAL: code=97, repr=a
+      9: TERMINAL: code=97, repr=a
+      7: TERMINAL: code=97, repr=a
+
+Grammar: #terms = 8, #lookaheads = 2, #nonterms = 5, #rules = 11, rules size = 32
+Input: #tokens = 12, #unique situations = 28
+       #terminal sets = 42, their size = 336
+       #unique set cores = 10, #their start situations = 26
+       #parent indexes for some non start situations = 0
+       #unique set dist. vects = 10, their length = 26
+       #unique sets = 11, #their start situations = 27
+       #unique triples (set, term, lookahead) = 12, goto successes=0
+       #pairs(set core, symb) = 45, their trans+reduce vects length = 50
+       #unique transition vectors = 15, their length = 19
+       #unique reduce vectors = 4, their length = 4
+       #term nodes = 5, #abstract nodes = 5
+       #alternative nodes = 0, #all nodes = 10
+OUTPUT54a
+                result=ok
+        else
+                result=fail
+        fi
+    else
+        result=fail
+    fi
+fi
+
+# Test 55.
+if test $result = ok -a $start_test_number -le 55; then
+    echo test 55: Undeclared lookahead terminal
+    cat >$test_file <<'TEST55'
+#include <stdlib.h>
+#include "objstack.h"
+#include "yaep.h"
+
+static const char *description =
+"\n"
+"TERM;\n"
+"LOOKAHEAD l = {IDENT};\n"
+"E : T         # 0\n"
+"  | E '+' T   # plus (0 2)\n"
+"  ;\n"
+"T : F         # 0\n"
+"  | T '*' F   # mult (0 2)\n"
+"  ;\n"
+"F : 'a'       # 0\n"
+"  | '(' E ')' # 1\n"
+"  ;\n"
+  ;
+
+int main ()
+{
+  yaep *e = new yaep ();
+
+  if (e == NULL)
+    {
+      fprintf (stderr, "yaep::yaep: No memory\n");
+      exit (1);
+    }
+  if (e->parse_grammar (0, description) != 0)
+    {
+      fprintf (stderr, "%s\n", e->error_message ());
+      exit (1);
+    }
+  delete e;
+  exit (0);
+}
+TEST55
+    echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+    if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+	echo '      ' $outfile ">$temp_file 2>&1"
+	if $outfile >$temp_file 2>&1; then
+            result=fail
+	else
+            echo '      ' $cmp $temp_file $temp3_file
+            if cat <<'OUTPUT55' >$temp3_file && $cmp $temp_file $temp3_file; then
+undeclared lookahead guard terminal `IDENT'
+OUTPUT55
+                result=ok
+            else
+                result=fail
+            fi
+	fi
+    else
+        result=fail
+    fi
+fi
+
+# Test 56.
+if test $result = ok -a $start_test_number -le 56; then
+    echo test 56: Lookahead in a rule lhs
+    cat >$test_file <<'TEST56'
+#include <stdlib.h>
+#include "objstack.h"
+#include "yaep.h"
+
+static const char *description =
+"\n"
+"TERM;\n"
+"LOOKAHEAD l = {'+'};\n"
+"E : T         # 0\n"
+"  | E '+' T   # plus (0 2)\n"
+"  ;\n"
+"T : F         # 0\n"
+"  | T '*' F   # mult (0 2)\n"
+"  ;\n"
+"F : 'a'       # 0\n"
+"  | '(' E ')' # 1\n"
+"  ;\n"
+"l : 'a'\n"
+"  ;\n"
+;
+
+int main ()
+{
+  yaep *e = new yaep ();
+
+  if (e == NULL)
+    {
+      fprintf (stderr, "yaep::yaep: No memory\n");
+      exit (1);
+    }
+  if (e->parse_grammar (0, description) != 0)
+    {
+      fprintf (stderr, "%s\n", e->error_message ());
+      exit (1);
+    }
+  delete e;
+  exit (0);
+}
+TEST56
+    echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+    if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+	echo '      ' $outfile ">$temp_file 2>&1"
+	if $outfile >$temp_file 2>&1; then
+            result=fail
+	else
+            echo '      ' $cmp $temp_file $temp3_file
+            if cat <<'OUTPUT56' >$temp3_file && $cmp $temp_file $temp3_file; then
+lookahead `l' in the left hand side of rule
+OUTPUT56
+                result=ok
+            else
+                result=fail
+            fi
+	fi
+    else
+        result=fail
+    fi
+fi
+
+# Test 57.
+if test $result = ok -a $start_test_number -le 57; then
+    echo test 57: Not a terminal in a lookahead
+    cat >$test_file <<'TEST57'
+#include <stdlib.h>
+#include "objstack.h"
+#include "yaep.h"
+
+static const char *description =
+"\n"
+"TERM;\n"
+"LOOKAHEAD l = {'+'} l2 = {l};\n"
+"E : T         # 0\n"
+"  | E '+' T   # plus (0 2)\n"
+"  ;\n"
+"T : F         # 0\n"
+"  | T '*' F   # mult (0 2)\n"
+"  ;\n"
+"F : 'a'       # 0\n"
+"  | '(' E ')' # 1\n"
+"  ;\n"
+;
+
+int main ()
+{
+  yaep *e = new yaep ();
+
+  if (e == NULL)
+    {
+      fprintf (stderr, "yaep::yaep: No memory\n");
+      exit (1);
+    }
+  if (e->parse_grammar (0, description) != 0)
+    {
+      fprintf (stderr, "%s\n", e->error_message ());
+      exit (1);
+    }
+  delete e;
+  exit (0);
+}
+TEST57
+    echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+    if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+	echo '      ' $outfile ">$temp_file 2>&1"
+	if $outfile >$temp_file 2>&1; then
+            result=fail
+	else
+            echo '      ' $cmp $temp_file $temp3_file
+            if cat <<'OUTPUT57' >$temp3_file && $cmp $temp_file $temp3_file; then
+not a terminal `l' in lookahead guard `l2'
+OUTPUT57
+                result=ok
+            else
+                result=fail
+            fi
+	fi
+    else
+        result=fail
+    fi
+fi
+
+# Test 58.
+if test $result = ok -a $start_test_number -le 58; then
+    echo test 58: Not a terminal in a lookahead
+    cat >$test_file <<'TEST58'
+#include <stdlib.h>
+#include "objstack.h"
+#include "yaep.h"
+
+static const char *description =
+"\n"
+"TERM;\n"
+"LOOKAHEAD l = {'a'};\n"
+"E : l T       # 0\n"
+"  | E '+' T   # plus (0 2)\n"
+"  ;\n"
+"T : F         # 0\n"
+"  | T '*' F   # mult (0 2)\n"
+"  ;\n"
+"F : 'a'       # 0\n"
+"  | '(' E ')' # 1\n"
+"  ;\n"
+;
+
+int main ()
+{
+  yaep *e = new yaep ();
+
+  if (e == NULL)
+    {
+      fprintf (stderr, "yaep::yaep: No memory\n");
+      exit (1);
+    }
+  if (e->parse_grammar (0, description) != 0)
+    {
+      fprintf (stderr, "%s\n", e->error_message ());
+      exit (1);
+    }
+  delete e;
+  exit (0);
+}
+TEST58
+    echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+    if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+	echo '      ' $outfile ">$temp_file 2>&1"
+	if $outfile >$temp_file 2>&1; then
+            result=fail
+	else
+            echo '      ' $cmp $temp_file $temp3_file
+            if cat <<'OUTPUT58' >$temp3_file && $cmp $temp_file $temp3_file; then
+requested translation of lookahead (symbol number 0) in rule for `E'
+OUTPUT58
+                result=ok
+            else
+                result=fail
+            fi
+	fi
+    else
+        result=fail
+    fi
 fi
 
 # Final message
