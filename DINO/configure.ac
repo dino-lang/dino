@@ -56,7 +56,6 @@ AC_SUBST(DINO_MODULE_VERSION_SUFFIX)
 AC_SUBST(DINO_MODULE_SUFFIX)
 
 # Checks for programs.
-AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_YACC
 AC_PROG_LEX
@@ -138,7 +137,8 @@ fi
 CFLAGS="$CFLAGS $c_debug_define"
 CXXFLAGS="$CXXFLAGS $c_debug_define"
 
-if test "$GCC" = yes && test x$dino_debug = x; then
+if test "$GCC" = yes && test x$dino_debug = x && \
+  test "$ac_test_CFLAGS" != set; then
   my_save_cflags="$CFLAGS"
   CFLAGS=-Ofast
   AC_MSG_CHECKING([whether CC supports -Ofast])
