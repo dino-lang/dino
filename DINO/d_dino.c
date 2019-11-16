@@ -1113,7 +1113,7 @@ void add_dino_path (const char *prefix, const char *subdir,
 }
 
 #define COMMAND_LINE_DESCRIPTION \
-"program size dirname dump\n"\
+"program size dirname dumpfile\n"\
 "%%\n"\
 "command line: dino [option ...] [program-file] arguments\n"\
 "\n"\
@@ -1127,7 +1127,7 @@ void add_dino_path (const char *prefix, const char *subdir,
 "`-t', `--trace'      output final trace to stderr\n"\
 "`-p', `--profile'    output profile information into stderr\n"\
 "`-d', `--dump'       dump program IR\n"\
-"`-i dump'            read IR instead of program\n"\
+"`-i dumpfile'        read IR instead of program\n"\
 "`--save-temps'       save temp JIT C and object files\n"\
 "`--check'            check program w/o execution\n"
 

@@ -1,3 +1,8 @@
+2019-11-16  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_dino.c (COMMAND_LINE_DESCRIPTION): Change conflicting arg
+	param name dump onto dumpfile.
+
 2016-06-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/configure.ac (DINO_LIB_LDFLAGS): Add src/ to libonig.la.
