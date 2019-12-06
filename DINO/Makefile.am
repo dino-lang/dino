@@ -6,6 +6,7 @@ SUBDIRS = . MODULES
 lib_LTLIBRARIES = libdino.la
 libdino_la_SOURCES = d_dino.h d_errors.h d_common.h d_built.h d_yacc.h d_runtab.h d_bcio.h\
 		     d_types.h d_context.h d_inference.h d_conv.h d_udb.h d_func.h d_eval.h\
+		     d_dlist.h d_varr.h d_hash.h d_htab.h d_strtab.h\
 		     d_errors.c d_heap.c d_runtab.c\
    		     d_context.c d_inference.c d_bcio.c d_conv.c d_udb.c d_func.c\
 		     d_eval.c d_dino.c
@@ -33,12 +34,12 @@ libdino_la_CFLAGS = -I$(srcdir)/../ONIGURUMA/src -I$(srcdir)/../ONIGURUMA -I$(sr
 libdino_la_LDFLAGS = @DINO_LIB_LDFLAGS@ -release $(DINO_VERSION)
 bin_PROGRAMS = dino
 dino_SOURCES = d_main.c
-CLEANFILES = sgramm.c d_yacc.c d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_kw.c d_enc.c d_bcn.c d_bcf.c
+CLEANFILES = sgramm.c d_yacc.c d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h
 dino_DEPENDENCIES = libdino.la
 dino_CFLAGS = $(libdino_la_CFLAGS)
 dino_LDFLAGS = -export-dynamic @DINO_LIB_LDFLAGS@ \
                libdino.la ../ONIGURUMA/src/libonig.la ../AMMUNITION/libcocom.la -lgmp -lm
-BUILT_SOURCES = d_ir.h d_bc.h d_run.h d_bcn.c d_bcf.c d_kw.c d_enc.c
+BUILT_SOURCES = d_ir.h d_bc.h d_run.h
 dist_doc_DATA = dino.txt dino.info dino.html dino-1.html dino-2.html\
 	        dino-3.html dino-4.html dino-5.html dino-6.html dino-7.html\
 	        dino-8.html dino-9.html dino-10.html dino-11.html\
@@ -46,7 +47,7 @@ dist_doc_DATA = dino.txt dino.info dino.html dino-1.html dino-2.html\
 dist_man_MANS = dino.1
 nodist_include_HEADERS = d_api.h d_gen.i
 EXTRA_DIST =  d_gen.c d_yacc.y d_ir.sprut d_bc.sprut d_extern.sprut d_run.sprut\
-	      d_kw.shilka d_enc.shilka d_bcn.shilka d_bcf.shilka dino.tst.in UnicodeDB.c\
+	      dino.tst.in UnicodeDB.c\
 	      compare.tst README INSTALL d_minimize.d d_flatten.d\
 	      UnicodeOriginalData.txt process_ucodedb.d\
 	      dino.sgml.in
@@ -111,18 +112,6 @@ d_extern.c d_extern.h : $(srcdir)/d_extern.sprut
 # Use -debug instead of -only-macro for debugging
 	../SPRUT/sprut @START_SPRUT_OPTIONS@ -pER_ -access -set -flat-structure $(srcdir)/d_extern.sprut
 	rm -f d_extern.c
-
-d_kw.c : $(srcdir)/d_kw.shilka
-	$(SHILKA) -no-definitions -strip $(srcdir)/d_kw.shilka
-
-d_enc.c : $(srcdir)/d_enc.shilka
-	$(SHILKA) -pENC_ -no-definitions -strip $(srcdir)/d_enc.shilka
-
-d_bcn.c : $(srcdir)/d_bcn.shilka
-	$(SHILKA) -pNR_ -no-definitions -strip $(srcdir)/d_bcn.shilka
-
-d_bcf.c : $(srcdir)/d_bcf.shilka
-	$(SHILKA) -pFR_ -strip $(srcdir)/d_bcf.shilka
 
 d_yacc.c: $(srcdir)/d_yacc.y
 	@echo must be - conflicts: 9 shift/reduce.

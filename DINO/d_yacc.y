@@ -2576,8 +2576,6 @@ source_file_encoding (const char *fname)
    stream stack is empty, otherwise returns lexema
    END_OF_INCLUDE_FILE.  */
 
-#include "d_kw.c"
-
 /* The following variable referes for current char of parsed
    environment.  If it refers for zero character, the environment has
    been parsed already. */
@@ -2721,6 +2719,58 @@ skip_line_rest (void)
 /* Var length string used by function yylval for text presentation of
    the symbol. */
 static vlo_t symbol_text;
+
+#include "d_strtab.h"
+
+static struct str_code kw_tab_els[] = {
+  {"_", WILDCARD},
+  {"break", BREAK},
+  {"case", CASE},
+  {"catch", CATCH},
+  {"char", CHAR},
+  {"class", CLASS},
+  {"continue", CONTINUE},
+  {"expose", EXPOSE},
+  {"extern", EXTERN},
+  {"else", ELSE},
+  {"fiber", FIBER},
+  {"final", FINAL},
+  {"float", FLOAT},
+  {"for", FOR},
+  {"former", FORMER},
+  {"friend", FRIEND},
+  {"fun", FUN},
+  {"hide", HIDE},
+  {"hideblock", HIDEBLOCK},
+  {"if", IF},
+  {"in", IN},
+  {"include", INCLUDE},
+  {"int", INT},
+  {"later", LATER},
+  {"long", LONG},
+  {"new", NEW},
+  {"nil", NIL},
+  {"obj", OBJ},
+  {"pmatch", PMATCH},
+  {"priv", PRIV},
+  {"pub", PUB},
+  {"require", REQUIRE},
+  {"return", RETURN},
+  {"rmatch", RMATCH},
+  {"tab", TAB},
+  {"thread", THREAD},
+  {"this", THIS},
+  {"throw", THROW},
+  {"try", TRY},
+  {"type", TYPE},
+  {"use", USE},
+  {"val", VAL},
+  {"var", VAR},
+  {"vec", VEC},
+  {"wait", WAIT},
+};
+
+static HTAB (str_code_t) * kw_tab;
 
 /* The following function recognizes next source symbol from the input
    file, returns its code, modifies var current_position so that its
@@ -3448,8 +3498,7 @@ yylex (void)
                      || input_char == '_');
               d_ungetc (input_char);
               VLO_ADD_BYTE (symbol_text, '\0');
-              keyword = KR_find_keyword (VLO_BEGIN (symbol_text),
-                                         VLO_LENGTH (symbol_text) - 1);
+	      keyword = find_str_code (kw_tab, VLO_BEGIN (symbol_text), 0);
               if (keyword != 0)
                 return keyword;
               else
@@ -3713,6 +3762,7 @@ repl_can_process_p (void)
 void
 initiate_parser (void)
 {
+  kw_tab = create_str_code_tab (kw_tab_els, sizeof (kw_tab_els) / sizeof (struct str_code));
   current_scope = create_empty_block (NULL);
   start_block ();
   additional_stmts = NULL;
@@ -3730,6 +3780,7 @@ void
 finish_parser (void)
 {
   finish_block ();
+  finish_str_code_tab (kw_tab);
 }
 
 /*

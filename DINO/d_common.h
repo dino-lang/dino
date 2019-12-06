@@ -66,17 +66,17 @@
 #ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
 #ifndef RTLD_GLOBAL
-#define RTLD_GLOBAL 0x0	/* ignore allowing symbols to be global. */
+#define RTLD_GLOBAL 0x0 /* ignore allowing symbols to be global. */
 #endif
 #else
 #ifdef HAVE_DLOPEN
 /* Used mode flags for the dlopen routine. */
-#define RTLD_LAZY	1	/* lazy function call binding */
-#define RTLD_NOW	2	/* immediate function call binding */
-#define RTLD_GLOBAL	0x100	/* allow symbols to be global */
+#define RTLD_LAZY 1       /* lazy function call binding */
+#define RTLD_NOW 2        /* immediate function call binding */
+#define RTLD_GLOBAL 0x100 /* allow symbols to be global */
 void *dlopen (const char *filename, int flag);
-const char *dlerror(void);
-void *dlsym(void *handle, char *symbol);
+const char *dlerror (void);
+void *dlsym (void *handle, char *symbol);
 int dlclose (void *handle);
 #endif
 #endif
@@ -87,8 +87,8 @@ int dlclose (void *handle);
 #ifndef ITIMER_VIRTUAL
 #define ITIMER_VIRTUAL 1
 #endif
-#if defined (HAVE_SETITIMER) && !defined(SIGVTALRM)
-#define SIGVTALRM 26 
+#if defined(HAVE_SETITIMER) && !defined(SIGVTALRM)
+#define SIGVTALRM 26
 #endif
 #endif
 
@@ -106,6 +106,10 @@ int dlclose (void *handle);
 #include "bits.h"
 #include "d_errors.h"
 #include "d_types.h"
+#include "d_dlist.h"
+#include "d_varr.h"
+#include "d_hash.h"
+#include "d_htab.h"
 
 #define FALSE 0
 #define TRUE 1
@@ -124,29 +128,21 @@ static int inline isgraph_ascii (int ch) { return ch < 128 && isgraph (ch); }
 static int inline isprint_ascii (int ch) { return ch < 128 && isprint (ch); }
 
 /* True if CH is a hexdecimal digit.  */
-static int inline
-is_hex_digit (int ch)
-{
-  return (('0' <= ch && ch <= '9')
-	  || ('a' <= (ch) && (ch) <= 'f')
-	  || ('A' <= (ch) && (ch) <= 'F'));
+static int inline is_hex_digit (int ch) {
+  return (('0' <= ch && ch <= '9') || ('a' <= (ch) && (ch) <= 'f') || ('A' <= (ch) && (ch) <= 'F'));
 }
 
 /* Functions returning value of digit or hex digit CH. */
 
-static int inline
-value_of_digit (int ch)
-{
+static int inline value_of_digit (int ch) {
   d_assert ('0' <= ch && ch <= '9');
   return ch - '0';
 }
 
-static int inline
-value_of_hex_digit (int ch)
-{
+static int inline value_of_hex_digit (int ch) {
   d_assert (is_hex_digit (ch));
   return ('0' <= ch && ch <= '9' ? ch - '0'
-	  : 'a' <= (ch) && (ch) <= 'f' ? ch - 'a' + 10 : ch - 'A' + 10);
+                                 : 'a' <= (ch) && (ch) <= 'f' ? ch - 'a' + 10 : ch - 'A' + 10);
 }
 
 #define STANDARD_INPUT_FILE_SUFFIX ".d"
@@ -201,51 +197,44 @@ extern size_t hash_mpz (mpz_t mpz);
 #define LATIN1_STRING "LATIN1"
 
 extern encoding_type_t get_encoding_type (const char *str);
-extern int set_conv_descs (const char *encoding_name,
-			   conv_desc_t *byte_cd, conv_desc_t *ucode_cd,
-			   conv_desc_t *reverse_ucode_cd,
-			   encoding_type_t *tp);
+extern int set_conv_descs (const char *encoding_name, conv_desc_t *byte_cd, conv_desc_t *ucode_cd,
+                           conv_desc_t *reverse_ucode_cd, encoding_type_t *tp);
 
 extern char *get_ucode_ascii_repr (ucode_t ch);
-extern int read_dino_string_code (int input_char, int *correct_newln,
-				  int *wrong_escape_code, int d_getc (void),
-				  void d_ungetc (int));
-enum read_number_code
-{
+extern int read_dino_string_code (int input_char, int *correct_newln, int *wrong_escape_code,
+                                  int d_getc (void), void d_ungetc (int));
+enum read_number_code {
   NUMBER_OK,
   NON_DECIMAL_FLOAT,
   ABSENT_EXPONENT,
   WRONG_OCTAL_INT,
 };
 
-extern enum read_number_code
-read_dino_number (int curr_ch, int get_ch (void), void unget_ch (int),
-		  int *read_ch_num, const char **result, int *base,
-		  int *float_p, int *long_p);
+extern enum read_number_code read_dino_number (int curr_ch, int get_ch (void), void unget_ch (int),
+                                               int *read_ch_num, const char **result, int *base,
+                                               int *float_p, int *long_p);
 
 extern void print_indent (int);
 extern void print_stmt_prompt (void);
 extern void print_stmt_cont_prompt (void);
-extern void d_verror (int fatal_error_flag, position_t position,
-		      const char *format, va_list ap);
-extern void d_error (int fatal_error_flag, position_t position,
-		     const char *format, ...);
+extern void d_verror (int fatal_error_flag, position_t position, const char *format, va_list ap);
+extern void d_error (int fatal_error_flag, position_t position, const char *format, ...);
 extern void copy_vlo (vlo_t *to, vlo_t *from);
 extern void str_to_ucode_vlo (vlo_t *to, const char *from, size_t len);
-extern char *encode_byte_str_vlo (byte_t *str, conv_desc_t cd,
-				  encoding_type_t tp, vlo_t *vlo, size_t *len);
-extern char *encode_ucode_str_vlo (ucode_t *str, conv_desc_t cd,
-				   encoding_type_t tp, vlo_t *vlo, size_t *len);
+extern char *encode_byte_str_vlo (byte_t *str, conv_desc_t cd, encoding_type_t tp, vlo_t *vlo,
+                                  size_t *len);
+extern char *encode_ucode_str_vlo (ucode_t *str, conv_desc_t cd, encoding_type_t tp, vlo_t *vlo,
+                                   size_t *len);
 extern const char *encode_ucode_str_to_raw_vlo (const ucode_t *str, vlo_t *vlo);
-extern ucode_t get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd,
-				      encoding_type_t tp, void *data);
+extern ucode_t get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd, encoding_type_t tp,
+                                      void *data);
 extern int check_encoding_on_ascii (const char *encoding);
 
 extern void dino_finish (int code);
 
 extern int incompatible_lang_version_p (double v);
 
-#define SET_SOURCE_POSITION(ref)     (source_position = IR_pos (ref))
+#define SET_SOURCE_POSITION(ref) (source_position = IR_pos (ref))
 
 #define ENVIRONMENT_PSEUDO_FILE_NAME "<environment>"
 
@@ -257,7 +246,7 @@ extern void *memset (void *to, int value, size_t size);
 extern void *memmove (void *s1, const void *s2, size_t n);
 #endif /* #ifndef HAVE_MEMMOVE */
 
-#if !defined (NO_PROFILE) && !defined (HAVE_SETITIMER)
+#if !defined(NO_PROFILE) && !defined(HAVE_SETITIMER)
 #define HAVE_SETITIMER 0
 #endif
 
@@ -275,7 +264,7 @@ extern void *memmove (void *s1, const void *s2, size_t n);
 #define __always__
 #endif
 
-#if INLINE && !defined (SMALL_CODE)
+#if INLINE && !defined(SMALL_CODE)
 #define do_inline inline __always__
 #else
 #define do_inline
@@ -289,29 +278,17 @@ extern void *memmove (void *s1, const void *s2, size_t n);
 #define ATTRIBUTE_UNUSED
 #endif
 
-
-
 /* This page contains code for dealing with ASCII, UTF8 and
    UNICODE.  */
 
-static inline int
-in_byte_range_p (int ch)
-{
-  return 0 <= ch && ch <= UCHAR_MAX;
-}
+static inline int in_byte_range_p (int ch) { return 0 <= ch && ch <= UCHAR_MAX; }
 
-static inline int
-in_ucode_range_p (int uc)
-{
-  return 0 <= uc && uc <= (int) 0x10ffff;
-}
+static inline int in_ucode_range_p (int uc) { return 0 <= uc && uc <= (int) 0x10ffff; }
 
 /* length of ucode string STR.  */
-static inline int
-ucodestrlen (const ucode_t *s)
-{
+static inline int ucodestrlen (const ucode_t *s) {
   size_t i;
-  
+
   for (i = 0; s[i] != 0; i++)
     ;
   return i;
@@ -319,9 +296,7 @@ ucodestrlen (const ucode_t *s)
 
 #include <stdio.h>
 
-static inline int
-dino_getc (FILE *f)
-{
+static inline int dino_getc (FILE *f) {
 #ifdef HAVE_GETC_UNLOCKED
   return getc_unlocked (f);
 #else
@@ -331,12 +306,20 @@ dino_getc (FILE *f)
 
 /* Read and return by from file given by DATA.  Used by
    get_ucode_from_stream.  */
-static inline int
-read_byte (void *data)
-{
+static inline int read_byte (void *data) {
   FILE *f = (FILE *) data;
-  
+
   return dino_getc (f);
 }
+
+#define REP2(M, a1, a2) M (a1) REP_SEP M (a2)
+#define REP3(M, a1, a2, a3) REP2 (M, a1, a2) REP_SEP M (a3)
+#define REP4(M, a1, a2, a3, a4) REP3 (M, a1, a2, a3) REP_SEP M (a4)
+#define REP5(M, a1, a2, a3, a4, a5) REP4 (M, a1, a2, a3, a4) REP_SEP M (a5)
+#define REP6(M, a1, a2, a3, a4, a5, a6) REP5 (M, a1, a2, a3, a4, a5) REP_SEP M (a6)
+#define REP7(M, a1, a2, a3, a4, a5, a6, a7) REP6 (M, a1, a2, a3, a4, a5, a6) REP_SEP M (a7)
+#define REP8(M, a1, a2, a3, a4, a5, a6, a7, a8) REP7 (M, a1, a2, a3, a4, a5, a6, a7) REP_SEP M (a8)
+
+#define REP_SEP ,
 
 #endif /* #ifndef D_COMMON_H */
