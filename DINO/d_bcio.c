@@ -733,27 +733,27 @@ static void bc_ungetc (int ch) {
 }
 
 /* The string hash table. */
-static hash_table_t string_hash_table;
+static HTAB (char_ptr_t) * string_hash_table;
+
+typedef const ucode_t *ucode_ptr_t;
+DEF_HTAB (ucode_ptr_t);
 
 /* The unicode string hash table. */
-static hash_table_t ucodestr_hash_table;
+static HTAB (ucode_ptr_t) * ucodestr_hash_table;
 
-/* Func for evaluation of hash value of unicode string STR. */
-static unsigned ustr_hash_func (hash_table_entry_t str) {
-  const ucode_t *s = str;
-  unsigned int i, hash_value;
+/* Func for evaluation of hash value of unicode string S. */
+static htab_hash_t ustr_hash_func (ucode_ptr_t s) {
+  size_t i;
 
-  for (hash_value = i = 0; *s != 0; i++, s++) hash_value += (*s) << (i & 0x7);
-  return hash_value;
+  for (i = 0; s[i] != 0; i++)
+    ;
+  return dino_hash (s, i * sizeof (ucode_t), 24);
 }
 
-/* Func used for comparison of unicode strings represented by STR1 and
-   STR2.  Return TRUE if the elements represent equal string. */
-static int ustr_compare_func (hash_table_entry_t str1, hash_table_entry_t str2) {
-  size_t i;
-  const ucode_t *s1 = str1, *s2 = str2;
-
-  for (i = 0;; i++)
+/* Func used for comparison of unicode strings represented by S1 and
+   S2.  Return TRUE if the elements represent equal string. */
+static int ustr_compare_func (ucode_ptr_t s1, ucode_ptr_t s2) {
+  for (size_t i = 0;; i++)
     if (s1[i] != s2[i])
       return FALSE;
     else if (s1[i] == 0)
@@ -762,50 +762,48 @@ static int ustr_compare_func (hash_table_entry_t str1, hash_table_entry_t str2) 
 
 /* Create the string hash table. */
 static void initiate_string_tables (void) {
-  string_hash_table = create_hash_table (1000, str_hash_func, str_compare_func);
-  ucodestr_hash_table = create_hash_table (1000, ustr_hash_func, ustr_compare_func);
+  HTAB_CREATE (char_ptr_t, string_hash_table, 1000, str_hash_func, str_compare_func);
+  HTAB_CREATE (ucode_ptr_t, ucodestr_hash_table, 1000, ustr_hash_func, ustr_compare_func);
 }
 
 /* Include STR into string table if it is necessary and return the
    string in the table. */
-static const char *string_to_table (const char *str) {
-  const char **table_entry_pointer;
-  char *string_in_table;
+static char_ptr_t string_to_table (char_ptr_t str) {
+  size_t len;
+  char *s;
+  char_ptr_t tab_str;
 
-  table_entry_pointer
-    = (const char **) find_hash_table_entry (string_hash_table, (hash_table_entry_t) str, TRUE);
-  if (*table_entry_pointer != NULL) return *table_entry_pointer;
-  OS_TOP_EXPAND (read_bc, strlen (str) + 1);
-  string_in_table = OS_TOP_BEGIN (read_bc);
+  if (HTAB_DO (char_ptr_t, string_hash_table, str, HTAB_FIND, tab_str)) return tab_str;
+  len = strlen (str) + 1;
+  OS_TOP_EXPAND (read_bc, len);
+  tab_str = s = OS_TOP_BEGIN (read_bc);
   OS_TOP_FINISH (read_bc);
-  strcpy (string_in_table, str);
-  *table_entry_pointer = string_in_table;
-  return string_in_table;
+  strcpy (s, str);
+  HTAB_DO (char_ptr_t, string_hash_table, tab_str, HTAB_INSERT, tab_str);
+  return tab_str;
 }
 
 /* Include unicode STR into unicode string table if it is necessary
    and return the string in the table. */
-static const ucode_t *ucodestr_to_table (const ucode_t *str) {
+static const ucode_ptr_t ucodestr_to_table (ucode_ptr_t str) {
   size_t len;
-  const ucode_t **table_entry_pointer;
-  ucode_t *string_in_table;
+  ucode_t *s;
+  ucode_ptr_t tab_str;
 
-  table_entry_pointer = (const ucode_t **) find_hash_table_entry (ucodestr_hash_table,
-                                                                  (hash_table_entry_t) str, TRUE);
-  if (*table_entry_pointer != NULL) return *table_entry_pointer;
+  if (HTAB_DO (ucode_ptr_t, ucodestr_hash_table, str, HTAB_FIND, tab_str)) return tab_str;
   len = ucodestrlen (str) + 1;
   OS_TOP_EXPAND (read_bc, len);
-  string_in_table = OS_TOP_BEGIN (read_bc);
+  tab_str = s = OS_TOP_BEGIN (read_bc);
   OS_TOP_FINISH (read_bc);
-  memcpy (string_in_table, str, len);
-  *table_entry_pointer = string_in_table;
-  return string_in_table;
+  memcpy (s, str, len);
+  HTAB_DO (ucode_ptr_t, ucodestr_hash_table, tab_str, HTAB_INSERT, tab_str);
+  return tab_str;
 }
 
 /* Delete the string hash tables. */
 static void delete_string_tables (void) {
-  delete_hash_table (string_hash_table);
-  delete_hash_table (ucodestr_hash_table);
+  HTAB_DESTROY (char_ptr_t, string_hash_table);
+  HTAB_DESTROY (ucode_ptr_t, ucodestr_hash_table);
 }
 
 /* Var length string used by func yylval for text presentation of the

@@ -3170,8 +3170,7 @@ yylex (void)
 	      VLO_ADD_BYTE (symbol_text, '\0');
 	      curr_reverse_ucode_cd = saved_reverse_ucode_cd;
 	      IR_set_string_value (temp_unique_string, VLO_BEGIN (symbol_text));
-	      unique_string_node_ptr
-		= *find_table_entry (temp_unique_string, FALSE);
+	      unique_string_node_ptr = find_node (temp_unique_string);
 	      if (unique_string_node_ptr == NULL)
 		{
 		  unique_string_node_ptr
@@ -3180,7 +3179,7 @@ yylex (void)
 		       VLO_LENGTH (symbol_text), &string_value_in_code_memory);
 		  IR_set_string_value (unique_string_node_ptr,
 				       string_value_in_code_memory);
-		  include_to_table (unique_string_node_ptr);
+		  include_node (unique_string_node_ptr);
 		}
 	      IR_set_code_string (yylval.pointer, unique_string_node_ptr);
 	      return CODE;
@@ -3341,12 +3340,12 @@ yylex (void)
                 error (FALSE, current_position, ERR_invalid_char_constant);
               }
             IR_set_char_value (temp_unique_char, input_char);
-            unique_char_node_ptr = *find_table_entry (temp_unique_char, FALSE);
+            unique_char_node_ptr = find_node (temp_unique_char);
             if (unique_char_node_ptr == NULL)
               {
                 unique_char_node_ptr = create_node (IR_NM_unique_char);
                 IR_set_char_value (unique_char_node_ptr, input_char);
-                include_to_table (unique_char_node_ptr);
+                include_node (unique_char_node_ptr);
               }
             yylval.pointer = create_node_with_pos (IR_NM_char,
 						   source_position);
@@ -3437,8 +3436,7 @@ yylex (void)
 		IR_set_ucodestr_size
 		  (temp_unique_ucodestr,
 		   VLO_LENGTH (symbol_text) - sizeof (ucode_t));
-		unique_string_node_ptr = *find_table_entry (temp_unique_ucodestr,
-							    FALSE);
+		unique_string_node_ptr = find_node (temp_unique_ucodestr);
 		if (unique_string_node_ptr == NULL)
 		  {
 		    unique_string_node_ptr
@@ -3451,7 +3449,7 @@ yylex (void)
 		    IR_set_ucodestr_size
 		      (unique_string_node_ptr,
 		       VLO_LENGTH (symbol_text) - sizeof (ucode_t));
-		    include_to_table (unique_string_node_ptr);
+		    include_node (unique_string_node_ptr);
 		  }
 		yylval.pointer = create_node_with_pos (IR_NM_ucodestr,
 						       source_position);
@@ -3462,8 +3460,7 @@ yylex (void)
 	      {
 		VLO_ADD_BYTE (symbol_text, '\0');
 		IR_set_string_value (temp_unique_string, VLO_BEGIN (symbol_text));
-		unique_string_node_ptr = *find_table_entry (temp_unique_string,
-							    FALSE);
+		unique_string_node_ptr = find_node (temp_unique_string);
 		if (unique_string_node_ptr == NULL)
 		  {
 		    unique_string_node_ptr
@@ -3473,7 +3470,7 @@ yylex (void)
 		       &string_value_in_code_memory);
 		    IR_set_string_value (unique_string_node_ptr,
 					 string_value_in_code_memory);
-		    include_to_table (unique_string_node_ptr);
+		    include_node (unique_string_node_ptr);
 		  }
 		yylval.pointer = create_node_with_pos (IR_NM_string,
 						       source_position);

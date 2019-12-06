@@ -101,7 +101,6 @@ int dlclose (void *handle);
 #include "allocate.h"
 #include "vlobject.h"
 #include "position.h"
-#include "hashtab.h"
 #include "ticker.h"
 #include "bits.h"
 #include "d_errors.h"
@@ -176,8 +175,11 @@ extern conv_desc_t curr_byte_cd, curr_ucode_cd, curr_reverse_ucode_cd;
 extern const char *curr_encoding_name;
 extern encoding_type_t curr_encoding_type;
 
-extern unsigned str_hash_func (hash_table_entry_t str);
-extern int str_compare_func (hash_table_entry_t str1, hash_table_entry_t str2);
+typedef const char *char_ptr_t;
+DEF_HTAB (char_ptr_t);
+
+extern htab_hash_t str_hash_func (char_ptr_t str);
+extern int str_compare_func (char_ptr_t str1, char_ptr_t str2);
 extern const char *get_unique_string (const char *str);
 extern rint_t a2i (const char *str, int base);
 extern rfloat_t a2f (const char *str);

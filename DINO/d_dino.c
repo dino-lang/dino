@@ -86,47 +86,37 @@ static void set_big_endian_flag (void) {
 }
 
 /* Func for evaluation of hash value of STR. */
-unsigned str_hash_func (hash_table_entry_t str) {
-  const char *s = str;
-  unsigned int i, hash_value;
-
-  for (hash_value = i = 0; *s != 0; i++, s++) hash_value += (*s) << (i & 0xf);
-  return hash_value;
-}
+htab_hash_t str_hash_func (char_ptr_t str) { return dino_hash (str, strlen (str), 3); }
 
 /* Func used for comparison of strings represented by STR1 and STR2.
    Return TRUE if the elements represent equal string. */
-int str_compare_func (hash_table_entry_t str1, hash_table_entry_t str2) {
-  return strcmp (str1, str2) == 0;
-}
+int str_compare_func (char_ptr_t str1, char_ptr_t str2) { return strcmp (str1, str2) == 0; }
 
 /* Container where the unique strings are stored. */
 static os_t unique_strings;
-static hash_table_t unique_string_hash_table;
+static HTAB (char_ptr_t) * unique_string_hash_table;
 
 static void initiate_unique_strings (void) {
   OS_CREATE (unique_strings, 0);
-  unique_string_hash_table = create_hash_table (1000, str_hash_func, str_compare_func);
+  HTAB_CREATE (char_ptr_t, unique_string_hash_table, 1000, str_hash_func, str_compare_func);
 }
 
-const char *get_unique_string (const char *str) {
-  const char **table_entry_pointer;
-  char *string_in_table;
+char_ptr_t get_unique_string (char_ptr_t str) {
+  char *s;
+  char_ptr_t tab_str;
 
-  table_entry_pointer = (const char **) find_hash_table_entry (unique_string_hash_table,
-                                                               (hash_table_entry_t) str, TRUE);
-  if (*table_entry_pointer != NULL) return *table_entry_pointer;
+  if (HTAB_DO (char_ptr_t, unique_string_hash_table, str, HTAB_FIND, tab_str)) return tab_str;
   OS_TOP_EXPAND (unique_strings, strlen (str) + 1);
-  string_in_table = OS_TOP_BEGIN (unique_strings);
+  tab_str = s = OS_TOP_BEGIN (unique_strings);
   OS_TOP_FINISH (unique_strings);
-  strcpy (string_in_table, str);
-  *table_entry_pointer = string_in_table;
-  return string_in_table;
+  strcpy (s, str);
+  HTAB_DO (char_ptr_t, unique_string_hash_table, tab_str, HTAB_INSERT, tab_str);
+  return tab_str;
 }
 
 static void finish_unique_strings (void) {
   OS_DELETE (unique_strings);
-  delete_hash_table (unique_string_hash_table);
+  HTAB_DESTROY (char_ptr_t, unique_string_hash_table);
 }
 
 /* This page contains functions for transformation to/from string. */
