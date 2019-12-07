@@ -98,16 +98,15 @@ int dlclose (void *handle);
 #include <stdio.h>
 
 #include "d_dino.h"
-#include "allocate.h"
 #include "position.h"
 #include "ticker.h"
-#include "bits.h"
 #include "d_errors.h"
 #include "d_types.h"
 #include "d_dlist.h"
 #include "d_varr.h"
 #include "d_hash.h"
 #include "d_htab.h"
+#include "d_bitmap.h"
 
 #define FALSE 0
 #define TRUE 1

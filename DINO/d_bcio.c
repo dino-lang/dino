@@ -1059,7 +1059,7 @@ static int curr_fld;
 static const char *curr_fld_name;
 /* Bit string of ids of fields which were present for the current BC
    node. */
-static char curr_fld_presence[BCF_BOUND / CHAR_BIT + 1];
+static bitmap_t curr_fld_presence;
 
 /* Check that the current token is equal to EXPECTED_TOKEN.  Fix error
    if not and return true. */
@@ -1085,7 +1085,7 @@ static int check_fld (BC_node_mode_t expected_node_mode, enum token expected_tok
    check failed, fix error. */
 static void check_fld_set (BC_node_mode_t expected_node_mode, int fld, const char *fld_name) {
   if (!BC_IS_OF_TYPE (curr_node, expected_node_mode)) return;
-  if (BIT (curr_fld_presence, fld)) return;
+  if (bitmap_bit_p (curr_fld_presence, fld)) return;
   error (FALSE, curr_token_position, ERR_undefined_byte_code_field, fld_name);
 }
 
@@ -1265,7 +1265,7 @@ void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
     if (first_program_bc == NULL) first_program_bc = curr_node;
     bound_label_to_curr_node (label);
     /* Read fields: */
-    bit_string_set (curr_fld_presence, 0, 0, BCF_BOUND);
+    bitmap_clear (curr_fld_presence);
     for (;;) {
       get_token ();
       if (curr_token == D_NL || curr_token == D_EOF) break;
@@ -1575,14 +1575,14 @@ void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
       default:
         error (TRUE, current_position, "Internal error: unprocessed field %s", curr_fld_name);
       }
-      SET_BIT (curr_fld_presence, curr_fld, 1);
+      bitmap_set_bit_p (curr_fld_presence, curr_fld);
     }
     /* Set up next. */
     if (prev_node != NULL && BC_IS_OF_TYPE (curr_node, BC_NM_bcode)
         && !BC_IS_OF_TYPE (prev_node, BC_NM_fbend)
         && !(BC_IS_OF_TYPE (prev_node, BC_NM_fblock) && BC_forward_p (prev_node)))
       BC_set_next (prev_node, curr_node);
-    if (BIT (curr_fld_presence, BCF_next))
+    if (bitmap_bit_p (curr_fld_presence, BCF_next))
       prev_node = NULL;
     else if (BC_IS_OF_TYPE (curr_node, BC_NM_bcode)) {
       prev_node = curr_node;
@@ -1591,18 +1591,18 @@ void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
     /* Set up node fields and check that can be omitted: */
     if (BC_IS_OF_TYPE (curr_node, BC_NM_source)) source_node = curr_node;
     /* Create source nodes. */
-    else if (BIT (curr_fld_presence, BCF_pos3))
+    else if (bitmap_bit_p (curr_fld_presence, BCF_pos3))
       source_node = BC_create_node (BC_NM_source3);
-    else if (BIT (curr_fld_presence, BCF_pos2))
+    else if (bitmap_bit_p (curr_fld_presence, BCF_pos2))
       source_node = BC_create_node (BC_NM_source2);
-    else if (BIT (curr_fld_presence, BCF_pos))
+    else if (bitmap_bit_p (curr_fld_presence, BCF_pos))
       source_node = BC_create_node (BC_NM_source);
     if (BC_IS_OF_TYPE (source_node, BC_NM_source3)) {
       position_t p;
 
       p.path = &no_position;
-      p.file_name = (BIT (curr_fld_presence, BCF_fn3) ? fn3 : fn);
-      p.line_number = (BIT (curr_fld_presence, BCF_ln3) ? ln3 : ln);
+      p.file_name = (bitmap_bit_p (curr_fld_presence, BCF_fn3) ? fn3 : fn);
+      p.line_number = (bitmap_bit_p (curr_fld_presence, BCF_ln3) ? ln3 : ln);
       ;
       p.column_number = pos3;
       BC_set_pos3 (source_node, p);
@@ -1611,8 +1611,8 @@ void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
       position_t p;
 
       p.path = &no_position;
-      p.file_name = (BIT (curr_fld_presence, BCF_fn2) ? fn2 : fn);
-      p.line_number = (BIT (curr_fld_presence, BCF_ln2) ? ln2 : ln);
+      p.file_name = (bitmap_bit_p (curr_fld_presence, BCF_fn2) ? fn2 : fn);
+      p.line_number = (bitmap_bit_p (curr_fld_presence, BCF_ln2) ? ln2 : ln);
       p.column_number = pos2;
       BC_set_pos2 (source_node, p);
     }
@@ -1667,7 +1667,8 @@ void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
     if (info_p) {
       if (BC_IS_OF_TYPE (curr_node, BC_NM_fblock)
           /* Top level block: */
-          || (BC_IS_OF_TYPE (curr_node, BC_NM_block) && !BIT (curr_fld_presence, BCF_scope))) {
+          || (BC_IS_OF_TYPE (curr_node, BC_NM_block)
+              && !bitmap_bit_p (curr_fld_presence, BCF_scope))) {
         VARR_PUSH (BC_node_t, block_infos, prev_info);
         prev_info = NULL;
       }
@@ -1691,7 +1692,7 @@ void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
     if (BC_IS_OF_TYPE (curr_node, BC_NM_block)) {
       BC_set_excepts (curr_node, NULL);
       BC_set_ext_life_p (curr_node, ext_life_p != 0);
-      if (!BIT (curr_fld_presence, BCF_scope)) BC_set_scope (curr_node, NULL);
+      if (!bitmap_bit_p (curr_fld_presence, BCF_scope)) BC_set_scope (curr_node, NULL);
       set_block_number (curr_node);
     }
     if (BC_IS_OF_TYPE (curr_node, BC_NM_fblock)) {
@@ -1706,11 +1707,12 @@ void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
       BC_set_pars_num (curr_node, pars_num);
       BC_set_min_pars_num (curr_node, min_pars_num);
     }
-    if (BC_IS_OF_TYPE (curr_node, BC_NM_ret) && !BIT (curr_fld_presence, BCF_ret_decl))
+    if (BC_IS_OF_TYPE (curr_node, BC_NM_ret) && !bitmap_bit_p (curr_fld_presence, BCF_ret_decl))
       BC_set_ret_decl (curr_node, NULL);
-    if (BC_IS_OF_TYPE (curr_node, BC_NM_except) && !BIT (curr_fld_presence, BCF_next_except))
+    if (BC_IS_OF_TYPE (curr_node, BC_NM_except)
+        && !bitmap_bit_p (curr_fld_presence, BCF_next_except))
       BC_set_next_except (curr_node, NULL);
-    if (BC_IS_OF_TYPE (curr_node, BC_NM_check) && !BIT (curr_fld_presence, BCF_fail_pc))
+    if (BC_IS_OF_TYPE (curr_node, BC_NM_check) && !bitmap_bit_p (curr_fld_presence, BCF_fail_pc))
       BC_set_pc (curr_node, NULL);
     continue;
   fail:
@@ -1842,6 +1844,7 @@ void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
 
 /* Initiate data structures for reading byte code. */
 void initiate_read_bc (void) {
+  curr_fld_presence = bitmap_create ();
   bcn_tab = create_str_code_tab (bcn_tab_els, sizeof (bcn_tab_els) / sizeof (struct str_code));
   bcf_tab = create_str_code_tab (bcf_tab_els, sizeof (bcf_tab_els) / sizeof (struct str_code));
   VARR_CREATE (char, aux_varr, 0);
@@ -1854,6 +1857,7 @@ void initiate_read_bc (void) {
    when the byte code not necessary anymore (e.g. after its
    execution). */
 void finish_read_bc (void) {
+  bitmap_destroy (curr_fld_presence);
   delete_string_tables ();
   OS_DELETE (read_bc);
   VARR_DESTROY (char, symbol_text);
