@@ -81,7 +81,7 @@ d_genheader.i: $(srcdir)/d_gen.c $(srcdir)/d_common.h $(srcdir)/d_types.h $(srcd
 	       $(srcdir)/d_runtab.h $(srcdir)/d_func.h $(srcdir)/d_eval.h $(srcdir)/d_errors.h\
                $(srcdir)/d_dino.h d_config.h d_run.h d_bc.h\
 	       $(srcdir)/d_dlist.h $(srcdir)/d_varr.h $(srcdir)/d_hash.h $(srcdir)/d_htab.h\
-               $(srcdir)/../AMMUNITION/allocate.h $(srcdir)/../AMMUNITION/vlobject.h \
+               $(srcdir)/../AMMUNITION/allocate.h \
 	       $(srcdir)/../AMMUNITION/position.h \
 	       $(srcdir)/../AMMUNITION/ticker.h $(srcdir)/../AMMUNITION/bits.h \
 	       $(srcdir)/../AMMUNITION/errors.h $(srcdir)/../AMMUNITION/objstack.h

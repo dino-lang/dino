@@ -34,15 +34,15 @@
 #define BLOCK_TAB 1
 #endif
 
-extern vlo_t block_tab;
+extern VARR (BC_node_t) * block_tab;
 
 #ifdef BLOCK_TAB
 
-#define CODE_ID(bl)          (BC_block_number (bl))
-#define ID_TO_CODE(id)       (((BC_node_t *) VLO_BEGIN (block_tab)) [id])
+#define CODE_ID(bl) (BC_block_number (bl))
+#define ID_TO_CODE(id) (VARR_ADDR (BC_node_t, block_tab)[id])
 #else
-#define CODE_ID(bl)          ((bcid_t) (bl))
-#define ID_TO_CODE(id)       ((BC_node_t) (id))
+#define CODE_ID(bl) ((bcid_t) (bl))
+#define ID_TO_CODE(id) ((BC_node_t) (id))
 #endif
 
 /* The macro call value is block field idents table element for the
@@ -50,10 +50,10 @@ extern vlo_t block_tab;
    if the field can not be accessed by '.' with given ident in given
    block.  Otherwise this value is pointer to node representing decl
    with given field ident in given block.  */
-#define LV_BLOCK_IDENT_DECL(block, block_decl_ident_number)\
-  (block_decl_ident_number < BC_fld_table_len (block) \
-   ? ((BC_node_t *) BC_fld_table (block))[block_decl_ident_number] \
-   : NULL)
+#define LV_BLOCK_IDENT_DECL(block, block_decl_ident_number)          \
+  (block_decl_ident_number < BC_fld_table_len (block)                \
+     ? ((BC_node_t *) BC_fld_table (block))[block_decl_ident_number] \
+     : NULL)
 
 extern void initiate_run_tables (void);
 extern void set_block_number (BC_node_t block);

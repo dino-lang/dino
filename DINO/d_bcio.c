@@ -808,10 +808,10 @@ static void delete_string_tables (void) {
 
 /* Var length string used by func yylval for text presentation of the
    symbol. */
-static vlo_t symbol_text;
+static VARR (char) * symbol_text;
 
 /* Temporary container.  */
-static vlo_t temp_vlo;
+static VARR (char) * aux_varr;
 
 /* The following func recognizes next source symbol from the input
    file, returns its code, modifies var current_position so that its
@@ -823,7 +823,7 @@ static vlo_t temp_vlo;
 static enum token get_token (void) {
   int input_char;
 
-  VLO_NULLIFY (symbol_text);
+  VARR_TRUNC (char, symbol_text, 0);
   for (;;) {
     input_char = bc_getc ();
     /* `current_position' corresponds `input_char' here */
@@ -887,23 +887,24 @@ static enum token get_token (void) {
         if (!correct_newln) {
           if (!unicode_p && !in_byte_range_p (ch)) {
             unicode_p = TRUE;
-            copy_vlo (&temp_vlo, &symbol_text);
-            str_to_ucode_vlo (&symbol_text, VLO_BEGIN (temp_vlo), VLO_LENGTH (symbol_text));
+            copy_varr (aux_varr, symbol_text);
+            str_to_ucode_varr (symbol_text, VARR_ADDR (char, aux_varr),
+                               VARR_LENGTH (char, symbol_text));
           }
           if (unicode_p)
-            VLO_ADD_MEMORY (symbol_text, &ch, sizeof (ucode_t));
+            VARR_PUSH_ARR (char, symbol_text, (char *) &ch, sizeof (ucode_t));
           else
-            VLO_ADD_BYTE (symbol_text, ch);
+            VARR_PUSH (char, symbol_text, ch);
         }
       }
       if (unicode_p) {
         ch = '\0';
-        VLO_ADD_MEMORY (symbol_text, &ch, sizeof (ucode_t));
-        token_attr.ustr = ucodestr_to_table (VLO_BEGIN (symbol_text));
+        VARR_PUSH_ARR (char, symbol_text, (char *) &ch, sizeof (ucode_t));
+        token_attr.ustr = ucodestr_to_table ((ucode_ptr_t) VARR_ADDR (char, symbol_text));
         return curr_token = D_UCODESTR;
       } else {
-        VLO_ADD_BYTE (symbol_text, '\0');
-        token_attr.str = string_to_table (VLO_BEGIN (symbol_text));
+        VARR_PUSH (char, symbol_text, '\0');
+        token_attr.str = string_to_table (VARR_ADDR (char, symbol_text));
         return curr_token = D_STRING;
       }
     }
@@ -921,7 +922,7 @@ static enum token get_token (void) {
             current_position.column_number++;
             ch = bc_getc ();
             if (ch == '}') break;
-            VLO_ADD_BYTE (symbol_text, '%');
+            VARR_PUSH (char, symbol_text, '%');
           } else if (ch == '\n') {
             current_position.column_number = 1;
             current_position.line_number++;
@@ -929,10 +930,10 @@ static enum token get_token (void) {
             error (FALSE, current_position, ERR_eof_in_C_code);
             break;
           }
-          VLO_ADD_BYTE (symbol_text, ch);
+          VARR_PUSH (char, symbol_text, ch);
         }
-        VLO_ADD_BYTE (symbol_text, '\0');
-        token_attr.str = string_to_table (VLO_BEGIN (symbol_text));
+        VARR_PUSH (char, symbol_text, '\0');
+        token_attr.str = string_to_table (VARR_ADDR (char, symbol_text));
         return curr_token = D_C_CODE;
       }
     }
@@ -943,12 +944,12 @@ static enum token get_token (void) {
         /* Ident recognition. */
         do {
           current_position.column_number++;
-          VLO_ADD_BYTE (symbol_text, input_char);
+          VARR_PUSH (char, symbol_text, input_char);
           input_char = bc_getc ();
         } while (isalpha_ascii (input_char) || isdigit_ascii (input_char) || input_char == '_');
         bc_ungetc (input_char);
-        VLO_ADD_BYTE (symbol_text, '\0');
-        token_attr.str = string_to_table (VLO_BEGIN (symbol_text));
+        VARR_PUSH (char, symbol_text, '\0');
+        token_attr.str = string_to_table (VARR_ADDR (char, symbol_text));
         return curr_token = D_IDENT;
       } else if (input_char == '-' || isdigit_ascii (input_char)) {
         /* Recognition numbers. */
@@ -958,7 +959,7 @@ static enum token get_token (void) {
         do {
           /* `current_position' corresponds to `input_char' here. */
           current_position.column_number++;
-          VLO_ADD_BYTE (symbol_text, input_char);
+          VARR_PUSH (char, symbol_text, input_char);
           input_char = bc_getc ();
         } while (isdigit_ascii (input_char));
         if (input_char == '.') {
@@ -967,7 +968,7 @@ static enum token get_token (void) {
             /* `current_position' corresponds to
                `input_char' here. */
             current_position.column_number++;
-            VLO_ADD_BYTE (symbol_text, input_char);
+            VARR_PUSH (char, symbol_text, input_char);
             input_char = bc_getc ();
           } while (isdigit_ascii (input_char));
         }
@@ -978,12 +979,12 @@ static enum token get_token (void) {
           if (input_char != '+' && input_char != '-' && !isdigit_ascii (input_char))
             error (FALSE, current_position, ERR_exponent_absence);
           else {
-            VLO_ADD_BYTE (symbol_text, 'e');
+            VARR_PUSH (char, symbol_text, 'e');
             do {
               /* `current_position' corresponds to
                  `input_char' here. */
               current_position.column_number++;
-              VLO_ADD_BYTE (symbol_text, input_char);
+              VARR_PUSH (char, symbol_text, input_char);
               input_char = bc_getc ();
             } while (isdigit_ascii (input_char));
           }
@@ -992,14 +993,14 @@ static enum token get_token (void) {
           current_position.column_number++;
           input_char = bc_getc ();
         }
-        VLO_ADD_BYTE (symbol_text, '\0');
+        VARR_PUSH (char, symbol_text, '\0');
         bc_ungetc (input_char);
         if (float_flag)
-          token_attr.f = a2f (VLO_BEGIN (symbol_text));
+          token_attr.f = a2f (VARR_ADDR (char, symbol_text));
         else if (!long_flag)
-          token_attr.i = a2i (VLO_BEGIN (symbol_text), 10);
+          token_attr.i = a2i (VARR_ADDR (char, symbol_text), 10);
         else {
-          mpz_init_set_str (mpz_attr, VLO_BEGIN (symbol_text), 10);
+          mpz_init_set_str (mpz_attr, VARR_ADDR (char, symbol_text), 10);
           /* the mpz function might change errno if it is ok
              because it can use malloc/realloc which might
              change errno even in success case.  So clear
@@ -1099,45 +1100,48 @@ struct ptr_fld {
   const char *fld_name;
 };
 
+typedef struct ptr_fld ptr_fld_t;
+DEF_VARR (ptr_fld_t);
+
 /* Reference fields are stored here until all BC nodes are read. */
-static vlo_t ptr_flds;
+static VARR (ptr_fld_t) * ptr_flds;
 
 /* Store the current reference field. */
 static void store_curr_ptr_fld (void) {
-  struct ptr_fld temp;
+  ptr_fld_t temp;
 
   temp.fld = curr_fld;
   temp.fld_val = token_attr.i;
   temp.node = curr_node;
   temp.fld_name = curr_fld_name;
-  VLO_ADD_MEMORY (ptr_flds, &temp, sizeof (temp));
+  VARR_PUSH (ptr_fld_t, ptr_flds, temp);
 }
 
 /* Maps translating decl label and bcode label correspondingly into
    the decl and bcode. */
-static vlo_t decl_map, bcode_map;
+static VARR (BC_node_t) * decl_map, *bcode_map;
 
 /* Bound LABEL to the current node (decl or bcode). */
 static void bound_label_to_curr_node (int label) {
-  vlo_t *map;
+  VARR (BC_node_t) * map;
 
   d_assert (label >= 0);
   if (BC_IS_OF_TYPE (curr_node, BC_NM_decl))
-    map = &decl_map;
+    map = decl_map;
   else {
     d_assert (BC_IS_OF_TYPE (curr_node, BC_NM_bcode));
-    map = &bcode_map;
+    map = bcode_map;
   }
-  while (VLO_LENGTH (*map) < (label + 1) * sizeof (BC_node_t)) VLO_ADD_BYTE (*map, 0);
-  ((BC_node_t *) VLO_BEGIN (*map))[label] = curr_node;
+  while (VARR_LENGTH (BC_node_t, map) < label + 1) VARR_PUSH (BC_node_t, map, 0);
+  VARR_SET (BC_node_t, map, label, curr_node);
 }
 
 /* Return bcode with given LABEL. */
 static BC_node_t get_bcode (int label) {
   BC_node_t res;
 
-  d_assert (label * sizeof (BC_node_t) < VLO_LENGTH (bcode_map));
-  res = ((BC_node_t *) VLO_BEGIN (bcode_map))[label];
+  d_assert (label < VARR_LENGTH (BC_node_t, bcode_map));
+  res = VARR_GET (BC_node_t, bcode_map, label);
   d_assert (res != NULL);
   return res;
 }
@@ -1146,8 +1150,8 @@ static BC_node_t get_bcode (int label) {
 static BC_node_t get_decl (int label) {
   BC_node_t res;
 
-  d_assert (label * sizeof (BC_node_t) < VLO_LENGTH (decl_map));
-  res = ((BC_node_t *) VLO_BEGIN (decl_map))[label];
+  d_assert (label < VARR_LENGTH (BC_node_t, decl_map));
+  res = VARR_GET (BC_node_t, decl_map, label);
   d_assert (res != NULL);
   return res;
 }
@@ -1217,22 +1221,21 @@ static HTAB (str_code_t) * bcf_tab, *bcn_tab;
    Create info nodes if INFO_P.
 */
 void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
-  BC_node_t source_node, prev_node = NULL;
+  BC_node_t decl, source_node, prev_node = NULL;
   BC_node_mode_t curr_node_mode;
   int skip_ln, label;
-  struct ptr_fld *fld;
-  BC_node_t *decl_ptr;
-  vlo_t block_infos, all_decls;
+  ptr_fld_t *fld;
+  VARR (BC_node_t) * block_infos, *all_decls;
   BC_node_t prev_info = NULL;
 
   start_file_position (file_name);
   input_file = inpf;
   mpz_init (mpz_attr);
-  VLO_CREATE (all_decls, 1024);
-  VLO_CREATE (ptr_flds, 4096);
-  VLO_CREATE (bcode_map, 2048);
-  VLO_CREATE (decl_map, 2048);
-  if (info_p) VLO_CREATE (block_infos, 2048);
+  VARR_CREATE (BC_node_t, all_decls, 1024);
+  VARR_CREATE (ptr_fld_t, ptr_flds, 4096);
+  VARR_CREATE (BC_node_t, bcode_map, 2048);
+  VARR_CREATE (BC_node_t, decl_map, 2048);
+  if (info_p) VARR_CREATE (BC_node_t, block_infos, 2048);
   previous_char = NOT_A_CHAR;
   for (skip_ln = FALSE;;) {
     get_token ();
@@ -1665,7 +1668,7 @@ void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
       if (BC_IS_OF_TYPE (curr_node, BC_NM_fblock)
           /* Top level block: */
           || (BC_IS_OF_TYPE (curr_node, BC_NM_block) && !BIT (curr_fld_presence, BCF_scope))) {
-        VLO_ADD_MEMORY (block_infos, &prev_info, sizeof (prev_info));
+        VARR_PUSH (BC_node_t, block_infos, prev_info);
         prev_info = NULL;
       }
       if (BC_IS_OF_TYPE (curr_node, BC_NM_bcode)) {
@@ -1676,14 +1679,13 @@ void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
         prev_info = curr_info;
       }
       if (BC_IS_OF_TYPE (curr_node, BC_NM_fbend)) {
-        d_assert (VLO_LENGTH (block_infos) != 0);
-        prev_info = ((BC_node_t *) VLO_BOUND (block_infos))[-1];
-        VLO_SHORTEN (block_infos, sizeof (prev_info));
+        d_assert (VARR_LENGTH (BC_node_t, block_infos) != 0);
+        prev_info = VARR_POP (BC_node_t, block_infos);
       }
     }
     /* Set up fields which may have a default value. */
     if (BC_IS_OF_TYPE (curr_node, BC_NM_decl)) {
-      VLO_ADD_MEMORY (all_decls, &curr_node, sizeof (curr_node));
+      VARR_PUSH (BC_node_t, all_decls, curr_node);
       BC_set_public_p (curr_node, public_p != 0);
     }
     if (BC_IS_OF_TYPE (curr_node, BC_NM_block)) {
@@ -1714,11 +1716,11 @@ void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
   fail:
     if (curr_token != D_NL) skip_ln = TRUE;
   }
-  if (info_p) VLO_DELETE (block_infos);
+  if (info_p) VARR_DESTROY (BC_node_t, block_infos);
   /* Set up pointer fields.  Process them in reverse order to connect
      friends, uses, and decls in the right order. */
-  for (fld = (struct ptr_fld *) VLO_BOUND (ptr_flds) - 1;
-       fld >= (struct ptr_fld *) VLO_BEGIN (ptr_flds); fld--) {
+  for (fld = VARR_ADDR (ptr_fld_t, ptr_flds) + VARR_LENGTH (ptr_fld_t, ptr_flds) - 1;
+       fld >= VARR_ADDR (ptr_fld_t, ptr_flds); fld--) {
     BC_node_t ptr;
 
     switch (fld->fld) {
@@ -1822,19 +1824,19 @@ void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
       error (TRUE, current_position, "Internal error: unprocessed pointer field %s", fld->fld_name);
     }
   }
-  VLO_DELETE (decl_map);
-  VLO_DELETE (bcode_map);
-  VLO_DELETE (ptr_flds);
+  VARR_DESTROY (BC_node_t, decl_map);
+  VARR_DESTROY (BC_node_t, bcode_map);
+  VARR_DESTROY (ptr_fld_t, ptr_flds);
   /* Set up environment and block field table.  */
   init_env_decl_processing ();
-  for (decl_ptr = (BC_node_t *) VLO_BEGIN (all_decls);
-       decl_ptr < (BC_node_t *) VLO_BOUND (all_decls); decl_ptr++) {
-    d_assert (BC_ident (*decl_ptr) != NULL);
-    define_block_decl (*decl_ptr, BC_decl_scope (*decl_ptr));
-    if (strcmp (BC_pos (*decl_ptr).file_name, ENVIRONMENT_PSEUDO_FILE_NAME) == 0)
-      process_env_decl (*decl_ptr);
+  for (size_t i = 0; i < VARR_LENGTH (BC_node_t, all_decls); i++) {
+    decl = VARR_GET (BC_node_t, all_decls, i);
+    d_assert (BC_ident (decl) != NULL);
+    define_block_decl (decl, BC_decl_scope (decl));
+    if (strcmp (BC_pos (decl).file_name, ENVIRONMENT_PSEUDO_FILE_NAME) == 0)
+      process_env_decl (decl);
   }
-  VLO_DELETE (all_decls);
+  VARR_DESTROY (BC_node_t, all_decls);
   mpz_clear (mpz_attr);
 }
 
@@ -1842,8 +1844,8 @@ void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
 void initiate_read_bc (void) {
   bcn_tab = create_str_code_tab (bcn_tab_els, sizeof (bcn_tab_els) / sizeof (struct str_code));
   bcf_tab = create_str_code_tab (bcf_tab_els, sizeof (bcf_tab_els) / sizeof (struct str_code));
-  VLO_CREATE (temp_vlo, 0);
-  VLO_CREATE (symbol_text, 0);
+  VARR_CREATE (char, aux_varr, 0);
+  VARR_CREATE (char, symbol_text, 0);
   OS_CREATE (read_bc, 0);
   initiate_string_tables ();
 }
@@ -1854,8 +1856,8 @@ void initiate_read_bc (void) {
 void finish_read_bc (void) {
   delete_string_tables ();
   OS_DELETE (read_bc);
-  VLO_DELETE (symbol_text);
-  VLO_DELETE (temp_vlo);
+  VARR_DESTROY (char, symbol_text);
+  VARR_DESTROY (char, aux_varr);
   finish_str_code_tab (bcn_tab);
   finish_str_code_tab (bcf_tab);
 }

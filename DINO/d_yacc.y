@@ -1515,8 +1515,7 @@ program :   {
 %%
 
 /* Containers used temporary by the scanner.  */
-static vlo_t temp_scanner_vlo;
-static vlo_t temp_scanner_vlo2;
+static VARR (char) *temp_scanner_varr, *temp_scanner_varr2;
 
 /* True if we did not print syntax error yet.  We can not leave
    yyparse by longjmp as we need to finalize some data.  We leave
@@ -1825,10 +1824,10 @@ process_obj_header (IR_node_t ident)
   
   class_def = create_node_with_pos (IR_NM_class, IR_pos (ident));
   IR_set_final_flag (class_def, TRUE);
-  VLO_NULLIFY (temp_scanner_vlo);
-  VLO_ADD_STRING (temp_scanner_vlo, "$");
-  VLO_ADD_STRING (temp_scanner_vlo, IR_ident_string (IR_unique_ident (ident)));
-  unique_ident = create_unique_ident_node (VLO_BEGIN (temp_scanner_vlo));
+  VARR_TRUNC (char, temp_scanner_varr, 0);
+  push_str (temp_scanner_varr, "$");
+  push_str (temp_scanner_varr, IR_ident_string (IR_unique_ident (ident)));
+  unique_ident = create_unique_ident_node (VARR_ADDR (char, temp_scanner_varr));
   class_ident = create_node_with_pos (IR_NM_ident, IR_pos (ident));
   IR_set_unique_ident (class_ident, unique_ident);
   process_header (TRUE, class_def, class_ident);
@@ -1981,8 +1980,11 @@ create_try_expr (IR_node_t try_block, IR_node_t stmt, IR_node_t excepts,
 /* This page contains abstracr data for reading, storing and
    retrieving lines.  */
 
+typedef ucode_t *ucode_ptr_t;
+DEF_VARR (ucode_ptr_t);
+
 /* Container for pointers to read lines.  */
-static vlo_t lines_vec;
+static VARR (ucode_ptr_t) *lines_vec;
 
 /* Container for read lines themself.  */
 static os_t lines;
@@ -1991,7 +1993,7 @@ static os_t lines;
 static void
 initiate_lines (void)
 {
-  VLO_CREATE (lines_vec, 0);
+  VARR_CREATE (ucode_ptr_t, lines_vec, 0);
   OS_CREATE (lines, 0);
 }
 
@@ -2003,7 +2005,7 @@ read_line (FILE *f)
 {
   int c;
   ucode_t uc;
-  const ucode_t *ln;
+  ucode_ptr_t ln;
 
   for (;;)
     {
@@ -2039,7 +2041,7 @@ read_line (FILE *f)
   OS_TOP_ADD_MEMORY (lines, &uc, sizeof (ucode_t));
   ln = OS_TOP_BEGIN (lines);
   OS_TOP_FINISH (lines);
-  VLO_ADD_MEMORY (lines_vec, &ln, sizeof (ucode_t *));
+  VARR_PUSH (ucode_ptr_t, lines_vec, ln);
   return ln;
 }
 
@@ -2047,8 +2049,8 @@ read_line (FILE *f)
 ucode_t *
 get_read_line (int n)
 {
-  d_assert (n >= 0 && VLO_LENGTH (lines_vec) > n * sizeof (ucode_t *));
-  return ((ucode_t **)VLO_BEGIN (lines_vec)) [n];
+  d_assert (n >= 0 && VARR_LENGTH (ucode_ptr_t, lines_vec) > n);
+  return VARR_GET (ucode_ptr_t, lines_vec, n);
 }
 
 /* Finish the abstract data.  */
@@ -2056,7 +2058,7 @@ static void
 finish_lines (void)
 {
   OS_DELETE (lines);
-  VLO_DELETE (lines_vec);
+  VARR_DESTROY (ucode_ptr_t, lines_vec);
 }
 
 
@@ -2101,9 +2103,12 @@ struct istream_state
    stream is not defined. */
 static struct istream_state curr_istream_state;
 
+typedef struct istream_state istream_state_t;
+DEF_VARR (istream_state_t);
+
 /* All input stream stack is implemented by variable length object.
    See package `vl-object'. */
-static vlo_t istream_stack;
+static VARR (istream_state_t) *istream_stack;
 
 /* The following variable is used for storing ungotten code. */
 static int previous_char;
@@ -2114,7 +2119,7 @@ static int previous_char;
 static void
 initiate_istream_stack (void)
 {
-  VLO_CREATE (istream_stack, 0);
+  VARR_CREATE (istream_state_t, istream_stack, 0);
   curr_istream_state.file_name = NULL;
   curr_istream_state.file = NULL;
   curr_istream_state.encoding_name = NULL;
@@ -2127,7 +2132,7 @@ initiate_istream_stack (void)
 static void
 finish_istream_stack (void)
 {
-  VLO_DELETE (istream_stack);
+  VARR_DESTROY (istream_state_t, istream_stack);
   if (curr_istream_state.file != NULL)
     fclose (curr_istream_state.file);
 #ifdef HAVE_ICONV_H
@@ -2141,7 +2146,7 @@ finish_istream_stack (void)
 int
 istream_stack_height (void)
 {
-  return VLO_LENGTH (istream_stack) / sizeof (struct istream_state);
+  return VARR_LENGTH (istream_state_t, istream_stack);
 }
 
 /* Ucode string containing only 0 element.  */
@@ -2177,13 +2182,10 @@ push_curr_istream (const char *new_file_name, const char *encoding_name,
 	  curr_istream_state.cd = NO_CONV_DESC;
 #endif
 	}
-      VLO_ADD_MEMORY (istream_stack, &curr_istream_state,
-		      sizeof (struct istream_state));
+      VARR_PUSH (istream_state_t, istream_stack, curr_istream_state);
       for (i = 0; i < istream_stack_height (); i++)
-	if (strcmp (((struct istream_state *) VLO_BEGIN (istream_stack))
-		    [i].file_name, new_file_name) == 0)
-	  error (TRUE, error_pos,
-		 "fatal error -- cycle on inclusion of file `%s'",
+	if (strcmp (VARR_ADDR (istream_state_t, istream_stack)[i].file_name, new_file_name) == 0)
+	  error (TRUE, error_pos, "fatal error -- cycle on inclusion of file `%s'",
 		 new_file_name);
     }
   curr_istream_state.file_name = new_file_name;
@@ -2245,10 +2247,7 @@ pop_istream_stack (void)
     }
   if (istream_stack_height () != 0)
     {
-      curr_istream_state
-	= (((struct istream_state *) VLO_BEGIN (istream_stack))
-	   [istream_stack_height () - 1]);
-      VLO_SHORTEN (istream_stack, sizeof (struct istream_state));
+      curr_istream_state = VARR_POP (istream_state_t, istream_stack);
       if (*curr_istream_state.file_name != '\0')
 	{
 	  /* It is not command line stream or REPL stdin. */
@@ -2420,15 +2419,15 @@ find_encoding (char *ln)
 }
 
 static char *
-read_str_line (FILE *f, vlo_t *container)
+read_str_line (FILE *f, VARR (char) *container)
 {
   int c;
   
-  VLO_NULLIFY (*container);
+  VARR_TRUNC (char, container, 0);
   while ((c = dino_getc (f)) != EOF && c != '\n')
-    VLO_ADD_BYTE (*container, c);
-  VLO_ADD_BYTE (*container, '\0');
-  return VLO_BEGIN (*container);
+    VARR_PUSH (char, container, c);
+  VARR_PUSH (char, container, '\0');
+  return VARR_ADDR (char, container);
 }
 
 /* Find encoding on the first two lines of file F and return it.  If
@@ -2439,9 +2438,9 @@ read_file_encoding (FILE *f)
   char *ln;
   const char *name;
   
-  if (((ln = read_str_line (f, &temp_scanner_vlo)) != NULL
+  if (((ln = read_str_line (f, temp_scanner_varr)) != NULL
        && (name = find_encoding (ln)) != NULL)
-      || ((ln = read_str_line (f, &temp_scanner_vlo)) != NULL
+      || ((ln = read_str_line (f, temp_scanner_varr)) != NULL
 	  && (name = find_encoding (ln)) != NULL))
     return name;
   return NULL;
@@ -2474,15 +2473,15 @@ get_full_file_and_encoding_name (IR_node_t ir_fname, const char **encoding)
   curr_directory_name
     = (*curr_istream_state.file_name == '\0'
        ? "" : file_dir_name (curr_istream_state.file_name));
-  VLO_NULLIFY (temp_scanner_vlo);
-  VLO_NULLIFY (temp_scanner_vlo2);
+  VARR_TRUNC (char, temp_scanner_varr, 0);
+  VARR_TRUNC (char, temp_scanner_varr2, 0);
   if (IR_IS_OF_TYPE (ir_fname, IR_NM_string))
     {
-      VLO_ADD_STRING (temp_scanner_vlo2,
-		      IR_string_value (IR_unique_string (ir_fname)));
-      fname = encode_byte_str_vlo (VLO_BEGIN (temp_scanner_vlo2),
+      push_str (temp_scanner_varr2,
+	        IR_string_value (IR_unique_string (ir_fname)));
+      fname = encode_byte_str_varr (VARR_ADDR (char, temp_scanner_varr2),
 				   curr_byte_cd, curr_encoding_type,
-				   &temp_scanner_vlo, &len);
+				   temp_scanner_varr, &len);
       if (fname != NULL)
 	{
 	  /* Check NULL bytes:  */
@@ -2498,10 +2497,10 @@ get_full_file_and_encoding_name (IR_node_t ir_fname, const char **encoding)
       
       for (len = 0; ustr[len] != 0; len++)
 	;
-      VLO_ADD_MEMORY (temp_scanner_vlo2, ustr, sizeof (ucode_t) * (len + 1));
-      fname = encode_ucode_str_vlo (VLO_BEGIN (temp_scanner_vlo2),
+      VARR_PUSH_ARR (char, temp_scanner_varr2, (char *) ustr, sizeof (ucode_t) * (len + 1));
+      fname = encode_ucode_str_varr ((ucode_t *) VARR_ADDR (char, temp_scanner_varr2),
 				    curr_ucode_cd, curr_encoding_type,
-				    &temp_scanner_vlo, &len);
+				    temp_scanner_varr, &len);
       if (fname != NULL)
 	{
 	  for (i = 0; i < len && fname[i] != 0; i++)
@@ -2511,8 +2510,8 @@ get_full_file_and_encoding_name (IR_node_t ir_fname, const char **encoding)
 	}
     }
   else
-    fname = encode_ucode_str_to_raw_vlo (IR_ucodestr_value (IR_unique_ucodestr (ir_fname)),
-					 &temp_scanner_vlo);
+    fname = encode_ucode_str_to_raw_varr (IR_ucodestr_value (IR_unique_ucodestr (ir_fname)),
+					 temp_scanner_varr);
   if (fname == NULL)
     error (TRUE, IR_pos (ir_fname),
 	   ERR_file_name_cannot_represented_in_current_encoding);
@@ -2718,7 +2717,7 @@ skip_line_rest (void)
 
 /* Var length string used by function yylval for text presentation of
    the symbol. */
-static vlo_t symbol_text;
+static VARR (char) *symbol_text;
 
 #include "d_strtab.h"
 
@@ -2799,7 +2798,7 @@ yylex (void)
       curr_istream_state.uninput_lexema_code = (-1);
       return result;
     }
-  VLO_NULLIFY (symbol_text);
+  VARR_TRUNC (char, symbol_text, 0);
   for (number_of_successive_error_characters = 0;;)
     {
       input_char = d_getc ();
@@ -3135,7 +3134,7 @@ yylex (void)
 
 	      current_position.column_number++;
 	      curr_reverse_ucode_cd = NO_CONV_DESC;
-	      VLO_NULLIFY (symbol_text);
+	      VARR_TRUNC (char, symbol_text, 0);
 	      yylval.pointer = create_node_with_pos (IR_NM_code, current_position);
 	      for (;;)
 		{
@@ -3165,18 +3164,18 @@ yylex (void)
 		      error (FALSE, current_position, ERR_eof_in_C_code);
 		      break;
 		    }
-		  VLO_ADD_BYTE (symbol_text, input_char);
+		  VARR_PUSH (char, symbol_text, input_char);
 		}
-	      VLO_ADD_BYTE (symbol_text, '\0');
+	      VARR_PUSH (char, symbol_text, '\0');
 	      curr_reverse_ucode_cd = saved_reverse_ucode_cd;
-	      IR_set_string_value (temp_unique_string, VLO_BEGIN (symbol_text));
+	      IR_set_string_value (temp_unique_string, VARR_ADDR (char, symbol_text));
 	      unique_string_node_ptr = find_node (temp_unique_string);
 	      if (unique_string_node_ptr == NULL)
 		{
 		  unique_string_node_ptr
 		    = create_unique_node_with_string
-		      (IR_NM_unique_string, VLO_BEGIN (symbol_text),
-		       VLO_LENGTH (symbol_text), &string_value_in_code_memory);
+		      (IR_NM_unique_string, VARR_ADDR (char, symbol_text),
+		       VARR_LENGTH (char, symbol_text), &string_value_in_code_memory);
 		  IR_set_string_value (unique_string_node_ptr,
 				       string_value_in_code_memory);
 		  include_node (unique_string_node_ptr);
@@ -3412,43 +3411,43 @@ yylex (void)
 			/* Transform accumulated string into ucode
 			   string: */
 			unicode_p = TRUE;
-			copy_vlo (&temp_scanner_vlo, &symbol_text);
-			str_to_ucode_vlo (&symbol_text,
-					  VLO_BEGIN (temp_scanner_vlo),
-					  VLO_LENGTH (symbol_text));
+			copy_varr (temp_scanner_varr, symbol_text);
+			str_to_ucode_varr (symbol_text,
+					  VARR_ADDR (char, temp_scanner_varr),
+					  VARR_LENGTH (char, symbol_text));
 		      }
 		    if (unicode_p)
 		      {
 			uc = input_char;
-			VLO_ADD_MEMORY (symbol_text, &uc, sizeof (ucode_t));
+			VARR_PUSH_ARR (char, symbol_text, (char *) &uc, sizeof (ucode_t));
 		      }
 		    else
-		      VLO_ADD_BYTE (symbol_text, input_char);
+		      VARR_PUSH (char, symbol_text, input_char);
 		  }
               }
 	    if (unicode_p)
 	      {
 		uc = '\0';
-		VLO_ADD_MEMORY (symbol_text, &uc, sizeof (ucode_t));
+		VARR_PUSH_ARR (char, symbol_text, (char *) &uc, sizeof (ucode_t));
 		IR_set_ucodestr_value (temp_unique_ucodestr,
-				       VLO_BEGIN (symbol_text));
-		d_assert (VLO_LENGTH (symbol_text) > sizeof (ucode_t));
+				       (ucode_t *) VARR_ADDR (char, symbol_text));
+		d_assert (VARR_LENGTH (char, symbol_text) > sizeof (ucode_t));
 		IR_set_ucodestr_size
 		  (temp_unique_ucodestr,
-		   VLO_LENGTH (symbol_text) - sizeof (ucode_t));
+		   VARR_LENGTH (char, symbol_text) - sizeof (ucode_t));
 		unique_string_node_ptr = find_node (temp_unique_ucodestr);
 		if (unique_string_node_ptr == NULL)
 		  {
 		    unique_string_node_ptr
 		      = create_unique_node_with_string
-		        (IR_NM_unique_ucodestr, VLO_BEGIN (symbol_text),
-			 VLO_LENGTH (symbol_text),
+		        (IR_NM_unique_ucodestr, VARR_ADDR (char, symbol_text),
+			 VARR_LENGTH (char, symbol_text),
 			 &string_value_in_code_memory);
 		    IR_set_ucodestr_value (unique_string_node_ptr,
 					     (ucodestr_t) string_value_in_code_memory);
 		    IR_set_ucodestr_size
 		      (unique_string_node_ptr,
-		       VLO_LENGTH (symbol_text) - sizeof (ucode_t));
+		       VARR_LENGTH (char, symbol_text) - sizeof (ucode_t));
 		    include_node (unique_string_node_ptr);
 		  }
 		yylval.pointer = create_node_with_pos (IR_NM_ucodestr,
@@ -3458,15 +3457,15 @@ yylex (void)
 	      }
 	    else
 	      {
-		VLO_ADD_BYTE (symbol_text, '\0');
-		IR_set_string_value (temp_unique_string, VLO_BEGIN (symbol_text));
+		VARR_PUSH (char, symbol_text, '\0');
+		IR_set_string_value (temp_unique_string, VARR_ADDR (char, symbol_text));
 		unique_string_node_ptr = find_node (temp_unique_string);
 		if (unique_string_node_ptr == NULL)
 		  {
 		    unique_string_node_ptr
 		      = create_unique_node_with_string
-		      (IR_NM_unique_string, VLO_BEGIN (symbol_text),
-		       VLO_LENGTH (symbol_text),
+		      (IR_NM_unique_string, VARR_ADDR (char, symbol_text),
+		       VARR_LENGTH (char, symbol_text),
 		       &string_value_in_code_memory);
 		    IR_set_string_value (unique_string_node_ptr,
 					 string_value_in_code_memory);
@@ -3488,14 +3487,14 @@ yylex (void)
               do
                 {
 		  current_position.column_number++;
-                  VLO_ADD_BYTE (symbol_text, input_char);
+                  VARR_PUSH (char, symbol_text, input_char);
                   input_char = d_getc ();
                 }
               while (isalpha_ascii (input_char) || isdigit_ascii (input_char)
                      || input_char == '_');
               d_ungetc (input_char);
-              VLO_ADD_BYTE (symbol_text, '\0');
-	      keyword = find_str_code (kw_tab, VLO_BEGIN (symbol_text), 0);
+              VARR_PUSH (char, symbol_text, '\0');
+	      keyword = find_str_code (kw_tab, VARR_ADDR (char, symbol_text), 0);
               if (keyword != 0)
                 return keyword;
               else
@@ -3503,7 +3502,7 @@ yylex (void)
                   IR_node_t unique_ident;
                   
                   unique_ident
-                    = create_unique_ident_node (VLO_BEGIN (symbol_text));
+                    = create_unique_ident_node (VARR_ADDR (char, symbol_text));
                   yylval.pointer = create_node_with_pos (IR_NM_ident,
 							 source_position);
                   IR_set_unique_ident (yylval.pointer, unique_ident);
@@ -3581,20 +3580,20 @@ get_new_ident (position_t pos)
   IR_node_t ident, unique_ident;
   char str [50]; /* Enough for integer representation.  */
 
-  VLO_NULLIFY (symbol_text);
-  VLO_ADD_STRING (symbol_text, "$anon");
+  VARR_TRUNC (char, symbol_text, 0);
+  push_str (symbol_text, "$anon");
   if (pos.file_name != NULL && *pos.file_name != 0)
     {
-      VLO_ADD_STRING (symbol_text, ".");
-      VLO_ADD_STRING (symbol_text, pos.file_name);
+      push_str (symbol_text, ".");
+      push_str (symbol_text, pos.file_name);
     }
-  VLO_ADD_STRING (symbol_text, ".ln");
+  push_str (symbol_text, ".ln");
   sprintf (str, "%d", pos.line_number);
-  VLO_ADD_STRING (symbol_text, str);
-  VLO_ADD_STRING (symbol_text, ".pos");
+  push_str (symbol_text, str);
+  push_str (symbol_text, ".pos");
   sprintf (str, "%d", pos.column_number);
-  VLO_ADD_STRING (symbol_text, str);
-  unique_ident = create_unique_ident_node (VLO_BEGIN (symbol_text));
+  push_str (symbol_text, str);
+  unique_ident = create_unique_ident_node (VARR_ADDR (char, symbol_text));
   ident = create_node_with_pos (IR_NM_ident, pos);
   IR_set_unique_ident (ident, unique_ident);
   return ident;
@@ -3611,9 +3610,9 @@ initiate_scanner (void)
   initiate_istream_stack ();
   curr_char_number = 0;
   environment = ENVIRONMENT;
-  VLO_CREATE (symbol_text, 500);
-  VLO_CREATE (temp_scanner_vlo, 500);
-  VLO_CREATE (temp_scanner_vlo2, 500);
+  VARR_CREATE (char, symbol_text, 500);
+  VARR_CREATE (char, temp_scanner_varr, 500);
+  VARR_CREATE (char, temp_scanner_varr2, 500);
 }
 
 /* The following function is called to tune the scanner on input
@@ -3658,9 +3657,9 @@ add_lexema_to_file (int lexema_code)
 void
 finish_scanner (void)
 {
-  VLO_DELETE (symbol_text);
-  VLO_DELETE (temp_scanner_vlo);
-  VLO_DELETE (temp_scanner_vlo2);
+  VARR_DESTROY (char, symbol_text);
+  VARR_DESTROY (char, temp_scanner_varr);
+  VARR_DESTROY (char, temp_scanner_varr2);
   if (repl_flag)
     finish_lines ();
   finish_istream_stack ();
@@ -3675,9 +3674,9 @@ finish_scanner (void)
    block. */
 static int block_level = 0;
 
-/* VLO for pointers to names of include files and numbers of include
+/* VARR for pointers to names of include files and numbers of include
    file names for each covering blocks. */
-static vlo_t include_file_names;
+static VARR (char_ptr_t) *include_file_names;
 
 /* Number of include files for the current block. */
 static int curr_block_include_file_names_number;
@@ -3688,10 +3687,10 @@ static void
 start_block (void)
 {
   if (block_level == 0)
-    VLO_CREATE (include_file_names, 0);
+    VARR_CREATE (char_ptr_t, include_file_names, 0);
   else
-    VLO_ADD_MEMORY (include_file_names, &curr_block_include_file_names_number,
-		    sizeof (curr_block_include_file_names_number));
+    VARR_PUSH (char_ptr_t, include_file_names,
+               (char_ptr_t) (ptrdiff_t) curr_block_include_file_names_number);
   curr_block_include_file_names_number = 0;
   block_level++;
 }
@@ -3703,17 +3702,14 @@ finish_block (void)
   d_assert (block_level > 0);
   block_level--;
   if (block_level == 0)
-    VLO_DELETE (include_file_names);
+    VARR_DESTROY (char_ptr_t, include_file_names);
   else
     {
-      VLO_SHORTEN (include_file_names,
-		   curr_block_include_file_names_number * sizeof (char *));
-      memcpy (&curr_block_include_file_names_number,
-	      (char *) VLO_END (include_file_names)
-	      - sizeof (curr_block_include_file_names_number) + 1,
-	      sizeof (curr_block_include_file_names_number));
-      VLO_SHORTEN (include_file_names,
-		   sizeof (curr_block_include_file_names_number));
+      VARR_TRUNC (char_ptr_t, include_file_names,
+                  VARR_LENGTH (char_ptr_t, include_file_names)
+		  - curr_block_include_file_names_number);
+      curr_block_include_file_names_number
+        = (int) (ptrdiff_t) VARR_POP (char_ptr_t, include_file_names);
     }
 }
 
@@ -3724,20 +3720,20 @@ finish_block (void)
 static int
 add_include_file (IR_node_t fname)
 {
-  const char *name;
-  char **names;
+  char_ptr_t name, *names;
   int i;
 
   d_assert (block_level > 0);
   name = get_full_file_and_encoding_name (fname, NULL);
-  names = (char **) ((char *) VLO_END (include_file_names) + 1
-		     - sizeof (char *) * curr_block_include_file_names_number);
+  names = (VARR_ADDR (char_ptr_t, include_file_names)
+           + VARR_LENGTH (char_ptr_t, include_file_names)
+	   - curr_block_include_file_names_number);
   for (i = 0; i < curr_block_include_file_names_number; i++)
     if (strcmp (names [i], name) == 0)
       break;
   if (i < curr_block_include_file_names_number)
     return FALSE;
-  VLO_ADD_MEMORY (include_file_names, &name, sizeof (name));
+  VARR_PUSH (char_ptr_t, include_file_names, name);
   curr_block_include_file_names_number++;
   return TRUE;
 }

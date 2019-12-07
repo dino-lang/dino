@@ -92,14 +92,15 @@ static void cont_err_finish (position_t pos, const char *format, const char *str
   }
 }
 
+DEF_VARR (IR_node_t);
 /* Stack foreach/match statements for processing.  */
-static vlo_t inter_stmt_holders;
+static VARR (IR_node_t) * inter_stmt_holders;
 
-static void initiate_inter_stmt_holders (void) { VLO_CREATE (inter_stmt_holders, 0); }
+static void initiate_inter_stmt_holders (void) { VARR_CREATE (IR_node_t, inter_stmt_holders, 0); }
 
 /* Return index for new foreach/match stmts.  */
 static int get_inter_stmt_holders_bound (void) {
-  return VLO_LENGTH (inter_stmt_holders) / sizeof (IR_node_t);
+  return VARR_LENGTH (IR_node_t, inter_stmt_holders);
 }
 
 /* Values used to mark finish of foreach and match statements. */
@@ -109,36 +110,36 @@ static IR_node_t match_holder_end = (void *) 1;
 /* Assign slots to vars of block foreach/match stmts which start from
    START_INDEX.  */
 static void finish_block_inter_stmt_holders (int start_index) {
-  IR_node_t *stmt_ptr;
+  IR_node_t stmt;
   int slot_num = IR_vars_number (curr_scope);
   int n = 0;
 
-  for (stmt_ptr = &((IR_node_t *) VLO_BEGIN (inter_stmt_holders))[start_index];
-       stmt_ptr < (IR_node_t *) VLO_BOUND (inter_stmt_holders); stmt_ptr++) {
+  for (size_t i = start_index; i < VARR_LENGTH (IR_node_t, inter_stmt_holders); i++) {
+    stmt = VARR_GET (IR_node_t, inter_stmt_holders, i);
     n++;
-    if (*stmt_ptr == foreach_holder_end)
+    if (stmt == foreach_holder_end)
       slot_num -= 2;
-    else if (*stmt_ptr == match_holder_end)
+    else if (stmt == match_holder_end)
       slot_num--;
-    else if (IR_IS_OF_TYPE (*stmt_ptr, IR_NM_foreach_stmt)) {
-      IR_set_foreach_tab_place (*stmt_ptr, slot_num);
-      IR_set_foreach_search_start_place (*stmt_ptr, slot_num + 1);
+    else if (IR_IS_OF_TYPE (stmt, IR_NM_foreach_stmt)) {
+      IR_set_foreach_tab_place (stmt, slot_num);
+      IR_set_foreach_search_start_place (stmt, slot_num + 1);
       slot_num += 2;
       if (slot_num > IR_vars_number (curr_scope)) IR_set_vars_number (curr_scope, slot_num);
     } else {
       IR_node_t decl;
 
-      d_assert (IR_IS_OF_TYPE (*stmt_ptr, IR_NM_match_stmt));
-      decl = IR_match_expr_var (*stmt_ptr);
+      d_assert (IR_IS_OF_TYPE (stmt, IR_NM_match_stmt));
+      decl = IR_match_expr_var (stmt);
       IR_set_var_number_in_block (decl, slot_num);
       slot_num++;
       if (slot_num > IR_vars_number (curr_scope)) IR_set_vars_number (curr_scope, slot_num);
     }
   }
-  VLO_SHORTEN (inter_stmt_holders, n * sizeof (IR_node_t));
+  VARR_TRUNC (IR_node_t, inter_stmt_holders, VARR_LENGTH (IR_node_t, inter_stmt_holders) - n);
 }
 
-static void finish_inter_stmt_holders (void) { VLO_DELETE (inter_stmt_holders); }
+static void finish_inter_stmt_holders (void) { VARR_DESTROY (IR_node_t, inter_stmt_holders); }
 
 /* Report error MSG if DES is a slice.  Use position of POS_NODE for
    this.  */
@@ -512,15 +513,15 @@ static void set_block_level (IR_node_t block, int level) {
 
 /* Copied redirs created during processing use-clauses for unfinished
    block processing.  */
-static vlo_t copied_redirs;
+static VARR (IR_node_t) * copied_redirs;
 
 /* Update field TO of copied redirs starting with index START.  */
 static void update_copied_redirs (int start) {
   int i, n;
   IR_node_t *redirs, redir, old;
 
-  n = VLO_LENGTH (copied_redirs) / sizeof (IR_node_t);
-  redirs = (IR_node_t *) VLO_BEGIN (copied_redirs);
+  n = VARR_LENGTH (IR_node_t, copied_redirs);
+  redirs = VARR_ADDR (IR_node_t, copied_redirs);
   /* Update to field of copied redirs.  */
   for (i = start; i < n; i++) {
     redir = redirs[i];
@@ -536,8 +537,8 @@ static void make_flat_redirs (int start) {
   int i, n;
   IR_node_t *redirs, redir, to;
 
-  n = VLO_LENGTH (copied_redirs) / sizeof (IR_node_t);
-  redirs = (IR_node_t *) VLO_BEGIN (copied_redirs);
+  n = VARR_LENGTH (IR_node_t, copied_redirs);
+  redirs = VARR_ADDR (IR_node_t, copied_redirs);
   /* Update to field of copied redirs.  */
   for (i = start; i < n; i++) {
     redir = redirs[i];
@@ -551,7 +552,7 @@ static void make_flat_redirs (int start) {
 }
 
 /* Use items for currently processed use clause.  */
-static vlo_t use_items;
+static VARR (IR_node_t) * use_items;
 /* Start of use items in the previous container for the current
    block.  */
 static size_t curr_use_items_start;
@@ -579,23 +580,23 @@ static long int find_use_item_index (IR_node_t ident, IR_node_t use_clause) {
   const char *ms, *s = IR_ident_string (uid);
 
   l = curr_use_items_start;
-  r = VLO_LENGTH (use_items) / sizeof (IR_node_t) - 1;
+  r = VARR_LENGTH (IR_node_t, use_items) - 1;
   while (l <= r) {
     m = (l + r) / 2;
-    item = ((IR_node_t *) VLO_BEGIN (use_items))[m];
+    item = VARR_ADDR (IR_node_t, use_items)[m];
     muid = IR_unique_ident (IR_use_item_ident (item));
     ms = IR_ident_string (muid);
     if ((cmp = strcmp (s, ms)) == 0) {
       /* Find the very first item in USE_ITEMS with UID.  */
       for (m--; l <= m; m--) {
-        item = ((IR_node_t *) VLO_BEGIN (use_items))[m];
+        item = VARR_ADDR (IR_node_t, use_items)[m];
         if (uid != IR_unique_ident (IR_use_item_ident (item))) break;
       }
       if (use_clause == NULL) return m + 1;
       /* Find the very first item in USE_ITEMS with UID and
          USE_CLAUSE.  */
       for (m++; m <= r; m++) {
-        item = ((IR_node_t *) VLO_BEGIN (use_items))[m];
+        item = VARR_ADDR (IR_node_t, use_items)[m];
         if (uid != IR_unique_ident (IR_use_item_ident (item))) return -1;
         if (IR_item_use_clause (item) == use_clause) return m;
       }
@@ -703,30 +704,31 @@ static IR_node_t make_alias (IR_node_t item, IR_node_t orig_decl, IR_node_t use_
    o Remove all former items at the end of function. */
 static IR_node_t process_use_clause (IR_node_t use_clause, IR_node_t origin_block,
                                      IR_node_t next_stmt) {
-  IR_node_t item, *item_ptr, *res_item_ptr;
+  IR_node_t item, *item_ptr, *res_item_ptr, *start_ptr;
   IR_node_t ident, decl, stmt, res, last, copy, redir;
   int err_p, n, start;
 
   /* Collect items:  */
   for (item = IR_use_items (use_clause); item != NULL; item = IR_next_use_item (item)) {
     IR_set_item_use_clause (item, use_clause);
-    VLO_ADD_MEMORY (use_items, &item, sizeof (IR_node_t));
+    VARR_PUSH (IR_node_t, use_items, item);
   }
-  qsort ((IR_node_t *) VLO_BEGIN (use_items) + curr_use_items_start,
-         VLO_LENGTH (use_items) / sizeof (IR_node_t) - curr_use_items_start, sizeof (IR_node_t),
+  qsort (VARR_ADDR (IR_node_t, use_items) + curr_use_items_start,
+         VARR_LENGTH (IR_node_t, use_items) - curr_use_items_start, sizeof (IR_node_t),
          use_item_cmp);
   /* Check repeated identifier occurence and set up decls references,
      remove duplicates and already bound later items.  */
   err_p = FALSE;
-  for (n = 0,
-      res_item_ptr = item_ptr = ((IR_node_t *) VLO_BEGIN (use_items) + curr_use_items_start);
-       item_ptr < (IR_node_t *) VLO_BOUND (use_items); item_ptr++)
+  n = 0;
+  for (start_ptr = VARR_ADDR (IR_node_t, use_items),
+      res_item_ptr = item_ptr = start_ptr + curr_use_items_start;
+       item_ptr < start_ptr + VARR_LENGTH (IR_node_t, use_items); item_ptr++)
     if (IR_redefine_flag (*item_ptr)) {
       /* It could be only later items as we remove former items at
          the function end.  */
       d_assert (IR_IS_OF_TYPE (*item_ptr, IR_NM_later_item));
       n++;
-    } else if ((item_ptr + 1) < (IR_node_t *) VLO_BOUND (use_items)
+    } else if ((item_ptr + 1) < start_ptr + VARR_LENGTH (IR_node_t, use_items)
                && !IR_redefine_flag (item_ptr[1])
                && (IR_item_use_clause (item_ptr[0]) == IR_item_use_clause (item_ptr[1]))
                && (IR_unique_ident (IR_use_item_ident (item_ptr[0]))
@@ -750,8 +752,8 @@ static IR_node_t process_use_clause (IR_node_t use_clause, IR_node_t origin_bloc
         cont_err (IR_pos (ident), ERR_undefined_use_item_ident,
                   IR_ident_string (IR_unique_ident (ident)));
     }
-  VLO_SHORTEN (use_items, n * sizeof (IR_node_t));
-  start = VLO_LENGTH (copied_redirs) / sizeof (IR_node_t);
+  VARR_TRUNC (IR_node_t, use_items, VARR_LENGTH (IR_node_t, use_items) - n);
+  start = VARR_LENGTH (IR_node_t, copied_redirs);
   /* Copy and insert the oirginal block declarations.  */
   for (res = last = NULL, stmt = IR_block_stmts (origin_block); stmt != NULL;
        stmt = IR_next_stmt (stmt))
@@ -759,12 +761,12 @@ static IR_node_t process_use_clause (IR_node_t use_clause, IR_node_t origin_bloc
       copy = IR_copy_node (stmt);
       add_to_stmt (copy, last, &res);
       last = copy;
-      VLO_ADD_MEMORY (copied_redirs, &copy, sizeof (IR_node_t));
+      VARR_PUSH (IR_node_t, copied_redirs, copy);
     } else if (IR_IS_OF_TYPE (stmt, IR_NM_decl)) {
       ident = IR_ident (stmt);
       decl = find_decl_in_given_scope (ident, curr_scope);
       n = find_use_item_index (ident, use_clause);
-      item = n < 0 ? NULL : ((IR_node_t *) VLO_BEGIN (use_items))[n];
+      item = n < 0 ? NULL : VARR_ADDR (IR_node_t, use_items)[n];
       if (decl != NULL && IR_use_clause (decl) != use_clause) {
         if (item == NULL || !IR_IS_OF_TYPE (item, IR_NM_former_item)) {
           cont_err_start (IR_pos (use_clause),
@@ -809,9 +811,10 @@ static IR_node_t process_use_clause (IR_node_t use_clause, IR_node_t origin_bloc
   if (last != NULL) set_next_stmt (last, next_stmt);
   /* Check that all former items are bound and remove all former
      items.  */
-  for (n = 0,
-      res_item_ptr = item_ptr = ((IR_node_t *) VLO_BEGIN (use_items) + curr_use_items_start);
-       item_ptr < (IR_node_t *) VLO_BOUND (use_items); item_ptr++)
+  n = 0;
+  for (start_ptr = VARR_ADDR (IR_node_t, use_items),
+      res_item_ptr = item_ptr = start_ptr + curr_use_items_start;
+       item_ptr < start_ptr + VARR_LENGTH (IR_node_t, use_items); item_ptr++)
     if (!IR_IS_OF_TYPE (*item_ptr, IR_NM_former_item))
       *res_item_ptr++ = *item_ptr;
     else {
@@ -821,7 +824,7 @@ static IR_node_t process_use_clause (IR_node_t use_clause, IR_node_t origin_bloc
                   ERR_ident_in_former_item_is_not_declared_before_use,
                   IR_ident_string (IR_unique_ident (IR_use_item_ident (*item_ptr))));
     }
-  VLO_SHORTEN (use_items, n * sizeof (IR_node_t));
+  VARR_TRUNC (IR_node_t, use_items, VARR_LENGTH (IR_node_t, use_items) - n);
   update_copied_redirs (start);
   return res;
 }
@@ -879,8 +882,8 @@ static int process_redecl_after (IR_node_t prev_decl, IR_node_t curr_decl) {
   n = find_use_item_index (id, NULL);
   if (n >= 0) {
     /* Set up field 'to' of the unbound later use items.  */
-    for (; n * sizeof (IR_node_t) < VLO_LENGTH (use_items); n++) {
-      item = ((IR_node_t *) VLO_BEGIN (use_items))[n];
+    for (; n < VARR_LENGTH (IR_node_t, use_items); n++) {
+      item = VARR_ADDR (IR_node_t, use_items)[n];
       d_assert (IR_IS_OF_TYPE (item, IR_NM_later_item));
       if (uid != IR_unique_ident (IR_use_item_ident (item))) break;
       if (IR_redefine_flag (item)) continue;
@@ -1060,10 +1063,10 @@ static void put_var_list_before (IR_node_t list, IR_node_t stmt, IR_node_t *prev
 }
 
 /* It will contains all C code nodes:  */
-static vlo_t code_vlo;
+static VARR (IR_node_t) * code_varr;
 
 /* It will contains all C code strings in a given file: */
-static vlo_t code_str_vlo;
+static VARR (char) * code_str_varr;
 
 /* This recursive func passes all stmts and exprs (correctly setting
    up SOURCE_POSITION and curr_scope (before first call of the func
@@ -1152,10 +1155,10 @@ static IR_node_t first_block_passing (IR_node_t first_level_stmt, int curr_block
         IR_set_foreach_index_designator (stmt, FALSE);
         cont_err (IR_pos (index_des), ERR_slice_as_foreach_index_designator);
       }
-      VLO_ADD_MEMORY (inter_stmt_holders, &stmt, sizeof (stmt));
+      VARR_PUSH (IR_node_t, inter_stmt_holders, stmt);
       first_expr_processing (IR_foreach_tab (stmt), no_patterns);
       IR_set_foreach_stmts (stmt, first_block_passing (IR_foreach_stmts (stmt), curr_block_level));
-      VLO_ADD_MEMORY (inter_stmt_holders, &foreach_holder_end, sizeof (foreach_holder_end));
+      VARR_PUSH (IR_node_t, inter_stmt_holders, foreach_holder_end);
       break;
     }
     case IR_NM_break_stmt:
@@ -1173,7 +1176,7 @@ static IR_node_t first_block_passing (IR_node_t first_level_stmt, int curr_block
     case IR_NM_rmatch_stmt: {
       IR_node_t decl, match_expr = IR_match_expr (stmt);
 
-      VLO_ADD_MEMORY (inter_stmt_holders, &stmt, sizeof (stmt));
+      VARR_PUSH (IR_node_t, inter_stmt_holders, stmt);
       first_expr_processing (match_expr, no_patterns);
       decl = create_node_with_pos (IR_NM_var, IR_pos (match_expr));
       IR_set_ident (decl, get_ident_node ("match$expr", IR_pos (match_expr)));
@@ -1185,7 +1188,7 @@ static IR_node_t first_block_passing (IR_node_t first_level_stmt, int curr_block
       prev_stmt = decl;
       IR_set_match_expr_var (stmt, decl);
       IR_set_cases (stmt, first_block_passing (IR_cases (stmt), curr_block_level));
-      VLO_ADD_MEMORY (inter_stmt_holders, &match_holder_end, sizeof (match_holder_end));
+      VARR_PUSH (IR_node_t, inter_stmt_holders, match_holder_end);
       break;
     }
     case IR_NM_block: {
@@ -1193,15 +1196,14 @@ static IR_node_t first_block_passing (IR_node_t first_level_stmt, int curr_block
       int saved_curr_use_items_start = curr_use_items_start;
       int saved_curr_fdecl_flag = curr_fdecl_flag;
       int copied_redirs_start;
-      IR_node_t curr_block, curr_except, fun_class;
-      IR_node_t *item_ptr;
+      IR_node_t curr_block, curr_except, fun_class, item;
       int block_foreach_start;
 
       d_assert (IR_case_pattern (stmt) == NULL
                 || (IR_fun_class (stmt) == NULL && IR_exceptions (stmt) == NULL));
       add_block_to_tree (stmt);
-      copied_redirs_start = VLO_LENGTH (copied_redirs) / sizeof (IR_node_t);
-      curr_use_items_start = VLO_LENGTH (use_items) / sizeof (IR_node_t);
+      copied_redirs_start = VARR_LENGTH (IR_node_t, copied_redirs);
+      curr_use_items_start = VARR_LENGTH (IR_node_t, use_items);
       curr_scope = stmt;
       curr_fdecl_flag = FALSE;
       set_block_level (stmt, curr_block_level);
@@ -1259,21 +1261,20 @@ static IR_node_t first_block_passing (IR_node_t first_level_stmt, int curr_block
       }
       /* Check that all idents in later items have corresponding
          definitions after the use clauses in the block. */
-      for (item_ptr = ((IR_node_t *) VLO_BEGIN (use_items) + curr_use_items_start);
-           item_ptr < (IR_node_t *) VLO_BOUND (use_items); item_ptr++) {
-        d_assert (IR_IS_OF_TYPE (*item_ptr, IR_NM_later_item));
-        if (!IR_redefine_flag (*item_ptr))
-          cont_err (IR_pos (IR_use_item_ident (*item_ptr)),
+      for (size_t i = curr_use_items_start; i < VARR_LENGTH (IR_node_t, use_items); i++) {
+        item = VARR_GET (IR_node_t, use_items, i);
+        d_assert (IR_IS_OF_TYPE (item, IR_NM_later_item));
+        if (!IR_redefine_flag (item))
+          cont_err (IR_pos (IR_use_item_ident (item)),
                     ERR_ident_in_later_item_is_not_declared_after_use,
-                    IR_ident_string (IR_unique_ident (IR_use_item_ident (*item_ptr))));
+                    IR_ident_string (IR_unique_ident (IR_use_item_ident (item))));
       }
       make_flat_redirs (copied_redirs_start);
       /* Restore use items and redirs state as it was before the
          block. */
-      VLO_SHORTEN (use_items, VLO_LENGTH (use_items) - curr_use_items_start * sizeof (IR_node_t));
+      VARR_TRUNC (IR_node_t, use_items, curr_use_items_start);
       curr_use_items_start = saved_curr_use_items_start;
-      VLO_SHORTEN (copied_redirs,
-                   VLO_LENGTH (copied_redirs) - copied_redirs_start * sizeof (IR_node_t));
+      VARR_TRUNC (IR_node_t, copied_redirs, copied_redirs_start);
       if (fun_class != NULL && IR_min_actual_parameters_number (fun_class) < 0)
         IR_set_min_actual_parameters_number (fun_class, IR_parameters_number (fun_class)
                                                           - (IR_args_flag (fun_class) ? 1 : 0));
@@ -1422,7 +1423,7 @@ static IR_node_t first_block_passing (IR_node_t first_level_stmt, int curr_block
       }
       break;
     }
-    case IR_NM_code: VLO_ADD_MEMORY (code_vlo, &stmt, sizeof (stmt)); break;
+    case IR_NM_code: VARR_PUSH (IR_node_t, code_varr, stmt); break;
     default: d_unreachable ();
     }
   }
@@ -1445,15 +1446,14 @@ static int compare_codes (const void *n1, const void *n2) {
 }
 
 static void form_code_chains (void) {
-  IR_node_t *code_ptr, code, last_code;
-  size_t len = VLO_LENGTH (code_vlo);
+  IR_node_t last_code;
+  size_t len = VARR_LENGTH (IR_node_t, code_varr);
 
   if (len == 0) return;
-  qsort (VLO_BEGIN (code_vlo), len / sizeof (IR_node_t), sizeof (IR_node_t), compare_codes);
+  qsort (VARR_ADDR (IR_node_t, code_varr), len, sizeof (IR_node_t), compare_codes);
   last_code = NULL;
-  for (code_ptr = (IR_node_t *) VLO_BEGIN (code_vlo); code_ptr < (IR_node_t *) VLO_BOUND (code_vlo);
-       code_ptr++) {
-    IR_node_t code = *code_ptr;
+  for (size_t i = 0; i < len; i++) {
+    IR_node_t code = VARR_GET (IR_node_t, code_varr, i);
     position_t pos = IR_pos (code);
 
     if (last_code == NULL || IR_pos (last_code).file_name != pos.file_name
@@ -1812,31 +1812,30 @@ static BC_node_mode_t bc_decl_mode (IR_node_t decl) {
 }
 
 /* Decl substitutions: map orginal decl num -> decl substitution.  */
-static vlo_t decl_subst;
+static VARR (BC_node_t) * decl_subst;
 
 /* Initiate work with decl substitutions.  */
-static void initiate_decl_subst (void) { VLO_CREATE (decl_subst, 1 << 14); }
+static void initiate_decl_subst (void) { VARR_CREATE (BC_node_t, decl_subst, 1 << 12); }
 
 /* Set up substitution SUBST for DECL.  */
 static void set_decl_subst (BC_node_t decl, BC_node_t subst) {
   int decl_num = BC_decl_num (decl);
   BC_node_t null = NULL;
 
-  while (VLO_LENGTH (decl_subst) <= decl_num * sizeof (BC_node_t))
-    VLO_ADD_MEMORY (decl_subst, &null, sizeof (null));
-  ((BC_node_t *) VLO_BEGIN (decl_subst))[decl_num] = subst;
+  while (VARR_LENGTH (BC_node_t, decl_subst) <= decl_num) VARR_PUSH (BC_node_t, decl_subst, null);
+  VARR_ADDR (BC_node_t, decl_subst)[decl_num] = subst;
 }
 
 /* Return the substitution of DECL if any or NULL otherwise.  */
 static BC_node_t get_decl_subst (BC_node_t decl) {
   int decl_num = BC_decl_num (decl);
 
-  if (VLO_LENGTH (decl_subst) <= decl_num * sizeof (BC_node_t)) return NULL;
-  return ((BC_node_t *) VLO_BEGIN (decl_subst))[decl_num];
+  if (VARR_LENGTH (BC_node_t, decl_subst) <= decl_num) return NULL;
+  return VARR_ADDR (BC_node_t, decl_subst)[decl_num];
 }
 
 /* Finish work with decl substitutions.  */
-static void finish_decl_subst (void) { VLO_DELETE (decl_subst); }
+static void finish_decl_subst (void) { VARR_DESTROY (BC_node_t, decl_subst); }
 
 /* The last used number to enumerate decls.  */
 static int last_decl_num;
@@ -1969,7 +1968,7 @@ static BC_node_t copy_bcode (BC_node_t origin_bcode) {
 }
 
 /* All funcs and classes blocks.  */
-static vlo_t all_fblocks;
+static VARR (BC_node_t) * all_fblocks;
 
 /* Get fblock of func class declaration FUN_DECL.  Create (or copy the
    origin fblock) if it was not created yet.  */
@@ -1992,7 +1991,7 @@ static inline BC_node_t get_fblock (IR_node_t fun_decl) {
       bc = copy_bcode (IR_fdecl_bc_block (origin));
       BC_set_source (BC_info (bc), new_bc_node (BC_NM_source, IR_pos (src)));
     }
-    VLO_ADD_MEMORY (all_fblocks, &bc, sizeof (bc));
+    VARR_PUSH (BC_node_t, all_fblocks, bc);
     BC_set_fblock (fdecl, bc);
     IR_set_fdecl_bc_block (fun_decl, bc);
     if (src == block) IR_set_bc_block (block, bc);
@@ -2080,8 +2079,8 @@ static BC_node_t create_obj_decl_access (IR_node_t decl, IR_node_t pos_node) {
   return bc;
 }
 
-/* VLO used to generate access for exposed declaration.  */
-static vlo_t exposed_objects;
+/* VARR used to generate access for exposed declaration.  */
+static VARR (IR_node_t) * exposed_objects;
 
 /* The following recursive func passes (correctly setting up
    SOURCE_POSITION) EXPR (it may be NULL) and changes idents on
@@ -2209,17 +2208,17 @@ static IR_node_t second_expr_processing (IR_node_t expr, int fun_class_assign_p,
       BC_node_t bc, before_pc;
 
       /* Collect object declarations:  */
-      VLO_NULLIFY (exposed_objects);
+      VARR_TRUNC (IR_node_t, exposed_objects, 0);
       obj_class = IR_fun_class (IR_scope (IR_decl_in_object (decl)));
       for (;;) {
         d_assert (obj_class != NULL && IR_IS_OF_TYPE (obj_class, IR_NM_class));
         obj_var = IR_obj_var (obj_class);
-        VLO_ADD_MEMORY (exposed_objects, &obj_var, sizeof (obj_var));
+        VARR_PUSH (IR_node_t, exposed_objects, obj_var);
         if (IR_top_object_class (decl) == obj_class) break;
         obj_class = IR_fun_class (IR_scope (obj_class));
       }
-      n = VLO_LENGTH (exposed_objects) / sizeof (obj_var) - 1;
-      obj_var = ((IR_node_t *) VLO_BEGIN (exposed_objects))[n];
+      n = VARR_LENGTH (IR_node_t, exposed_objects) - 1;
+      obj_var = VARR_ADDR (IR_node_t, exposed_objects)[n];
       before_pc = curr_pc;
       gen_decl_access (IR_ident (obj_var), obj_var, FALSE, &op_result, curr_temp_vars_num);
       if (before_pc == curr_pc)
@@ -2228,7 +2227,7 @@ static IR_node_t second_expr_processing (IR_node_t expr, int fun_class_assign_p,
         res = op_result;
       /* Now generate an access to the exposed declaration: */
       for (i = n - 1; i >= 0; i--) {
-        obj_var = ((IR_node_t *) VLO_BEGIN (exposed_objects))[i];
+        obj_var = VARR_ADDR (IR_node_t, exposed_objects)[i];
         bc = new_bc_code_with_src (BC_NM_ovfld, expr);
         BC_set_op1 (bc, res);
         BC_set_op2 (bc, op_result);
@@ -2956,7 +2955,7 @@ static void inline add_decl_to_block (BC_node_t bc_decl, BC_node_t bc_block) {
 }
 
 /* All BC copies created during copy_fun_bc_block.  */
-static vlo_t bc_copies;
+static VARR (BC_node_t) * bc_copies;
 
 /* Make a copy of bcode BC, link it to the current chain, put it into
    bc_copies, and set up it as substituation of BC.  */
@@ -2966,7 +2965,7 @@ static void copy_and_link_bcode (BC_node_t bc) {
   new_bc = copy_bcode (bc);
   BC_set_subst (BC_info (bc), new_bc);
   link_info (BC_info (new_bc));
-  VLO_ADD_MEMORY (bc_copies, &new_bc, sizeof (new_bc));
+  VARR_PUSH (BC_node_t, bc_copies, new_bc);
 }
 
 static void copy_bc_block (BC_node_t origin_bc_block, BC_node_t bc_block);
@@ -2985,7 +2984,7 @@ static void copy_bc_decls (BC_node_t bc_block, BC_node_t origin_bc_block, int va
     BC_set_next_decl (bc_decl, NULL);
     set_new_decl_num (bc_decl);
     set_decl_subst (origin_bc_decl, bc_decl);
-    VLO_ADD_MEMORY (bc_copies, &bc_decl, sizeof (bc_decl));
+    VARR_PUSH (BC_node_t, bc_copies, bc_decl);
     if (last_bc_decl == NULL)
       BC_set_decls (bc_block, bc_decl);
     else
@@ -2997,7 +2996,7 @@ static void copy_bc_decls (BC_node_t bc_block, BC_node_t origin_bc_block, int va
       bc = copy_bcode (BC_fblock (origin_bc_decl));
       BC_set_fblock (bc_decl, bc);
       BC_set_fdecl (bc, bc_decl);
-      VLO_ADD_MEMORY (all_fblocks, &bc, sizeof (bc));
+      VARR_PUSH (BC_node_t, all_fblocks, bc);
       copy_bc_block (BC_fblock (origin_bc_decl), bc);
     }
   }
@@ -3013,7 +3012,7 @@ static void copy_bc_block (BC_node_t origin_bc_block, BC_node_t bc_block) {
   BC_set_subst (BC_info (origin_bc_block), bc_block);
   curr_info = NULL;
   link_info (BC_info (bc_block));
-  VLO_ADD_MEMORY (bc_copies, &bc_block, sizeof (bc_block));
+  VARR_PUSH (BC_node_t, bc_copies, bc_block);
   BC_set_decls (bc_block, NULL);
   if (!BC_forward_p (origin_bc_block)) {
     BC_set_forward_p (bc_block, FALSE);
@@ -3038,11 +3037,10 @@ static void copy_bc_block (BC_node_t origin_bc_block, BC_node_t bc_block) {
    Exclude ones for changing cfblock and decl fields if EXCEPT returns
    TRUE.  */
 static void modify_copied_pc (int (*except) (BC_node_t)) {
-  BC_node_t fv, bc, *bc_ptr;
+  BC_node_t fv, bc;
 
-  for (bc_ptr = (BC_node_t *) VLO_BEGIN (bc_copies); bc_ptr < (BC_node_t *) VLO_BOUND (bc_copies);
-       bc_ptr++) {
-    bc = *bc_ptr;
+  for (size_t i = 0; i < VARR_LENGTH (BC_node_t, bc_copies); i++) {
+    bc = VARR_GET (BC_node_t, bc_copies, i);
     if (BC_IS_OF_TYPE (bc, BC_NM_bcode) && (fv = BC_next (bc)) != NULL
         && (fv = BC_subst (BC_info (fv))) != NULL)
       BC_set_next (bc, fv);
@@ -3102,7 +3100,7 @@ static void modify_copied_pc (int (*except) (BC_node_t)) {
 static void copy_fun_bc_block (IR_node_t fun, IR_node_t original_fun) {
   BC_node_t bc_block, bc;
 
-  VLO_NULLIFY (bc_copies);
+  VARR_TRUNC (BC_node_t, bc_copies, 0);
   bc = get_fblock (fun);
   BC_set_scope (bc, curr_bc_scope);
   bc_block = get_fblock (original_fun);
@@ -4127,23 +4125,23 @@ static void second_block_passing (IR_node_t first_level_stmt, int block_p) {
       if (IR_first_file_code_p (stmt)) {
         IR_node_t code;
 
-        VLO_NULLIFY (code_str_vlo);
+        VARR_TRUNC (char, code_str_varr, 0);
         bc = new_bc_code_with_src (BC_NM_compile, stmt);
         for (code = stmt; code != NULL; code = IR_next_file_code (code)) {
           string_t str;
           position_t pos = IR_pos (code);
 
-          VLO_ADD_MEMORY (code_str_vlo, "#line ", 6);
+          VARR_PUSH_ARR (char, code_str_varr, "#line ", 6);
           str = i2a (pos.line_number);
-          VLO_ADD_MEMORY (code_str_vlo, str, strlen (str));
-          VLO_ADD_MEMORY (code_str_vlo, " \"", 2);
-          VLO_ADD_MEMORY (code_str_vlo, pos.file_name, strlen (pos.file_name));
-          VLO_ADD_MEMORY (code_str_vlo, "\"\n", 2);
+          VARR_PUSH_ARR (char, code_str_varr, str, strlen (str));
+          VARR_PUSH_ARR (char, code_str_varr, " \"", 2);
+          VARR_PUSH_ARR (char, code_str_varr, pos.file_name, strlen (pos.file_name));
+          VARR_PUSH_ARR (char, code_str_varr, "\"\n", 2);
           str = IR_string_value (IR_code_string (code));
-          VLO_ADD_MEMORY (code_str_vlo, str,
-                          strlen (str) + (IR_next_file_code (code) == NULL ? 1 : 0));
+          VARR_PUSH_ARR (char, code_str_varr, str,
+                         strlen (str) + (IR_next_file_code (code) == NULL ? 1 : 0));
         }
-        BC_set_c_code (bc, get_unique_string (VLO_BEGIN (code_str_vlo)));
+        BC_set_c_code (bc, get_unique_string (VARR_ADDR (char, code_str_varr)));
         add_to_bcode (bc);
       }
       break;
@@ -4386,11 +4384,10 @@ static void process_tail_imcall (BC_node_t bc) {
 /* Modify op fields of copied nodes correspondingly.  */
 static void modify_copied_ops (int base) {
   int op;
-  BC_node_t bc, *bc_ptr;
+  BC_node_t bc;
 
-  for (bc_ptr = (BC_node_t *) VLO_BEGIN (bc_copies); bc_ptr < (BC_node_t *) VLO_BOUND (bc_copies);
-       bc_ptr++) {
-    bc = *bc_ptr;
+  for (size_t i = 0; i < VARR_LENGTH (BC_node_t, bc_copies); i++) {
+    bc = VARR_GET (BC_node_t, bc_copies, i);
     if (BC_IS_OF_TYPE (bc, BC_NM_op1) && !BC_IS_OF_TYPE (bc, BC_NM_op1i)
         && !BC_IS_OF_TYPE (bc, BC_NM_op2i12) && (op = BC_op1 (bc)) >= 0)
       BC_set_op1 (bc, op + base);
@@ -4424,15 +4421,12 @@ static void modify_copied_ops (int base) {
 }
 
 /* Stack of fblocks being currently inlined.  */
-static vlo_t inline_stack;
+static VARR (BC_node_t) * inline_stack;
 
 /* Return true if FBLOCK is in inline stack.  */
 static int in_inline_stack_p (BC_node_t fblock) {
-  BC_node_t *fblock_ptr;
-
-  for (fblock_ptr = (BC_node_t *) VLO_BEGIN (inline_stack);
-       fblock_ptr < (BC_node_t *) VLO_BOUND (inline_stack); fblock_ptr++)
-    if (*fblock_ptr == fblock) return TRUE;
+  for (size_t i = 0; i < VARR_LENGTH (BC_node_t, inline_stack); i++)
+    if (VARR_GET (BC_node_t, inline_stack, i) == fblock) return TRUE;
   return FALSE;
 }
 
@@ -4440,7 +4434,7 @@ static int in_inline_stack_p (BC_node_t fblock) {
 unsigned int inlined_calls_num;
 
 /* Container for copied returns. */
-static vlo_t inline_returns;
+static VARR (BC_node_t) * inline_returns;
 
 /* Inline call with INFO.  Return the start of the inlined code or
    INFO if we failed to inline. */
@@ -4448,7 +4442,7 @@ static BC_node_t inline_call (BC_node_t info) {
   int level;
   unsigned int len;
   int tvars_num, var_base;
-  BC_node_t bc, fblock, start, last_finish, finish, finish2, res, last, *bc_ptr;
+  BC_node_t bc, fblock, start, last_finish, finish, finish2, res, last;
   BC_node_t call_bc = BC_bc (info);
 
   d_assert (BC_IS_OF_TYPE (call_bc, BC_NM_imcall));
@@ -4460,7 +4454,7 @@ static BC_node_t inline_call (BC_node_t info) {
     /* To prevent infinite inlininig of recursive functions. */
     return info;
   inlined_calls_num++;
-  VLO_ADD_MEMORY (inline_stack, &fblock, sizeof (fblock));
+  VARR_PUSH (BC_node_t, inline_stack, fblock);
   var_base = BC_op1 (call_bc);
   start = new_bc_code (BC_NM_stinc, new_bc_node (BC_NM_source, BC_pos (BC_source (info))));
   BC_set_op1 (start, 0);                    /* var_base will be added */
@@ -4476,15 +4470,15 @@ static BC_node_t inline_call (BC_node_t info) {
   BC_set_op1 (last_finish, 0); /* will be fixed to var_base */
   BC_set_op2 (last_finish, 1);
   BC_set_next (last_finish, BC_next (fblock));
-  VLO_NULLIFY (bc_copies);
-  VLO_ADD_MEMORY (bc_copies, &start, sizeof (start));
-  VLO_ADD_MEMORY (bc_copies, &last_finish, sizeof (last_finish));
+  VARR_TRUNC (BC_node_t, bc_copies, 0);
+  VARR_PUSH (BC_node_t, bc_copies, start);
+  VARR_PUSH (BC_node_t, bc_copies, last_finish);
   /* Reset substitution fields: */
   for (info = BC_next_info (BC_info (fblock)); info != NULL; info = BC_next_info (info))
     BC_set_subst (info, NULL);
   /* Make bcode copy:  */
   level = 0;
-  VLO_NULLIFY (inline_returns);
+  VARR_TRUNC (BC_node_t, inline_returns, 0);
   finish = NULL;
   for (info = BC_next_info (BC_info (fblock));; info = BC_next_info (info)) {
     bc = BC_bc (info);
@@ -4500,23 +4494,23 @@ static BC_node_t inline_call (BC_node_t info) {
         BC_set_op1 (finish, BC_op1 (last_finish));
         BC_set_op2 (finish, 0);
         BC_set_next (finish, BC_next (last_finish));
-        VLO_ADD_MEMORY (bc_copies, &finish, sizeof (finish));
+        VARR_PUSH (BC_node_t, bc_copies, finish);
       }
       BC_set_subst (BC_info (bc), finish);
     } else if (BC_IS_OF_TYPE (bc, BC_NM_ret)) {
       d_assert (level == 0);
       finish2 = new_bc_code (BC_NM_stdecm, new_bc_node (BC_NM_source, BC_pos (BC_source (info))));
-      VLO_ADD_MEMORY (inline_returns, &finish2, sizeof (finish2));
+      VARR_PUSH (BC_node_t, inline_returns, finish2);
       BC_set_op1 (finish2, 0); /* will be fixed to var_base */
       BC_set_op2 (finish2, BC_op1 (bc));
       BC_set_subst (BC_info (bc), finish2);
       link_info (BC_info (finish2));
-      VLO_ADD_MEMORY (bc_copies, &finish2, sizeof (finish2));
+      VARR_PUSH (BC_node_t, bc_copies, finish2);
     } else {
       BC_node_mode_t bc_mode;
 
       copy_and_link_bcode (bc);
-      last = ((BC_node_t *) VLO_BOUND (bc_copies))[-1];
+      last = VARR_LAST (BC_node_t, bc_copies);
       /* We should remove tail calls as we still need to execute a
          code after the call.  */
       if (BC_NODE_MODE (last) == BC_NM_tcall)
@@ -4543,18 +4537,16 @@ static BC_node_t inline_call (BC_node_t info) {
   link_info (last);
   BC_set_next (start, BC_bc (BC_next_info (res)));
   BC_set_subst (BC_info (fblock), curr_bc_block);
-  len = VLO_LENGTH (bc_copies);
+  len = VARR_LENGTH (BC_node_t, bc_copies);
   copy_bc_decls (curr_bc_block, fblock, var_base);
   modify_copied_pc (in_inline_stack_p);
   /* Do not change in ops in copied fblocks. */
-  len = VLO_LENGTH (bc_copies) - len;
-  VLO_SHORTEN (bc_copies, len);
+  VARR_TRUNC (BC_node_t, bc_copies, len);
   modify_copied_ops (var_base);
   BC_set_subst (BC_info (call_bc), start);
   BC_set_next (last_finish, BC_next (call_bc));
-  for (bc_ptr = (BC_node_t *) VLO_BEGIN (inline_returns);
-       bc_ptr < (BC_node_t *) VLO_BOUND (inline_returns); bc_ptr++)
-    BC_set_next (*bc_ptr, BC_next (call_bc));
+  for (size_t i = 0; i < VARR_LENGTH (BC_node_t, inline_returns); i++)
+    BC_set_next (VARR_GET (BC_node_t, inline_returns, i), BC_next (call_bc));
   info = BC_prev_info (BC_info (call_bc));
   BC_set_next_info (info, res);
   BC_set_prev_info (res, info);
@@ -4571,7 +4563,7 @@ static void optimize_bc (BC_node_t start) {
 
   curr_bc_block = start;
   curr_temp_vars_start = BC_vars_num (curr_bc_block);
-  VLO_NULLIFY (inline_stack);
+  VARR_TRUNC (BC_node_t, inline_stack, 0);
   for (info = BC_info (start); info != NULL; info = BC_next_info (info)) {
     BC_set_subst (info, NULL);
     BC_set_reachable_p (info, FALSE);
@@ -4580,23 +4572,24 @@ static void optimize_bc (BC_node_t start) {
       info = inline_call (info);
     }
     bc = BC_bc (info);
-    if (BC_IS_OF_TYPE (bc, BC_NM_stdecu) && BC_op2 (bc))
-      VLO_SHORTEN (inline_stack, sizeof (BC_node_t));
+    if (BC_IS_OF_TYPE (bc, BC_NM_stdecu) && BC_op2 (bc)
+        && VARR_LENGTH (BC_node_t, inline_stack) != 0)
+      VARR_POP (BC_node_t, inline_stack);
   }
-  d_assert (VLO_LENGTH (inline_stack) == 0);
+  d_assert (VARR_LENGTH (BC_node_t, inline_stack) == 0);
   for (info = BC_info (start); info != NULL; info = BC_next_info (info)) {
     bc = BC_bc (info);
     if (BC_IS_OF_TYPE (bc, BC_NM_stinc)) {
       curr_temp_vars_start = BC_op1 (bc) + BC_op3 (bc) - 1;
-      VLO_ADD_MEMORY (inline_stack, &bc, sizeof (bc));
+      VARR_PUSH (BC_node_t, inline_stack, bc);
     } else if ((BC_IS_OF_TYPE (bc, BC_NM_stpop) || BC_IS_OF_TYPE (bc, BC_NM_stdecu))
                && BC_op2 (bc)) {
-      d_assert (VLO_LENGTH (inline_stack) != 0);
-      VLO_SHORTEN (inline_stack, sizeof (bc));
-      if (VLO_LENGTH (inline_stack) == 0)
+      d_assert (VARR_LENGTH (BC_node_t, inline_stack) != 0);
+      VARR_POP (BC_node_t, inline_stack);
+      if (VARR_LENGTH (BC_node_t, inline_stack) == 0)
         curr_temp_vars_start = BC_vars_num (start);
       else {
-        stinc = ((BC_node_t *) VLO_BOUND (inline_stack))[-1];
+        stinc = VARR_LAST (BC_node_t, inline_stack);
         curr_temp_vars_start = BC_op1 (stinc) + BC_op3 (stinc) - 1;
       }
     } else if (BC_NODE_MODE (bc) == BC_NM_block)
@@ -4616,7 +4609,7 @@ static void optimize_bc (BC_node_t start) {
       BC_set_fail_pc (bc, go_through (next));
     process_tail_imcall (bc);
   }
-  d_assert (VLO_LENGTH (inline_stack) == 0 && curr_bc_block == start
+  d_assert (VARR_LENGTH (BC_node_t, inline_stack) == 0 && curr_bc_block == start
             && curr_temp_vars_start == BC_vars_num (curr_bc_block));
 }
 
@@ -4656,8 +4649,6 @@ static void dce_bc (BC_node_t start) {
 /* Process semantics of IR starting with FIRST_PROGRAM_STMT_PTR and
    generate byte code.  */
 void test_context (IR_node_t first_program_stmt_ptr, int first_p) {
-  BC_node_t *bc_ptr;
-
   if (setjmp (context_exit_longjump_buff) != 0) return;
   curr_scope = NULL;
   first_program_stmt_ptr = first_block_passing (first_program_stmt_ptr, 0);
@@ -4669,7 +4660,7 @@ void test_context (IR_node_t first_program_stmt_ptr, int first_p) {
   curr_info = NULL;
   prev_pc = curr_pc = NULL;
   for_or_match_finish = NULL;
-  VLO_NULLIFY (all_fblocks);
+  VARR_TRUNC (BC_node_t, all_fblocks, 0);
   if (!first_p) {
     BC_node_t bc_block = IR_bc_block (first_program_stmt_ptr);
     BC_node_t info = BC_info (bc_block);
@@ -4695,20 +4686,18 @@ void test_context (IR_node_t first_program_stmt_ptr, int first_p) {
     first_program_bc = IR_bc_block (first_program_stmt_ptr);
     /* Some optimizations: */
     optimize_bc (first_program_bc);
-    for (bc_ptr = (BC_node_t *) VLO_BEGIN (all_fblocks);
-         bc_ptr < (BC_node_t *) VLO_BOUND (all_fblocks); bc_ptr++)
-      optimize_bc (*bc_ptr);
+    for (size_t i = 0; i < VARR_LENGTH (BC_node_t, all_fblocks); i++)
+      optimize_bc (VARR_GET (BC_node_t, all_fblocks, i));
     /* Remove dead code.  */
     dce_bc (first_program_bc);
-    for (bc_ptr = (BC_node_t *) VLO_BEGIN (all_fblocks);
-         bc_ptr < (BC_node_t *) VLO_BOUND (all_fblocks); bc_ptr++)
-      dce_bc (*bc_ptr);
+    for (size_t i = 0; i < VARR_LENGTH (BC_node_t, all_fblocks); i++)
+      dce_bc (VARR_GET (BC_node_t, all_fblocks, i));
     if (dump_flag) {
       int idn = 0, decl_num = 0;
 
       enumerate_infoed_bcode (first_program_bc, &idn, &decl_num);
     }
-    if (optimize_flag) inference_pass (first_program_bc, &all_fblocks);
+    if (optimize_flag) inference_pass (first_program_bc, all_fblocks);
     if (dump_flag) dump_code (BC_info (first_program_bc), 0);
   }
 }
@@ -4716,16 +4705,16 @@ void test_context (IR_node_t first_program_stmt_ptr, int first_p) {
 void initiate_context (void) {
   bc_nodes_num = 0;
   max_block_level = 0;
-  VLO_CREATE (code_str_vlo, 1024 * 16);
-  VLO_CREATE (code_vlo, 1024);
-  VLO_CREATE (all_fblocks, 0);
+  VARR_CREATE (char, code_str_varr, 1024 * 16);
+  VARR_CREATE (IR_node_t, code_varr, 1024);
+  VARR_CREATE (BC_node_t, all_fblocks, 0);
   curr_use_items_start = 0;
-  VLO_CREATE (exposed_objects, 0);
-  VLO_CREATE (use_items, 0);
-  VLO_CREATE (copied_redirs, 0);
-  VLO_CREATE (bc_copies, 0);
-  VLO_CREATE (inline_returns, 0);
-  VLO_CREATE (inline_stack, 0);
+  VARR_CREATE (IR_node_t, exposed_objects, 0);
+  VARR_CREATE (IR_node_t, use_items, 0);
+  VARR_CREATE (IR_node_t, copied_redirs, 0);
+  VARR_CREATE (BC_node_t, bc_copies, 0);
+  VARR_CREATE (BC_node_t, inline_returns, 0);
+  VARR_CREATE (BC_node_t, inline_stack, 0);
   initiate_decl_subst ();
   last_uniq_field_ident_num = DESTROY_FLDID_NUM;
   last_decl_num = 0;
@@ -4737,13 +4726,13 @@ void finish_context (void) {
   if (optimize_flag) finish_inference_pass ();
   finish_inter_stmt_holders ();
   finish_decl_subst ();
-  VLO_DELETE (inline_stack);
-  VLO_DELETE (inline_returns);
-  VLO_DELETE (bc_copies);
-  VLO_DELETE (copied_redirs);
-  VLO_DELETE (use_items);
-  VLO_DELETE (exposed_objects);
-  VLO_DELETE (all_fblocks);
-  VLO_DELETE (code_vlo);
-  VLO_DELETE (code_str_vlo);
+  VARR_DESTROY (BC_node_t, inline_stack);
+  VARR_DESTROY (BC_node_t, inline_returns);
+  VARR_DESTROY (BC_node_t, bc_copies);
+  VARR_DESTROY (IR_node_t, copied_redirs);
+  VARR_DESTROY (IR_node_t, use_items);
+  VARR_DESTROY (IR_node_t, exposed_objects);
+  VARR_DESTROY (BC_node_t, all_fblocks);
+  VARR_DESTROY (IR_node_t, code_varr);
+  VARR_DESTROY (char, code_str_varr);
 }

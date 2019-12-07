@@ -99,7 +99,6 @@ int dlclose (void *handle);
 
 #include "d_dino.h"
 #include "allocate.h"
-#include "vlobject.h"
 #include "position.h"
 #include "ticker.h"
 #include "bits.h"
@@ -175,7 +174,10 @@ extern conv_desc_t curr_byte_cd, curr_ucode_cd, curr_reverse_ucode_cd;
 extern const char *curr_encoding_name;
 extern encoding_type_t curr_encoding_type;
 
+DEF_VARR (char);
+
 typedef const char *char_ptr_t;
+DEF_VARR (char_ptr_t);
 DEF_HTAB (char_ptr_t);
 
 extern htab_hash_t str_hash_func (char_ptr_t str);
@@ -221,13 +223,13 @@ extern void print_stmt_prompt (void);
 extern void print_stmt_cont_prompt (void);
 extern void d_verror (int fatal_error_flag, position_t position, const char *format, va_list ap);
 extern void d_error (int fatal_error_flag, position_t position, const char *format, ...);
-extern void copy_vlo (vlo_t *to, vlo_t *from);
-extern void str_to_ucode_vlo (vlo_t *to, const char *from, size_t len);
-extern char *encode_byte_str_vlo (byte_t *str, conv_desc_t cd, encoding_type_t tp, vlo_t *vlo,
-                                  size_t *len);
-extern char *encode_ucode_str_vlo (ucode_t *str, conv_desc_t cd, encoding_type_t tp, vlo_t *vlo,
-                                   size_t *len);
-extern const char *encode_ucode_str_to_raw_vlo (const ucode_t *str, vlo_t *vlo);
+extern void copy_varr (VARR (char) * to, VARR (char) * from);
+extern void str_to_ucode_varr (VARR (char) * to, const char *from, size_t len);
+extern char *encode_byte_str_varr (byte_t *str, conv_desc_t cd, encoding_type_t tp,
+                                   VARR (char) * varr, size_t *len);
+extern char *encode_ucode_str_varr (ucode_t *str, conv_desc_t cd, encoding_type_t tp,
+                                    VARR (char) * varr, size_t *len);
+extern const char *encode_ucode_str_to_raw_varr (const ucode_t *str, VARR (char) * varr);
 extern ucode_t get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd, encoding_type_t tp,
                                       void *data);
 extern int check_encoding_on_ascii (const char *encoding);
@@ -312,6 +314,14 @@ static inline int read_byte (void *data) {
   FILE *f = (FILE *) data;
 
   return dino_getc (f);
+}
+
+static inline void push_str (VARR (char) * to, const char *str) {
+  size_t len = VARR_LENGTH (char, to);
+
+  if (str == NULL) return;
+  if (len != 0 && VARR_LAST (char, to) == '\0') VARR_TRUNC (char, to, len - 1);
+  VARR_PUSH_ARR (char, to, str, strlen (str) + 1);
 }
 
 #define REP2(M, a1, a2) M (a1) REP_SEP M (a2)

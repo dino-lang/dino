@@ -123,6 +123,11 @@ static inline void MIR_VARR_NO_RETURN mir_varr_error (const char *message) {
     return 0;                                                                             \
   }                                                                                       \
                                                                                           \
+  static inline void VARR_OP (T, grow) (VARR (T) * varr, size_t n) {                      \
+    VARR_OP (T, expand) (varr, varr->els_num + n);                                        \
+    varr->els_num += n;                                                                   \
+  }                                                                                       \
+                                                                                          \
   static inline void VARR_OP (T, tailor) (VARR (T) * varr, size_t size) {                 \
     VARR_ASSERT (varr && varr->varr, "tailor", T);                                        \
     if (varr->size != size) varr->varr = (T *) realloc (varr->varr, sizeof (T) * size);   \
@@ -162,6 +167,7 @@ static inline void MIR_VARR_NO_RETURN mir_varr_error (const char *message) {
 #define VARR_SET(T, V, I, O) (VARR_OP (T, set) (V, I, O))
 #define VARR_TRUNC(T, V, S) (VARR_OP (T, trunc) (V, S))
 #define VARR_EXPAND(T, V, S) (VARR_OP (T, expand) (V, S))
+#define VARR_GROW(T, V, N) (VARR_OP (T, grow) (V, N))
 #define VARR_TAILOR(T, V, S) (VARR_OP (T, tailor) (V, S))
 #define VARR_PUSH(T, V, O) (VARR_OP (T, push) (V, O))
 #define VARR_PUSH_ARR(T, V, A, L) (VARR_OP (T, push_arr) (V, A, L))
