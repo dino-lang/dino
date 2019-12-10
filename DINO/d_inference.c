@@ -96,8 +96,6 @@
   non-primitive types etc) and some improving can be done here.  */
 
 #include "d_common.h"
-#include "spset.h"
-#include "cspset.h"
 #include "d_bc.h"
 
 /* Types used for type inference.  As we don't need slice for better
@@ -134,12 +132,12 @@ struct cfg_bb {
   /* in/out CFG edges of BB */
   cfg_edge_t srcs, dests;
   /* Available definitions at the beginning/end of BB.  */
-  cspset_t avail_in, avail_out;
+  bitmap_t avail_in, avail_out;
   /* Definitions became availaible at the end of BB.  */
-  cspset_t avail_gen;
+  bitmap_t avail_gen;
   /* Places (see comments for function get_insn_op_place) which are
      results of insns in BB.  */
-  cspset_t res_places;
+  bitmap_t res_places;
 };
 
 /* Control flow graph edge.  */
@@ -273,7 +271,7 @@ static node_t *nodes_in_postorder_inverted;
 
 /* Set saying what nodes were added to the stack used for
    post-inverted order calculation.  */
-static spset_t in_postorder_stack;
+static bitmap_t in_postorder_stack;
 /* The stack used for post-inverted order calculation (including
    reachable nodes).  */
 static node_t *postorder_stack;
@@ -282,7 +280,7 @@ static node_t *postorder_stack;
 static int postorder_stack_bound;
 
 /* Set of reachable nodes from start nodes.  */
-static spset_t reachable_nodes;
+static bitmap_t reachable_nodes;
 
 /* Add TOP and all nodes reachable from it to the reachable node
    set.  */
@@ -292,18 +290,18 @@ static void add_reachable_nodes (struct problem *problem, node_t top) {
   int saved_bound = postorder_stack_bound;
   int index = problem->get_index (top);
 
-  assert (!spset_in_p (&reachable_nodes, index));
+  assert (!bitmap_bit_p (reachable_nodes, index));
   /* Here we use the free slots of the postorder stack for a stack
      processing reachable nodes.  */
   postorder_stack[postorder_stack_bound++] = top;
   while (postorder_stack_bound > saved_bound) {
     node = postorder_stack[--postorder_stack_bound];
     index = problem->get_index (node);
-    spset_insert (&reachable_nodes, index);
+    bitmap_set_bit_p (reachable_nodes, index);
     for (e = problem->src_edges (node); e != NULL; e = problem->next_src_edge (e)) {
       node = problem->edge_src (e);
       index = problem->get_index (node);
-      if (spset_in_p (&reachable_nodes, index)) continue;
+      if (bitmap_bit_p (reachable_nodes, index)) continue;
       postorder_stack[postorder_stack_bound++] = node;
     }
   }
@@ -314,9 +312,9 @@ static void add_reachable_nodes (struct problem *problem, node_t top) {
 static inline void add_node_to_consider (struct problem *problem, node_t node) {
   int index = problem->get_index (node);
 
-  if (spset_in_p (&in_postorder_stack, index)) return;
+  if (bitmap_bit_p (in_postorder_stack, index)) return;
   postorder_stack[postorder_stack_bound++] = node;
-  spset_insert (&in_postorder_stack, index);
+  bitmap_set_bit_p (in_postorder_stack, index);
 }
 
 /* Set up NODES_IN_POSTORDER_INVERTED for PROBLEM with NODES_NUM
@@ -326,8 +324,8 @@ static void calculate_postorder_inverted (struct problem *problem, node_t *nodes
   node_t node, top;
 
   MALLOC (postorder_stack, sizeof (node_t) * nodes_num);
-  spset_init (&in_postorder_stack, nodes_num);
-  spset_init (&reachable_nodes, nodes_num);
+  in_postorder_stack = bitmap_create2 (nodes_num);
+  reachable_nodes = bitmap_create2 (nodes_num);
   for (postorder_stack_bound = 0, i = nodes_num - 1; i >= 0; i--) {
     node = nodes[i];
     problem->set_visit_tick (node, FALSE); /* Initiate visit flag */
@@ -340,11 +338,11 @@ static void calculate_postorder_inverted (struct problem *problem, node_t *nodes
   for (i = nodes_num - 1; i >= 0; i--) {
     node = nodes[i];
     index = problem->get_index (node);
-    if (spset_in_p (&reachable_nodes, index)) continue;
+    if (bitmap_bit_p (reachable_nodes, index)) continue;
     add_reachable_nodes (problem, node);
     add_node_to_consider (problem, node);
   }
-  spset_finish (&reachable_nodes);
+  bitmap_destroy (reachable_nodes);
   last_place = 0;
   while (postorder_stack_bound > 0) {
     top = postorder_stack[postorder_stack_bound - 1];
@@ -369,7 +367,7 @@ static void calculate_postorder_inverted (struct problem *problem, node_t *nodes
     assert (problem->get_order (nodes[i]) >= 0);
 #endif
   assert (last_place == nodes_num);
-  spset_finish (&in_postorder_stack);
+  bitmap_destroy (in_postorder_stack);
   FREE (postorder_stack);
 }
 
@@ -377,7 +375,7 @@ static void calculate_postorder_inverted (struct problem *problem, node_t *nodes
 
 static int *last_visit_tick;
 
-static int propagate_forward (struct problem *problem, node_t node, spset_t *pending, int tick) {
+static int propagate_forward (struct problem *problem, node_t node, bitmap_t pending, int tick) {
   edge_t e;
   node_t src;
   int changed_p = !tick;
@@ -392,18 +390,28 @@ static int propagate_forward (struct problem *problem, node_t node, spset_t *pen
     }
   if (changed_p && problem->transf (node)) {
     for (e = problem->dest_edges (node); e != NULL; e = problem->next_dest_edge (e))
-      spset_insert (pending, problem->get_order (problem->edge_dest (e)));
+      bitmap_set_bit_p (pending, problem->get_order (problem->edge_dest (e)));
     return TRUE;
   }
   return changed_p;
 }
 
+DEF_VARR (size_t);
+static VARR (size_t) * collected_bits;
+
+static void collect_bit (size_t n, void *data) { VARR_PUSH (size_t, collected_bits, n); }
+
+static void collect_bits (bitmap_t b) {
+  VARR_TRUNC (size_t, collected_bits, 0);
+  bitmap_for_each (b, collect_bit, NULL);
+}
+
 static void forward_dataflow (struct problem *problem, node_t *nodes, int nodes_num,
                               int print_order_p) {
-  int i, el, tick, changed_p;
+  int i, tick, changed_p;
+  size_t el;
   node_t node;
-  spset_t pending, worklist;
-  spset_iterator_t si;
+  bitmap_t pending, worklist, temp;
 
   MALLOC (nodes_in_postorder_inverted, sizeof (node_t) * nodes_num);
   MALLOC (last_visit_tick, sizeof (int) * nodes_num);
@@ -415,29 +423,33 @@ static void forward_dataflow (struct problem *problem, node_t *nodes, int nodes_
     }
     printf ("\n");
   }
-  spset_init (&pending, nodes_num);
-  spset_init (&worklist, nodes_num);
+  pending = bitmap_create2 (nodes_num);
+  worklist = bitmap_create2 (nodes_num);
   for (i = 0; i < nodes_num; i++) {
     /* Add all nodes to the worklist.  */
-    spset_insert (&pending, i);
+    bitmap_set_bit_p (pending, i);
     last_visit_tick[i] = 0;
     problem->set_visit_tick (nodes[i], 0);
   }
-  while (spset_cardinality (&pending) != 0) {
+  while (!bitmap_empty_p (pending)) {
     /* Swap pending and worklist. */
-    spset_swap (&pending, &worklist);
-    EXECUTE_FOR_EACH_SPSET_ELEM (&worklist, el, si) {
-      spset_remove (&pending, el);
+    temp = pending;
+    pending = worklist;
+    worklist = temp;
+    collect_bits (worklist);
+    for (size_t n = 0; n < VARR_LENGTH (size_t, collected_bits); n++) {
+      el = VARR_GET (size_t, collected_bits, n);
+      bitmap_clear_bit_p (pending, el);
       node = nodes_in_postorder_inverted[el];
       tick = last_visit_tick[el];
-      changed_p = propagate_forward (problem, node, &pending, last_visit_tick[el]);
+      changed_p = propagate_forward (problem, node, pending, last_visit_tick[el]);
       last_visit_tick[el] = ++tick;
       if (changed_p) problem->set_visit_tick (node, tick);
     }
-    spset_clear (&worklist);
+    bitmap_clear (worklist);
   }
-  spset_finish (&pending);
-  spset_finish (&worklist);
+  bitmap_destroy (pending);
+  bitmap_destroy (worklist);
   FREE (last_visit_tick);
   FREE (nodes_in_postorder_inverted);
 }
@@ -1218,10 +1230,10 @@ static cfg_bb_t get_bb (df_insn_t head) {
   bb->index = bbs_num++;
   bb->srcs = bb->dests = NULL;
   bb->order = -1; /* Initialize */
-  cspset_init (&bb->avail_gen, 0);
-  cspset_init (&bb->res_places, 0);
-  cspset_init (&bb->avail_in, 0);
-  cspset_init (&bb->avail_out, 0);
+  bb->avail_gen = bitmap_create ();
+  bb->res_places = bitmap_create ();
+  bb->avail_in = bitmap_create ();
+  bb->avail_out = bitmap_create ();
   VARR_PUSH (cfg_bb_t, bbs_varr, bb);
   return bb;
 }
@@ -1232,10 +1244,10 @@ static void finish_bbs (void) {
 
   for (i = 0; i < bbs_num; i++) {
     bb = bbs[i];
-    cspset_finish (&bb->avail_gen);
-    cspset_finish (&bb->res_places);
-    cspset_finish (&bb->avail_in);
-    cspset_finish (&bb->avail_out);
+    bitmap_destroy (bb->avail_gen);
+    bitmap_destroy (bb->res_places);
+    bitmap_destroy (bb->avail_in);
+    bitmap_destroy (bb->avail_out);
   }
 }
 
@@ -1335,7 +1347,7 @@ static void build_cfg (void) {
 
 /* Return definition number of result PLACE which is INSN_NDEF-th
    definition of INSN.  Return negative if the definition escapes.  */
-static inline int get_place_ndef (df_insn_t insn, int place, int insn_ndef) {
+static inline long get_place_ndef (df_insn_t insn, int place, int insn_ndef) {
   BC_node_t bc = insn->bc;
   int nvar;
 
@@ -1370,20 +1382,18 @@ static inline int get_def_place (int ndef) {
   return res;
 }
 
-DEF_VARR (cspset_elem_t);
-
 static void calculate_local (void) {
   int i, j, place;
   cfg_bb_t bb;
   df_insn_t insn;
-  cspset_elem_t el;
+  size_t el;
   int insn_def;
   int fbend_p;
-  VARR (cspset_elem_t) * bb_place_to_el_varr;
+  VARR (size_t) * bb_place_to_el_varr;
 
   /* Map: place -> gen set element incremented by 1.  Zero element
      means empty.  */
-  VARR_CREATE (cspset_elem_t, bb_place_to_el_varr, 0);
+  VARR_CREATE (size_t, bb_place_to_el_varr, 0);
   for (i = 0; i < bbs_num; i++) {
     bb = bbs[i];
     if (BC_IS_OF_TYPE (bb->tail->bc, BC_NM_fbend)) {
@@ -1399,68 +1409,70 @@ static void calculate_local (void) {
         /* Remove non-global definitions for fbend BB.  */
         if (fbend_p && place >= BC_vars_num (tl_block->bc_block)) continue;
         assert (j < get_insn_defs_num (insn));
-        cspset_insert (&bb->res_places, place);
+        bitmap_set_bit_p (bb->res_places, place);
         /* Expand the map: */
         el = 0;
-        while (VARR_LENGTH (cspset_elem_t, bb_place_to_el_varr) <= place)
-          VARR_PUSH (cspset_elem_t, bb_place_to_el_varr, el);
-        if ((el = VARR_ADDR (cspset_elem_t, bb_place_to_el_varr)[place]) != 0)
+        while (VARR_LENGTH (size_t, bb_place_to_el_varr) <= place)
+          VARR_PUSH (size_t, bb_place_to_el_varr, el);
+        if ((el = VARR_ADDR (size_t, bb_place_to_el_varr)[place]) != 0)
           /* Remove previous element with the same place from
              avail_gen: */
-          cspset_remove (&bb->avail_gen, el - 1);
+          bitmap_clear_bit_p (bb->avail_gen, el - 1);
         /* Insert the new element.  */
-        el = get_place_ndef (insn, place, j);
-        VARR_SET (cspset_elem_t, bb_place_to_el_varr, place, el + 1);
-        cspset_insert (&bb->avail_gen, el);
+        el = get_place_ndef (insn, place, j) + 1;
+        VARR_SET (size_t, bb_place_to_el_varr, place, el);
+        if (el != 0) bitmap_set_bit_p (bb->avail_gen, el) + 1;
       }
       if (insn == bb->tail) break;
     }
   }
-  VARR_DESTROY (cspset_elem_t, bb_place_to_el_varr);
+  VARR_DESTROY (size_t, bb_place_to_el_varr);
 }
 
 static void avail_confl0 (node_t n) {
   cfg_bb_t bb = n;
 
-  cspset_clear (&bb->avail_in);
+  bitmap_clear (bb->avail_in);
 }
 
 static int avail_confl (edge_t pe) {
   cfg_edge_t e = pe;
   cfg_bb_t dest = e->dest;
-  cspset_iterator_t si;
-  cspset_elem_t el;
+  size_t el;
   int place;
   int fblock_p = BC_IS_OF_TYPE (dest->head->bc, BC_NM_fblock);
   int change_p = FALSE;
 
-  EXECUTE_FOR_EACH_CSPSET_ELEM (&e->src->avail_out, el, si) {
+  collect_bits (e->src->avail_out);
+  for (size_t n = 0; n < VARR_LENGTH (size_t, collected_bits); n++) {
+    el = VARR_GET (size_t, collected_bits, n);
     place = get_def_place (el);
     /* Remove non-global definitions for fblock BB.  */
     if (fblock_p && place >= BC_vars_num (tl_block->bc_block)) continue;
-    if (cspset_insert (&dest->avail_in, el)) change_p = TRUE;
+    if (bitmap_set_bit_p (dest->avail_in, el)) change_p = TRUE;
   }
   return change_p;
 }
 
 static int avail_transf (node_t n) {
   cfg_bb_t bb = n;
-  cspset_iterator_t si;
-  cspset_elem_t el;
+  size_t el;
   df_insn_t insn;
   int insn_def;
   int place;
   int change_p = FALSE;
   int fbend_p = BC_IS_OF_TYPE (bb->tail->bc, BC_NM_fbend);
 
-  EXECUTE_FOR_EACH_CSPSET_ELEM (&bb->avail_in, el, si) {
+  collect_bits (bb->avail_in);
+  for (size_t n = 0; n < VARR_LENGTH (size_t, collected_bits); n++) {
+    el = VARR_GET (size_t, collected_bits, n);
     place = get_def_place (el);
     /* Remove non-global definitions for fbend BB.  */
     if (fbend_p && place >= BC_vars_num (tl_block->bc_block)) continue;
-    if (!cspset_in_p (&bb->res_places, place) && cspset_insert (&bb->avail_out, el))
+    if (!bitmap_bit_p (bb->res_places, place) && bitmap_set_bit_p (bb->avail_out, el))
       change_p = TRUE;
   }
-  change_p = cspset_unity (&bb->avail_out, &bb->avail_gen) || change_p;
+  change_p = bitmap_ior (bb->avail_out, bb->avail_out, bb->avail_gen) || change_p;
   return change_p;
 }
 
@@ -1506,11 +1518,11 @@ static void build_ret_def_use (df_insn_t insn) {
 
 /* Connect arguments using AVAIL to the function block of CALL
    INSN.  */
-static void build_call_def_use (df_insn_t insn, cspset_t *avail) {
-  int start, nargs, var_num, place, p, el, def_num;
+static void build_call_def_use (df_insn_t insn, bitmap_t avail) {
+  int start, nargs, var_num, place, p, def_num;
+  size_t el;
   df_insn_t fblock_insn, def_insn;
   BC_node_t fblock, bc_decl;
-  cspset_iterator_t si;
   BC_node_t bc = insn->bc;
 
   if (!BC_IS_OF_TYPE (bc, BC_NM_imcall)) return;
@@ -1528,7 +1540,9 @@ static void build_call_def_use (df_insn_t insn, cspset_t *avail) {
     if (!BC_IS_OF_TYPE (bc_decl, BC_NM_vdecl)) continue;
     var_num = BC_var_num (bc_decl);
     if (var_num >= nargs) continue;
-    EXECUTE_FOR_EACH_CSPSET_ELEM (avail, el, si) {
+    collect_bits (avail);
+    for (size_t n = 0; n < VARR_LENGTH (size_t, collected_bits); n++) {
+      el = VARR_GET (size_t, collected_bits, n);
       get_def_insn_ndef (el, &def_insn, &def_num);
       place = get_insn_op_place (def_insn, def_num, TRUE);
       if (place != start + var_num + get_block_place_start (insn->block)) continue;
@@ -1540,16 +1554,17 @@ static void build_call_def_use (df_insn_t insn, cspset_t *avail) {
 
 /* Build def-use chains using calculated availability info.  */
 static void build_def_use_chains (void) {
-  int i, j, place, def_num, el;
+  int i, j, place, def_num;
+  long n;
+  size_t el;
   df_insn_t insn, def_insn;
   cfg_bb_t bb;
-  cspset_t avail;
-  cspset_iterator_t si;
+  bitmap_t avail;
 
-  cspset_init (&avail, 0);
+  avail = bitmap_create ();
   for (i = 0; i < bbs_num; i++) {
     bb = bbs[i];
-    cspset_copy (&avail, &bb->avail_in);
+    bitmap_copy (avail, bb->avail_in);
     for (insn = bb->head; insn != NULL; insn = get_dest (insn, 0)) {
       if (BC_IS_OF_TYPE (insn->bc, BC_NM_fbend)) {
         /* This insn is included in def-use web by processing
@@ -1563,27 +1578,33 @@ static void build_def_use_chains (void) {
         place = get_insn_op_place (insn, j, FALSE);
         if (place == NO_MORE_OPERAND || place == NO_MORE_REAL_OPERAND) break;
         assert (j < get_insn_uses_num (insn));
-        EXECUTE_FOR_EACH_CSPSET_ELEM (&avail, el, si)
-        if (place == get_def_place (el)) {
-          get_def_insn_ndef (el, &def_insn, &def_num);
-          create_def_use (def_insn, def_num, insn, j);
+        collect_bits (avail);
+        for (size_t n = 0; n < VARR_LENGTH (size_t, collected_bits); n++) {
+          el = VARR_GET (size_t, collected_bits, n);
+          if (place == get_def_place (el)) {
+            get_def_insn_ndef (el, &def_insn, &def_num);
+            create_def_use (def_insn, def_num, insn, j);
+          }
         }
       }
-      build_call_def_use (insn, &avail);
+      build_call_def_use (insn, avail);
       build_ret_def_use (insn);
       /* Update availability:  */
       for (j = 0;; j++) {
         place = get_insn_op_place (insn, j, TRUE);
         if (place == NO_MORE_OPERAND || place == NO_MORE_REAL_OPERAND) break;
         assert (j < get_insn_defs_num (insn));
-        EXECUTE_FOR_EACH_CSPSET_ELEM (&avail, el, si)
-        if (place == get_def_place (el)) cspset_remove (&avail, el);
-        cspset_insert (&avail, get_place_ndef (insn, place, j));
+        collect_bits (avail);
+        for (size_t n = 0; n < VARR_LENGTH (size_t, collected_bits); n++) {
+          el = VARR_GET (size_t, collected_bits, n);
+          if (place == get_def_place (el)) bitmap_clear_bit_p (avail, el);
+        }
+        if ((n = get_place_ndef (insn, place, j)) >= 0) bitmap_set_bit_p (avail, n);
       }
       if (insn == bb->tail) break;
     }
   }
-  cspset_finish (&avail);
+  bitmap_destroy (avail);
 }
 
 static int type_confl (edge_t te) {
@@ -2317,13 +2338,15 @@ static void print_op (df_insn_t insn, int num) {
   printf ("%dr%d", BC_idn (BC_info (bc)), num);
 }
 
-static void print_bb_set (const char *name, cspset_t *set, int indent, int ndef_p) {
-  int el, n = 0;
+static void print_bb_set (const char *name, bitmap_t set, int indent, int ndef_p) {
+  size_t el;
+  int n = 0;
   int def_num;
   df_insn_t def_insn;
-  cspset_iterator_t si;
 
-  EXECUTE_FOR_EACH_CSPSET_ELEM (set, el, si) {
+  collect_bits (set);
+  for (size_t nel = 0; nel < VARR_LENGTH (size_t, collected_bits); nel++) {
+    el = VARR_GET (size_t, collected_bits, nel);
     if (n % 16 == 0) {
       if (n == 0) {
         print_indent (indent);
@@ -2452,7 +2475,7 @@ int print_inference_info_before_insn (BC_node_t info, int indent) {
       }
       if (n != 0) printf ("\n");
     }
-    print_bb_set ("avail_in", &bb->avail_in, indent, TRUE);
+    print_bb_set ("avail_in", bb->avail_in, indent, TRUE);
     res = TRUE;
   }
   res = print_defs_uses (insn, indent) || res;
@@ -2474,15 +2497,16 @@ int print_inference_info_after_insn (BC_node_t info, int indent) {
     if (e->next_dest != NULL) printf (",");
   }
   printf ("\n");
-  print_bb_set ("res_places", &bb->res_places, indent, FALSE);
-  print_bb_set ("avail_gen", &bb->avail_gen, indent, TRUE);
-  print_bb_set ("avail_out", &bb->avail_out, indent, TRUE);
+  print_bb_set ("res_places", bb->res_places, indent, FALSE);
+  print_bb_set ("avail_gen", bb->avail_gen, indent, TRUE);
+  print_bb_set ("avail_out", bb->avail_out, indent, TRUE);
   return TRUE;
 }
 
 void initiate_inference_pass (void) {
   int i;
 
+  VARR_CREATE (size_t, collected_bits, 0);
   for (i = 0; i < BC_NM__error; i++) insn_defs_num_cache[i] = insn_uses_num_cache[i] = -1;
   pass_alloc_init ();
   VARR_CREATE (df_insn_t, insns_varr, 0);
@@ -2514,4 +2538,5 @@ void finish_inference_pass (void) {
   VARR_DESTROY (df_insn_t, def_insns_varr);
   VARR_DESTROY (df_insn_t, insns_varr);
   pass_alloc_finish ();
+  VARR_DESTROY (size_t, collected_bits);
 }
