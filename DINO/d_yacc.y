@@ -2770,7 +2770,7 @@ static struct str_code kw_tab_els[] = {
   {"wait", WAIT},
 };
 
-static HTAB (str_code_t) * kw_tab;
+static hash_table_t kw_tab;
 
 /* The following function recognizes next source symbol from the input
    file, returns its code, modifies var current_position so that its

@@ -6,8 +6,7 @@ SUBDIRS = . MODULES
 lib_LTLIBRARIES = libdino.la
 libdino_la_SOURCES = d_dino.h d_errors.h d_common.h d_built.h d_yacc.h d_runtab.h d_bcio.h\
 		     d_types.h d_context.h d_inference.h d_conv.h d_udb.h d_func.h d_eval.h\
-		     d_dlist.h d_varr.h d_hash.h d_htab.h d_strtab.h\
-		     d_errors.c d_heap.c d_runtab.c\
+		     mum.h d_strtab.h d_errors.c d_heap.c d_runtab.c\
    		     d_context.c d_inference.c d_bcio.c d_conv.c d_udb.c d_func.c\
 		     d_eval.c d_dino.c
 nodist_libdino_la_SOURCES = d_yacc.c d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_extern.h
@@ -79,7 +78,7 @@ d_gen.i : dino$(EXEEXT) d_genheader.i $(srcdir)/d_minimize.d
 
 d_genheader.i: $(srcdir)/d_gen.c $(srcdir)/d_common.h $(srcdir)/d_types.h $(srcdir)/d_conv.h\
 	       $(srcdir)/d_runtab.h $(srcdir)/d_func.h $(srcdir)/d_eval.h $(srcdir)/d_errors.h\
-               $(srcdir)/d_dino.h d_config.h d_run.h d_bc.h\
+               $(srcdir)/mum.h $(srcdir)/d_dino.h d_config.h d_run.h d_bc.h\
                $(srcdir)/../AMMUNITION/allocate.h $(srcdir)/../AMMUNITION/vlobject.h \
 	       $(srcdir)/../AMMUNITION/position.h $(srcdir)/../AMMUNITION/hashtab.h \
 	       $(srcdir)/../AMMUNITION/ticker.h $(srcdir)/../AMMUNITION/bits.h \

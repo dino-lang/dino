@@ -106,10 +106,7 @@ int dlclose (void *handle);
 #include "bits.h"
 #include "d_errors.h"
 #include "d_types.h"
-#include "d_dlist.h"
-#include "d_varr.h"
-#include "d_hash.h"
-#include "d_htab.h"
+#include "mum.h"
 
 #define FALSE 0
 #define TRUE 1

@@ -606,7 +606,7 @@ static struct str_code enc_tab_els[] = {
   {"ISO-10646/UTF-8", UTF8_ENC},
 };
 
-static HTAB (str_code_t) * enc_tab;
+static hash_table_t enc_tab;
 
 encoding_type_t get_encoding_type (const char *str) {
 #define MAX_ENC_NAME_LEN 30

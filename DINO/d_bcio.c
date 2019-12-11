@@ -1200,7 +1200,7 @@ static struct str_code bcf_tab_els[] = {BCF_LIST (BCF_EL)};
 
 static struct str_code bcn_tab_els[] = {BCN_LIST (BCN_EL)};
 
-static HTAB (str_code_t) * bcf_tab, *bcn_tab;
+static hash_table_t bcf_tab, bcn_tab;
 
 /* Read byte code from file INPF with name FILE_NAME according to the following syntax:
 
