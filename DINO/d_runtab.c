@@ -27,46 +27,51 @@
 #include "d_runtab.h"
 
 /* Table of all blocks.  */
-VARR (BC_node_t) * block_tab;
+vlo_t block_tab;
 
-typedef VARR (BC_node_t) * block_tab_t;
-DEF_VARR (block_tab_t);
-
-struct block_decl_tables {
-  /* The following VARR contains VARR's in which the pointers to block
+struct block_decl_tables
+{
+  /* The following VLO contains VLO'es in which the pointers to block
      decls stored by unique ident numbers. */
-  VARR (block_tab_t) * block_ident_decls;
+  vlo_t block_ident_decls;
 };
 
 static struct block_decl_tables block_decl_tables;
 
 /* The macro call value is number of blocks in block_decl_tables. */
-#define BLOCKS_NUMBER() (VARR_LENGTH (block_tab_t, block_decl_tables.block_ident_decls))
+#define BLOCKS_NUMBER()\
+  (VLO_LENGTH (block_decl_tables.block_ident_decls) / sizeof (vlo_t))
 
 /* The macro call value is block decls idents table (represented
-   by VARR) for the block with number BLOCK_NUMBER.  The macro call value is
+   by VLO) for the block with number BLOCK_NUMBER.  The macro call value is
    l-value. */
-#define LV_BLOCK_IDENT_DECLS_TABLE(block_number) \
-  (VARR_ADDR (block_tab_t, block_decl_tables.block_ident_decls)[block_number])
+#define LV_BLOCK_IDENT_DECLS_TABLE(block_number)\
+  (((vlo_t *) VLO_BEGIN (block_decl_tables.block_ident_decls)) [block_number])
 
 /* This func is to be called only once before any work with this
    abstract data. */
-void initiate_run_tables (void) {
-  VARR_CREATE (block_tab_t, block_decl_tables.block_ident_decls, 2000);
-  VARR_CREATE (BC_node_t, block_tab, 800);
+void
+initiate_run_tables (void)
+{
+  VLO_CREATE (block_decl_tables.block_ident_decls, 2000);
+  VLO_CREATE (block_tab, 800);
 }
 
 /* The func creates new block decls idents table in this abstract data. */
-void set_block_number (BC_node_t block) {
+void
+set_block_number (BC_node_t block)
+{
   int new_block_number;
-  block_tab_t block_decls;
-
+  vlo_t block_decls;
+  
   new_block_number = BLOCKS_NUMBER ();
-  VARR_CREATE (BC_node_t, block_decls, 0);
-  VARR_PUSH (block_tab_t, block_decl_tables.block_ident_decls, block_decls);
+  VLO_CREATE (block_decls, 0);
+  VLO_ADD_MEMORY (block_decl_tables.block_ident_decls,
+		  (char *) &block_decls, sizeof (vlo_t));
   BC_set_block_number (block, new_block_number);
-  assert (new_block_number == VARR_LENGTH (BC_node_t, block_tab));
-  VARR_PUSH (BC_node_t, block_tab, block);
+  assert (new_block_number * sizeof (BC_node_t)
+	  == VLO_LENGTH (block_tab));
+  VLO_ADD_MEMORY (block_tab, &block, sizeof (BC_node_t));
 }
 
 /* The func sets up elements values of block decls idents tables for
@@ -77,30 +82,41 @@ void set_block_number (BC_node_t block) {
        set_block_number
        define_block_decl*
       )* */
-void define_block_decl (BC_node_t decl, BC_node_t block) {
+void
+define_block_decl (BC_node_t decl, BC_node_t block)
+{
   BC_node_t null = NULL;
-  block_tab_t table;
+  vlo_t *table_ref;
   int block_number, fldid_num, i;
 
   block_number = BC_block_number (block);
   fldid_num = BC_fldid_num (decl);
-  if (fldid_num < 0) /* There is no access to identifier. */
+  if (fldid_num < 0)
+    /* There is no access to identifier. */
     return;
-  table = LV_BLOCK_IDENT_DECLS_TABLE (block_number);
-  if (VARR_LENGTH (BC_node_t, table) <= fldid_num) {
-    for (i = VARR_LENGTH (BC_node_t, table); i <= fldid_num; i++)
-      VARR_PUSH (BC_node_t, table, null);
-    BC_set_fld_table (block, (void *) VARR_ADDR (BC_node_t, table));
-    BC_set_fld_table_len (block, fldid_num + 1);
-  }
-  VARR_ADDR (BC_node_t, table)[fldid_num] = decl;
+  table_ref = (&LV_BLOCK_IDENT_DECLS_TABLE (block_number));
+  if (VLO_LENGTH (*table_ref) <= fldid_num * sizeof (BC_node_t))
+    {
+      for (i = VLO_LENGTH (*table_ref) / sizeof (BC_node_t);
+	   i <= fldid_num;
+	   i++)
+	VLO_ADD_MEMORY (*table_ref, (char *)&null, sizeof (BC_node_t));
+      BC_set_fld_table (block, (void *) VLO_BEGIN (*table_ref));
+      BC_set_fld_table_len (block, fldid_num + 1);
+    }
+  ((BC_node_t *) VLO_BEGIN (*table_ref)) [fldid_num] = decl;
 }
 
-void finish_run_tables (void) {
-  VARR_DESTROY (BC_node_t, block_tab);
-  for (size_t i = 0; i < VARR_LENGTH (block_tab_t, block_decl_tables.block_ident_decls); i++) {
-    block_tab_t tab = VARR_GET (block_tab_t, block_decl_tables.block_ident_decls, i);
-    VARR_DESTROY (BC_node_t, tab);
-  }
-  VARR_DESTROY (block_tab_t, block_decl_tables.block_ident_decls);
+void
+finish_run_tables (void)
+{
+  vlo_t *vlo_ref;
+
+  VLO_DELETE (block_tab);
+  for (vlo_ref = VLO_BEGIN (block_decl_tables.block_ident_decls);
+       (char *) vlo_ref
+	 <= (char *) VLO_END (block_decl_tables.block_ident_decls);
+       vlo_ref++)
+    VLO_DELETE (*vlo_ref);
+  VLO_DELETE (block_decl_tables.block_ident_decls);
 }

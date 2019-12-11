@@ -23,7 +23,8 @@
 */
 
 #include <setjmp.h>
-#include "d_commln.h"
+#include "commline.h"
+#include "d_common.h"
 #include "d_ir.h"
 #include "d_run.h"
 #include "d_yacc.h"
@@ -85,35 +86,47 @@ static void set_big_endian_flag (void) {
 }
 
 /* Func for evaluation of hash value of STR. */
-htab_hash_t str_hash_func (char_ptr_t str) { return dino_hash (str, strlen (str), 3); }
+unsigned str_hash_func (hash_table_entry_t str) {
+  const char *s = str;
+  unsigned int i, hash_value;
+
+  for (hash_value = i = 0; *s != 0; i++, s++) hash_value += (*s) << (i & 0xf);
+  return hash_value;
+}
 
 /* Func used for comparison of strings represented by STR1 and STR2.
    Return TRUE if the elements represent equal string. */
-int str_compare_func (char_ptr_t str1, char_ptr_t str2) { return strcmp (str1, str2) == 0; }
-
-/* Container where the unique strings are stored. */
-static mp_t unique_strings;
-static HTAB (char_ptr_t) * unique_string_hash_table;
-
-static void initiate_unique_strings (void) {
-  unique_strings = mp_create (2048);
-  HTAB_CREATE (char_ptr_t, unique_string_hash_table, 1000, str_hash_func, str_compare_func);
+int str_compare_func (hash_table_entry_t str1, hash_table_entry_t str2) {
+  return strcmp (str1, str2) == 0;
 }
 
-char_ptr_t get_unique_string (char_ptr_t str) {
-  char *s;
-  char_ptr_t tab_str;
+/* Container where the unique strings are stored. */
+static os_t unique_strings;
+static hash_table_t unique_string_hash_table;
 
-  if (HTAB_DO (char_ptr_t, unique_string_hash_table, str, HTAB_FIND, tab_str)) return tab_str;
-  tab_str = s = mp_malloc (unique_strings, strlen (str) + 1);
-  strcpy (s, str);
-  HTAB_DO (char_ptr_t, unique_string_hash_table, tab_str, HTAB_INSERT, tab_str);
-  return tab_str;
+static void initiate_unique_strings (void) {
+  OS_CREATE (unique_strings, 0);
+  unique_string_hash_table = create_hash_table (1000, str_hash_func, str_compare_func);
+}
+
+const char *get_unique_string (const char *str) {
+  const char **table_entry_pointer;
+  char *string_in_table;
+
+  table_entry_pointer = (const char **) find_hash_table_entry (unique_string_hash_table,
+                                                               (hash_table_entry_t) str, TRUE);
+  if (*table_entry_pointer != NULL) return *table_entry_pointer;
+  OS_TOP_EXPAND (unique_strings, strlen (str) + 1);
+  string_in_table = OS_TOP_BEGIN (unique_strings);
+  OS_TOP_FINISH (unique_strings);
+  strcpy (string_in_table, str);
+  *table_entry_pointer = string_in_table;
+  return string_in_table;
 }
 
 static void finish_unique_strings (void) {
-  mp_destroy (unique_strings);
-  HTAB_DESTROY (char_ptr_t, unique_string_hash_table);
+  OS_DELETE (unique_strings);
+  delete_hash_table (unique_string_hash_table);
 }
 
 /* This page contains functions for transformation to/from string. */
@@ -184,7 +197,7 @@ const char *f2a (rfloat_t number) {
   return result;
 }
 
-static VARR (char) * repr_varr;
+static vlo_t repr_vlobj;
 
 /* Convert mpz NUMBER into string of BASE using upper cases if
    UPPER_CASE_P and return it.  */
@@ -192,12 +205,12 @@ const char *mpz2a (mpz_t number, int base, int upper_case_p) {
   int n = mpz_sizeinbase (number, base) + 2;
   char *str;
 
-  VARR_TRUNC (char, repr_varr, 0);
-  VARR_GROW (char, repr_varr, n);
-  mpz_get_str (VARR_ADDR (char, repr_varr), base, number);
+  VLO_NULLIFY (repr_vlobj);
+  VLO_EXPAND (repr_vlobj, n);
+  mpz_get_str (VLO_BEGIN (repr_vlobj), base, number);
   if (upper_case_p)
-    for (str = VARR_ADDR (char, repr_varr); *str != 0; str++) *str = toupper (*str);
-  return VARR_ADDR (char, repr_varr);
+    for (str = VLO_BEGIN (repr_vlobj); *str != 0; str++) *str = toupper (*str);
+  return VLO_BEGIN (repr_vlobj);
 }
 
 static mpz_t min_rint_mpz;
@@ -260,14 +273,14 @@ static void mpz_finish (void) {
 const char **include_path_directories;
 
 /* Place for storing the vector mentioned above. */
-static VARR (char_ptr_t) * include_path_directories_vector;
+static vlo_t include_path_directories_vector;
 
 /* The following value is libraries which we search for DINO extern
    functions. */
 const char **libraries;
 
 /* Place for storing the vector mentioned above. */
-static VARR (char_ptr_t) * libraries_vector;
+static vlo_t libraries_vector;
 
 /* The value of the following var is not NULL when the program is
    given on the command line.  In this case its value is the
@@ -427,7 +440,7 @@ int read_dino_string_code (int input_char, int *correct_newln, int *wrong_escape
   return input_char;
 }
 
-static VARR (char) * number_text;
+static vlo_t number_text;
 
 /* Read number using GET_CH and UNGET_CH and already read character C.
    It should be guaranted that the input has a righ prefix
@@ -441,12 +454,12 @@ enum read_number_code read_dino_number (int c, int get_ch (void), void unget_ch 
   enum read_number_code err_code = NUMBER_OK;
   int dec_p, hex_p, hex_char_p;
 
-  VARR_TRUNC (char, number_text, 0);
+  VLO_NULLIFY (number_text);
   *read_ch_num = 0;
   *base = 10;
   *float_p = *long_p = FALSE;
   if (c == '+' || c == '-') {
-    VARR_PUSH (char, number_text, c);
+    VLO_ADD_BYTE (number_text, c);
     c = get_ch ();
     (*read_ch_num)++;
   }
@@ -467,7 +480,7 @@ enum read_number_code read_dino_number (int c, int get_ch (void), void unget_ch 
   }
   dec_p = hex_p = FALSE;
   for (;;) {
-    if (c != '_') VARR_PUSH (char, number_text, c);
+    if (c != '_') VLO_ADD_BYTE (number_text, c);
     c = get_ch ();
     (*read_ch_num)++;
     if (c == '8' || c == '9') dec_p = TRUE;
@@ -479,7 +492,7 @@ enum read_number_code read_dino_number (int c, int get_ch (void), void unget_ch 
   if (c == '.') {
     *float_p = TRUE;
     do {
-      if (c != '_') VARR_PUSH (char, number_text, c);
+      if (c != '_') VLO_ADD_BYTE (number_text, c);
       c = get_ch ();
       (*read_ch_num)++;
     } while (isdigit_ascii (c) || c == '_');
@@ -491,15 +504,15 @@ enum read_number_code read_dino_number (int c, int get_ch (void), void unget_ch 
     if (c != '+' && c != '-' && !isdigit_ascii (c))
       err_code = ABSENT_EXPONENT;
     else {
-      VARR_PUSH (char, number_text, 'e');
+      VLO_ADD_BYTE (number_text, 'e');
       if (c == '+' || c == '-') {
-        if (c == '-') VARR_PUSH (char, number_text, '-');
+        if (c == '-') VLO_ADD_BYTE (number_text, '-');
         c = get_ch ();
         (*read_ch_num)++;
         if (!isdigit_ascii (c)) err_code = ABSENT_EXPONENT;
       }
       if (err_code == NUMBER_OK) do {
-          if (c != '_') VARR_PUSH (char, number_text, c);
+          if (c != '_') VLO_ADD_BYTE (number_text, c);
           c = get_ch ();
           (*read_ch_num)++;
         } while (isdigit_ascii (c) || c == '_');
@@ -509,14 +522,14 @@ enum read_number_code read_dino_number (int c, int get_ch (void), void unget_ch 
     c = get_ch ();
     (*read_ch_num)++;
   }
-  VARR_PUSH (char, number_text, '\0');
+  VLO_ADD_BYTE (number_text, '\0');
   unget_ch (c);
   (*read_ch_num)--;
   if (*float_p) {
     if (*base == 16) err_code = NON_DECIMAL_FLOAT;
   } else if (*base == 8 && dec_p)
     err_code = WRONG_OCTAL_INT;
-  *result = VARR_ADDR (char, number_text);
+  *result = VLO_BEGIN (number_text);
   return err_code;
 }
 
@@ -709,7 +722,7 @@ static void finish_cds (void) {
 }
 
 /* Container for ucode of command line.  */
-static VARR (char) * command_line_varr;
+static vlo_t command_line_vlo;
 
 static int evaluated_p;
 
@@ -761,11 +774,11 @@ void dino_finish (int code) {
   }
   finish_cds ();
   mpz_finish ();
-  VARR_DESTROY (char, number_text);
-  VARR_DESTROY (char, repr_varr);
-  VARR_DESTROY (char_ptr_t, include_path_directories_vector);
-  VARR_DESTROY (char_ptr_t, libraries_vector);
-  VARR_DESTROY (char, command_line_varr);
+  VLO_DELETE (number_text);
+  VLO_DELETE (repr_vlobj);
+  VLO_DELETE (include_path_directories_vector);
+  VLO_DELETE (libraries_vector);
+  VLO_DELETE (command_line_vlo);
   longjmp (exit_longjump_buff, (code == 0 ? -1 : code < 0 ? 1 : code));
 }
 
@@ -778,11 +791,11 @@ static void error_func_for_allocate (void) {
 
 static void dino_start (void) {
   change_allocation_error_function (error_func_for_allocate);
-  VARR_CREATE (char, command_line_varr, 0);
-  VARR_CREATE (char_ptr_t, include_path_directories_vector, 0);
-  VARR_CREATE (char_ptr_t, libraries_vector, 0);
-  VARR_CREATE (char, repr_varr, 0);
-  VARR_CREATE (char, number_text, 0);
+  VLO_CREATE (command_line_vlo, 0);
+  VLO_CREATE (include_path_directories_vector, 0);
+  VLO_CREATE (libraries_vector, 0);
+  VLO_CREATE (repr_vlobj, 0);
+  VLO_CREATE (number_text, 0);
   generated_c_functions_num = generated_c_function_calls_num = 0;
   c_compilations_num = inlined_calls_num = 0;
   max_gmp_memory_size = gmp_memory_size = 0;
@@ -874,9 +887,8 @@ static void set_exception_action (int signal_number) {
 /* Add directories from environment variable DINO_INCLUDE_PATH_NAME_VARIABLE
    (if any). */
 static void add_dino_path (const char *prefix, const char *subdir, const char *string,
-                           VARR (char_ptr_t) * vector_ptr) {
+                           vlo_t *vector_ptr) {
   const char *s;
-  char *str;
   char bound;
   int len;
 
@@ -884,13 +896,14 @@ static void add_dino_path (const char *prefix, const char *subdir, const char *s
   if (prefix != NULL) {
     len = strlen (prefix);
     if (len != 0 && prefix[len - 1] == '/') len--;
-    IR_ALLOC (str, len + 1 /* '/' */ + 1 /* '\0' */ + (subdir == NULL ? 0 : strlen (subdir)),
-              char *);
-    memcpy (str, prefix, len);
-    str[len] = '/';
-    str[len + 1] = '\0';
-    if (subdir != NULL) strcat (str, subdir);
-    prefix = str;
+    IR_TOP_EXPAND (len + 1 /* '/' */ + 1 /* '\0' */
+                   + (subdir == NULL ? 0 : strlen (subdir)));
+    memcpy ((char *) IR_TOP_BEGIN (), prefix, len);
+    ((char *) IR_TOP_BEGIN ())[len] = '/';
+    ((char *) IR_TOP_BEGIN ())[len + 1] = '\0';
+    if (subdir != NULL) strcat ((char *) IR_TOP_BEGIN (), subdir);
+    prefix = IR_TOP_BEGIN ();
+    IR_TOP_FINISH ();
   }
 
   bound = ':';
@@ -905,18 +918,19 @@ static void add_dino_path (const char *prefix, const char *subdir, const char *s
           len = strlen (prefix);
           if (len != 0 && prefix[len - 1] == '/') len--;
         }
-        IR_ALLOC (str, len + 1 + (s - string) + 1, char *);
+        IR_TOP_EXPAND (len + 1 + (s - string) + 1);
         if (len == -1)
           len = 0;
         else {
-          memcpy (str, prefix, len);
-          str[len] = '/';
+          memcpy ((char *) IR_TOP_BEGIN (), prefix, len);
+          ((char *) IR_TOP_BEGIN ())[len] = '/';
           len++;
         }
-        memcpy (str + len, string, s - string);
-        str[len + (s - string)] = '\0';
-        string = str;
-        VARR_PUSH (char_ptr_t, vector_ptr, string);
+        memcpy ((char *) IR_TOP_BEGIN () + len, string, s - string);
+        ((char *) IR_TOP_BEGIN ())[len + (s - string)] = '\0';
+        string = IR_TOP_BEGIN ();
+        VLO_ADD_MEMORY (*vector_ptr, &string, sizeof (char *));
+        IR_TOP_FINISH ();
       }
       if (*s == '\0') break;
       string = s + 1;
@@ -1034,28 +1048,30 @@ void d_error (int fatal_error_flag, position_t position, const char *format, ...
   va_end (arguments);
 }
 
-/* Copy containing value of VARR *FROM to varr *TO.  */
-void copy_varr (VARR (char) * to, VARR (char) * from) {
-  VARR_TRUNC (char, to, 0);
-  VARR_PUSH_ARR (char, to, VARR_ADDR (char, from), VARR_LENGTH (char, from));
+/* Copy containing value of vlo *FROM to vlo *TO.  */
+void copy_vlo (vlo_t *to, vlo_t *from) {
+  VLO_NULLIFY (*to);
+  VLO_EXPAND (*to, VLO_LENGTH (*from));
+  memcpy (VLO_BEGIN (*to), VLO_BEGIN (*from), VLO_LENGTH (*from));
 }
 
-/* Put LEN chars of string STR as unicodes into varr *TO.  */
-void str_to_ucode_varr (VARR (char) * to, const char *from, size_t len) {
+/* Put LEN chars of string STR as unicodes into vlo *TO.  */
+void str_to_ucode_vlo (vlo_t *to, const char *from, size_t len) {
   ucode_t uc;
+  size_t i;
 
-  VARR_TRUNC (char, to, 0);
-  for (size_t i = 0; i < len; i++) {
+  VLO_NULLIFY (*to);
+  for (i = 0; i < len; i++) {
     uc = ((const unsigned char *) from)[i];
-    VARR_PUSH_ARR (char, to, (char *) &uc, sizeof (ucode_t));
+    VLO_ADD_MEMORY (*to, &uc, sizeof (ucode_t));
   }
 }
 
-/* Put byte string STR into varr *VARR encoded by CD with type TP.
+/* Put byte string STR into vlo *VLO encoded by CD with type TP.
    Return start of the encoded string start and its length in LEN
    (without encoded null char).  Return NULL in case of any error.  */
-char *encode_byte_str_varr (byte_t *str, conv_desc_t cd, encoding_type_t tp, VARR (char) * varr,
-                            size_t *len) {
+char *encode_byte_str_vlo (byte_t *str, conv_desc_t cd, encoding_type_t tp, vlo_t *vlo,
+                           size_t *len) {
   size_t i, out, r;
   char *is, *os;
   int ascii_p;
@@ -1070,21 +1086,21 @@ char *encode_byte_str_varr (byte_t *str, conv_desc_t cd, encoding_type_t tp, VAR
   ascii_p = TRUE;
   for (i = 0; str[i]; i++)
     if (str[i] >= 128) ascii_p = FALSE;
-  VARR_TRUNC (char, varr, 0);
+  VLO_NULLIFY (*vlo);
   if (ascii_p && (tp == UTF8_ENC || tp == LATIN1_ENC)) {
     /* Fast track for slow iconv path */
-    VARR_PUSH_ARR (char, varr, str, i + 1);
+    VLO_ADD_MEMORY (*vlo, str, i + 1);
     *len = i;
-    return VARR_ADDR (char, varr);
+    return VLO_BEGIN (*vlo);
   }
   is = (char *) str;
   out = (i + 1) * 4; /* longest utf8 is 4 bytes.  */
-  VARR_GROW (char, varr, out);
-  os = VARR_ADDR (char, varr);
+  VLO_EXPAND (*vlo, out);
+  os = VLO_BEGIN (*vlo);
   errno = 0;
   r = iconv (cd, &is, &i, &os, &out);
   if (r != (size_t) -1) {
-    *len = os - VARR_ADDR (char, varr);
+    *len = os - (char *) VLO_BEGIN (*vlo);
     /* Add null char */
     i = sizeof (byte_t);
     r = iconv (cd, &is, &i, &os, &out);
@@ -1099,16 +1115,16 @@ char *encode_byte_str_varr (byte_t *str, conv_desc_t cd, encoding_type_t tp, VAR
       ; /* Incomplete multi-byte sequence.  */
     return NULL;
   }
-  VARR_TRUNC (char, varr, VARR_LENGTH (char, varr) - out);
-  return VARR_ADDR (char, varr);
+  VLO_SHORTEN (*vlo, out);
+  return VLO_BEGIN (*vlo);
 #endif
 }
 
-/* Put ucode string STR into varr *VARR encoded by CD with type TP.
-   Return the string start in the varr and its length in LEN (without
+/* Put ucode string STR into vlo *VLO encoded by CD with type TP.
+   Return the string start in the vlo and its length in LEN (without
    encoded null char).  Return NULL in case of any error.  */
-char *encode_ucode_str_varr (ucode_t *str, conv_desc_t cd, encoding_type_t tp, VARR (char) * varr,
-                             size_t *len) {
+char *encode_ucode_str_vlo (ucode_t *str, conv_desc_t cd, encoding_type_t tp, vlo_t *vlo,
+                            size_t *len) {
 #ifndef HAVE_ICONV_H
   d_assert (FALSE);
 #else
@@ -1119,22 +1135,22 @@ char *encode_ucode_str_varr (ucode_t *str, conv_desc_t cd, encoding_type_t tp, V
   ascii_p = TRUE;
   for (i = 0; str[i]; i++)
     if (str[i] >= 128) ascii_p = FALSE;
-  VARR_TRUNC (char, varr, 0);
+  VLO_NULLIFY (*vlo);
   if (ascii_p && (tp == UTF8_ENC || tp == LATIN1_ENC)) {
     /* Fast track for slow iconv path */
-    for (i = 0; str[i]; i++) VARR_PUSH (char, varr, (char) str[i]);
-    VARR_PUSH (char, varr, 0);
+    for (i = 0; str[i]; i++) VLO_ADD_BYTE (*vlo, str[i]);
+    VLO_ADD_BYTE (*vlo, 0);
     *len = i;
-    return VARR_ADDR (char, varr);
+    return VLO_BEGIN (*vlo);
   }
   is = (char *) str;
   out = (i + 1) * 4; /* longest utf8 is 4 bytes.  */
-  VARR_GROW (char, varr, out);
-  os = VARR_ADDR (char, varr);
+  VLO_EXPAND (*vlo, out);
+  os = VLO_BEGIN (*vlo);
   i *= sizeof (ucode_t);
   r = iconv (cd, &is, &i, &os, &out);
   if (r != (size_t) -1) {
-    *len = os - VARR_ADDR (char, varr);
+    *len = os - (char *) VLO_BEGIN (*vlo);
     /* Add null char  */
     i = sizeof (ucode_t);
     r = iconv (cd, &is, &i, &os, &out);
@@ -1149,22 +1165,22 @@ char *encode_ucode_str_varr (ucode_t *str, conv_desc_t cd, encoding_type_t tp, V
       ; /* Incomplete multi-byte sequence.  */
     return NULL;
   }
-  VARR_TRUNC (char, varr, VARR_LENGTH (char, varr) - out);
-  return VARR_ADDR (char, varr);
+  VLO_SHORTEN (*vlo, out);
+  return VLO_BEGIN (*vlo);
 #endif
 }
 
 /* Return raw representation of ucode string STR.  Return NULL if it
-   is impossible.  Use varr *VARR as container of the result.  */
-const char *encode_ucode_str_to_raw_varr (const ucode_t *str, VARR (char) * varr) {
+   is impossible.  Use vlo *VLO as container of the result.  */
+const char *encode_ucode_str_to_raw_vlo (const ucode_t *str, vlo_t *vlo) {
   size_t i;
 
-  VARR_TRUNC (char, varr, 0);
+  VLO_NULLIFY (*vlo);
   for (i = 0; str[i] != '\0'; i++) {
     if (!in_byte_range_p (str[i])) return NULL;
-    VARR_PUSH (char, varr, str[i]);
+    VLO_ADD_BYTE (*vlo, str[i]);
   }
-  return VARR_ADDR (char, varr);
+  return VLO_BEGIN (*vlo);
 }
 
 /* Read unicode from stream provided by function GET_BYTE with
@@ -1225,11 +1241,11 @@ static int print_ucode_string (FILE *f, ucode_t *ustr, conv_desc_t cd, encoding_
   const char *str;
 
   if (cd == NO_CONV_DESC) {
-    str = encode_ucode_str_to_raw_varr (ustr, repr_varr);
+    str = encode_ucode_str_to_raw_vlo (ustr, &repr_vlobj);
     if (str == NULL) return FALSE;
     fprintf (f, "%s", str);
   } else {
-    str = encode_ucode_str_varr (ustr, cd, tp, repr_varr, &len);
+    str = encode_ucode_str_vlo (ustr, cd, tp, &repr_vlobj, &len);
     if (str == NULL) return FALSE;
     fwrite (str, sizeof (char), len, f);
   }
@@ -1368,10 +1384,10 @@ int dino_main (int argc, char *argv[], char *envp[]) {
       if (heap_chunk_size < MINIMAL_HEAP_CHUNK_SIZE) heap_chunk_size = MINIMAL_HEAP_CHUNK_SIZE;
     } else if (strcmp (option, "-I") == 0) {
       string = argument_vector[i] + 2;
-      VARR_PUSH (char_ptr_t, include_path_directories_vector, string);
+      VLO_ADD_MEMORY (include_path_directories_vector, &string, sizeof (char *));
     } else if (strcmp (option, "-L") == 0) {
       string = argument_vector[i] + 2;
-      VARR_PUSH (char_ptr_t, libraries_vector, string);
+      VLO_ADD_MEMORY (libraries_vector, &string, sizeof (char *));
     } else
       d_unreachable ();
   }
@@ -1404,19 +1420,19 @@ int dino_main (int argc, char *argv[], char *envp[]) {
   home = getenv (DINO_HOME_NAME_VARIABLE);
   /* Include dirs: */
   add_dino_path (NULL, NULL, getenv (DINO_INCLUDE_PATH_NAME_VARIABLE),
-                 include_path_directories_vector);
+                 &include_path_directories_vector);
   add_dino_path (home, NULL, (home == NULL ? STANDARD_DINO_INCLUDE_DIRECTORY : "lib"),
-                 include_path_directories_vector);
+                 &include_path_directories_vector);
   string = NULL;
-  VARR_PUSH (char_ptr_t, include_path_directories_vector, string);
-  include_path_directories = VARR_ADDR (char_ptr_t, include_path_directories_vector);
+  VLO_ADD_MEMORY (include_path_directories_vector, &string, sizeof (char *));
+  include_path_directories = (const char **) VLO_BEGIN (include_path_directories_vector);
   /* Libraries: */
-  add_dino_path (NULL, NULL, getenv (DINO_EXTERN_LIBS_NAME_VARIABLE), libraries_vector);
+  add_dino_path (NULL, NULL, getenv (DINO_EXTERN_LIBS_NAME_VARIABLE), &libraries_vector);
   add_dino_path ((home == NULL ? STANDARD_DINO_LIB_DIRECTORY : home), (home == NULL ? NULL : "lib"),
-                 STANDARD_DINO_EXTERN_LIBS, libraries_vector);
+                 STANDARD_DINO_EXTERN_LIBS, &libraries_vector);
   string = NULL;
-  VARR_PUSH (char_ptr_t, libraries_vector, string);
-  libraries = VARR_ADDR (char_ptr_t, libraries_vector);
+  VLO_ADD_MEMORY (libraries_vector, &string, sizeof (char *));
+  libraries = (const char **) VLO_BEGIN (libraries_vector);
   initiate_cds ();
   dino_encoding = getenv (DINO_ENCODING);
   if (dino_encoding == NULL) dino_encoding = DEFAULT_DINO_ENCODING;
@@ -1429,8 +1445,8 @@ int dino_main (int argc, char *argv[], char *envp[]) {
   }
   if (command_line_program != NULL)
     command_line_program
-      = (ucode_t *) encode_byte_str_varr ((byte_t *) command_line_program, curr_reverse_ucode_cd,
-                                          OTHER_ENC, command_line_varr, &len);
+      = (ucode_t *) encode_byte_str_vlo ((byte_t *) command_line_program, curr_reverse_ucode_cd,
+                                         OTHER_ENC, &command_line_vlo, &len);
   MALLOC (program_arguments, (program_arguments_number + 1) * sizeof (char *));
   for (i = 0; i < program_arguments_number; i++) {
     program_arguments[i] = argument_vector[next_operand (flag_of_first)];

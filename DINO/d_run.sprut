@@ -96,29 +96,30 @@ call_pos (void)
 #define TOP_UP   DECR_CTOP (-1)
 #define TOP_DOWN DECR_CTOP (1)
 
-DEF_VARR (ER_node_t);
-extern VARR (ER_node_t) *heap_temp_refs;
+extern vlo_t heap_temp_refs;
 
-#define CREATE_TEMP_REF() VARR_CREATE (ER_node_t, heap_temp_refs, 256)
-#define FINISH_TEMP_REF() VARR_DESTROY (ER_node_t, heap_temp_refs)
-#define EMPTY_TEMP_REF() VARR_TRUNC (ER_node_t, heap_temp_refs, 0)
+#define CREATE_TEMP_REF() VLO_CREATE (heap_temp_refs, 256)
+#define FINISH_TEMP_REF() VLO_DELETE (heap_temp_refs)
+#define EMPTY_TEMP_REF() VLO_NULLIFY (heap_temp_refs)
 
 #define PUSH_TEMP_REF(ref)\
  do\
    {\
      ER_node_t r = ref;\
-     VARR_PUSH (ER_node_t, heap_temp_refs, r);\
+     VLO_ADD_MEMORY (heap_temp_refs, &r, sizeof (r));\
    }\
  while (0)
 
-#define POP_TEMP_REF(n) VARR_TRUNC (ER_node_t, heap_temp_refs, VARR_LENGTH (ER_node_t, heap_temp_refs) - (n))
+#define POP_TEMP_REF(n) VLO_SHORTEN (heap_temp_refs, (n) * sizeof (ER_node_t))
 
 #define GET_TEMP_REF(depth)\
-  (VARR_ADDR (ER_node_t, heap_temp_refs)[VARR_LENGTH (ER_node_t, heap_temp_refs) - (depth) - 1])
+  (((ER_node_t *) VLO_BEGIN (heap_temp_refs))\
+   [VLO_LENGTH (heap_temp_refs) / sizeof (ER_node_t) - (depth) - 1])
 
-#define TEMP_REFS_LENGTH() (VARR_LENGTH (ER_node_t, heap_temp_refs))
+#define TEMP_REFS_LENGTH() (VLO_LENGTH (heap_temp_refs) / sizeof (ER_node_t))
 
-extern VARR(char) *temp_varr, *temp_varr2;
+extern vlo_t temp_vlobj;
+extern vlo_t temp_vlobj2;
 
 /* Structure for storing info about called function/class.  */
 struct trace_stack_elem
@@ -127,10 +128,7 @@ struct trace_stack_elem
   pc_t pc; /* Pc of the call */
 };
 
-typedef struct trace_stack_elem trace_stack_elem_t;
-DEF_VARR (trace_stack_elem_t);
-
-extern VARR(trace_stack_elem_t) *trace_stack;
+extern vlo_t trace_stack;
 
 extern ER_node_t cthread;
 extern int context_number;

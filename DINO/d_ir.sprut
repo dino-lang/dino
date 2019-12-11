@@ -118,16 +118,20 @@ typedef enum hint_val hint_val_t;
 
 /* Start work with the storage manager -- see DINO documentation. */
 
-#define IR_START_ALLOC()    (irp = mp_create (0))
+#define IR_START_ALLOC()    OS_CREATE (irp, 0)
 
 /* Finish work with the storage manager -- see DINO documentation. */
 
-#define IR_STOP_ALLOC()     mp_destroy (irp)
+#define IR_STOP_ALLOC()     OS_DELETE (irp)
 
 /* Allocate storage for internal representation of given size
    -- see DINO documentation. */
 
-#define IR_ALLOC(ptr, size, ptr_type) (ptr = (ptr_type) mp_malloc (irp, size))
+#define IR_ALLOC(ptr, size, ptr_type)\
+  do {\
+    OS_TOP_EXPAND (irp, size); ptr = (ptr_type) OS_TOP_BEGIN (irp);\
+    OS_TOP_FINISH (irp);\
+  } while (0);
 
 /* Free storage of internal representation of given size -- see DINO
    documentation. */
@@ -135,12 +139,60 @@ typedef enum hint_val hint_val_t;
 #define IR_FREE(ptr, size)
 
 
-extern mp_t irp;
+/* These macros are analogous to ones of package `object-stack'
+   worked with storage of DINO internal representation: */
+
+/* Start new internal representation object -- see also package
+   `object-stack'. */
+
+#define IR_TOP_FINISH()  OS_TOP_FINISH (irp)
+
+/* Nullify current internal representation object -- see also package
+   `object-stack'. */
+
+#define IR_TOP_NULLIFY()  OS_TOP_NULLIFY (irp)
+
+/* Shorten current internal representation object on given number bytes -- see
+   also package `object-stack'. */
+
+#define IR_TOP_SHORTEN(length) OS_TOP_SHORTEN (irp, length)
+
+/* Return start address of current internal representation object -- see also
+   package `object-stack'. */
+
+#define IR_TOP_BEGIN()  OS_TOP_BEGIN (irp)
+
+/* Return length of current internal representation object in bytes -- see
+   also package `object-stack'. */
+
+#define IR_TOP_LENGTH()  OS_TOP_LENGTH (irp)
+
+/* Expand current internal representation object -- see also package
+   `object-stack'. */
+
+#define IR_TOP_EXPAND(length)  OS_TOP_EXPAND (irp, length)
+
+/* Add byte to the end of current internal representation object -- see also
+   package `object-stack'. */
+
+#define IR_TOP_ADD_BYTE(b)  OS_TOP_ADD_BYTE (irp, b)
+
+/* Add string to the end of current internal representation object -- see also
+   package `object-stack'. */
+
+#define IR_TOP_ADD_STRING(str)  OS_TOP_ADD_STRING (irp, str)
+
+/* Add memory of given length to the end of current internal representation
+   object -- see also package `object-stack'. */
+
+#define IR_TOP_ADD_MEMORY(mem, length)  OS_TOP_ADD_MEMORY (irp, mem, length)
+
+extern os_t irp;
 
 extern void initiate_table (void);
 extern void delete_table (void);
-extern IR_node_t find_node (IR_node_t ref);
-extern IR_node_t include_node (IR_node_t ref);
+extern IR_node_t *find_table_entry (IR_node_t ref, int reserve);
+extern void include_to_table (IR_node_t ref);
 extern IR_node_t find_unique_ident (char *string);
 extern IR_node_t create_node (IR_node_mode_t mode);
 extern IR_node_t create_node_with_pos (IR_node_mode_t mode, position_t pos);
@@ -437,7 +489,7 @@ extern IR_node_t destroy_unique_ident;
 /* All internal representation storage is implemented by object stack.  See
    package `object-stack'. */
 
-mp_t irp;
+os_t irp;
 
 IR_node_t temp_unique_ident;
 IR_node_t temp_unique_int;
@@ -1232,13 +1284,14 @@ block
 
 /* The node hash table. */
 
-DEF_HTAB (IR_node_t);
-static HTAB (IR_node_t) *node_hash_table;
+static hash_table_t node_hash_table;
 
-/* Func for evaluation of hash value of code node represented by NODE_REF. */
+/* Func for evaluation of hash value of code node represented by EL_PTR. */
+
 static unsigned
-hash_func (IR_node_t node_ref)
+hash_func (hash_table_entry_t el_ptr)
 {
+  IR_node_t node_ref;
   IR_node_mode_t mode;
   const char *chp;
   ucode_t ch;
@@ -1246,6 +1299,7 @@ hash_func (IR_node_t node_ref)
   rfloat_t float_number;
   size_t i, size, hash_value;
 
+  node_ref = IR_PTR (el_ptr);
   mode = IR_NODE_MODE (node_ref);
   if (mode == IR_NM_var || mode == IR_NM_external_var
       || mode == IR_NM_external_fun || mode == IR_NM_fun || mode == IR_NM_class
@@ -1298,14 +1352,18 @@ hash_func (IR_node_t node_ref)
   return hash_value;
 }
 
-/* Func used for comparison of hash table elements represented by NODE_REF1,
-   NODE_REF2.  Return TRUE if the elements represent equal nodes. */
+/* Func used for comparison of hash table elements represented by EL1_PTR,
+   EL2_PTR.  Return TRUE if the elements represent equal nodes. */
+
 static int
-compare_func (IR_node_t node_ref1, IR_node_t node_ref2)
+compare_func (hash_table_entry_t el1_ptr, hash_table_entry_t el2_ptr)
 {
+  IR_node_t node_ref1, node_ref2;
   IR_node_mode_t mode1, mode2;
   int elements_are_equal;
 
+  node_ref1 = IR_PTR (el1_ptr);
+  node_ref2 = IR_PTR (el2_ptr);
   mode1 = IR_NODE_MODE (node_ref1);
   mode2 = IR_NODE_MODE (node_ref2);
   if ((mode1 == IR_NM_var || mode1 == IR_NM_external_var
@@ -1360,7 +1418,7 @@ compare_func (IR_node_t node_ref1, IR_node_t node_ref2)
 void
 initiate_table (void)
 {
-  HTAB_CREATE (IR_node_t, node_hash_table, 1000, hash_func, compare_func);
+  node_hash_table = create_hash_table (1000, hash_func, compare_func);
 }
 
 /* Delete the code node hash table. */
@@ -1368,33 +1426,34 @@ initiate_table (void)
 void
 delete_table (void)
 {
-  HTAB_DESTROY (IR_node_t, node_hash_table);
+  delete_hash_table (node_hash_table);
 }
 
-/* Find pointer to the code node hash table entry which contains
-   pointer to node with the same keys as in node starting with REF or
-   else the empty entry (its value is NULL). */
+/* Find pointer to the code node hash table entry which contains pointer to
+   node with the same keys as in node starting with REF or else the empty entry
+   (its value is NULL).  If RESERVE is TRUE than the empty entry is reseved
+   and must be filled by node with the same keys as in node starting with
+   REF. */
 
-IR_node_t
-find_node (IR_node_t ref)
+IR_node_t *
+find_table_entry (IR_node_t ref, int reserve)
 {
-  IR_node_t tab_ref;
-
-  if (HTAB_DO (IR_node_t, node_hash_table, ref, HTAB_FIND, tab_ref)) return tab_ref;
-  return NULL;
+  return
+    (IR_node_t *) find_hash_table_entry (node_hash_table,
+					 (hash_table_entry_t) ref, reserve);
 }
 
 /* Include node starting with REF to the code node hash table.  If node with
    the same keys is already in the table than delete it and include the node
    starting with REF to the table. */
 
-IR_node_t
-include_node (IR_node_t ref)
+void
+include_to_table (IR_node_t ref)
 {
-  IR_node_t tab_ref;
+  IR_node_t *table_entry_pointer;
 
-  HTAB_DO (IR_node_t, node_hash_table, ref, HTAB_REPLACE, tab_ref);
-  return tab_ref;
+  table_entry_pointer = find_table_entry (ref, TRUE);
+  *table_entry_pointer = ref;
 }
 
 /* Return pointer to unique ident node with the hash table key STRING. */
@@ -1402,8 +1461,11 @@ include_node (IR_node_t ref)
 IR_node_t
 find_unique_ident (char *string)
 {
+  IR_node_t result;
+
   IR_set_ident_string (temp_unique_ident, string);
-  return find_node (temp_unique_ident);
+  result = (*find_table_entry (temp_unique_ident, FALSE));
+  return result;
 }
 
 /* Allocate memory for node with given mode and initiate its mode. */
@@ -1441,7 +1503,9 @@ create_unique_node_with_string (IR_node_mode_t m,
   IR_node_t ref;
 
   ref = IR_create_node (m);
-  IR_ALLOC (*string_in_pool_ptr, len, char *);
+  IR_TOP_EXPAND (len);
+  *string_in_pool_ptr = IR_TOP_BEGIN ();
+  IR_TOP_FINISH ();
   memcpy (*string_in_pool_ptr, str, len);
   return ref;
 }
@@ -1459,7 +1523,7 @@ create_unique_ident_node (const char *str)
   char *string_in_pool;
 
   IR_set_ident_string (temp_unique_ident, (char *) str);
-  ref = find_node (temp_unique_ident);
+  ref = *find_table_entry (temp_unique_ident, FALSE);
   if (ref == NULL)
     {
       ref = create_unique_node_with_string (IR_NM_unique_ident, str,
@@ -1469,7 +1533,7 @@ create_unique_ident_node (const char *str)
       /* The following means that the ident is not used for access to 
          any class decl. */
       IR_set_field_ident_number (ref, -1);
-      include_node (ref);
+      include_to_table (ref);
     }
   return ref;
 }
@@ -1562,7 +1626,7 @@ find_decl_in_given_scope (IR_node_t ident, IR_node_t scope)
 {
   IR_set_ident (temp_decl, ident);
   IR_set_scope (temp_decl, scope);
-  return find_node (temp_decl);
+  return *find_table_entry (temp_decl, FALSE);
 }
 
 /* The func returns pointer to decl visible according language
@@ -1609,12 +1673,12 @@ get_int_node (rint_t number_value, position_t pos)
   IR_node_t unique_number_value_node;
 
   IR_set_int_value (temp_unique_int, number_value);
-  unique_number_value_node = find_node (temp_unique_int);
+  unique_number_value_node = *find_table_entry (temp_unique_int, FALSE);
   if (unique_number_value_node == NULL)
     {
       unique_number_value_node = create_node (IR_NM_unique_int);
       IR_set_int_value (unique_number_value_node, number_value);
-      include_node (unique_number_value_node);
+      include_to_table (unique_number_value_node);
     }
   result = create_node_with_pos (IR_NM_int, pos);
   IR_set_unique_int (result, unique_number_value_node);
@@ -1630,12 +1694,12 @@ get_long_node (const char *rep, position_t pos, int base)
   IR_node_t unique_number_value_node;
 
   mpz_init_set_str (*IR_mpz_ptr (temp_unique_long), rep, base);
-  unique_number_value_node = find_node (temp_unique_long);
+  unique_number_value_node = *find_table_entry (temp_unique_long, FALSE);
   if (unique_number_value_node == NULL)
     {
       unique_number_value_node = create_node (IR_NM_unique_long);
       mpz_init_set_str (*IR_mpz_ptr (unique_number_value_node), rep, base);
-      include_node (unique_number_value_node);
+      include_to_table (unique_number_value_node);
     }
   mpz_clear (*IR_mpz_ptr (temp_unique_long));
   result = create_node_with_pos (IR_NM_long, pos);
@@ -1653,12 +1717,12 @@ get_float_node (rfloat_t number_value, position_t pos)
   IR_node_t unique_number_value_node;
 
   IR_set_float_value (temp_unique_float, number_value);
-  unique_number_value_node = find_node (temp_unique_float);
+  unique_number_value_node = *find_table_entry (temp_unique_float, FALSE);
   if (unique_number_value_node == NULL)
     {
       unique_number_value_node = create_node (IR_NM_unique_float);
       IR_set_float_value (unique_number_value_node, number_value);
-      include_node (unique_number_value_node);
+      include_to_table (unique_number_value_node);
     }
   result = create_node_with_pos (IR_NM_float, pos);
   IR_set_unique_float (result, unique_number_value_node);

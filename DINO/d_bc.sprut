@@ -54,8 +54,6 @@ typedef void (*implementation_fun_t) (int pars_number);
 
 %export {
 
-DEF_VARR (BC_node_t);
-
 #if defined(NDEBUG)
 #define BC_mpz_ptr(s) (&BC_gmp_(s).mpz)
 #else
@@ -2320,21 +2318,21 @@ print_node (FILE *f, BC_node_t bc)
 }
 
 static int curr_label_num;
-
-static VARR (BC_node_t) *fbcode;
+static vlo_t fbcode;
 
 static void
 traverse_bcode (BC_node_t bc)
 {
   int first_p;
   BC_node_t info, gen_info;
-  VARR (BC_node_t) *stack;
+  vlo_t stack;
 
-  VARR_CREATE (BC_node_t, stack, 0);
-  VARR_PUSH (BC_node_t, stack, bc);
-  while (VARR_LENGTH (BC_node_t, stack) != 0)
+  VLO_CREATE (stack, 0);
+  VLO_ADD_MEMORY (stack, &bc, sizeof (bc));
+  while (VLO_LENGTH (stack) != 0)
     {
-      bc = VARR_POP (BC_node_t, stack);
+      bc = ((BC_node_t *) VLO_BOUND (stack)) [-1];
+      VLO_SHORTEN (stack, sizeof (bc));
       for (first_p = TRUE; bc != NULL; bc = BC_next (bc), first_p = FALSE)
 	{
 	  info = BC_info (bc);
@@ -2357,29 +2355,29 @@ traverse_bcode (BC_node_t bc)
 	      curr_label_num++;
 	    }
 	  BC_set_info (bc, gen_info);
-	  VARR_PUSH (BC_node_t, fbcode, bc);
+	  VLO_ADD_MEMORY (fbcode, &bc, sizeof (bc));
 	  if (BC_IS_OF_TYPE (bc, BC_NM_br))
 	    {
 	      BC_node_t n = BC_pc (bc);
 	      
-	      VARR_PUSH (BC_node_t, stack, n);
+	      VLO_ADD_MEMORY (stack, &n, sizeof (n));
 	    }
 	  if (BC_IS_OF_TYPE (bc, BC_NM_foreach))
 	    {
 	      BC_node_t n = BC_body_pc (bc);
 	      
-	      VARR_PUSH (BC_node_t, stack, n);
+	      VLO_ADD_MEMORY (stack, &n, sizeof (n));
 	    }
 	  if (BC_IS_OF_TYPE (bc, BC_NM_check))
 	    {
 	      BC_node_t n = BC_fail_pc (bc);
 	      
 	      if (n != NULL)
-		VARR_PUSH (BC_node_t, stack, n);
+		VLO_ADD_MEMORY (stack, &n, sizeof (n));
 	    }
 	}
     }
-  VARR_DESTROY (BC_node_t, stack);
+  VLO_DELETE (stack);
 }
 
 #define GEN_DIR "/tmp/"
@@ -2396,27 +2394,27 @@ traverse_bcode (BC_node_t bc)
 #endif
 
 static void
-form_fun_name (VARR (char) *fun_name, BC_node_t fdecl)
+form_fun_name (vlo_t *fun_name, BC_node_t fdecl)
 {
   char str[70];
 
-  push_str (fun_name, GEN_FUN_PREFIX);
-  push_str (fun_name, BC_ident (fdecl));
+  VLO_ADD_STRING (*fun_name, GEN_FUN_PREFIX);
+  VLO_ADD_STRING (*fun_name, BC_ident (fdecl));
   sprintf (str, "%lx", (unsigned long) fdecl);
-  push_str (fun_name, str);
+  VLO_ADD_STRING (*fun_name, str);
 }
 
 static void
-form_fname (VARR (char) *fname, BC_node_t fdecl, const char *suffix)
+form_fname (vlo_t *fname, BC_node_t fdecl, const char *suffix)
 {
   char str[70];
 
-  push_str (fname, GEN_DIR);
+  VLO_ADD_STRING (*fname, GEN_DIR);
   form_fun_name (fname, fdecl);
-  push_str (fname, "p");
+  VLO_ADD_STRING (*fname, "p");
   sprintf (str, "%lu", (unsigned long) getpid ());
-  push_str (fname, str);
-  push_str (fname, suffix);
+  VLO_ADD_STRING (*fname, str);
+  VLO_ADD_STRING (*fname, suffix);
 }
 
 /* Copy a pre-processed C file FNAME into F.  Return FALSE if any
@@ -2428,26 +2426,26 @@ copy_pre_file (FILE *f, const char *fname)
   size_t len;
   FILE *genf;
   char block[512];
-  VARR (char) *gen_fname;
+  vlo_t gen_fname;
 
-  VARR_CREATE (char, gen_fname, 0);
-  push_str (gen_fname, "./");
-  push_str (gen_fname, fname);
-  genf = fopen (VARR_ADDR (char, gen_fname), "r");
+  VLO_CREATE (gen_fname, 0);
+  VLO_ADD_STRING (gen_fname, "./");
+  VLO_ADD_STRING (gen_fname, fname);
+  genf = fopen (VLO_BEGIN (gen_fname), "r");
   if (genf == NULL)
     {
-      VARR_TRUNC (char, gen_fname, 0);
-      push_str (gen_fname, STANDARD_DINO_INCLUDE_DIRECTORY);
-      push_str (gen_fname, "/");
-      push_str (gen_fname, fname);
-      genf = fopen (VARR_ADDR (char, gen_fname), "r");
+      VLO_NULLIFY (gen_fname);
+      VLO_ADD_STRING (gen_fname, STANDARD_DINO_INCLUDE_DIRECTORY);
+      VLO_ADD_STRING (gen_fname, "/");
+      VLO_ADD_STRING (gen_fname, fname);
+      genf = fopen (VLO_BEGIN (gen_fname), "r");
       if (genf == NULL)
 	{
-	  VARR_DESTROY (char, gen_fname);
+	  VLO_DELETE (gen_fname);
 	  return FALSE;
 	}
     }
-  VARR_DESTROY (char, gen_fname);
+  VLO_DELETE (gen_fname);
   while ((len = fread (block, 1, sizeof (block), genf)) > 0)
     fwrite (block, 1, len, f);
   fflush (f);
@@ -2459,17 +2457,17 @@ copy_pre_file (FILE *f, const char *fname)
 
 #if defined(__CYGWIN__)
 static int
-find_dllname (const char *prefix1, const char *prefix2, VARR (char) *dllname)
+find_dllname (const char *prefix1, const char *prefix2, vlo_t *dllname)
 {
   FILE *f;
   
-  VARR_TRUNC (dllname, 0);
-  push_str (dllname, prefix1);
-  push_str (dllname, prefix2);
-  push_str (dllname, "cygdino");
-  push_str (dllname, DINO_VERSION_SUFFIX);
-  push_str (dllname, ".dll");
-  f = fopen (VARRA_ADDR (dllname), "r");
+  VLO_NULLIFY (*dllname);
+  VLO_ADD_STRING (*dllname, prefix1);
+  VLO_ADD_STRING (*dllname, prefix2);
+  VLO_ADD_STRING (*dllname, "cygdino");
+  VLO_ADD_STRING (*dllname, DINO_VERSION_SUFFIX);
+  VLO_ADD_STRING (*dllname, ".dll");
+  f = fopen (VLO_BEGIN (*dllname), "r");
   if (f == NULL)
     return FALSE;
   fclose (f);
@@ -2485,92 +2483,93 @@ gen_cfblock (BC_node_t fblock)
 #if !defined(HAVE_DLOPEN) || !defined (CC_OPTIONS) || !defined (CC_OPTIONS2)
   return NULL;
 #else
-  BC_node_t bc, info;
+  BC_node_t *bc_ptr, info;
   FILE *f;
-  VARR (char) *fname, *objname, *command, *fun_name;
+  vlo_t fname, objname, command, fun_name;
 #if defined(__CYGWIN__)
-  VARR (char) *dllname;
+  vlo_t dllname;
 #endif
   void *addr;
   int error_p, tcall_p, ret;
 
-  VARR_CREATE (char, fname, 0);
-  form_fname (fname, BC_fdecl (fblock), ".c");
-  VARR_CREATE (char, objname, 0);
-  form_fname (objname, BC_fdecl (fblock), ".so");
-  VARR_CREATE (char, command, 0);
-  push_str (command, CC);
+  VLO_CREATE (fname, 0);
+  form_fname (&fname, BC_fdecl (fblock), ".c");
+  VLO_CREATE (objname, 0);
+  form_fname (&objname, BC_fdecl (fblock), ".so");
+  VLO_CREATE (command, 0);
+  VLO_ADD_STRING (command, CC);
   if (! save_temps_flag)
-    push_str (command, CC_OPTIONS2);
+    VLO_ADD_STRING (command, CC_OPTIONS2);
   else
     {
-      push_str (command, CC_OPTIONS);
-      push_str (command, " ");
-      push_str (command, VARR_ADDR (char, fname));
+      VLO_ADD_STRING (command, CC_OPTIONS);
+      VLO_ADD_STRING (command, " ");
+      VLO_ADD_STRING (command, VLO_BEGIN (fname));
     }
-  push_str (command, " -o ");
-  push_str (command, VARR_ADDR (char, objname));
+  VLO_ADD_STRING (command, " -o ");
+  VLO_ADD_STRING (command, VLO_BEGIN (objname));
 #if defined(__CYGWIN__)
-  VARR_CREATE (char, dllname, 0);
+  VLO_CREATE (dllname, 0);
   if (! find_dllname (".libs", "/", &dllname)
       && ! find_dllname (STANDARD_DINO_BIN_DIRECTORY, "/", &dllname))
     {
-      VARR_DESTROY (char, dllname);
+      VLO_DELETE (dllname);
       return NULL;
     }
   else
     {
-      push_str (command, " ");
-      push_str (command, VARR_ADDR (char, dllname));
-      VARR_DESTROY (char, dllname);
+      VLO_ADD_STRING (command, " ");
+      VLO_ADD_STRING (command, VLO_BEGIN (dllname));
+      VLO_DELETE (dllname);
     }
 #endif
   if (save_temps_flag)
-    f = fopen (VARR_ADDR (char, fname), "w");
+    f = fopen (VLO_BEGIN (fname), "w");
   else
-    f = popen (VARR_ADDR (char, command), "w");
+    f = popen (VLO_BEGIN (command), "w");
   if (f == NULL)
     {
-      VARR_DESTROY (char, command);
-      VARR_DESTROY (char, objname);
-      VARR_DESTROY (char, fname);
+      VLO_DELETE (command);
+      VLO_DELETE (objname);
+      VLO_DELETE (fname);
       return NULL;
     }
-  VARR_CREATE (BC_node_t, fbcode, 0);
+  VLO_CREATE (fbcode, 0);
   curr_label_num = 0;
   traverse_bcode (BC_next (fblock));
   error_p = TRUE;
-  VARR_CREATE (char, fun_name, 0);
+  VLO_CREATE (fun_name, 0);
   if (copy_pre_file (f, STANDARD_DINO_GEN_FILE_NAME))
     {
-      form_fun_name (fun_name, BC_fdecl (fblock));
+      form_fun_name (&fun_name, BC_fdecl (fblock));
       fprintf (f, "void %s (struct ER_node *__restrict__ cv, ",
-	       (const char *) VARR_ADDR (char, fun_name));
+	       (const char *) VLO_BEGIN (fun_name));
       fprintf (f, "struct ER_node *__restrict__ tv) {\n");
       fprintf (f, "  set_c_code_p ();\n");
-      for (size_t i = 0; i < VARR_LENGTH (BC_node_t, fbcode); i++)
+      for (bc_ptr = (BC_node_t *) VLO_BEGIN (fbcode);
+	   bc_ptr < (BC_node_t *) VLO_BOUND (fbcode);
+	   bc_ptr++)
 	{
-	  bc = VARR_GET (BC_node_t, fbcode, i);
-	  info = BC_info (bc);
+	  info = BC_info (*bc_ptr);
 	  if (BC_label_num (info) >= 0)
 	    fprintf (f, "l%d:\n", BC_label_num (info));
-	  print_node (f, bc);
-	  if (BC_IS_OF_TYPE (bc, BC_NM_fbend))
+	  print_node (f, *bc_ptr);
+	  if (BC_IS_OF_TYPE (*bc_ptr, BC_NM_fbend))
 	    fprintf (f, "  return;\n");
-	  else if (BC_IS_OF_TYPE (bc, BC_NM_block)
-		   || BC_IS_OF_TYPE (bc, BC_NM_bend))
+	  else if (BC_IS_OF_TYPE (*bc_ptr, BC_NM_block)
+		   || BC_IS_OF_TYPE (*bc_ptr, BC_NM_bend))
 	    fprintf (f, "  cv = cvars;\n");
-	  else if (i + 1 >= VARR_LENGTH (BC_node_t, fbcode)
-		   || BC_next (bc) != VARR_GET (BC_node_t, fbcode, i + 1))
+	  else if (bc_ptr + 1 >= (BC_node_t *) VLO_BOUND (fbcode)
+		   || BC_next (*bc_ptr) != bc_ptr[1])
 	    {
-	      if (BC_next (bc) == NULL)
+	      if (BC_next (*bc_ptr) == NULL)
 		{
 		  fprintf (f, "  return;\n");
-		  d_assert (BC_IS_OF_TYPE (bc, BC_NM_fbend));
+		  d_assert (BC_IS_OF_TYPE (*bc_ptr, BC_NM_fbend));
 		}
 	      else
 		{
-		  info = BC_info (BC_next (bc));
+		  info = BC_info (BC_next (*bc_ptr));
 		  d_assert (BC_label_num (info) >= 0);
 		  fprintf (f, "  goto l%d;\n", BC_label_num (info));
 		}
@@ -2578,49 +2577,50 @@ gen_cfblock (BC_node_t fblock)
 	}
       fprintf (f, "}\n");
       /* Restore original info */
-      for (size_t i = 0; i < VARR_LENGTH (BC_node_t, fbcode); i++)
+      for (bc_ptr = (BC_node_t *) VLO_BEGIN (fbcode);
+	   bc_ptr < (BC_node_t *) VLO_BOUND (fbcode);
+	   bc_ptr++)
 	{
-	  bc = VARR_GET (BC_node_t, fbcode, i);
-	  info = BC_info (bc);
-	  BC_set_info (bc, BC_origin_info (info));
+	  info = BC_info (*bc_ptr);
+	  BC_set_info (*bc_ptr, BC_origin_info (info));
 	  /* BC_FREE (info); ???*/
 	}
-      VARR_DESTROY (BC_node_t, fbcode);
+      VLO_DELETE (fbcode);
       error_p = ferror (f) != 0;
       ret = (save_temps_flag ? fclose (f) : pclose (f));
       if (ret)
 	{
 	  if (! save_temps_flag)
-	    remove (VARR_ADDR (char, fname));
-	  VARR_DESTROY (char, fun_name);
-	  VARR_DESTROY (char, command);
-	  VARR_DESTROY (char, objname);
-	  VARR_DESTROY (char, fname);
+	    remove (VLO_BEGIN (fname));
+	  VLO_DELETE (fun_name);
+	  VLO_DELETE (command);
+	  VLO_DELETE (objname);
+	  VLO_DELETE (fname);
 	  return NULL;
 	}
     }
   addr = NULL;
   if (!error_p)
     {
-      if (! save_temps_flag || system (VARR_ADDR (char, command)) == 0)
+      if (! save_temps_flag || system (VLO_BEGIN (command)) == 0)
 	{
-	  void *handle = dlopen (VARR_ADDR (char, objname), RTLD_NOW | RTLD_GLOBAL);
+	  void *handle = dlopen (VLO_BEGIN (objname), RTLD_NOW | RTLD_GLOBAL);
 	  if (handle != NULL)
 	    {
-	      addr = dlsym (handle, VARR_ADDR (char, fun_name));
+	      addr = dlsym (handle, VLO_BEGIN (fun_name));
 	      if (dlerror () != NULL)
 		addr = NULL;
 	    }
 	}
       if (! save_temps_flag)
-	remove (VARR_ADDR (char, objname));
+	remove (VLO_BEGIN (objname));
     }
-  VARR_DESTROY (char, fun_name);
-  VARR_DESTROY (char, command);
-  VARR_DESTROY (char, objname);
+  VLO_DELETE (fun_name);
+  VLO_DELETE (command);
+  VLO_DELETE (objname);
   if (! save_temps_flag)
-    remove (VARR_ADDR (char, fname));
-  VARR_DESTROY (char, fname);
+    remove (VLO_BEGIN (fname));
+  VLO_DELETE (fname);
   return addr;
 #endif
 }
@@ -2637,18 +2637,18 @@ gen_cfblock (BC_node_t fblock)
 #endif
 
 static void
-form_code_fname (VARR (char) *fname, BC_node_t bc, const char *suffix)
+form_code_fname (vlo_t *fname, BC_node_t bc, const char *suffix)
 {
   /* It might be before prepare block call for checking.  */
   position_t pos = BC_pos (BC_IS_OF_TYPE (BC_info (bc), BC_NM_info)
 			   ? BC_source (BC_info (bc)) : BC_info (bc));
   char str[70];
 
-  push_str (fname, GEN_DIR);
-  push_str (fname, pos.file_name);
+  VLO_ADD_STRING (*fname, GEN_DIR);
+  VLO_ADD_STRING (*fname, pos.file_name);
   sprintf (str, "_bc%lu_p%lu", (unsigned long) bc, (unsigned long) getpid ());
-  push_str (fname, str);
-  push_str (fname, suffix);
+  VLO_ADD_STRING (*fname, str);
+  VLO_ADD_STRING (*fname, suffix);
 }
 
 /* Number of compilations of C code (%{...%}). */
@@ -2664,9 +2664,9 @@ compile_c_code (BC_node_t bc, void (*process_handle) (void *))
   return FALSE;
 #else
   FILE *f;
-  VARR (char) *fname, *objname, *command;
+  vlo_t fname, objname, command;
 #if defined(__CYGWIN__)
-  VARR (char) *dllname;
+  vlo_t dllname;
 #endif
   int error_p, ret;
   const char *code;
@@ -2675,46 +2675,46 @@ compile_c_code (BC_node_t bc, void (*process_handle) (void *))
   if (BC_compiled_p (bc))
     return TRUE;
   c_compilations_num++;
-  VARR_CREATE (char, fname, 0);
-  form_code_fname (fname, bc, ".c");
-  VARR_CREATE (char, objname, 0);
-  form_code_fname (objname, bc, ".so");
-  VARR_CREATE (char, command, 0);
-  push_str (command, CC);
+  VLO_CREATE (fname, 0);
+  form_code_fname (&fname, bc, ".c");
+  VLO_CREATE (objname, 0);
+  form_code_fname (&objname, bc, ".so");
+  VLO_CREATE (command, 0);
+  VLO_ADD_STRING (command, CC);
   if (! save_temps_flag)
-    push_str (command, CC_COMPILE_OPTIONS2);
+    VLO_ADD_STRING (command, CC_COMPILE_OPTIONS2);
   else
     {
-      push_str (command, CC_COMPILE_OPTIONS);
-      push_str (command, " ");
-      push_str (command, VARR_ADDR (char, fname));
+      VLO_ADD_STRING (command, CC_COMPILE_OPTIONS);
+      VLO_ADD_STRING (command, " ");
+      VLO_ADD_STRING (command, VLO_BEGIN (fname));
     }
-  push_str (command, " -o ");
-  push_str (command, VARR_ADDR (char, objname));
+  VLO_ADD_STRING (command, " -o ");
+  VLO_ADD_STRING (command, VLO_BEGIN (objname));
 #if defined(__CYGWIN__)
-  VARR_CREATE (dllname, 0);
+  VLO_CREATE (dllname, 0);
   if (! find_dllname (".libs", "/", &dllname)
       && ! find_dllname (STANDARD_DINO_BIN_DIRECTORY, "/", &dllname))
     {
-      VARR_DESTROY (dllname);
+      VLO_DELETE (dllname);
       return FALSE;
     }
   else
     {
-      push_str (command, " ");
-      push_str (command, VARR_ADDR (dllname));
-      VARR_DESTROY (dllname);
+      VLO_ADD_STRING (command, " ");
+      VLO_ADD_STRING (command, VLO_BEGIN (dllname));
+      VLO_DELETE (dllname);
     }
 #endif
   if (save_temps_flag)
-    f = fopen (VARR_ADDR (char, fname), "w");
+    f = fopen (VLO_BEGIN (fname), "w");
   else
-    f = popen (VARR_ADDR (char, command), "w");
+    f = popen (VLO_BEGIN (command), "w");
   if (f == NULL || ! copy_pre_file (f, STANDARD_DINO_EXTERN_FILE_NAME))
     {
-      VARR_DESTROY (char, command);
-      VARR_DESTROY (char, objname);
-      VARR_DESTROY (char, fname);
+      VLO_DELETE (command);
+      VLO_DELETE (objname);
+      VLO_DELETE (fname);
       return FALSE;
     }
   error_p = fputs (BC_c_code (bc), f) == EOF;
@@ -2722,17 +2722,17 @@ compile_c_code (BC_node_t bc, void (*process_handle) (void *))
   if (ret)
     {
       if (! save_temps_flag)
-	remove (VARR_ADDR (char, fname));
-      VARR_DESTROY (char, command);
-      VARR_DESTROY (char, objname);
+	remove (VLO_BEGIN (fname));
+      VLO_DELETE (command);
+      VLO_DELETE (objname);
       return FALSE;
     }
   ret = FALSE;
   if (!error_p)
     {
-      if (! save_temps_flag || system (VARR_ADDR (char, command)) == 0)
+      if (! save_temps_flag || system (VLO_BEGIN (command)) == 0)
 	{
-	  void *handle = dlopen (VARR_ADDR (char, objname), RTLD_LAZY | RTLD_GLOBAL);
+	  void *handle = dlopen (VLO_BEGIN (objname), RTLD_LAZY | RTLD_GLOBAL);
 	  
 	  if (handle != NULL)
 	    {
@@ -2742,13 +2742,13 @@ compile_c_code (BC_node_t bc, void (*process_handle) (void *))
 	    }
 	}
       if (! save_temps_flag)
-	remove (VARR_ADDR (char, objname));
+	remove (VLO_BEGIN (objname));
     }
-  VARR_DESTROY (char, command);
-  VARR_DESTROY (char, objname);
+  VLO_DELETE (command);
+  VLO_DELETE (objname);
   if (! save_temps_flag)
-    remove (VARR_ADDR (char, fname));
-  VARR_DESTROY (char, fname);
+    remove (VLO_BEGIN (fname));
+  VLO_DELETE (fname);
   if (ret)
     BC_set_compiled_p (bc, TRUE);
   return ret;

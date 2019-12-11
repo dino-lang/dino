@@ -676,7 +676,7 @@ void dump_code (BC_node_t infos, int indent) {
 }
 
 /* Container where the read byte code is stored. */
-static mp_t read_bc;
+static os_t read_bc;
 
 /* This page contains abstract data byte code `scanner'. */
 
@@ -733,27 +733,27 @@ static void bc_ungetc (int ch) {
 }
 
 /* The string hash table. */
-static HTAB (char_ptr_t) * string_hash_table;
-
-typedef const ucode_t *ucode_ptr_t;
-DEF_HTAB (ucode_ptr_t);
+static hash_table_t string_hash_table;
 
 /* The unicode string hash table. */
-static HTAB (ucode_ptr_t) * ucodestr_hash_table;
+static hash_table_t ucodestr_hash_table;
 
-/* Func for evaluation of hash value of unicode string S. */
-static htab_hash_t ustr_hash_func (ucode_ptr_t s) {
-  size_t i;
+/* Func for evaluation of hash value of unicode string STR. */
+static unsigned ustr_hash_func (hash_table_entry_t str) {
+  const ucode_t *s = str;
+  unsigned int i, hash_value;
 
-  for (i = 0; s[i] != 0; i++)
-    ;
-  return dino_hash (s, i * sizeof (ucode_t), 24);
+  for (hash_value = i = 0; *s != 0; i++, s++) hash_value += (*s) << (i & 0x7);
+  return hash_value;
 }
 
-/* Func used for comparison of unicode strings represented by S1 and
-   S2.  Return TRUE if the elements represent equal string. */
-static int ustr_compare_func (ucode_ptr_t s1, ucode_ptr_t s2) {
-  for (size_t i = 0;; i++)
+/* Func used for comparison of unicode strings represented by STR1 and
+   STR2.  Return TRUE if the elements represent equal string. */
+static int ustr_compare_func (hash_table_entry_t str1, hash_table_entry_t str2) {
+  size_t i;
+  const ucode_t *s1 = str1, *s2 = str2;
+
+  for (i = 0;; i++)
     if (s1[i] != s2[i])
       return FALSE;
     else if (s1[i] == 0)
@@ -762,52 +762,58 @@ static int ustr_compare_func (ucode_ptr_t s1, ucode_ptr_t s2) {
 
 /* Create the string hash table. */
 static void initiate_string_tables (void) {
-  HTAB_CREATE (char_ptr_t, string_hash_table, 1000, str_hash_func, str_compare_func);
-  HTAB_CREATE (ucode_ptr_t, ucodestr_hash_table, 1000, ustr_hash_func, ustr_compare_func);
+  string_hash_table = create_hash_table (1000, str_hash_func, str_compare_func);
+  ucodestr_hash_table = create_hash_table (1000, ustr_hash_func, ustr_compare_func);
 }
 
 /* Include STR into string table if it is necessary and return the
    string in the table. */
-static char_ptr_t string_to_table (char_ptr_t str) {
-  size_t len;
-  char *s;
-  char_ptr_t tab_str;
+static const char *string_to_table (const char *str) {
+  const char **table_entry_pointer;
+  char *string_in_table;
 
-  if (HTAB_DO (char_ptr_t, string_hash_table, str, HTAB_FIND, tab_str)) return tab_str;
-  len = strlen (str) + 1;
-  tab_str = s = mp_malloc (read_bc, len);
-  strcpy (s, str);
-  HTAB_DO (char_ptr_t, string_hash_table, tab_str, HTAB_INSERT, tab_str);
-  return tab_str;
+  table_entry_pointer
+    = (const char **) find_hash_table_entry (string_hash_table, (hash_table_entry_t) str, TRUE);
+  if (*table_entry_pointer != NULL) return *table_entry_pointer;
+  OS_TOP_EXPAND (read_bc, strlen (str) + 1);
+  string_in_table = OS_TOP_BEGIN (read_bc);
+  OS_TOP_FINISH (read_bc);
+  strcpy (string_in_table, str);
+  *table_entry_pointer = string_in_table;
+  return string_in_table;
 }
 
 /* Include unicode STR into unicode string table if it is necessary
    and return the string in the table. */
-static const ucode_ptr_t ucodestr_to_table (ucode_ptr_t str) {
+static const ucode_t *ucodestr_to_table (const ucode_t *str) {
   size_t len;
-  ucode_t *s;
-  ucode_ptr_t tab_str;
+  const ucode_t **table_entry_pointer;
+  ucode_t *string_in_table;
 
-  if (HTAB_DO (ucode_ptr_t, ucodestr_hash_table, str, HTAB_FIND, tab_str)) return tab_str;
+  table_entry_pointer = (const ucode_t **) find_hash_table_entry (ucodestr_hash_table,
+                                                                  (hash_table_entry_t) str, TRUE);
+  if (*table_entry_pointer != NULL) return *table_entry_pointer;
   len = ucodestrlen (str) + 1;
-  tab_str = s = mp_malloc (read_bc, len);
-  memcpy (s, str, len);
-  HTAB_DO (ucode_ptr_t, ucodestr_hash_table, tab_str, HTAB_INSERT, tab_str);
-  return tab_str;
+  OS_TOP_EXPAND (read_bc, len);
+  string_in_table = OS_TOP_BEGIN (read_bc);
+  OS_TOP_FINISH (read_bc);
+  memcpy (string_in_table, str, len);
+  *table_entry_pointer = string_in_table;
+  return string_in_table;
 }
 
 /* Delete the string hash tables. */
 static void delete_string_tables (void) {
-  HTAB_DESTROY (char_ptr_t, string_hash_table);
-  HTAB_DESTROY (ucode_ptr_t, ucodestr_hash_table);
+  delete_hash_table (string_hash_table);
+  delete_hash_table (ucodestr_hash_table);
 }
 
 /* Var length string used by func yylval for text presentation of the
    symbol. */
-static VARR (char) * symbol_text;
+static vlo_t symbol_text;
 
 /* Temporary container.  */
-static VARR (char) * aux_varr;
+static vlo_t temp_vlo;
 
 /* The following func recognizes next source symbol from the input
    file, returns its code, modifies var current_position so that its
@@ -819,7 +825,7 @@ static VARR (char) * aux_varr;
 static enum token get_token (void) {
   int input_char;
 
-  VARR_TRUNC (char, symbol_text, 0);
+  VLO_NULLIFY (symbol_text);
   for (;;) {
     input_char = bc_getc ();
     /* `current_position' corresponds `input_char' here */
@@ -883,24 +889,23 @@ static enum token get_token (void) {
         if (!correct_newln) {
           if (!unicode_p && !in_byte_range_p (ch)) {
             unicode_p = TRUE;
-            copy_varr (aux_varr, symbol_text);
-            str_to_ucode_varr (symbol_text, VARR_ADDR (char, aux_varr),
-                               VARR_LENGTH (char, symbol_text));
+            copy_vlo (&temp_vlo, &symbol_text);
+            str_to_ucode_vlo (&symbol_text, VLO_BEGIN (temp_vlo), VLO_LENGTH (symbol_text));
           }
           if (unicode_p)
-            VARR_PUSH_ARR (char, symbol_text, (char *) &ch, sizeof (ucode_t));
+            VLO_ADD_MEMORY (symbol_text, &ch, sizeof (ucode_t));
           else
-            VARR_PUSH (char, symbol_text, ch);
+            VLO_ADD_BYTE (symbol_text, ch);
         }
       }
       if (unicode_p) {
         ch = '\0';
-        VARR_PUSH_ARR (char, symbol_text, (char *) &ch, sizeof (ucode_t));
-        token_attr.ustr = ucodestr_to_table ((ucode_ptr_t) VARR_ADDR (char, symbol_text));
+        VLO_ADD_MEMORY (symbol_text, &ch, sizeof (ucode_t));
+        token_attr.ustr = ucodestr_to_table (VLO_BEGIN (symbol_text));
         return curr_token = D_UCODESTR;
       } else {
-        VARR_PUSH (char, symbol_text, '\0');
-        token_attr.str = string_to_table (VARR_ADDR (char, symbol_text));
+        VLO_ADD_BYTE (symbol_text, '\0');
+        token_attr.str = string_to_table (VLO_BEGIN (symbol_text));
         return curr_token = D_STRING;
       }
     }
@@ -918,7 +923,7 @@ static enum token get_token (void) {
             current_position.column_number++;
             ch = bc_getc ();
             if (ch == '}') break;
-            VARR_PUSH (char, symbol_text, '%');
+            VLO_ADD_BYTE (symbol_text, '%');
           } else if (ch == '\n') {
             current_position.column_number = 1;
             current_position.line_number++;
@@ -926,10 +931,10 @@ static enum token get_token (void) {
             error (FALSE, current_position, ERR_eof_in_C_code);
             break;
           }
-          VARR_PUSH (char, symbol_text, ch);
+          VLO_ADD_BYTE (symbol_text, ch);
         }
-        VARR_PUSH (char, symbol_text, '\0');
-        token_attr.str = string_to_table (VARR_ADDR (char, symbol_text));
+        VLO_ADD_BYTE (symbol_text, '\0');
+        token_attr.str = string_to_table (VLO_BEGIN (symbol_text));
         return curr_token = D_C_CODE;
       }
     }
@@ -940,12 +945,12 @@ static enum token get_token (void) {
         /* Ident recognition. */
         do {
           current_position.column_number++;
-          VARR_PUSH (char, symbol_text, input_char);
+          VLO_ADD_BYTE (symbol_text, input_char);
           input_char = bc_getc ();
         } while (isalpha_ascii (input_char) || isdigit_ascii (input_char) || input_char == '_');
         bc_ungetc (input_char);
-        VARR_PUSH (char, symbol_text, '\0');
-        token_attr.str = string_to_table (VARR_ADDR (char, symbol_text));
+        VLO_ADD_BYTE (symbol_text, '\0');
+        token_attr.str = string_to_table (VLO_BEGIN (symbol_text));
         return curr_token = D_IDENT;
       } else if (input_char == '-' || isdigit_ascii (input_char)) {
         /* Recognition numbers. */
@@ -955,7 +960,7 @@ static enum token get_token (void) {
         do {
           /* `current_position' corresponds to `input_char' here. */
           current_position.column_number++;
-          VARR_PUSH (char, symbol_text, input_char);
+          VLO_ADD_BYTE (symbol_text, input_char);
           input_char = bc_getc ();
         } while (isdigit_ascii (input_char));
         if (input_char == '.') {
@@ -964,7 +969,7 @@ static enum token get_token (void) {
             /* `current_position' corresponds to
                `input_char' here. */
             current_position.column_number++;
-            VARR_PUSH (char, symbol_text, input_char);
+            VLO_ADD_BYTE (symbol_text, input_char);
             input_char = bc_getc ();
           } while (isdigit_ascii (input_char));
         }
@@ -975,12 +980,12 @@ static enum token get_token (void) {
           if (input_char != '+' && input_char != '-' && !isdigit_ascii (input_char))
             error (FALSE, current_position, ERR_exponent_absence);
           else {
-            VARR_PUSH (char, symbol_text, 'e');
+            VLO_ADD_BYTE (symbol_text, 'e');
             do {
               /* `current_position' corresponds to
                  `input_char' here. */
               current_position.column_number++;
-              VARR_PUSH (char, symbol_text, input_char);
+              VLO_ADD_BYTE (symbol_text, input_char);
               input_char = bc_getc ();
             } while (isdigit_ascii (input_char));
           }
@@ -989,14 +994,14 @@ static enum token get_token (void) {
           current_position.column_number++;
           input_char = bc_getc ();
         }
-        VARR_PUSH (char, symbol_text, '\0');
+        VLO_ADD_BYTE (symbol_text, '\0');
         bc_ungetc (input_char);
         if (float_flag)
-          token_attr.f = a2f (VARR_ADDR (char, symbol_text));
+          token_attr.f = a2f (VLO_BEGIN (symbol_text));
         else if (!long_flag)
-          token_attr.i = a2i (VARR_ADDR (char, symbol_text), 10);
+          token_attr.i = a2i (VLO_BEGIN (symbol_text), 10);
         else {
-          mpz_init_set_str (mpz_attr, VARR_ADDR (char, symbol_text), 10);
+          mpz_init_set_str (mpz_attr, VLO_BEGIN (symbol_text), 10);
           /* the mpz function might change errno if it is ok
              because it can use malloc/realloc which might
              change errno even in success case.  So clear
@@ -1055,7 +1060,7 @@ static int curr_fld;
 static const char *curr_fld_name;
 /* Bit string of ids of fields which were present for the current BC
    node. */
-static bitmap_t curr_fld_presence;
+static char curr_fld_presence[BCF_BOUND / CHAR_BIT + 1];
 
 /* Check that the current token is equal to EXPECTED_TOKEN.  Fix error
    if not and return true. */
@@ -1081,7 +1086,7 @@ static int check_fld (BC_node_mode_t expected_node_mode, enum token expected_tok
    check failed, fix error. */
 static void check_fld_set (BC_node_mode_t expected_node_mode, int fld, const char *fld_name) {
   if (!BC_IS_OF_TYPE (curr_node, expected_node_mode)) return;
-  if (bitmap_bit_p (curr_fld_presence, fld)) return;
+  if (BIT (curr_fld_presence, fld)) return;
   error (FALSE, curr_token_position, ERR_undefined_byte_code_field, fld_name);
 }
 
@@ -1096,48 +1101,45 @@ struct ptr_fld {
   const char *fld_name;
 };
 
-typedef struct ptr_fld ptr_fld_t;
-DEF_VARR (ptr_fld_t);
-
 /* Reference fields are stored here until all BC nodes are read. */
-static VARR (ptr_fld_t) * ptr_flds;
+static vlo_t ptr_flds;
 
 /* Store the current reference field. */
 static void store_curr_ptr_fld (void) {
-  ptr_fld_t temp;
+  struct ptr_fld temp;
 
   temp.fld = curr_fld;
   temp.fld_val = token_attr.i;
   temp.node = curr_node;
   temp.fld_name = curr_fld_name;
-  VARR_PUSH (ptr_fld_t, ptr_flds, temp);
+  VLO_ADD_MEMORY (ptr_flds, &temp, sizeof (temp));
 }
 
 /* Maps translating decl label and bcode label correspondingly into
    the decl and bcode. */
-static VARR (BC_node_t) * decl_map, *bcode_map;
+static vlo_t decl_map, bcode_map;
 
 /* Bound LABEL to the current node (decl or bcode). */
 static void bound_label_to_curr_node (int label) {
-  VARR (BC_node_t) * map;
+  vlo_t *map;
 
   d_assert (label >= 0);
   if (BC_IS_OF_TYPE (curr_node, BC_NM_decl))
-    map = decl_map;
+    map = &decl_map;
   else {
     d_assert (BC_IS_OF_TYPE (curr_node, BC_NM_bcode));
-    map = bcode_map;
+    map = &bcode_map;
   }
-  while (VARR_LENGTH (BC_node_t, map) < label + 1) VARR_PUSH (BC_node_t, map, 0);
-  VARR_SET (BC_node_t, map, label, curr_node);
+  while (VLO_LENGTH (*map) < (label + 1) * sizeof (BC_node_t)) VLO_ADD_BYTE (*map, 0);
+  ((BC_node_t *) VLO_BEGIN (*map))[label] = curr_node;
 }
 
 /* Return bcode with given LABEL. */
 static BC_node_t get_bcode (int label) {
   BC_node_t res;
 
-  d_assert (label < VARR_LENGTH (BC_node_t, bcode_map));
-  res = VARR_GET (BC_node_t, bcode_map, label);
+  d_assert (label * sizeof (BC_node_t) < VLO_LENGTH (bcode_map));
+  res = ((BC_node_t *) VLO_BEGIN (bcode_map))[label];
   d_assert (res != NULL);
   return res;
 }
@@ -1146,8 +1148,8 @@ static BC_node_t get_bcode (int label) {
 static BC_node_t get_decl (int label) {
   BC_node_t res;
 
-  d_assert (label < VARR_LENGTH (BC_node_t, decl_map));
-  res = VARR_GET (BC_node_t, decl_map, label);
+  d_assert (label * sizeof (BC_node_t) < VLO_LENGTH (decl_map));
+  res = ((BC_node_t *) VLO_BEGIN (decl_map))[label];
   d_assert (res != NULL);
   return res;
 }
@@ -1217,21 +1219,22 @@ static HTAB (str_code_t) * bcf_tab, *bcn_tab;
    Create info nodes if INFO_P.
 */
 void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
-  BC_node_t decl, source_node, prev_node = NULL;
+  BC_node_t source_node, prev_node = NULL;
   BC_node_mode_t curr_node_mode;
   int skip_ln, label;
-  ptr_fld_t *fld;
-  VARR (BC_node_t) * block_infos, *all_decls;
+  struct ptr_fld *fld;
+  BC_node_t *decl_ptr;
+  vlo_t block_infos, all_decls;
   BC_node_t prev_info = NULL;
 
   start_file_position (file_name);
   input_file = inpf;
   mpz_init (mpz_attr);
-  VARR_CREATE (BC_node_t, all_decls, 1024);
-  VARR_CREATE (ptr_fld_t, ptr_flds, 4096);
-  VARR_CREATE (BC_node_t, bcode_map, 2048);
-  VARR_CREATE (BC_node_t, decl_map, 2048);
-  if (info_p) VARR_CREATE (BC_node_t, block_infos, 2048);
+  VLO_CREATE (all_decls, 1024);
+  VLO_CREATE (ptr_flds, 4096);
+  VLO_CREATE (bcode_map, 2048);
+  VLO_CREATE (decl_map, 2048);
+  if (info_p) VLO_CREATE (block_infos, 2048);
   previous_char = NOT_A_CHAR;
   for (skip_ln = FALSE;;) {
     get_token ();
@@ -1261,7 +1264,7 @@ void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
     if (first_program_bc == NULL) first_program_bc = curr_node;
     bound_label_to_curr_node (label);
     /* Read fields: */
-    bitmap_clear (curr_fld_presence);
+    bit_string_set (curr_fld_presence, 0, 0, BCF_BOUND);
     for (;;) {
       get_token ();
       if (curr_token == D_NL || curr_token == D_EOF) break;
@@ -1571,14 +1574,14 @@ void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
       default:
         error (TRUE, current_position, "Internal error: unprocessed field %s", curr_fld_name);
       }
-      bitmap_set_bit_p (curr_fld_presence, curr_fld);
+      SET_BIT (curr_fld_presence, curr_fld, 1);
     }
     /* Set up next. */
     if (prev_node != NULL && BC_IS_OF_TYPE (curr_node, BC_NM_bcode)
         && !BC_IS_OF_TYPE (prev_node, BC_NM_fbend)
         && !(BC_IS_OF_TYPE (prev_node, BC_NM_fblock) && BC_forward_p (prev_node)))
       BC_set_next (prev_node, curr_node);
-    if (bitmap_bit_p (curr_fld_presence, BCF_next))
+    if (BIT (curr_fld_presence, BCF_next))
       prev_node = NULL;
     else if (BC_IS_OF_TYPE (curr_node, BC_NM_bcode)) {
       prev_node = curr_node;
@@ -1587,18 +1590,18 @@ void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
     /* Set up node fields and check that can be omitted: */
     if (BC_IS_OF_TYPE (curr_node, BC_NM_source)) source_node = curr_node;
     /* Create source nodes. */
-    else if (bitmap_bit_p (curr_fld_presence, BCF_pos3))
+    else if (BIT (curr_fld_presence, BCF_pos3))
       source_node = BC_create_node (BC_NM_source3);
-    else if (bitmap_bit_p (curr_fld_presence, BCF_pos2))
+    else if (BIT (curr_fld_presence, BCF_pos2))
       source_node = BC_create_node (BC_NM_source2);
-    else if (bitmap_bit_p (curr_fld_presence, BCF_pos))
+    else if (BIT (curr_fld_presence, BCF_pos))
       source_node = BC_create_node (BC_NM_source);
     if (BC_IS_OF_TYPE (source_node, BC_NM_source3)) {
       position_t p;
 
       p.path = &no_position;
-      p.file_name = (bitmap_bit_p (curr_fld_presence, BCF_fn3) ? fn3 : fn);
-      p.line_number = (bitmap_bit_p (curr_fld_presence, BCF_ln3) ? ln3 : ln);
+      p.file_name = (BIT (curr_fld_presence, BCF_fn3) ? fn3 : fn);
+      p.line_number = (BIT (curr_fld_presence, BCF_ln3) ? ln3 : ln);
       ;
       p.column_number = pos3;
       BC_set_pos3 (source_node, p);
@@ -1607,8 +1610,8 @@ void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
       position_t p;
 
       p.path = &no_position;
-      p.file_name = (bitmap_bit_p (curr_fld_presence, BCF_fn2) ? fn2 : fn);
-      p.line_number = (bitmap_bit_p (curr_fld_presence, BCF_ln2) ? ln2 : ln);
+      p.file_name = (BIT (curr_fld_presence, BCF_fn2) ? fn2 : fn);
+      p.line_number = (BIT (curr_fld_presence, BCF_ln2) ? ln2 : ln);
       p.column_number = pos2;
       BC_set_pos2 (source_node, p);
     }
@@ -1663,9 +1666,8 @@ void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
     if (info_p) {
       if (BC_IS_OF_TYPE (curr_node, BC_NM_fblock)
           /* Top level block: */
-          || (BC_IS_OF_TYPE (curr_node, BC_NM_block)
-              && !bitmap_bit_p (curr_fld_presence, BCF_scope))) {
-        VARR_PUSH (BC_node_t, block_infos, prev_info);
+          || (BC_IS_OF_TYPE (curr_node, BC_NM_block) && !BIT (curr_fld_presence, BCF_scope))) {
+        VLO_ADD_MEMORY (block_infos, &prev_info, sizeof (prev_info));
         prev_info = NULL;
       }
       if (BC_IS_OF_TYPE (curr_node, BC_NM_bcode)) {
@@ -1676,19 +1678,20 @@ void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
         prev_info = curr_info;
       }
       if (BC_IS_OF_TYPE (curr_node, BC_NM_fbend)) {
-        d_assert (VARR_LENGTH (BC_node_t, block_infos) != 0);
-        prev_info = VARR_POP (BC_node_t, block_infos);
+        d_assert (VLO_LENGTH (block_infos) != 0);
+        prev_info = ((BC_node_t *) VLO_BOUND (block_infos))[-1];
+        VLO_SHORTEN (block_infos, sizeof (prev_info));
       }
     }
     /* Set up fields which may have a default value. */
     if (BC_IS_OF_TYPE (curr_node, BC_NM_decl)) {
-      VARR_PUSH (BC_node_t, all_decls, curr_node);
+      VLO_ADD_MEMORY (all_decls, &curr_node, sizeof (curr_node));
       BC_set_public_p (curr_node, public_p != 0);
     }
     if (BC_IS_OF_TYPE (curr_node, BC_NM_block)) {
       BC_set_excepts (curr_node, NULL);
       BC_set_ext_life_p (curr_node, ext_life_p != 0);
-      if (!bitmap_bit_p (curr_fld_presence, BCF_scope)) BC_set_scope (curr_node, NULL);
+      if (!BIT (curr_fld_presence, BCF_scope)) BC_set_scope (curr_node, NULL);
       set_block_number (curr_node);
     }
     if (BC_IS_OF_TYPE (curr_node, BC_NM_fblock)) {
@@ -1703,22 +1706,21 @@ void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
       BC_set_pars_num (curr_node, pars_num);
       BC_set_min_pars_num (curr_node, min_pars_num);
     }
-    if (BC_IS_OF_TYPE (curr_node, BC_NM_ret) && !bitmap_bit_p (curr_fld_presence, BCF_ret_decl))
+    if (BC_IS_OF_TYPE (curr_node, BC_NM_ret) && !BIT (curr_fld_presence, BCF_ret_decl))
       BC_set_ret_decl (curr_node, NULL);
-    if (BC_IS_OF_TYPE (curr_node, BC_NM_except)
-        && !bitmap_bit_p (curr_fld_presence, BCF_next_except))
+    if (BC_IS_OF_TYPE (curr_node, BC_NM_except) && !BIT (curr_fld_presence, BCF_next_except))
       BC_set_next_except (curr_node, NULL);
-    if (BC_IS_OF_TYPE (curr_node, BC_NM_check) && !bitmap_bit_p (curr_fld_presence, BCF_fail_pc))
+    if (BC_IS_OF_TYPE (curr_node, BC_NM_check) && !BIT (curr_fld_presence, BCF_fail_pc))
       BC_set_pc (curr_node, NULL);
     continue;
   fail:
     if (curr_token != D_NL) skip_ln = TRUE;
   }
-  if (info_p) VARR_DESTROY (BC_node_t, block_infos);
+  if (info_p) VLO_DELETE (block_infos);
   /* Set up pointer fields.  Process them in reverse order to connect
      friends, uses, and decls in the right order. */
-  for (fld = VARR_ADDR (ptr_fld_t, ptr_flds) + VARR_LENGTH (ptr_fld_t, ptr_flds) - 1;
-       fld >= VARR_ADDR (ptr_fld_t, ptr_flds); fld--) {
+  for (fld = (struct ptr_fld *) VLO_BOUND (ptr_flds) - 1;
+       fld >= (struct ptr_fld *) VLO_BEGIN (ptr_flds); fld--) {
     BC_node_t ptr;
 
     switch (fld->fld) {
@@ -1822,30 +1824,29 @@ void read_bc_program (const char *file_name, FILE *inpf, int info_p) {
       error (TRUE, current_position, "Internal error: unprocessed pointer field %s", fld->fld_name);
     }
   }
-  VARR_DESTROY (BC_node_t, decl_map);
-  VARR_DESTROY (BC_node_t, bcode_map);
-  VARR_DESTROY (ptr_fld_t, ptr_flds);
+  VLO_DELETE (decl_map);
+  VLO_DELETE (bcode_map);
+  VLO_DELETE (ptr_flds);
   /* Set up environment and block field table.  */
   init_env_decl_processing ();
-  for (size_t i = 0; i < VARR_LENGTH (BC_node_t, all_decls); i++) {
-    decl = VARR_GET (BC_node_t, all_decls, i);
-    d_assert (BC_ident (decl) != NULL);
-    define_block_decl (decl, BC_decl_scope (decl));
-    if (strcmp (BC_pos (decl).file_name, ENVIRONMENT_PSEUDO_FILE_NAME) == 0)
-      process_env_decl (decl);
+  for (decl_ptr = (BC_node_t *) VLO_BEGIN (all_decls);
+       decl_ptr < (BC_node_t *) VLO_BOUND (all_decls); decl_ptr++) {
+    d_assert (BC_ident (*decl_ptr) != NULL);
+    define_block_decl (*decl_ptr, BC_decl_scope (*decl_ptr));
+    if (strcmp (BC_pos (*decl_ptr).file_name, ENVIRONMENT_PSEUDO_FILE_NAME) == 0)
+      process_env_decl (*decl_ptr);
   }
-  VARR_DESTROY (BC_node_t, all_decls);
+  VLO_DELETE (all_decls);
   mpz_clear (mpz_attr);
 }
 
 /* Initiate data structures for reading byte code. */
 void initiate_read_bc (void) {
-  curr_fld_presence = bitmap_create ();
   bcn_tab = create_str_code_tab (bcn_tab_els, sizeof (bcn_tab_els) / sizeof (struct str_code));
   bcf_tab = create_str_code_tab (bcf_tab_els, sizeof (bcf_tab_els) / sizeof (struct str_code));
-  VARR_CREATE (char, aux_varr, 0);
-  VARR_CREATE (char, symbol_text, 0);
-  read_bc = mp_create (512);
+  VLO_CREATE (temp_vlo, 0);
+  VLO_CREATE (symbol_text, 0);
+  OS_CREATE (read_bc, 0);
   initiate_string_tables ();
 }
 
@@ -1853,11 +1854,10 @@ void initiate_read_bc (void) {
    when the byte code not necessary anymore (e.g. after its
    execution). */
 void finish_read_bc (void) {
-  bitmap_destroy (curr_fld_presence);
   delete_string_tables ();
-  mp_destroy (read_bc);
-  VARR_DESTROY (char, symbol_text);
-  VARR_DESTROY (char, aux_varr);
+  OS_DELETE (read_bc);
+  VLO_DELETE (symbol_text);
+  VLO_DELETE (temp_vlo);
   finish_str_code_tab (bcn_tab);
   finish_str_code_tab (bcf_tab);
 }

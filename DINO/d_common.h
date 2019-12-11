@@ -98,16 +98,18 @@ int dlclose (void *handle);
 #include <stdio.h>
 
 #include "d_dino.h"
-#include "d_pos.h"
-#include "d_ticker.h"
+#include "allocate.h"
+#include "vlobject.h"
+#include "position.h"
+#include "hashtab.h"
+#include "ticker.h"
+#include "bits.h"
 #include "d_errors.h"
 #include "d_types.h"
 #include "d_dlist.h"
 #include "d_varr.h"
 #include "d_hash.h"
 #include "d_htab.h"
-#include "d_bitmap.h"
-#include "d_mp.h"
 
 #define FALSE 0
 #define TRUE 1
@@ -174,14 +176,8 @@ extern conv_desc_t curr_byte_cd, curr_ucode_cd, curr_reverse_ucode_cd;
 extern const char *curr_encoding_name;
 extern encoding_type_t curr_encoding_type;
 
-DEF_VARR (char);
-
-typedef const char *char_ptr_t;
-DEF_VARR (char_ptr_t);
-DEF_HTAB (char_ptr_t);
-
-extern htab_hash_t str_hash_func (char_ptr_t str);
-extern int str_compare_func (char_ptr_t str1, char_ptr_t str2);
+extern unsigned str_hash_func (hash_table_entry_t str);
+extern int str_compare_func (hash_table_entry_t str1, hash_table_entry_t str2);
 extern const char *get_unique_string (const char *str);
 extern rint_t a2i (const char *str, int base);
 extern rfloat_t a2f (const char *str);
@@ -223,13 +219,13 @@ extern void print_stmt_prompt (void);
 extern void print_stmt_cont_prompt (void);
 extern void d_verror (int fatal_error_flag, position_t position, const char *format, va_list ap);
 extern void d_error (int fatal_error_flag, position_t position, const char *format, ...);
-extern void copy_varr (VARR (char) * to, VARR (char) * from);
-extern void str_to_ucode_varr (VARR (char) * to, const char *from, size_t len);
-extern char *encode_byte_str_varr (byte_t *str, conv_desc_t cd, encoding_type_t tp,
-                                   VARR (char) * varr, size_t *len);
-extern char *encode_ucode_str_varr (ucode_t *str, conv_desc_t cd, encoding_type_t tp,
-                                    VARR (char) * varr, size_t *len);
-extern const char *encode_ucode_str_to_raw_varr (const ucode_t *str, VARR (char) * varr);
+extern void copy_vlo (vlo_t *to, vlo_t *from);
+extern void str_to_ucode_vlo (vlo_t *to, const char *from, size_t len);
+extern char *encode_byte_str_vlo (byte_t *str, conv_desc_t cd, encoding_type_t tp, vlo_t *vlo,
+                                  size_t *len);
+extern char *encode_ucode_str_vlo (ucode_t *str, conv_desc_t cd, encoding_type_t tp, vlo_t *vlo,
+                                   size_t *len);
+extern const char *encode_ucode_str_to_raw_vlo (const ucode_t *str, vlo_t *vlo);
 extern ucode_t get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd, encoding_type_t tp,
                                       void *data);
 extern int check_encoding_on_ascii (const char *encoding);
@@ -314,14 +310,6 @@ static inline int read_byte (void *data) {
   FILE *f = (FILE *) data;
 
   return dino_getc (f);
-}
-
-static inline void push_str (VARR (char) * to, const char *str) {
-  size_t len = VARR_LENGTH (char, to);
-
-  if (str == NULL) return;
-  if (len != 0 && VARR_LAST (char, to) == '\0') VARR_TRUNC (char, to, len - 1);
-  VARR_PUSH_ARR (char, to, str, strlen (str) + 1);
 }
 
 #define REP2(M, a1, a2) M (a1) REP_SEP M (a2)

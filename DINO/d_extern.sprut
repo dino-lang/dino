@@ -44,7 +44,7 @@ typedef struct BC_node *BC_hidden_node_t;
 
 typedef struct BC_node *hidden_pc_t;
 
-typedef const char *char_ptr_t;
+typedef char *char_ptr_t;
 
 /* The hash table entry.  */
 typedef size_t entry_t;
