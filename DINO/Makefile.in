@@ -140,7 +140,8 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
 	"$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libdino_la_LIBADD =
-am_libdino_la_OBJECTS = libdino_la-d_errors.lo libdino_la-d_heap.lo \
+am_libdino_la_OBJECTS = libdino_la-d_pos.lo libdino_la-d_commln.lo \
+	libdino_la-d_errors.lo libdino_la-d_heap.lo \
 	libdino_la-d_runtab.lo libdino_la-d_context.lo \
 	libdino_la-d_inference.lo libdino_la-d_bcio.lo \
 	libdino_la-d_conv.lo libdino_la-d_udb.lo libdino_la-d_func.lo \
@@ -434,8 +435,9 @@ PATH := ${PATH}:../AMMUNITION/.libs
 SUBDIRS = . MODULES
 lib_LTLIBRARIES = libdino.la
 libdino_la_SOURCES = d_dino.h d_errors.h d_common.h d_built.h d_yacc.h d_runtab.h d_bcio.h\
-		     d_types.h d_context.h d_inference.h d_conv.h d_udb.h d_func.h d_eval.h\
-		     d_dlist.h d_varr.h d_hash.h d_htab.h d_bitmap.h d_strtab.h\
+		     d_types.h d_context.h d_inference.h d_conv.h d_udb.h d_func.h d_eval.h d_strtab.h\
+		     d_alloc.h d_dlist.h d_varr.h d_hash.h d_htab.h d_bitmap.h d_mp.h\
+		     d_ticker.h d_pos.h d_pos.c d_commln.h d_commln.c\
 		     d_errors.c d_heap.c d_runtab.c\
    		     d_context.c d_inference.c d_bcio.c d_conv.c d_udb.c d_func.c\
 		     d_eval.c d_dino.c
@@ -637,6 +639,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dino-d_main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_bc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_bcio.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_commln.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_context.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_conv.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_dino.Plo@am__quote@
@@ -646,6 +649,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_heap.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_inference.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_ir.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_pos.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_run.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_runtab.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_udb.Plo@am__quote@
@@ -671,6 +675,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
+
+libdino_la-d_pos.lo: d_pos.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libdino_la_CFLAGS) $(CFLAGS) -MT libdino_la-d_pos.lo -MD -MP -MF $(DEPDIR)/libdino_la-d_pos.Tpo -c -o libdino_la-d_pos.lo `test -f 'd_pos.c' || echo '$(srcdir)/'`d_pos.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libdino_la-d_pos.Tpo $(DEPDIR)/libdino_la-d_pos.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='d_pos.c' object='libdino_la-d_pos.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libdino_la_CFLAGS) $(CFLAGS) -c -o libdino_la-d_pos.lo `test -f 'd_pos.c' || echo '$(srcdir)/'`d_pos.c
+
+libdino_la-d_commln.lo: d_commln.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libdino_la_CFLAGS) $(CFLAGS) -MT libdino_la-d_commln.lo -MD -MP -MF $(DEPDIR)/libdino_la-d_commln.Tpo -c -o libdino_la-d_commln.lo `test -f 'd_commln.c' || echo '$(srcdir)/'`d_commln.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libdino_la-d_commln.Tpo $(DEPDIR)/libdino_la-d_commln.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='d_commln.c' object='libdino_la-d_commln.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libdino_la_CFLAGS) $(CFLAGS) -c -o libdino_la-d_commln.lo `test -f 'd_commln.c' || echo '$(srcdir)/'`d_commln.c
 
 libdino_la-d_errors.lo: d_errors.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libdino_la_CFLAGS) $(CFLAGS) -MT libdino_la-d_errors.lo -MD -MP -MF $(DEPDIR)/libdino_la-d_errors.Tpo -c -o libdino_la-d_errors.lo `test -f 'd_errors.c' || echo '$(srcdir)/'`d_errors.c
@@ -1357,11 +1375,9 @@ d_gen.i : dino$(EXEEXT) d_genheader.i $(srcdir)/d_minimize.d
 d_genheader.i: $(srcdir)/d_gen.c $(srcdir)/d_common.h $(srcdir)/d_types.h $(srcdir)/d_conv.h\
 	       $(srcdir)/d_runtab.h $(srcdir)/d_func.h $(srcdir)/d_eval.h $(srcdir)/d_errors.h\
                $(srcdir)/d_dino.h d_config.h d_run.h d_bc.h\
-	       $(srcdir)/d_dlist.h $(srcdir)/d_varr.h $(srcdir)/d_hash.h $(srcdir)/d_htab.h $(srcdir)/d_bitmap.h\
-               $(srcdir)/../AMMUNITION/allocate.h \
-	       $(srcdir)/../AMMUNITION/position.h \
-	       $(srcdir)/../AMMUNITION/ticker.h \
-	       $(srcdir)/../AMMUNITION/errors.h $(srcdir)/../AMMUNITION/objstack.h
+	       $(srcdir)/d_alloc.h $(srcdir)/d_dlist.h $(srcdir)/d_varr.h $(srcdir)/d_hash.h\
+	       $(srcdir)/d_htab.h $(srcdir)/d_bitmap.h $(srcdir)/d_mp.h\
+	       $(srcdir)/d_pos.h $(srcdir)/d_ticker.h
 	$(CC) @DEFS@ $(CPPFLAGS) -I$(srcdir) -I. $(libdino_la_CFLAGS) $(CFLAGS) -E > d_gen.tmp $(srcdir)/d_gen.c && mv d_gen.tmp $@
 
 # CYGWIN libtools sometimes wrongly install wrapper program -- correct it

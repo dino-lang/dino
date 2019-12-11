@@ -23,8 +23,7 @@
 */
 
 #include <setjmp.h>
-#include "commline.h"
-#include "d_common.h"
+#include "d_commln.h"
 #include "d_ir.h"
 #include "d_run.h"
 #include "d_yacc.h"
@@ -93,11 +92,11 @@ htab_hash_t str_hash_func (char_ptr_t str) { return dino_hash (str, strlen (str)
 int str_compare_func (char_ptr_t str1, char_ptr_t str2) { return strcmp (str1, str2) == 0; }
 
 /* Container where the unique strings are stored. */
-static os_t unique_strings;
+static mp_t unique_strings;
 static HTAB (char_ptr_t) * unique_string_hash_table;
 
 static void initiate_unique_strings (void) {
-  OS_CREATE (unique_strings, 0);
+  unique_strings = mp_create (2048);
   HTAB_CREATE (char_ptr_t, unique_string_hash_table, 1000, str_hash_func, str_compare_func);
 }
 
@@ -106,16 +105,14 @@ char_ptr_t get_unique_string (char_ptr_t str) {
   char_ptr_t tab_str;
 
   if (HTAB_DO (char_ptr_t, unique_string_hash_table, str, HTAB_FIND, tab_str)) return tab_str;
-  OS_TOP_EXPAND (unique_strings, strlen (str) + 1);
-  tab_str = s = OS_TOP_BEGIN (unique_strings);
-  OS_TOP_FINISH (unique_strings);
+  tab_str = s = mp_malloc (unique_strings, strlen (str) + 1);
   strcpy (s, str);
   HTAB_DO (char_ptr_t, unique_string_hash_table, tab_str, HTAB_INSERT, tab_str);
   return tab_str;
 }
 
 static void finish_unique_strings (void) {
-  OS_DELETE (unique_strings);
+  mp_destroy (unique_strings);
   HTAB_DESTROY (char_ptr_t, unique_string_hash_table);
 }
 
@@ -879,6 +876,7 @@ static void set_exception_action (int signal_number) {
 static void add_dino_path (const char *prefix, const char *subdir, const char *string,
                            VARR (char_ptr_t) * vector_ptr) {
   const char *s;
+  char *str;
   char bound;
   int len;
 
@@ -886,14 +884,13 @@ static void add_dino_path (const char *prefix, const char *subdir, const char *s
   if (prefix != NULL) {
     len = strlen (prefix);
     if (len != 0 && prefix[len - 1] == '/') len--;
-    IR_TOP_EXPAND (len + 1 /* '/' */ + 1 /* '\0' */
-                   + (subdir == NULL ? 0 : strlen (subdir)));
-    memcpy ((char *) IR_TOP_BEGIN (), prefix, len);
-    ((char *) IR_TOP_BEGIN ())[len] = '/';
-    ((char *) IR_TOP_BEGIN ())[len + 1] = '\0';
-    if (subdir != NULL) strcat ((char *) IR_TOP_BEGIN (), subdir);
-    prefix = IR_TOP_BEGIN ();
-    IR_TOP_FINISH ();
+    IR_ALLOC (str, len + 1 /* '/' */ + 1 /* '\0' */ + (subdir == NULL ? 0 : strlen (subdir)),
+              char *);
+    memcpy (str, prefix, len);
+    str[len] = '/';
+    str[len + 1] = '\0';
+    if (subdir != NULL) strcat (str, subdir);
+    prefix = str;
   }
 
   bound = ':';
@@ -908,19 +905,18 @@ static void add_dino_path (const char *prefix, const char *subdir, const char *s
           len = strlen (prefix);
           if (len != 0 && prefix[len - 1] == '/') len--;
         }
-        IR_TOP_EXPAND (len + 1 + (s - string) + 1);
+        IR_ALLOC (str, len + 1 + (s - string) + 1, char *);
         if (len == -1)
           len = 0;
         else {
-          memcpy ((char *) IR_TOP_BEGIN (), prefix, len);
-          ((char *) IR_TOP_BEGIN ())[len] = '/';
+          memcpy (str, prefix, len);
+          str[len] = '/';
           len++;
         }
-        memcpy ((char *) IR_TOP_BEGIN () + len, string, s - string);
-        ((char *) IR_TOP_BEGIN ())[len + (s - string)] = '\0';
-        string = IR_TOP_BEGIN ();
+        memcpy (str + len, string, s - string);
+        str[len + (s - string)] = '\0';
+        string = str;
         VARR_PUSH (char_ptr_t, vector_ptr, string);
-        IR_TOP_FINISH ();
       }
       if (*s == '\0') break;
       string = s + 1;

@@ -2273,9 +2273,8 @@ pop_istream_stack (void)
 static const char *
 file_dir_name (const char *file_name)
 {
-  const char *last_slash;
-  const char *curr_char_ptr;
-  const char *result;
+  const char *last_slash, *curr_char_ptr;
+  char *str;
 
   d_assert (file_name != NULL);
   for (curr_char_ptr = file_name, last_slash = NULL;
@@ -2287,11 +2286,10 @@ file_dir_name (const char *file_name)
     return ""; /* current directory */
   else
     {
-      IR_TOP_ADD_MEMORY (file_name, last_slash - file_name + 1);
-      IR_TOP_ADD_BYTE ('\0');
-      result = IR_TOP_BEGIN ();
-      IR_TOP_FINISH ();
-      return result;
+      IR_ALLOC (str, last_slash - file_name + 2, char *);
+      memcpy (str, file_name, last_slash - file_name + 1);
+      str[last_slash - file_name + 1] = '\0';
+      return str;
     }
 }
 
@@ -2301,18 +2299,23 @@ static const char *
 file_path_name (const char *directory_name, const char *file_name,
                 const char *file_suffix)
 {
-  const char *result;
-
+  char *str;
+  size_t len;
+  int slash_p = FALSE;
+  
   d_assert (directory_name != NULL);
-  IR_TOP_ADD_STRING (directory_name);
-  if (strlen (directory_name) != 0
-      && directory_name [strlen (directory_name) - 1] != '/')
-    IR_TOP_ADD_STRING ("/");
-  IR_TOP_ADD_STRING (file_name);
-  IR_TOP_ADD_STRING (file_suffix);
-  result = IR_TOP_BEGIN ();
-  IR_TOP_FINISH ();
-  return result;
+  len = strlen (directory_name);
+  if (len != 0 && directory_name [len - 1] != '/') {
+    slash_p = TRUE;
+    len++;
+  }
+  len += strlen (file_name) + strlen (file_suffix) + 1;
+  IR_ALLOC (str, len, char *);
+  strcpy (str, directory_name);
+  if (slash_p) strcat (str, "/");
+  strcat (str, file_name);
+  strcat (str, file_suffix);
+  return str;
 }
 
 #include <pwd.h>
@@ -2323,18 +2326,22 @@ canonical_path_name (const char *name)
   char buf [PATH_MAX + 1];
   char *p, *str, *result;
   int sep, sep1;
+  size_t len, len2;
+  
   sep = sep1 = '/';
-  if (*name != sep && *name != sep1)
-    {
-      getcwd (buf, PATH_MAX);
-      IR_TOP_ADD_STRING (buf);
-      IR_TOP_SHORTEN (1);
-      IR_TOP_ADD_BYTE (sep);
-      IR_TOP_ADD_BYTE ('\0');
-    }
-  IR_TOP_ADD_STRING (name);
-  result = IR_TOP_BEGIN ();
-  IR_TOP_FINISH ();
+  len = strlen (name) + 1;
+  if (*name != sep && *name != sep1) {
+    getcwd (buf, PATH_MAX);
+    len2 = strlen (buf);
+    len += len2 + 1;
+    IR_ALLOC (result, len, char *);
+    strcpy (result, buf);
+    result[len2] = sep;
+    strcpy (result + len2 + 1, name);
+  } else {
+    IR_ALLOC (result, len, char *);
+    strcpy (result, name);
+  }
   for (p = result; *p != '\0'; p++)
     if (*p == sep1)
       *p = sep;

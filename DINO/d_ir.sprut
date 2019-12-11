@@ -118,20 +118,16 @@ typedef enum hint_val hint_val_t;
 
 /* Start work with the storage manager -- see DINO documentation. */
 
-#define IR_START_ALLOC()    OS_CREATE (irp, 0)
+#define IR_START_ALLOC()    (irp = mp_create (0))
 
 /* Finish work with the storage manager -- see DINO documentation. */
 
-#define IR_STOP_ALLOC()     OS_DELETE (irp)
+#define IR_STOP_ALLOC()     mp_destroy (irp)
 
 /* Allocate storage for internal representation of given size
    -- see DINO documentation. */
 
-#define IR_ALLOC(ptr, size, ptr_type)\
-  do {\
-    OS_TOP_EXPAND (irp, size); ptr = (ptr_type) OS_TOP_BEGIN (irp);\
-    OS_TOP_FINISH (irp);\
-  } while (0);
+#define IR_ALLOC(ptr, size, ptr_type) (ptr = (ptr_type) mp_malloc (irp, size))
 
 /* Free storage of internal representation of given size -- see DINO
    documentation. */
@@ -139,55 +135,7 @@ typedef enum hint_val hint_val_t;
 #define IR_FREE(ptr, size)
 
 
-/* These macros are analogous to ones of package `object-stack'
-   worked with storage of DINO internal representation: */
-
-/* Start new internal representation object -- see also package
-   `object-stack'. */
-
-#define IR_TOP_FINISH()  OS_TOP_FINISH (irp)
-
-/* Nullify current internal representation object -- see also package
-   `object-stack'. */
-
-#define IR_TOP_NULLIFY()  OS_TOP_NULLIFY (irp)
-
-/* Shorten current internal representation object on given number bytes -- see
-   also package `object-stack'. */
-
-#define IR_TOP_SHORTEN(length) OS_TOP_SHORTEN (irp, length)
-
-/* Return start address of current internal representation object -- see also
-   package `object-stack'. */
-
-#define IR_TOP_BEGIN()  OS_TOP_BEGIN (irp)
-
-/* Return length of current internal representation object in bytes -- see
-   also package `object-stack'. */
-
-#define IR_TOP_LENGTH()  OS_TOP_LENGTH (irp)
-
-/* Expand current internal representation object -- see also package
-   `object-stack'. */
-
-#define IR_TOP_EXPAND(length)  OS_TOP_EXPAND (irp, length)
-
-/* Add byte to the end of current internal representation object -- see also
-   package `object-stack'. */
-
-#define IR_TOP_ADD_BYTE(b)  OS_TOP_ADD_BYTE (irp, b)
-
-/* Add string to the end of current internal representation object -- see also
-   package `object-stack'. */
-
-#define IR_TOP_ADD_STRING(str)  OS_TOP_ADD_STRING (irp, str)
-
-/* Add memory of given length to the end of current internal representation
-   object -- see also package `object-stack'. */
-
-#define IR_TOP_ADD_MEMORY(mem, length)  OS_TOP_ADD_MEMORY (irp, mem, length)
-
-extern os_t irp;
+extern mp_t irp;
 
 extern void initiate_table (void);
 extern void delete_table (void);
@@ -489,7 +437,7 @@ extern IR_node_t destroy_unique_ident;
 /* All internal representation storage is implemented by object stack.  See
    package `object-stack'. */
 
-os_t irp;
+mp_t irp;
 
 IR_node_t temp_unique_ident;
 IR_node_t temp_unique_int;
@@ -1493,9 +1441,7 @@ create_unique_node_with_string (IR_node_mode_t m,
   IR_node_t ref;
 
   ref = IR_create_node (m);
-  IR_TOP_EXPAND (len);
-  *string_in_pool_ptr = IR_TOP_BEGIN ();
-  IR_TOP_FINISH ();
+  IR_ALLOC (*string_in_pool_ptr, len, char *);
   memcpy (*string_in_pool_ptr, str, len);
   return ref;
 }

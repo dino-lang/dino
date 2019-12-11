@@ -98,8 +98,8 @@ int dlclose (void *handle);
 #include <stdio.h>
 
 #include "d_dino.h"
-#include "position.h"
-#include "ticker.h"
+#include "d_pos.h"
+#include "d_ticker.h"
 #include "d_errors.h"
 #include "d_types.h"
 #include "d_dlist.h"
@@ -107,6 +107,7 @@ int dlclose (void *handle);
 #include "d_hash.h"
 #include "d_htab.h"
 #include "d_bitmap.h"
+#include "d_mp.h"
 
 #define FALSE 0
 #define TRUE 1

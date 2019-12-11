@@ -655,8 +655,8 @@ static struct regex_node temp_regex_node;
 
 /* Hash table which implements the cache. */
 static HTAB (regex_node_t) * regex_tab;
-/* This object stack contains elements of the cache. */
-static os_t regex_os;
+/* This memory pool contains elements of the cache. */
+static mp_t regex_mp;
 /* Vector containing pointers to the cache elements. */
 static VARR (regex_node_t) * regex_varr;
 
@@ -715,6 +715,7 @@ static int find_regex (const void *pat, int pat_ucode_p, int str_ucode_p, regex_
   regex_t *r;
   size_t len, size;
   int code, found_p;
+  void *mark;
   OnigCompileInfo ci;
   OnigEncoding ucode_enc = (big_endian_p ? ONIG_ENCODING_UTF32_BE : ONIG_ENCODING_UTF32_LE);
 
@@ -732,8 +733,8 @@ static int find_regex (const void *pat, int pat_ucode_p, int str_ucode_p, regex_
                            : str_ucode_p ? regn->latin1_ucode_regex : regn->latin1_latin1_regex);
     if (*result != NULL) return ONIG_NORMAL;
   }
-  OS_TOP_EXPAND (regex_os, sizeof (struct regex_node));
-  regn = OS_TOP_BEGIN (regex_os);
+  mark = mp_mark (regex_mp);
+  regn = mp_malloc (regex_mp, sizeof (struct regex_node));
   len = (pat_ucode_p ? strlen (pat) : ucodestrlen (pat));
   ci.num_of_elements = 5;
   ci.pattern_enc = pat_ucode_p ? ucode_enc : ONIG_ENCODING_ISO_8859_1;
@@ -746,18 +747,15 @@ static int find_regex (const void *pat, int pat_ucode_p, int str_ucode_p, regex_
                           &ci, einfo);
   if (code != ONIG_NORMAL) {
     onig_free (r);
-    OS_TOP_NULLIFY (regex_os);
+    mp_pop (regex_mp, mark);
     return code;
   }
   if (found_p)
     regn = tab_regn;
   else {
-    OS_TOP_FINISH (regex_os);
     VARR_PUSH (regex_node_t, regex_varr, regn);
     size = get_str_size (pat, pat_ucode_p, TRUE);
-    OS_TOP_EXPAND (regex_os, size);
-    regn->string = OS_TOP_BEGIN (regex_os);
-    OS_TOP_FINISH (regex_os);
+    regn->string = mp_malloc (regex_mp, size);
     memcpy (regn->string, pat, size);
     regn->latin1_latin1_regex = regn->latin1_ucode_regex = regn->ucode_ucode_regex = NULL;
   }
@@ -776,7 +774,7 @@ static int find_regex (const void *pat, int pat_ucode_p, int str_ucode_p, regex_
 static void initiate_regex_tab (void) {
   onig_initialize (NULL, 0);
   region = onig_region_new ();
-  OS_CREATE (regex_os, 0);
+  regex_mp = mp_create (512);
   VARR_CREATE (regex_node_t, regex_varr, 0);
   HTAB_CREATE (regex_node_t, regex_tab, 400, regex_node_hash, regex_node_eq);
 }
@@ -794,7 +792,7 @@ static void finish_regex_tab (void) {
     if (regn->ucode_ucode_regex != NULL) onig_free (regn->ucode_ucode_regex);
   }
   VARR_DESTROY (regex_node_t, regex_varr);
-  OS_DELETE (regex_os);
+  mp_destroy (regex_mp);
   onig_region_free (region, 1);
   onig_end ();
 }
@@ -5187,7 +5185,7 @@ void int_earley_set_recovery_match (int npars) {
 
 /* The following contains parse tree nodes before they will be placed
    into the heap. */
-static os_t tree_mem_os;
+static mp_t tree_mem_mp;
 
 /* The following variables are vector of tokens and number of the
    current token to read. */
@@ -5360,10 +5358,8 @@ static ER_node_t tree_to_heap (struct yaep_tree_node *root) {
     break;
   default: d_unreachable ();
   }
-  OS_TOP_EXPAND (tree_mem_os, sizeof (struct tree_heap_node));
-  tree_heap_node = (tree_heap_node_t) OS_TOP_BEGIN (tree_mem_os);
+  tree_heap_node = (tree_heap_node_t) mp_malloc (tree_mem_mp, sizeof (struct tree_heap_node));
   HTAB_DO (tree_heap_node_t, tree_heap_tab, tree_heap_node, HTAB_INSERT, tab_tree_heap_node);
-  OS_TOP_FINISH (tree_mem_os);
   tree_heap_node->tree_node = root;
   tree_heap_node->heap_node = res;
   if (root->type == YAEP_ANODE) {
@@ -5379,14 +5375,7 @@ static ER_node_t tree_to_heap (struct yaep_tree_node *root) {
 }
 
 /* The following function allocates memory for the parse tree. */
-static void *int_parse_alloc (int nmemb) {
-  void *res;
-
-  OS_TOP_EXPAND (tree_mem_os, nmemb);
-  res = OS_TOP_BEGIN (tree_mem_os);
-  OS_TOP_FINISH (tree_mem_os);
-  return res;
-}
+static void *int_parse_alloc (int nmemb) { return mp_malloc (tree_mem_mp, nmemb); }
 
 /* The following function implements function parse in class
    parser. */
@@ -5420,7 +5409,7 @@ void int_earley_parse (int npars) {
   error_fun_block = ID_TO_CODE (ER_code_id (par3));
   error_fun_block_context = ER_code_context (par3);
   g = (struct grammar *) ER_hide (par1);
-  OS_CREATE (tree_mem_os, 0);
+  tree_mem_mp = mp_create (0);
   HTAB_CREATE (tree_heap_node_t, tree_heap_tab,
                2 * ER_els_number (tokens_vect) * sizeof (tree_heap_node_t), tree_heap_node_hash,
                tree_heap_node_eq);
@@ -5429,17 +5418,17 @@ void int_earley_parse (int npars) {
                      &ambiguous_p);
   if (code == YAEP_NO_MEMORY) {
     HTAB_DESTROY (tree_heap_node_t, tree_heap_tab);
-    OS_DELETE (tree_mem_os);
+    mp_destroy (tree_mem_mp);
     eval_error (pmemory_bc_decl, get_pos (real_fun_call_pc),
                 "run time error (%s) -- no parser memory", name);
   } else if (code == YAEP_UNDEFINED_OR_BAD_GRAMMAR) {
     HTAB_DESTROY (tree_heap_node_t, tree_heap_tab);
-    OS_DELETE (tree_mem_os);
+    mp_destroy (tree_mem_mp);
     eval_error (invgrammar_bc_decl, get_pos (real_fun_call_pc), "run time error (%s) -- %s", name,
                 yaep_error_message (g));
   } else if (code == YAEP_INVALID_TOKEN_CODE) {
     HTAB_DESTROY (tree_heap_node_t, tree_heap_tab);
-    OS_DELETE (tree_mem_os);
+    mp_destroy (tree_mem_mp);
     eval_error (invtoken_bc_decl, get_pos (real_fun_call_pc), "run time error (%s) -- %s", name,
                 yaep_error_message (g));
   } else
@@ -5462,7 +5451,7 @@ void int_earley_parse (int npars) {
     ER_set_stack (fun_result, instance);
   }
   HTAB_DESTROY (tree_heap_node_t, tree_heap_tab);
-  OS_DELETE (tree_mem_os);
+  mp_destroy (tree_mem_mp);
 }
 
 /* The following function is used to initiate class parser. */

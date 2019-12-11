@@ -676,7 +676,7 @@ void dump_code (BC_node_t infos, int indent) {
 }
 
 /* Container where the read byte code is stored. */
-static os_t read_bc;
+static mp_t read_bc;
 
 /* This page contains abstract data byte code `scanner'. */
 
@@ -775,9 +775,7 @@ static char_ptr_t string_to_table (char_ptr_t str) {
 
   if (HTAB_DO (char_ptr_t, string_hash_table, str, HTAB_FIND, tab_str)) return tab_str;
   len = strlen (str) + 1;
-  OS_TOP_EXPAND (read_bc, len);
-  tab_str = s = OS_TOP_BEGIN (read_bc);
-  OS_TOP_FINISH (read_bc);
+  tab_str = s = mp_malloc (read_bc, len);
   strcpy (s, str);
   HTAB_DO (char_ptr_t, string_hash_table, tab_str, HTAB_INSERT, tab_str);
   return tab_str;
@@ -792,9 +790,7 @@ static const ucode_ptr_t ucodestr_to_table (ucode_ptr_t str) {
 
   if (HTAB_DO (ucode_ptr_t, ucodestr_hash_table, str, HTAB_FIND, tab_str)) return tab_str;
   len = ucodestrlen (str) + 1;
-  OS_TOP_EXPAND (read_bc, len);
-  tab_str = s = OS_TOP_BEGIN (read_bc);
-  OS_TOP_FINISH (read_bc);
+  tab_str = s = mp_malloc (read_bc, len);
   memcpy (s, str, len);
   HTAB_DO (ucode_ptr_t, ucodestr_hash_table, tab_str, HTAB_INSERT, tab_str);
   return tab_str;
@@ -1849,7 +1845,7 @@ void initiate_read_bc (void) {
   bcf_tab = create_str_code_tab (bcf_tab_els, sizeof (bcf_tab_els) / sizeof (struct str_code));
   VARR_CREATE (char, aux_varr, 0);
   VARR_CREATE (char, symbol_text, 0);
-  OS_CREATE (read_bc, 0);
+  read_bc = mp_create (512);
   initiate_string_tables ();
 }
 
@@ -1859,7 +1855,7 @@ void initiate_read_bc (void) {
 void finish_read_bc (void) {
   bitmap_destroy (curr_fld_presence);
   delete_string_tables ();
-  OS_DELETE (read_bc);
+  mp_destroy (read_bc);
   VARR_DESTROY (char, symbol_text);
   VARR_DESTROY (char, aux_varr);
   finish_str_code_tab (bcn_tab);

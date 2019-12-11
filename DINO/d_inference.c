@@ -249,20 +249,11 @@ static edge_t next_use_edge (edge_t e) { return ((def_use_t) e)->next_use; }
 
 /* Allocation data and function for the pass.  */
 
-static os_t pass_os;
+static mp_t pass_mp;
 
-static void pass_alloc_init (void) { OS_CREATE (pass_os, 0); }
-
-static void *pass_alloc (size_t size) {
-  void *res;
-
-  OS_TOP_EXPAND (pass_os, size);
-  res = OS_TOP_BEGIN (pass_os);
-  OS_TOP_FINISH (pass_os);
-  return res;
-}
-
-static void pass_alloc_finish (void) { OS_DELETE (pass_os); }
+static void pass_alloc_init (void) { pass_mp = mp_create (0); }
+static void *pass_alloc (size_t size) { return mp_malloc (pass_mp, size); }
+static void pass_alloc_finish (void) { mp_destroy (pass_mp); }
 
 /* Pages for calculation of post-inverted order of nodes  */
 
