@@ -666,7 +666,7 @@ enable_maintainer_mode
       ac_precious_vars='build_alias
 host_alias
 target_alias'
-ac_subdirs_all='AMMUNITION SPRUT SHILKA MSTA OKA NONA ONIGURUMA DINO'
+ac_subdirs_all='AMMUNITION SPRUT SHILKA MSTA ONIGURUMA DINO'
 
 # Initialize some variables set by options.
 ac_init_help=
@@ -2358,7 +2358,7 @@ fi
 
 
 
-subdirs="$subdirs AMMUNITION SPRUT SHILKA MSTA OKA NONA ONIGURUMA DINO"
+subdirs="$subdirs AMMUNITION SPRUT SHILKA MSTA ONIGURUMA DINO"
 
 
 ac_config_files="$ac_config_files Makefile"

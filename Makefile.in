@@ -305,7 +305,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = AMMUNITION SPRUT MSTA SHILKA ONIGURUMA DINO NONA OKA
+SUBDIRS = AMMUNITION SPRUT MSTA SHILKA ONIGURUMA DINO
 dist_doc_DATA = cocom.txt cocom.ps cocom.pdf cocom.dvi cocom.info\
 	        cocom.html
 

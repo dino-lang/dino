@@ -15,7 +15,7 @@ AM_MAINTAINER_MODE
 # Checks for typedefs, structures, and compiler characteristics.
 # Checks for library functions.
 
-AC_CONFIG_SUBDIRS([AMMUNITION SPRUT SHILKA MSTA OKA NONA ONIGURUMA DINO])
+AC_CONFIG_SUBDIRS([AMMUNITION SPRUT SHILKA MSTA ONIGURUMA DINO])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

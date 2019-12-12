@@ -1,4 +1,4 @@
-SUBDIRS = AMMUNITION SPRUT MSTA SHILKA ONIGURUMA DINO NONA OKA
+SUBDIRS = AMMUNITION SPRUT MSTA SHILKA ONIGURUMA DINO
 dist_doc_DATA = cocom.txt cocom.ps cocom.pdf cocom.dvi cocom.info\
 	        cocom.html
 EXTRA_DIST = README.md Dino.jpg Dino_Flow.png INSTALL copyright COPYING COPYING.LIB cocom.sgml.in 
