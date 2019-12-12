@@ -153,20 +153,6 @@ am__v_lt_1 =
 libcocom_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libcocom_la_CFLAGS) \
 	$(CFLAGS) $(libcocom_la_LDFLAGS) $(LDFLAGS) -o $@
-libcocomcpp_la_LIBADD =
-am_libcocomcpp_la_OBJECTS = libcocomcpp_la-allocatecpp.lo \
-	libcocomcpp_la-vlobjectcpp.lo libcocomcpp_la-objstackcpp.lo \
-	libcocomcpp_la-hashtabcpp.lo libcocomcpp_la-spsetcpp.lo \
-	libcocomcpp_la-cspsetcpp.lo libcocomcpp_la-commlinecpp.lo \
-	libcocomcpp_la-positioncpp.lo libcocomcpp_la-errorscpp.lo \
-	libcocomcpp_la-tickercpp.lo libcocomcpp_la-bitscpp.lo \
-	libcocomcpp_la-arithmcpp.lo libcocomcpp_la-IEEEcpp.lo \
-	libcocomcpp_la-yaepcpp.lo
-libcocomcpp_la_OBJECTS = $(am_libcocomcpp_la_OBJECTS)
-libcocomcpp_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
-	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
-	$(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) \
-	$(libcocomcpp_la_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -183,24 +169,6 @@ DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
-CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
-LTCXXCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) \
-	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	$(AM_CXXFLAGS) $(CXXFLAGS)
-AM_V_CXX = $(am__v_CXX_@AM_V@)
-am__v_CXX_ = $(am__v_CXX_@AM_DEFAULT_V@)
-am__v_CXX_0 = @echo "  CXX     " $@;
-am__v_CXX_1 = 
-CXXLD = $(CXX)
-CXXLINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
-	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
-am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
-am__v_CXXLD_0 = @echo "  CXXLD   " $@;
-am__v_CXXLD_1 = 
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
@@ -219,8 +187,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libcocom_la_SOURCES) $(libcocomcpp_la_SOURCES)
-DIST_SOURCES = $(libcocom_la_SOURCES) $(libcocomcpp_la_SOURCES)
+SOURCES = $(libcocom_la_SOURCES)
+DIST_SOURCES = $(libcocom_la_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -400,19 +368,13 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-lib_LTLIBRARIES = libcocom.la libcocomcpp.la
+lib_LTLIBRARIES = libcocom.la
 libcocom_la_SOURCES = allocate.c vlobject.c objstack.c hashtab.c spset.c\
                       cspset.c commline.c position.c errors.c ticker.c\
 		      bits.c arithm.c IEEE.c yaep.c
 
 libcocom_la_CFLAGS = @LIB_CFLAGS@ -DIEEE_QUAD
 libcocom_la_LDFLAGS = @LIB_LDFLAGS@
-libcocomcpp_la_SOURCES = allocatecpp.C vlobjectcpp.C objstackcpp.C hashtabcpp.C spsetcpp.C\
-                        cspsetcpp.C commlinecpp.C positioncpp.C errorscpp.C tickercpp.C\
-			bitscpp.C arithmcpp.C IEEEcpp.C yaepcpp.C 
-
-libcocomcpp_la_CXXFLAGS = @LIB_CFLAGS@ -DIEEE_QUAD
-libcocomcpp_la_LDFLAGS = @LIB_LDFLAGS@
 include_HEADERS = allocate.h vlobject.h objstack.h hashtab.h spset.h cspset.h \
                   commline.h position.h errors.h ticker.h bits.h arithm.h IEEE.h yaep.h 
 
@@ -422,28 +384,20 @@ dist_doc_DATA = ammunition.txt ammunition.ps ammunition.pdf ammunition.dvi ammun
 	        ammunition.html ammunition-1.html ammunition-2.html ammunition-3.html ammunition-4.html\
 		ammunition-5.html ammunition-6.html ammunition-7.html ammunition-8.html ammunition-9.html\
 		ammunition-10.html ammunition-11.html ammunition-12.html\
-		ammunition-13.html ammunition-14.html ammunition-15.html\
-		ammunition++.txt ammunition++.ps ammunition++.pdf ammunition++.dvi ammunition++.info\
-		ammunition++.html ammunition++-1.html ammunition++-2.html ammunition++-3.html ammunition++-4.html\
-		ammunition++-5.html ammunition++-6.html ammunition++-7.html ammunition++-8.html ammunition++-9.html\
-		ammunition++-10.html ammunition++-11.html ammunition++-12.html\
-		ammunition++-13.html ammunition++-14.html ammunition++-15.html
+		ammunition-13.html ammunition-14.html ammunition-15.html
 
 EXTRA_DIST = IEEEtens.c sgramm.y allocate.tst.in vlobject.tst.in objstack.tst.in hashtab.tst.in\
              spset.tst.in cspset.tst.in commline.tst.in position.tst.in errors.tst.in\
 	     ticker.tst.in bits.tst.in arithm.tst.in IEEE.tst.in yaep.tst.in\
-	     allocate++.tst.in vlobject++.tst.in objstack++.tst.in hashtab++.tst.in\
-             spset++.tst.in cspset++.tst.in commline++.tst.in position++.tst.in errors++.tst.in\
-	     ticker++.tst.in bits++.tst.in arithm++.tst.in IEEE++.tst.in yaep++.tst.in\
-	     compare_parsers.tst.in whole_gcc_test.i ammunition.sgml.in ammunition++.sgml.in\
-	     yaep_part.sgml.in yaep_part++.sgml.in
+	     compare_parsers.tst.in whole_gcc_test.i ammunition.sgml.in\
+	     yaep_part.sgml.in
 
 ACLOCAL_AMFLAGS = -I m4
 all: $(BUILT_SOURCES) config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
-.SUFFIXES: .C .c .lo .o .obj
+.SUFFIXES: .c .lo .o .obj
 am--refresh: Makefile
 	@:
 $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__configure_deps)
@@ -531,9 +485,6 @@ clean-libLTLIBRARIES:
 libcocom.la: $(libcocom_la_OBJECTS) $(libcocom_la_DEPENDENCIES) $(EXTRA_libcocom_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(libcocom_la_LINK) -rpath $(libdir) $(libcocom_la_OBJECTS) $(libcocom_la_LIBADD) $(LIBS)
 
-libcocomcpp.la: $(libcocomcpp_la_OBJECTS) $(libcocomcpp_la_DEPENDENCIES) $(EXTRA_libcocomcpp_la_DEPENDENCIES) 
-	$(AM_V_CXXLD)$(libcocomcpp_la_LINK) -rpath $(libdir) $(libcocomcpp_la_OBJECTS) $(libcocomcpp_la_LIBADD) $(LIBS)
-
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -554,139 +505,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcocom_la-ticker.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcocom_la-vlobject.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcocom_la-yaep.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcocomcpp_la-IEEEcpp.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcocomcpp_la-allocatecpp.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcocomcpp_la-arithmcpp.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcocomcpp_la-bitscpp.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcocomcpp_la-commlinecpp.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcocomcpp_la-cspsetcpp.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcocomcpp_la-errorscpp.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcocomcpp_la-hashtabcpp.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcocomcpp_la-objstackcpp.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcocomcpp_la-positioncpp.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcocomcpp_la-spsetcpp.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcocomcpp_la-tickercpp.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcocomcpp_la-vlobjectcpp.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcocomcpp_la-yaepcpp.Plo@am__quote@
-
-.C.o:
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ $<
-
-.C.obj:
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-.C.lo:
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LTCXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
-
-libcocomcpp_la-allocatecpp.lo: allocatecpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -MT libcocomcpp_la-allocatecpp.lo -MD -MP -MF $(DEPDIR)/libcocomcpp_la-allocatecpp.Tpo -c -o libcocomcpp_la-allocatecpp.lo `test -f 'allocatecpp.C' || echo '$(srcdir)/'`allocatecpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcocomcpp_la-allocatecpp.Tpo $(DEPDIR)/libcocomcpp_la-allocatecpp.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='allocatecpp.C' object='libcocomcpp_la-allocatecpp.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -c -o libcocomcpp_la-allocatecpp.lo `test -f 'allocatecpp.C' || echo '$(srcdir)/'`allocatecpp.C
-
-libcocomcpp_la-vlobjectcpp.lo: vlobjectcpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -MT libcocomcpp_la-vlobjectcpp.lo -MD -MP -MF $(DEPDIR)/libcocomcpp_la-vlobjectcpp.Tpo -c -o libcocomcpp_la-vlobjectcpp.lo `test -f 'vlobjectcpp.C' || echo '$(srcdir)/'`vlobjectcpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcocomcpp_la-vlobjectcpp.Tpo $(DEPDIR)/libcocomcpp_la-vlobjectcpp.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='vlobjectcpp.C' object='libcocomcpp_la-vlobjectcpp.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -c -o libcocomcpp_la-vlobjectcpp.lo `test -f 'vlobjectcpp.C' || echo '$(srcdir)/'`vlobjectcpp.C
-
-libcocomcpp_la-objstackcpp.lo: objstackcpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -MT libcocomcpp_la-objstackcpp.lo -MD -MP -MF $(DEPDIR)/libcocomcpp_la-objstackcpp.Tpo -c -o libcocomcpp_la-objstackcpp.lo `test -f 'objstackcpp.C' || echo '$(srcdir)/'`objstackcpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcocomcpp_la-objstackcpp.Tpo $(DEPDIR)/libcocomcpp_la-objstackcpp.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='objstackcpp.C' object='libcocomcpp_la-objstackcpp.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -c -o libcocomcpp_la-objstackcpp.lo `test -f 'objstackcpp.C' || echo '$(srcdir)/'`objstackcpp.C
-
-libcocomcpp_la-hashtabcpp.lo: hashtabcpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -MT libcocomcpp_la-hashtabcpp.lo -MD -MP -MF $(DEPDIR)/libcocomcpp_la-hashtabcpp.Tpo -c -o libcocomcpp_la-hashtabcpp.lo `test -f 'hashtabcpp.C' || echo '$(srcdir)/'`hashtabcpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcocomcpp_la-hashtabcpp.Tpo $(DEPDIR)/libcocomcpp_la-hashtabcpp.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hashtabcpp.C' object='libcocomcpp_la-hashtabcpp.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -c -o libcocomcpp_la-hashtabcpp.lo `test -f 'hashtabcpp.C' || echo '$(srcdir)/'`hashtabcpp.C
-
-libcocomcpp_la-spsetcpp.lo: spsetcpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -MT libcocomcpp_la-spsetcpp.lo -MD -MP -MF $(DEPDIR)/libcocomcpp_la-spsetcpp.Tpo -c -o libcocomcpp_la-spsetcpp.lo `test -f 'spsetcpp.C' || echo '$(srcdir)/'`spsetcpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcocomcpp_la-spsetcpp.Tpo $(DEPDIR)/libcocomcpp_la-spsetcpp.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='spsetcpp.C' object='libcocomcpp_la-spsetcpp.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -c -o libcocomcpp_la-spsetcpp.lo `test -f 'spsetcpp.C' || echo '$(srcdir)/'`spsetcpp.C
-
-libcocomcpp_la-cspsetcpp.lo: cspsetcpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -MT libcocomcpp_la-cspsetcpp.lo -MD -MP -MF $(DEPDIR)/libcocomcpp_la-cspsetcpp.Tpo -c -o libcocomcpp_la-cspsetcpp.lo `test -f 'cspsetcpp.C' || echo '$(srcdir)/'`cspsetcpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcocomcpp_la-cspsetcpp.Tpo $(DEPDIR)/libcocomcpp_la-cspsetcpp.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='cspsetcpp.C' object='libcocomcpp_la-cspsetcpp.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -c -o libcocomcpp_la-cspsetcpp.lo `test -f 'cspsetcpp.C' || echo '$(srcdir)/'`cspsetcpp.C
-
-libcocomcpp_la-commlinecpp.lo: commlinecpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -MT libcocomcpp_la-commlinecpp.lo -MD -MP -MF $(DEPDIR)/libcocomcpp_la-commlinecpp.Tpo -c -o libcocomcpp_la-commlinecpp.lo `test -f 'commlinecpp.C' || echo '$(srcdir)/'`commlinecpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcocomcpp_la-commlinecpp.Tpo $(DEPDIR)/libcocomcpp_la-commlinecpp.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='commlinecpp.C' object='libcocomcpp_la-commlinecpp.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -c -o libcocomcpp_la-commlinecpp.lo `test -f 'commlinecpp.C' || echo '$(srcdir)/'`commlinecpp.C
-
-libcocomcpp_la-positioncpp.lo: positioncpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -MT libcocomcpp_la-positioncpp.lo -MD -MP -MF $(DEPDIR)/libcocomcpp_la-positioncpp.Tpo -c -o libcocomcpp_la-positioncpp.lo `test -f 'positioncpp.C' || echo '$(srcdir)/'`positioncpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcocomcpp_la-positioncpp.Tpo $(DEPDIR)/libcocomcpp_la-positioncpp.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='positioncpp.C' object='libcocomcpp_la-positioncpp.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -c -o libcocomcpp_la-positioncpp.lo `test -f 'positioncpp.C' || echo '$(srcdir)/'`positioncpp.C
-
-libcocomcpp_la-errorscpp.lo: errorscpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -MT libcocomcpp_la-errorscpp.lo -MD -MP -MF $(DEPDIR)/libcocomcpp_la-errorscpp.Tpo -c -o libcocomcpp_la-errorscpp.lo `test -f 'errorscpp.C' || echo '$(srcdir)/'`errorscpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcocomcpp_la-errorscpp.Tpo $(DEPDIR)/libcocomcpp_la-errorscpp.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='errorscpp.C' object='libcocomcpp_la-errorscpp.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -c -o libcocomcpp_la-errorscpp.lo `test -f 'errorscpp.C' || echo '$(srcdir)/'`errorscpp.C
-
-libcocomcpp_la-tickercpp.lo: tickercpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -MT libcocomcpp_la-tickercpp.lo -MD -MP -MF $(DEPDIR)/libcocomcpp_la-tickercpp.Tpo -c -o libcocomcpp_la-tickercpp.lo `test -f 'tickercpp.C' || echo '$(srcdir)/'`tickercpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcocomcpp_la-tickercpp.Tpo $(DEPDIR)/libcocomcpp_la-tickercpp.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='tickercpp.C' object='libcocomcpp_la-tickercpp.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -c -o libcocomcpp_la-tickercpp.lo `test -f 'tickercpp.C' || echo '$(srcdir)/'`tickercpp.C
-
-libcocomcpp_la-bitscpp.lo: bitscpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -MT libcocomcpp_la-bitscpp.lo -MD -MP -MF $(DEPDIR)/libcocomcpp_la-bitscpp.Tpo -c -o libcocomcpp_la-bitscpp.lo `test -f 'bitscpp.C' || echo '$(srcdir)/'`bitscpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcocomcpp_la-bitscpp.Tpo $(DEPDIR)/libcocomcpp_la-bitscpp.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='bitscpp.C' object='libcocomcpp_la-bitscpp.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -c -o libcocomcpp_la-bitscpp.lo `test -f 'bitscpp.C' || echo '$(srcdir)/'`bitscpp.C
-
-libcocomcpp_la-arithmcpp.lo: arithmcpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -MT libcocomcpp_la-arithmcpp.lo -MD -MP -MF $(DEPDIR)/libcocomcpp_la-arithmcpp.Tpo -c -o libcocomcpp_la-arithmcpp.lo `test -f 'arithmcpp.C' || echo '$(srcdir)/'`arithmcpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcocomcpp_la-arithmcpp.Tpo $(DEPDIR)/libcocomcpp_la-arithmcpp.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='arithmcpp.C' object='libcocomcpp_la-arithmcpp.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -c -o libcocomcpp_la-arithmcpp.lo `test -f 'arithmcpp.C' || echo '$(srcdir)/'`arithmcpp.C
-
-libcocomcpp_la-IEEEcpp.lo: IEEEcpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -MT libcocomcpp_la-IEEEcpp.lo -MD -MP -MF $(DEPDIR)/libcocomcpp_la-IEEEcpp.Tpo -c -o libcocomcpp_la-IEEEcpp.lo `test -f 'IEEEcpp.C' || echo '$(srcdir)/'`IEEEcpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcocomcpp_la-IEEEcpp.Tpo $(DEPDIR)/libcocomcpp_la-IEEEcpp.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='IEEEcpp.C' object='libcocomcpp_la-IEEEcpp.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -c -o libcocomcpp_la-IEEEcpp.lo `test -f 'IEEEcpp.C' || echo '$(srcdir)/'`IEEEcpp.C
-
-libcocomcpp_la-yaepcpp.lo: yaepcpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -MT libcocomcpp_la-yaepcpp.lo -MD -MP -MF $(DEPDIR)/libcocomcpp_la-yaepcpp.Tpo -c -o libcocomcpp_la-yaepcpp.lo `test -f 'yaepcpp.C' || echo '$(srcdir)/'`yaepcpp.C
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcocomcpp_la-yaepcpp.Tpo $(DEPDIR)/libcocomcpp_la-yaepcpp.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='yaepcpp.C' object='libcocomcpp_la-yaepcpp.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcocomcpp_la_CXXFLAGS) $(CXXFLAGS) -c -o libcocomcpp_la-yaepcpp.lo `test -f 'yaepcpp.C' || echo '$(srcdir)/'`yaepcpp.C
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -1232,15 +1050,9 @@ distclean-local:
 	rm -f spset.tst cspset.tst
 	rm -f commline.tst position.tst errors.tst ticker.tst bits.tst
 	rm -f arithm.tst IEEE.tst yaep.tst
-	rm -f allocate++.tst vlobject++.tst objstack++.tst hashtab++.tst
-	rm -f spset++.tst cspset++.tst
-	rm -f commline++.tst position++.tst errors++.tst ticker++.tst
-	rm -f bits++.tst arithm++.tst IEEE++.tst yaep++.tst
 	rm -f compare_parsers.tst
 	rm -f ammunition.sgml ammunition.tex ammunition.log\
               ammunition.aux ammunition.toc ammunition.tmp ammunition.out
-	rm -f ammunition++.sgml ammunition++.tex ammunition++.log\
-	      ammunition++.aux ammunition++.toc ammunition++.tmp ammunition++.out
 	rm -rf *.out.dSYM
 
 sgramm.c: $(srcdir)/sgramm.y
@@ -1276,34 +1088,6 @@ doc :
 	mv ammunition.dvi $(srcdir)/ammunition.dvi
 	dvips -o $(srcdir)/ammunition.ps $(srcdir)/ammunition.dvi
 	ps2pdf $(srcdir)/ammunition.ps $(srcdir)/ammunition.pdf
-
-	$(AWK) "{if(\$$0 == \"%%%\")\
-                     {while ((getline line < \"$(srcdir)/yaep_part++.sgml.in\") > 0)\
-                        print line;close(\"$(srcdir)/yaep_part++.sgml.in\")}\
-                 else print;}" $(srcdir)/ammunition++.sgml.in >ammunition++.sgml
-	linuxdoc -B txt --papersize=letter -f ammunition++.sgml
-	mv ammunition++.txt $(srcdir)
-	linuxdoc -B html --papersize=letter ammunition++.sgml
-	if test -f ammunition++-1.html;then\
-  	  for i in ammunition++-*.html;do\
-   	    mv $$i $(srcdir)/$$i;\
-	  done;\
-        fi
-	mv ammunition++.html $(srcdir)/ammunition++.html
-	linuxdoc -B info --papersize=letter ammunition++.sgml
-	if test -f ammunition++.info;then\
-	  for i in ammunition++.info*;do\
-   	    mv $$i $(srcdir)/$$i;\
-	  done;\
-        fi
-	linuxdoc -B latex --papersize=letter ammunition++.sgml
-	if test ! -f ammunition++.dvi\
-           -o -f ammunition++.tex -a ammunition++.tex -nt ammunition++.dvi; then\
-    	        latex ammunition++.tex; latex ammunition++.tex;\
-        fi
-	mv ammunition++.dvi $(srcdir)/ammunition++.dvi
-	dvips -o $(srcdir)/ammunition++.ps $(srcdir)/ammunition++.dvi
-	ps2pdf $(srcdir)/ammunition++.ps $(srcdir)/ammunition++.pdf
 
 # Generation of the most precise floating point representation of
 # powers of ten (max power (5010) > log10 (2) * (max power of IEEE quad
@@ -1361,7 +1145,7 @@ IEEEtens.c :
 	fi
 
 # Test the packages.
-test: test-c test-cpp
+test: test-c
 
 test-c: IEEEtens.c allocate-tst vlobject-tst objstack-tst \
         hashtab-tst spset-tst cspset-tst commline-tst position-tst errors-tst \
@@ -1394,39 +1178,6 @@ IEEE-tst:
 	$(SHELL) IEEE.tst
 yaep-tst:
 	$(SHELL) yaep.tst
-
-test-cpp: IEEEtens.c allocatecpp-tst vlobjectcpp-tst objstackcpp-tst \
-          hashtabcpp-tst spsetcpp-tst cspsetcpp-tst commlinecpp-tst \
-          positioncpp-tst errorscpp-tst tickercpp-tst bitscpp-tst \
-          arithmcpp-tst IEEEcpp-tst yaepcpp-tst
-allocatecpp-tst:
-	$(SHELL) allocate++.tst
-vlobjectcpp-tst:
-	$(SHELL) vlobject++.tst
-objstackcpp-tst:
-	$(SHELL) objstack++.tst
-hashtabcpp-tst:
-	$(SHELL) hashtab++.tst
-spsetcpp-tst:
-	$(SHELL) spset++.tst
-cspsetcpp-tst:
-	$(SHELL) cspset++.tst
-commlinecpp-tst:
-	$(SHELL) commline++.tst
-positioncpp-tst:
-	$(SHELL) position++.tst
-errorscpp-tst:
-	$(SHELL) errors++.tst
-tickercpp-tst:
-	$(SHELL) ticker++.tst
-bitscpp-tst:
-	$(SHELL) bits++.tst
-arithmcpp-tst:
-	$(SHELL) arithm++.tst
-IEEEcpp-tst:
-	$(SHELL) IEEE++.tst
-yaepcpp-tst:
-	$(SHELL) yaep++.tst
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

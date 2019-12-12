@@ -1,14 +1,9 @@
-lib_LTLIBRARIES = libcocom.la libcocomcpp.la
+lib_LTLIBRARIES = libcocom.la
 libcocom_la_SOURCES = allocate.c vlobject.c objstack.c hashtab.c spset.c\
                       cspset.c commline.c position.c errors.c ticker.c\
 		      bits.c arithm.c IEEE.c yaep.c
 libcocom_la_CFLAGS = @LIB_CFLAGS@ -DIEEE_QUAD
 libcocom_la_LDFLAGS = @LIB_LDFLAGS@
-libcocomcpp_la_SOURCES = allocatecpp.C vlobjectcpp.C objstackcpp.C hashtabcpp.C spsetcpp.C\
-                        cspsetcpp.C commlinecpp.C positioncpp.C errorscpp.C tickercpp.C\
-			bitscpp.C arithmcpp.C IEEEcpp.C yaepcpp.C 
-libcocomcpp_la_CXXFLAGS = @LIB_CFLAGS@ -DIEEE_QUAD
-libcocomcpp_la_LDFLAGS = @LIB_LDFLAGS@
 include_HEADERS = allocate.h vlobject.h objstack.h hashtab.h spset.h cspset.h \
                   commline.h position.h errors.h ticker.h bits.h arithm.h IEEE.h yaep.h 
 BUILT_SOURCES = sgramm.c
@@ -17,20 +12,12 @@ dist_doc_DATA = ammunition.txt ammunition.ps ammunition.pdf ammunition.dvi ammun
 	        ammunition.html ammunition-1.html ammunition-2.html ammunition-3.html ammunition-4.html\
 		ammunition-5.html ammunition-6.html ammunition-7.html ammunition-8.html ammunition-9.html\
 		ammunition-10.html ammunition-11.html ammunition-12.html\
-		ammunition-13.html ammunition-14.html ammunition-15.html\
-		ammunition++.txt ammunition++.ps ammunition++.pdf ammunition++.dvi ammunition++.info\
-		ammunition++.html ammunition++-1.html ammunition++-2.html ammunition++-3.html ammunition++-4.html\
-		ammunition++-5.html ammunition++-6.html ammunition++-7.html ammunition++-8.html ammunition++-9.html\
-		ammunition++-10.html ammunition++-11.html ammunition++-12.html\
-		ammunition++-13.html ammunition++-14.html ammunition++-15.html
+		ammunition-13.html ammunition-14.html ammunition-15.html
 EXTRA_DIST = IEEEtens.c sgramm.y allocate.tst.in vlobject.tst.in objstack.tst.in hashtab.tst.in\
              spset.tst.in cspset.tst.in commline.tst.in position.tst.in errors.tst.in\
 	     ticker.tst.in bits.tst.in arithm.tst.in IEEE.tst.in yaep.tst.in\
-	     allocate++.tst.in vlobject++.tst.in objstack++.tst.in hashtab++.tst.in\
-             spset++.tst.in cspset++.tst.in commline++.tst.in position++.tst.in errors++.tst.in\
-	     ticker++.tst.in bits++.tst.in arithm++.tst.in IEEE++.tst.in yaep++.tst.in\
-	     compare_parsers.tst.in whole_gcc_test.i ammunition.sgml.in ammunition++.sgml.in\
-	     yaep_part.sgml.in yaep_part++.sgml.in
+	     compare_parsers.tst.in whole_gcc_test.i ammunition.sgml.in\
+	     yaep_part.sgml.in
 ACLOCAL_AMFLAGS = -I m4
 
 check : test
@@ -44,15 +31,9 @@ distclean-local:
 	rm -f spset.tst cspset.tst
 	rm -f commline.tst position.tst errors.tst ticker.tst bits.tst
 	rm -f arithm.tst IEEE.tst yaep.tst
-	rm -f allocate++.tst vlobject++.tst objstack++.tst hashtab++.tst
-	rm -f spset++.tst cspset++.tst
-	rm -f commline++.tst position++.tst errors++.tst ticker++.tst
-	rm -f bits++.tst arithm++.tst IEEE++.tst yaep++.tst
 	rm -f compare_parsers.tst
 	rm -f ammunition.sgml ammunition.tex ammunition.log\
               ammunition.aux ammunition.toc ammunition.tmp ammunition.out
-	rm -f ammunition++.sgml ammunition++.tex ammunition++.log\
-	      ammunition++.aux ammunition++.toc ammunition++.tmp ammunition++.out
 	rm -rf *.out.dSYM
 
 sgramm.c: $(srcdir)/sgramm.y
@@ -88,34 +69,6 @@ doc :
 	mv ammunition.dvi $(srcdir)/ammunition.dvi
 	dvips -o $(srcdir)/ammunition.ps $(srcdir)/ammunition.dvi
 	ps2pdf $(srcdir)/ammunition.ps $(srcdir)/ammunition.pdf
-
-	$(AWK) "{if(\$$0 == \"%%%\")\
-                     {while ((getline line < \"$(srcdir)/yaep_part++.sgml.in\") > 0)\
-                        print line;close(\"$(srcdir)/yaep_part++.sgml.in\")}\
-                 else print;}" $(srcdir)/ammunition++.sgml.in >ammunition++.sgml
-	linuxdoc -B txt --papersize=letter -f ammunition++.sgml
-	mv ammunition++.txt $(srcdir)
-	linuxdoc -B html --papersize=letter ammunition++.sgml
-	if test -f ammunition++-1.html;then\
-  	  for i in ammunition++-*.html;do\
-   	    mv $$i $(srcdir)/$$i;\
-	  done;\
-        fi
-	mv ammunition++.html $(srcdir)/ammunition++.html
-	linuxdoc -B info --papersize=letter ammunition++.sgml
-	if test -f ammunition++.info;then\
-	  for i in ammunition++.info*;do\
-   	    mv $$i $(srcdir)/$$i;\
-	  done;\
-        fi
-	linuxdoc -B latex --papersize=letter ammunition++.sgml
-	if test ! -f ammunition++.dvi\
-           -o -f ammunition++.tex -a ammunition++.tex -nt ammunition++.dvi; then\
-    	        latex ammunition++.tex; latex ammunition++.tex;\
-        fi
-	mv ammunition++.dvi $(srcdir)/ammunition++.dvi
-	dvips -o $(srcdir)/ammunition++.ps $(srcdir)/ammunition++.dvi
-	ps2pdf $(srcdir)/ammunition++.ps $(srcdir)/ammunition++.pdf
 
 # Generation of the most precise floating point representation of
 # powers of ten (max power (5010) > log10 (2) * (max power of IEEE quad
@@ -173,7 +126,7 @@ IEEEtens.c :
 	fi
 
 # Test the packages.
-test: test-c test-cpp
+test: test-c
 
 test-c: IEEEtens.c allocate-tst vlobject-tst objstack-tst \
         hashtab-tst spset-tst cspset-tst commline-tst position-tst errors-tst \
@@ -206,36 +159,3 @@ IEEE-tst:
 	$(SHELL) IEEE.tst
 yaep-tst:
 	$(SHELL) yaep.tst
-
-test-cpp: IEEEtens.c allocatecpp-tst vlobjectcpp-tst objstackcpp-tst \
-          hashtabcpp-tst spsetcpp-tst cspsetcpp-tst commlinecpp-tst \
-          positioncpp-tst errorscpp-tst tickercpp-tst bitscpp-tst \
-          arithmcpp-tst IEEEcpp-tst yaepcpp-tst
-allocatecpp-tst:
-	$(SHELL) allocate++.tst
-vlobjectcpp-tst:
-	$(SHELL) vlobject++.tst
-objstackcpp-tst:
-	$(SHELL) objstack++.tst
-hashtabcpp-tst:
-	$(SHELL) hashtab++.tst
-spsetcpp-tst:
-	$(SHELL) spset++.tst
-cspsetcpp-tst:
-	$(SHELL) cspset++.tst
-commlinecpp-tst:
-	$(SHELL) commline++.tst
-positioncpp-tst:
-	$(SHELL) position++.tst
-errorscpp-tst:
-	$(SHELL) errors++.tst
-tickercpp-tst:
-	$(SHELL) ticker++.tst
-bitscpp-tst:
-	$(SHELL) bits++.tst
-arithmcpp-tst:
-	$(SHELL) arithm++.tst
-IEEEcpp-tst:
-	$(SHELL) IEEE++.tst
-yaepcpp-tst:
-	$(SHELL) yaep++.tst

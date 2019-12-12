@@ -92,9 +92,6 @@ CXXFLAGS="$CXXFLAGS $c_debug_define"
 output_files="allocate.tst vlobject.tst objstack.tst hashtab.tst\
               spset.tst cspset.tst commline.tst position.tst\
               errors.tst ticker.tst bits.tst arithm.tst IEEE.tst yaep.tst\
-              allocate++.tst vlobject++.tst objstack++.tst hashtab++.tst\
-              spset++.tst cspset++.tst commline++.tst position++.tst\
-              errors++.tst ticker++.tst bits++.tst arithm++.tst IEEE++.tst\
-              yaep++.tst compare_parsers.tst"
+	      compare_parsers.tst"
 
 AC_OUTPUT($output_files)
