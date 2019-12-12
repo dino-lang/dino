@@ -138,8 +138,6 @@ struct yaep_tree_node
   } val;
 };
 
-#ifndef __cplusplus
-
 /* The following function creates undefined grammar.  The function
    returns NULL if there is no memory.  This function should be called
    the first. */
@@ -285,86 +283,5 @@ extern int yaep_parse (struct grammar *grammar,
 
 /* The following function frees memory allocated for the grammar. */
 extern void yaep_free_grammar (struct grammar *grammar);
-
-#else /* #ifndef __cplusplus */
-
-class yaep
-{
-  struct grammar *grammar;
-  
-public:
-
-  /* The following constructor and destructor allocate and free memory
-     for the grammar. */
-  yaep (void);
-  ~yaep (void);
-
-  /* The following two functions allocate memory for the descriptor. */
-
-  inline void *operator new (size_t size)
-    {
-      return allocate::malloc (size);
-    }
-
-  inline void *operator new[] (size_t size)
-    {
-      return allocate::malloc (size);
-    }
-
-  /* The following two functions free memory for the descriptor. */
-
-  inline void operator delete (void *mem)
-    {
-      allocate:: free (mem);
-    }
-
-  inline void operator delete[] (void *mem)
-    {
-      allocate:: free (mem);
-    }
-
-  /* This function is used for freeing memory allocated for OS except
-     for the first segment. */
-
-  /* See comments for function yaep_error_code. */
-  int error_code (void);
-
-  /* See comments for function yaep_error_message. */
-  const char *error_message (void);
-
-  /* See comments for function yaep_read_grammar. */
-  int read_grammar (int strict_p,
-			   const char *(*read_terminal) (int *code),
-			   const char *(*read_rule) (const char ***rhs,
-						     const char **abs_node,
-						     int *anode_cost,
-						     int **transl));
-
-  /* See comments for function yaep_parse_grammar. */
-  int parse_grammar (int strict_p, const char *description);
-
-  /* See comments for corresponding C functions. */
-  int set_lookahead_level (int level);
-  int set_debug_level (int level);
-  int set_one_parse_flag (int flag);
-  int set_cost_flag (int flag);
-  int set_error_recovery_flag (int flag);
-  int set_recovery_match (int n_toks);
-
-  /* See comments for function yaep_parse. */
-  int parse (int (*read_token) (void **attr),
-	     void (*syntax_error) (int err_tok_num,
-				   void *err_tok_attr,
-				   int start_ignored_tok_num,
-				   void *start_ignored_tok_attr,
-				   int start_recovered_tok_num,
-				   void *start_recovered_tok_attr),
-	     void *(*parse_alloc) (int nmemb),
-	     void (*parse_free) (void *mem),
-	     struct yaep_tree_node **root,
-	     int *ambiguous_p);
-};
-
-#endif /* #ifndef __cplusplus */
 
 #endif /* #ifndef __YAEP__ */

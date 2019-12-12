@@ -45,9 +45,6 @@
 #include <limits.h>
 #include <assert.h>
 
-#ifndef __cplusplus
-
-
 /* This macro value returns bit vlaue (0 or 1) with given bit
    displacement (0, 1, ...).  The macro has side effects!  Value of
    `bit_displacement' must be nonegative and can be greater than
@@ -99,57 +96,5 @@ void bit_string_move (void *to, int to_bit_displacement,
 int bit_string_comparison (const void *str1, int bit_displacement1,
                            const void *str2, int bit_displacement2,
                            int bit_length);
-
-#else /* #ifndef __cplusplus */
-
-
-class bits
-{
-
-public:
-
-  /* This function returns bit value (0 or 1) with given bit
-     displacement (0, 1, ...).  Value of `bit_displacement' must be
-     nonegative and can be greater than CHAR_BIT. */
-  
-  static inline int bit (const void *start_byte, int bit_displacement)
-    {
-      assert (bit_displacement >= 0);
-      return ((((const char *) start_byte)) [bit_displacement / CHAR_BIT]
-              >> (CHAR_BIT - 1 - bit_displacement % CHAR_BIT)) & 1;
-    }
-
-  /* This function sets up new value (must be `0' or `1') of a given
-     bit (bit displacement starts with 0).  Value of
-     `bit_displacement' must be nonegative and can be greater than
-     CHAR_BIT. */
-
-  static inline void set_bit (void *start_byte, int bit_displacement, int bit)
-    {
-      assert (bit_displacement >= 0 && (bit == 0 || bit == 1));
-      ((char *) start_byte) [bit_displacement / CHAR_BIT]
-        = ((((char *) start_byte) [bit_displacement / CHAR_BIT]
-            & ~(1 << (CHAR_BIT - 1 - bit_displacement % CHAR_BIT)))
-           | (bit << (CHAR_BIT - 1 - bit_displacement % CHAR_BIT)));
-    }
-
-  static int is_zero_bit_string (const void *start_byte, int bit_displacement,
-                                 int bit_length);
-  static void bit_string_set (void *start_byte, int bit_displacement, int bit,
-                              int bit_length);
-  static void bit_string_copy (void *to, int to_bit_displacement,
-                               const void *from, int from_bit_displacement,
-                               int bit_length);
-  static void bit_string_move (void *to, int to_bit_displacement,
-                               const void *from, int from_bit_displacement,
-                               int bit_length);
-  static int bit_string_comparison (const void *str1, int bit_displacement1,
-                                    const void *str2, int bit_displacement2,
-                                    int bit_length);
-};
-
-
-#endif /* #ifndef __cplusplus */
-
 
 #endif /* #ifndef __BITS__ */
