@@ -480,7 +480,6 @@ EXTRA_DIST = d_gen.c d_yacc.y d_ir.sprut d_bc.sprut d_extern.sprut d_run.sprut\
 
 ACLOCAL_AMFLAGS = -I m4
 SPRUT = ../SPRUT/sprut
-SHILKA = ../SHILKA/shilka
 MSTA = ../MSTA/msta
 all: $(BUILT_SOURCES) d_config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive

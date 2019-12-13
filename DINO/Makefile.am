@@ -52,7 +52,6 @@ EXTRA_DIST =  d_gen.c d_yacc.y d_ir.sprut d_bc.sprut d_extern.sprut d_run.sprut\
 	      dino.sgml.in
 ACLOCAL_AMFLAGS = -I m4
 SPRUT = ../SPRUT/sprut
-SHILKA = ../SHILKA/shilka
 MSTA = ../MSTA/msta
 check : test
 
