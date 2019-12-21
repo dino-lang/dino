@@ -1230,7 +1230,7 @@ process_decl (IR_node_t stmt, IR_node_t *prev_stmt_ptr, IR_node_t next_stmt,
 	    || IR_use_clause (prev_decl) == IR_use_clause (stmt));
   if (node_mode == IR_NM_var)
     {
-      IR_node_t scope, fun_class;
+      IR_node_t scope, fun_class, next, next_next, next_next_next;
       
       IR_set_var_number_in_block (stmt, IR_vars_number (block));
       IR_set_vars_number (block, IR_vars_number (block) + 1);
@@ -1239,8 +1239,20 @@ process_decl (IR_node_t stmt, IR_node_t *prev_stmt_ptr, IR_node_t next_stmt,
 	  && (fun_class = IR_fun_class (scope)) != NULL)
 	{
 	  if (par_assign_p && IR_min_actual_parameters_number (fun_class) < 0)
-	    IR_set_min_actual_parameters_number (fun_class,
-						 IR_parameters_number (fun_class));
+	    {
+	      IR_set_min_actual_parameters_number (fun_class,
+	      					   IR_parameters_number (fun_class));
+              next = IR_next_stmt (stmt);
+	      d_assert (next != NULL && IR_IS_OF_TYPE (next, IR_NM_par_assign));
+              if (IR_args_flag (fun_class))
+	        error (FALSE, IR_pos (next), ERR_default_value_parameter_and_dots);
+              else if ((next_next = IR_next_stmt (next)) != NULL
+	               && IR_IS_OF_TYPE (next_next, IR_NM_var)
+		       && IR_par_flag (next_next)
+		       && ((next_next_next = IR_next_stmt (next_next)) == NULL
+			   || IR_NODE_MODE (next_next_next) != IR_NM_par_assign))
+                error (FALSE, IR_pos (next), ERR_default_value_parameters_should_be_last);
+            }
 	  IR_set_parameters_number (fun_class,
 				    IR_parameters_number (fun_class) + 1);
 	}
@@ -1306,6 +1318,21 @@ put_var_list_before (IR_node_t list, IR_node_t stmt,
 		    first_level_stmt_ptr, TRUE);
     }
   IR_set_next_stmt (*prev_stmt_ptr, stmt);
+}
+
+static hint_val_t get_hint (IR_node_t ident) {
+  const char *str = IR_ident_string (IR_unique_ident (ident));
+
+  if (strcmp (str, "jit") == 0)
+    return JIT_HINT;
+  else if (strcmp (str, "inline") == 0)
+    return INLINE_HINT;
+  else if (strcmp (str, "pure") == 0)
+    return PURE_HINT;
+  else {
+    error (FALSE, IR_pos (ident), ERR_unknown_hint, str);
+    return NO_HINT;
+  }
 }
 
 /* It will contains all C code nodes:  */
@@ -1476,9 +1503,10 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	    int saved_curr_use_items_start = curr_use_items_start;
 	    int saved_curr_fdecl_flag = curr_fdecl_flag;
 	    int copied_redirs_start;
-	    IR_node_t curr_block, curr_except, fun_class;
+	    IR_node_t curr_block, curr_except, fun_class, hint_ident;
 	    IR_node_t *item_ptr;
 	    int block_foreach_start;
+	    hint_val_t hint = NO_HINT;
 
 	    d_assert (IR_case_pattern (stmt) == NULL
 		      || (IR_fun_class (stmt) == NULL
@@ -1539,6 +1567,18 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 		   curr_block = IR_block_scope (curr_block))
 		IR_set_inline_flag (curr_block, FALSE);
 	    fun_class = IR_fun_class (stmt);
+	    hint_ident = IR_hint_ident (stmt);
+	    hint = hint_ident != NULL ? get_hint (hint_ident) : NO_HINT;
+	    if (fun_class != NULL && (hint == PURE_HINT || hint == INLINE)
+		&& (!IR_IS_OF_TYPE (fun_class, IR_NM_fun) || IR_fiber_flag (fun_class))) {
+	      error (FALSE, IR_pos (fun_class), ERR_wrong_hint_for_non_fun);
+	      hint = NO_HINT;
+	    } else if (fun_class != NULL && hint == JIT_HINT && IR_IS_OF_TYPE (fun_class, IR_NM_fun)
+		       && IR_fiber_flag (fun_class)) {
+	      error (FALSE, IR_pos (fun_class), ERR_jit_hint_for_fiber);
+	      hint = NO_HINT;
+	    }
+	    IR_set_hint (stmt, hint);
 	    if (IR_exceptions (stmt) != NULL || fun_class != NULL)
 	      IR_set_inline_flag (stmt, FALSE);
 	    if (! IR_inline_flag (stmt))

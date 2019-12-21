@@ -886,6 +886,7 @@ block :: stmt
         /* The list of exceptions for TRY block, NULL for simple
            block. */
         exceptions : exception
+        hint_ident : ident
         /* Flag of the hint presence */
         hint : hint_val_t {$ = NO_HINT;}
         /* The three fields following are non-null if the block corresponds a

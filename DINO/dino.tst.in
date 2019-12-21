@@ -20432,7 +20432,6 @@ test.d:2:5: invalid type of operand in logical operation
 test.d:4:10: invalid type of operand in logical operation
 test.d:5:7: invalid type of wait-expr
 test.d:6:11: invalid type of foreach-table
-test.d:8:3: invalid type of throw-expr
 test.d:10:7: syntax error
 OUTPUT352
                         result=ok
@@ -20478,7 +20477,7 @@ TEST354
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT354' && $CMP $stderr $ftemp2; then
 test.d:2:7: syntax error
-test.d:2:23: syntax error
+test.d:2:24: syntax error
 OUTPUT354
                         result=ok
                 else
@@ -27656,18 +27655,18 @@ TEST497
 		sed 's,\\,/,g' $stderr|sed 's%^.*socket.d%@srcdir@/socket.d%' >$ftemp
                 echo '      ' $CMP $ftemp $ftemp2
                 if cat >$ftemp2 <<'OUTPUT497' && $CMP $ftemp $ftemp2; then
-In file processed from test.d:1:18:
-@srcdir@/socket.d:51:7: host is unknown
+In file processed from test.d:1:9:
+@srcdir@/MDOULES/socket.d:51:7: host is unknown
 OUTPUT497
                         result=ok
                 elif cat >$ftemp2 <<'OUTPUT497-2' && $CMP $ftemp $ftemp2; then
-In file processed from test.d:1:18:
-@srcdir@/socket.d:47:45: connection timed out
+In file processed from test.d:1:9:
+@srcdir@/MDOULES/socket.d:47:45: connection timed out
 OUTPUT497-2
                         result=ok
                 elif cat >$ftemp2 <<'OUTPUT497-3' && $CMP $ftemp $ftemp2; then
-In file processed from test.d:1:18:
-@srcdir@/socket.d:53:7: does not have an IP address
+In file processed from test.d:1:9:
+@srcdir@/MDOULES/socket.d:53:7: does not have an IP address
 OUTPUT497-3
                         result=ok
                 else
@@ -27682,17 +27681,17 @@ OUTPUT497-3
 		sed 's,\\,/,g' $stderr|sed 's%^.*socket.d%@srcdir@/socket.d%' >$ftemp
                 echo '      ' $CMP $ftemp $ftemp2
                 if cat >$ftemp2 <<'OUTPUT497-4' && $CMP $ftemp $ftemp2; then
-In file processed from test.d:1:18:
+In file processed from test.d:1:9:
 @srcdir@/socket.d:51:7: host is unknown
 OUTPUT497-4
                         result=ok
                 elif cat >$ftemp2 <<'OUTPUT497-5' && $CMP $ftemp $ftemp2; then
-In file processed from test.d:1:18:
+In file processed from test.d:1:9:
 @srcdir@/socket.d:47:45: connection timed out
 OUTPUT497-5
                         result=ok
                 elif cat >$ftemp2 <<'OUTPUT497-6' && $CMP $ftemp $ftemp2; then
-In file processed from test.d:1:18:
+In file processed from test.d:1:9:
 @srcdir@/socket.d:53:7: does not have an IP address
 OUTPUT497-6
                         result=ok
@@ -48535,7 +48534,7 @@ TEST809
         else
                 echo '      ' $CMP $ftemp2 $stderr
                 if cat >$ftemp2 <<'OUTPUT809' && $CMP $stderr $ftemp2; then
-test.d:2:14: run time error - unexpected number of parameters for `f'
+test.d:2:13: run time error - unexpected number of parameters for `f'
 OUTPUT809
 			result=ok
                 else
@@ -48557,7 +48556,7 @@ TEST810
         else
                 echo '      ' $CMP $ftemp2 $stderr
                 if cat >$ftemp2 <<'OUTPUT810' && $CMP $stderr $ftemp2; then
-test.d:2:14: run time error - unexpected number of parameters for `f'
+test.d:2:13: run time error - unexpected number of parameters for `f'
 OUTPUT810
 			result=ok
                 else
@@ -48579,7 +48578,7 @@ TEST811
         else
                 echo '      ' $CMP $ftemp2 $stderr
                 if cat >$ftemp2 <<'OUTPUT811' && $CMP $stderr $ftemp2; then
-test.d:2:11: run time error - unexpected number of parameters for `f'
+test.d:2:10: run time error - unexpected number of parameters for `f'
 OUTPUT811
 			result=ok
                 else
@@ -48601,7 +48600,7 @@ TEST812
         else
                 echo '      ' $CMP $ftemp2 $stderr
                 if cat >$ftemp2 <<'OUTPUT812' && $CMP $stderr $ftemp2; then
-test.d:2:11: run time error - unexpected number of parameters for `f'
+test.d:2:10: run time error - unexpected number of parameters for `f'
 OUTPUT812
 			result=ok
                 else
@@ -48623,7 +48622,7 @@ TEST813
         else
                 echo '      ' $CMP $ftemp2 $stderr
                 if cat >$ftemp2 <<'OUTPUT813' && $CMP $stderr $ftemp2; then
-test.d:2:13: run time error - unexpected number of parameters for `f'
+test.d:2:15: run time error - unexpected number of parameters for `f'
 OUTPUT813
 			result=ok
                 else
@@ -48645,7 +48644,7 @@ TEST814
         else
                 echo '      ' $CMP $ftemp2 $stderr
                 if cat >$ftemp2 <<'OUTPUT814' && $CMP $stderr $ftemp2; then
-test.d:2:13: run time error - unexpected number of parameters for `f'
+test.d:2:15: run time error - unexpected number of parameters for `f'
 OUTPUT814
 			result=ok
                 else

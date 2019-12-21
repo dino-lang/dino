@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2016 Vladimir Makarov.
+   Copyright (C) 1997-2019 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@gcc.gnu.org>
 
@@ -1460,7 +1460,7 @@ int dino_main (int argc, char *argv[], char *envp[]) {
 
     printf ("Dino interpreter, development version %.2f, language version %.2f\n", DINO_VERSION,
             DINO_LANG_VERSION);
-    printf ("Copyright (c) 1997-2016, Vladimir Makarov, vmakarov@gcc.gnu.org\n");
+    printf ("Copyright (c) 1997-2019, Vladimir Makarov, vmakarov@gcc.gnu.org\n");
     printf ("Use \"exit(<int>);\" or Ctrl-D to exit\n");
     printf ("Use \";\" for stmt end, for if-stmt w/o else use \";;\", e.g. if (cond) v = e;;\n");
     start_scanner_file ("", NULL, no_position);
@@ -1477,7 +1477,7 @@ int dino_main (int argc, char *argv[], char *envp[]) {
         fflush (stdout);
       }
       initiate_new_parser_REPL_stmts ();
-      if (yyparse ()) skip_line_rest ();
+      if (parse ()) skip_line_rest ();
       last_p = feof (stdin);
       if (last_p) fputs ("\n", stdout);
       if (number_of_errors == 0 && first_program_stmt != NULL)
@@ -1506,7 +1506,7 @@ int dino_main (int argc, char *argv[], char *envp[]) {
       else
         start_scanner_file (input_file_name, source_file_encoding (input_file_name), no_position);
       initiate_parser ();
-      yyparse ();
+      parse ();
       finish_parser ();
       if (first_program_stmt != NULL) {
         initiate_context ();

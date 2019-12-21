@@ -7,9 +7,9 @@ lib_LTLIBRARIES = libdino.la
 libdino_la_SOURCES = d_dino.h d_errors.h d_common.h d_built.h d_yacc.h d_runtab.h d_bcio.h\
 		     d_types.h d_context.h d_inference.h d_conv.h d_udb.h d_func.h d_eval.h\
 		     mum.h d_strtab.h d_errors.c d_heap.c d_runtab.c\
-   		     d_context.c d_inference.c d_bcio.c d_conv.c d_udb.c d_func.c\
+   		     d_parse.c d_context.c d_inference.c d_bcio.c d_conv.c d_udb.c d_func.c\
 		     d_eval.c d_dino.c
-nodist_libdino_la_SOURCES = d_yacc.c d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_extern.h
+nodist_libdino_la_SOURCES = d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_extern.h
 CC = @CC@
 DINO_VERSION=$(VERSION)
 DINO_LANG_VERSION=@DINO_LANG_VERSION@
@@ -33,7 +33,7 @@ libdino_la_CFLAGS = -I$(srcdir)/../ONIGURUMA/src -I$(srcdir)/../ONIGURUMA -I$(sr
 libdino_la_LDFLAGS = @DINO_LIB_LDFLAGS@ -release $(DINO_VERSION)
 bin_PROGRAMS = dino
 dino_SOURCES = d_main.c
-CLEANFILES = sgramm.c d_yacc.c d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h
+CLEANFILES = sgramm.c d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h
 dino_DEPENDENCIES = libdino.la
 dino_CFLAGS = $(libdino_la_CFLAGS)
 dino_LDFLAGS = -export-dynamic @DINO_LIB_LDFLAGS@ \
@@ -45,7 +45,7 @@ dist_doc_DATA = dino.txt dino.info dino.html dino-1.html dino-2.html\
 	        dino.pdf dino.dvi dino.ps
 dist_man_MANS = dino.1
 nodist_include_HEADERS = d_api.h d_gen.i
-EXTRA_DIST =  d_gen.c d_yacc.y d_ir.sprut d_bc.sprut d_extern.sprut d_run.sprut\
+EXTRA_DIST =  d_gen.c d_ir.sprut d_bc.sprut d_extern.sprut d_run.sprut\
 	      dino.tst.in UnicodeDB.c\
 	      compare.tst README INSTALL d_minimize.d d_flatten.d\
 	      UnicodeOriginalData.txt process_ucodedb.d\
@@ -110,10 +110,6 @@ d_extern.c d_extern.h : $(srcdir)/d_extern.sprut
 # Use -debug instead of -only-macro for debugging
 	../SPRUT/sprut @START_SPRUT_OPTIONS@ -pER_ -access -set -flat-structure $(srcdir)/d_extern.sprut
 	rm -f d_extern.c
-
-d_yacc.c: $(srcdir)/d_yacc.y
-	@echo must be - conflicts: 9 shift/reduce.
-	$(MSTA) -no-regular-optimization -local-error-recovery $(srcdir)/d_yacc.y
 
 prepare-unicode: $(srcdir)/UnicodeDB.c
 

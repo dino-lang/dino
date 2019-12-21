@@ -141,12 +141,12 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libdino_la_LIBADD =
 am_libdino_la_OBJECTS = libdino_la-d_errors.lo libdino_la-d_heap.lo \
-	libdino_la-d_runtab.lo libdino_la-d_context.lo \
-	libdino_la-d_inference.lo libdino_la-d_bcio.lo \
-	libdino_la-d_conv.lo libdino_la-d_udb.lo libdino_la-d_func.lo \
-	libdino_la-d_eval.lo libdino_la-d_dino.lo
-nodist_libdino_la_OBJECTS = libdino_la-d_yacc.lo libdino_la-d_ir.lo \
-	libdino_la-d_bc.lo libdino_la-d_run.lo
+	libdino_la-d_runtab.lo libdino_la-d_parse.lo \
+	libdino_la-d_context.lo libdino_la-d_inference.lo \
+	libdino_la-d_bcio.lo libdino_la-d_conv.lo libdino_la-d_udb.lo \
+	libdino_la-d_func.lo libdino_la-d_eval.lo libdino_la-d_dino.lo
+nodist_libdino_la_OBJECTS = libdino_la-d_ir.lo libdino_la-d_bc.lo \
+	libdino_la-d_run.lo
 libdino_la_OBJECTS = $(am_libdino_la_OBJECTS) \
 	$(nodist_libdino_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
@@ -436,10 +436,10 @@ lib_LTLIBRARIES = libdino.la
 libdino_la_SOURCES = d_dino.h d_errors.h d_common.h d_built.h d_yacc.h d_runtab.h d_bcio.h\
 		     d_types.h d_context.h d_inference.h d_conv.h d_udb.h d_func.h d_eval.h\
 		     mum.h d_strtab.h d_errors.c d_heap.c d_runtab.c\
-   		     d_context.c d_inference.c d_bcio.c d_conv.c d_udb.c d_func.c\
+   		     d_parse.c d_context.c d_inference.c d_bcio.c d_conv.c d_udb.c d_func.c\
 		     d_eval.c d_dino.c
 
-nodist_libdino_la_SOURCES = d_yacc.c d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_extern.h
+nodist_libdino_la_SOURCES = d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_extern.h
 DINO_VERSION = $(VERSION)
 dino_module_full_suffix = $(DINO_MODULE_VERSION_SUFFIX)$(DINO_MODULE_SUFFIX)
 mpi_lib = d_mpi$(dino_module_full_suffix)
@@ -458,7 +458,7 @@ libdino_la_CFLAGS = -I$(srcdir)/../ONIGURUMA/src -I$(srcdir)/../ONIGURUMA -I$(sr
 
 libdino_la_LDFLAGS = @DINO_LIB_LDFLAGS@ -release $(DINO_VERSION)
 dino_SOURCES = d_main.c
-CLEANFILES = sgramm.c d_yacc.c d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h
+CLEANFILES = sgramm.c d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h
 dino_DEPENDENCIES = libdino.la
 dino_CFLAGS = $(libdino_la_CFLAGS)
 dino_LDFLAGS = -export-dynamic @DINO_LIB_LDFLAGS@ \
@@ -472,7 +472,7 @@ dist_doc_DATA = dino.txt dino.info dino.html dino-1.html dino-2.html\
 
 dist_man_MANS = dino.1
 nodist_include_HEADERS = d_api.h d_gen.i
-EXTRA_DIST = d_gen.c d_yacc.y d_ir.sprut d_bc.sprut d_extern.sprut d_run.sprut\
+EXTRA_DIST = d_gen.c d_ir.sprut d_bc.sprut d_extern.sprut d_run.sprut\
 	      dino.tst.in UnicodeDB.c\
 	      compare.tst README INSTALL d_minimize.d d_flatten.d\
 	      UnicodeOriginalData.txt process_ucodedb.d\
@@ -644,10 +644,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_heap.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_inference.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_ir.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_parse.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_run.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_runtab.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_udb.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libdino_la-d_yacc.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -690,6 +690,13 @@ libdino_la-d_runtab.lo: d_runtab.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='d_runtab.c' object='libdino_la-d_runtab.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libdino_la_CFLAGS) $(CFLAGS) -c -o libdino_la-d_runtab.lo `test -f 'd_runtab.c' || echo '$(srcdir)/'`d_runtab.c
+
+libdino_la-d_parse.lo: d_parse.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libdino_la_CFLAGS) $(CFLAGS) -MT libdino_la-d_parse.lo -MD -MP -MF $(DEPDIR)/libdino_la-d_parse.Tpo -c -o libdino_la-d_parse.lo `test -f 'd_parse.c' || echo '$(srcdir)/'`d_parse.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libdino_la-d_parse.Tpo $(DEPDIR)/libdino_la-d_parse.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='d_parse.c' object='libdino_la-d_parse.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libdino_la_CFLAGS) $(CFLAGS) -c -o libdino_la-d_parse.lo `test -f 'd_parse.c' || echo '$(srcdir)/'`d_parse.c
 
 libdino_la-d_context.lo: d_context.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libdino_la_CFLAGS) $(CFLAGS) -MT libdino_la-d_context.lo -MD -MP -MF $(DEPDIR)/libdino_la-d_context.Tpo -c -o libdino_la-d_context.lo `test -f 'd_context.c' || echo '$(srcdir)/'`d_context.c
@@ -746,13 +753,6 @@ libdino_la-d_dino.lo: d_dino.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='d_dino.c' object='libdino_la-d_dino.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libdino_la_CFLAGS) $(CFLAGS) -c -o libdino_la-d_dino.lo `test -f 'd_dino.c' || echo '$(srcdir)/'`d_dino.c
-
-libdino_la-d_yacc.lo: d_yacc.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libdino_la_CFLAGS) $(CFLAGS) -MT libdino_la-d_yacc.lo -MD -MP -MF $(DEPDIR)/libdino_la-d_yacc.Tpo -c -o libdino_la-d_yacc.lo `test -f 'd_yacc.c' || echo '$(srcdir)/'`d_yacc.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libdino_la-d_yacc.Tpo $(DEPDIR)/libdino_la-d_yacc.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='d_yacc.c' object='libdino_la-d_yacc.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libdino_la_CFLAGS) $(CFLAGS) -c -o libdino_la-d_yacc.lo `test -f 'd_yacc.c' || echo '$(srcdir)/'`d_yacc.c
 
 libdino_la-d_ir.lo: d_ir.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libdino_la_CFLAGS) $(CFLAGS) -MT libdino_la-d_ir.lo -MD -MP -MF $(DEPDIR)/libdino_la-d_ir.Tpo -c -o libdino_la-d_ir.lo `test -f 'd_ir.c' || echo '$(srcdir)/'`d_ir.c
@@ -1387,10 +1387,6 @@ d_extern.c d_extern.h : $(srcdir)/d_extern.sprut
 # Use -debug instead of -only-macro for debugging
 	../SPRUT/sprut @START_SPRUT_OPTIONS@ -pER_ -access -set -flat-structure $(srcdir)/d_extern.sprut
 	rm -f d_extern.c
-
-d_yacc.c: $(srcdir)/d_yacc.y
-	@echo must be - conflicts: 9 shift/reduce.
-	$(MSTA) -no-regular-optimization -local-error-recovery $(srcdir)/d_yacc.y
 
 prepare-unicode: $(srcdir)/UnicodeDB.c
 
