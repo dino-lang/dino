@@ -626,7 +626,7 @@ val asbtract_tree = p.parse (token_vector, syntax_error);
 ```
 
 * The variable `v` in C code will be of type `val_t`.  The function
-  `f` in C code will have teh following prototype
+  `f` in C code will have the following prototype
 
 ```
       val_t f (int npars, val_t *args);
